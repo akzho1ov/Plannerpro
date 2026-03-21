@@ -10,6 +10,26 @@
 <title>PlannerPro — Центр управления</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=DM+Serif+Display:ital@0;1&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script>
+// ⬇️ ТВОЙ Firebase config (замени на свой из Firebase Console → Project Settings)
+const firebaseConfig = {
+  apiKey: "AIzaSyDidYgYQdL4NT3yCeSqmFZkF9ckpRD0Lu8",
+  authDomain: "plannerpro-d388f.firebaseapp.com",
+  projectId: "plannerpro-d388f",
+  storageBucket: "plannerpro-d388f.firebasestorage.app",
+  messagingSenderId: "68666541106",
+  appId: "1:68666541106:web:b9e78a5769222d5f67282b",
+  measurementId: "G-8RQB3MR8Y0"
+};
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db = firebase.firestore();
+let currentUser = null;
+</script>
 <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'%3E%3Crect width='180' height='180' rx='40' fill='%230a0c16'/%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%23f59e0b'/%3E%3Cstop offset='.5' stop-color='%239b7cf4'/%3E%3Cstop offset='1' stop-color='%23f472b6'/%3E%3C/linearGradient%3E%3C/defs%3E%3Ctext x='90' y='115' text-anchor='middle' font-size='90' font-family='serif'%3E✦%3C/text%3E%3Crect x='30' y='130' width='120' height='3' rx='2' fill='url(%23g)'/%3E%3C/svg%3E">
 <style>
 /* ────────── RESET & ROOT ────────── */
@@ -194,8 +214,8 @@ select.inp option{background:var(--card2);color:var(--text)}
 .htTbl{border-collapse:collapse;min-width:max-content;width:100%}
 .htTbl th,.htTbl td{padding:4px 3px;text-align:center;border:1px solid rgba(255,255,255,.04);font-size:11px}
 .htTbl th{background:var(--card2);font-weight:700;font-size:9px;color:var(--muted)}
-.htNameCell{text-align:left!important;padding:6px 10px!important;font-weight:600;white-space:nowrap;min-width:135px;background:var(--card)!important;position:sticky;left:0;z-index:2;border-right:1px solid var(--border2)!important}
-.htNameInp{border:none;background:transparent;font-family:'DM Sans',sans-serif;font-size:11.5px;font-weight:600;color:var(--text);outline:none;width:105px}
+.htNameCell{text-align:left!important;padding:6px 8px!important;font-weight:600;min-width:160px;max-width:200px;background:var(--card)!important;position:sticky;left:0;z-index:2;border-right:1px solid var(--border2)!important}
+.htNameInp{border:none;background:transparent;font-family:'DM Sans',sans-serif;font-size:11px;font-weight:600;color:var(--text);outline:none;width:100%;min-width:0;white-space:normal;word-break:break-word}
 .htDelBtn{border:none;background:none;cursor:pointer;color:var(--border3);font-size:12px;padding:0 3px;float:right;transition:.15s}
 .htDelBtn:hover{color:var(--red)}
 .htCb{width:14px;height:14px;cursor:pointer;accent-color:var(--pink)}
@@ -685,11 +705,79 @@ select.inp option{background:var(--card2);color:var(--text)}
 .rwQtyMax{font-size:9px;color:var(--muted);text-align:center;margin-top:1px}
 .rwTaskQtyWrap{display:flex;flex-direction:column;align-items:center;flex-shrink:0}
 .rwTaskPtsSmall{font-family:'Space Mono',monospace;font-size:11px;font-weight:400;color:var(--muted);margin-top:2px;white-space:nowrap}
+
+/* ══ AUTH OVERLAY ══ */
+#authOverlay{position:fixed;inset:0;z-index:900;background:var(--bg);display:flex;align-items:center;justify-content:center;padding:20px}
+#authOverlay.hidden{display:none}
+.authBox{background:var(--card);border:1px solid var(--border2);border-radius:20px;padding:36px 32px;max-width:400px;width:100%;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.8)}
+.authLogo{width:56px;height:56px;background:linear-gradient(135deg,#f59e0b,#9b7cf4,#f472b6);border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:28px;margin:0 auto 16px}
+.authTitle{font-family:'Syne',sans-serif;font-size:24px;font-weight:800;background:linear-gradient(110deg,#f59e0b,#9b7cf4);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:6px}
+.authSub{font-size:12px;color:var(--muted);margin-bottom:28px;line-height:1.6}
+.authGoogleBtn{display:flex;align-items:center;justify-content:center;gap:12px;width:100%;padding:13px 20px;background:#fff;color:#1a1a2e;border:none;border-radius:12px;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;cursor:pointer;transition:.2s;margin-bottom:12px;box-shadow:0 4px 16px rgba(0,0,0,.3)}
+.authGoogleBtn:hover{background:#f5f5f5;transform:translateY(-1px);box-shadow:0 6px 20px rgba(0,0,0,.4)}
+.authGoogleBtn svg{width:20px;height:20px;flex-shrink:0}
+.authDivider{display:flex;align-items:center;gap:10px;margin:16px 0;color:var(--muted);font-size:11px}
+.authDivider::before,.authDivider::after{content:'';flex:1;height:1px;background:var(--border2)}
+.authEmailForm{display:flex;flex-direction:column;gap:10px;text-align:left}
+.authToggle{font-size:11px;color:var(--muted);margin-top:10px;cursor:pointer;text-align:center}
+.authToggle span{color:var(--gold);font-weight:700}
+.authErr{font-size:11px;color:var(--red);background:var(--reddim);border:1px solid rgba(248,113,113,.2);border-radius:8px;padding:8px 12px;display:none;margin-bottom:4px}
+.authErr.show{display:block}
+/* User button */
+.hUserBtn{display:flex;align-items:center;gap:8px;padding:4px 10px;background:var(--card2);border:1px solid var(--border2);border-radius:20px;cursor:pointer;transition:.15s;flex-shrink:0;height:32px}
+.hUserBtn:hover{border-color:var(--border3)}
+.hUserAvatar{width:24px;height:24px;border-radius:50%;object-fit:cover}
+.hUserName{font-size:11px;font-weight:600;color:var(--text2);max-width:100px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+/* Sync dot */
+.syncDot{width:7px;height:7px;border-radius:50%;background:var(--green);flex-shrink:0;transition:.3s}
+.syncDot.syncing{background:var(--gold);animation:syncPulse 1s infinite}
+.syncDot.error{background:var(--red)}
+@keyframes syncPulse{0%,100%{opacity:1}50%{opacity:.4}}
+/* Save status toast */
+#saveStatus{position:fixed;top:16px;right:16px;z-index:800;font-size:10px;font-weight:700;padding:5px 14px;border-radius:20px;background:var(--card2);border:1px solid var(--border2);color:var(--muted);transition:.3s;pointer-events:none;opacity:0}
+#saveStatus.show{opacity:1}
+#saveStatus.saved{color:var(--green);border-color:rgba(45,212,166,.3)}
+#saveStatus.saving{color:var(--gold);border-color:rgba(245,158,11,.3)}
+#saveStatus.error{color:var(--red);border-color:rgba(248,113,113,.3)}
+/* Rewards qty dots */
+.rwQtyProgress{display:flex;gap:3px;flex-wrap:wrap;align-items:center}
+.rwQtyDot{width:9px;height:9px;border-radius:50%;background:var(--border2);transition:.2s;flex-shrink:0}
+.rwQtyDot.filled{background:var(--green);box-shadow:0 0 4px rgba(45,212,166,.4)}
+/* Habit name wrapping fix */
+.htNameCell{overflow:visible!important}
 </style>
 </head>
 <body>
 <div class="bg-glow"></div>
 
+<!-- HEADER -->
+<!-- ══ AUTH OVERLAY ══ -->
+<div id="authOverlay">
+  <div class="authBox">
+    <div class="authLogo">✦</div>
+    <div class="authTitle">PlannerPro</div>
+    <div class="authSub">Твой персональный центр управления.<br>Войди чтобы данные синхронизировались на всех устройствах.</div>
+    <button class="authGoogleBtn" onclick="signInGoogle()">
+      <svg viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.08 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.96 2.31-8.16 2.31-6.26 0-11.57-3.59-13.46-8.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/><path fill="none" d="M0 0h48v48H0z"/></svg>
+      Войти через Google
+    </button>
+    <div class="authDivider">или по email</div>
+    <div class="authEmailForm">
+      <div id="authErrMsg" class="authErr"></div>
+      <input class="inp" id="authEmail" type="email" placeholder="Email адрес" autocomplete="email">
+      <input class="inp" id="authPass" type="password" placeholder="Пароль (мин. 6 символов)" autocomplete="current-password">
+      <div id="authNameRow" style="display:none">
+        <input class="inp" id="authName" type="text" placeholder="Имя (для приветствия)" autocomplete="name">
+      </div>
+      <button class="btn btnO" style="width:100%;justify-content:center;padding:11px" id="authSubmitBtn" onclick="authSubmit()">Войти</button>
+      <div class="authToggle" onclick="toggleAuthMode()">Нет аккаунта? <span id="authToggleTxt">Зарегистрироваться</span></div>
+    </div>
+  </div>
+</div>
+
+<div id="appWrap" style="display:none">
+<!-- ══ SAVE STATUS ══ -->
+<div id="saveStatus">✓ Сохранено</div>
 <!-- HEADER -->
 <div id="hdr">
   <div class="hInner">
@@ -713,6 +801,16 @@ select.inp option{background:var(--card2);color:var(--text)}
           <button class="hTab" onclick="switchTab('gym',this)">💪 Тренировки</button>
         </div>
       </div>
+      <!-- User button -->
+      <div style="display:flex;align-items:center;gap:8px;padding-bottom:4px;flex-shrink:0">
+        <div class="syncDot" id="syncDot" title="Синхронизация"></div>
+        <div class="hUserBtn" onclick="showUserMenu()">
+          <img class="hUserAvatar" id="hUserAvatar" src="" onerror="this.style.display='none'" style="display:none">
+          <span style="font-size:16px" id="hUserEmoji">👤</span>
+          <span class="hUserName" id="hUserName">Загрузка...</span>
+          <span style="font-size:9px;color:var(--muted)">▼</span>
+        </div>
+      </div>
     </div>
     <!-- Mobile top bar -->
     <div class="hMobile">
@@ -725,7 +823,7 @@ select.inp option{background:var(--card2);color:var(--text)}
       </div>
     </div>
   </div>
-</div>
+</div><!-- /hdr -->
 
 <!-- Mobile Bottom Nav -->
 <div id="mobileNav" style="display:none">
@@ -1549,10 +1647,156 @@ select.inp option{background:var(--card2);color:var(--text)}
 /* ─────────────────────────
    DATA LAYER
 ───────────────────────── */
+/* ─────────────────────────
+   DATA LAYER — Firebase Firestore
+───────────────────────── */
 const SKEY='planner_v5';
-function loadD(){try{return JSON.parse(localStorage.getItem(SKEY))||{}}catch{return{}}}
-function saveD(){try{localStorage.setItem(SKEY,JSON.stringify(G))}catch(e){console.warn('Save error',e)}}
-let G=loadD();
+let G={};
+let _saveTimer=null;
+
+// Show save status indicator
+function showSaveStatus(state,msg){
+  const el=document.getElementById('saveStatus');if(!el)return;
+  el.textContent=msg;el.className='show '+state;
+  clearTimeout(el._t);
+  el._t=setTimeout(()=>{el.className=''},2500);
+}
+function setSyncDot(state){
+  const d=document.getElementById('syncDot');if(!d)return;
+  d.className='syncDot'+(state==='syncing'?' syncing':state==='error'?' error':'');
+}
+
+// Load from Firestore
+async function loadFromCloud(){
+  if(!currentUser)return;
+  try{
+    setSyncDot('syncing');
+    const doc=await db.collection('users').doc(currentUser.uid).get();
+    if(doc.exists){
+      const data=doc.data();
+      // Merge with defaults — don't overwrite if already loaded
+      G=data;
+    }
+    setSyncDot('ok');
+  }catch(e){
+    console.warn('Load error',e);
+    setSyncDot('error');
+    // Fall back to localStorage cache
+    try{const cached=localStorage.getItem(SKEY+'_cache');if(cached)G=JSON.parse(cached);}catch{}
+  }
+}
+
+// Save to Firestore (debounced 1.5s)
+function saveD(){
+  // Cache locally first for offline resilience
+  try{localStorage.setItem(SKEY+'_cache',JSON.stringify(G))}catch{}
+  clearTimeout(_saveTimer);
+  setSyncDot('syncing');
+  showSaveStatus('saving','⏳ Сохранение...');
+  _saveTimer=setTimeout(async()=>{
+    if(!currentUser){setSyncDot('error');return;}
+    try{
+      await db.collection('users').doc(currentUser.uid).set(G,{merge:true});
+      setSyncDot('ok');
+      showSaveStatus('saved','✓ Сохранено');
+    }catch(e){
+      console.warn('Save error',e);
+      setSyncDot('error');
+      showSaveStatus('error','✗ Ошибка сохранения');
+    }
+  },1500);
+}
+
+/* ─────────────────────────
+   AUTH
+───────────────────────── */
+let _authMode='login'; // 'login' | 'register'
+function toggleAuthMode(){
+  _authMode=_authMode==='login'?'register':'login';
+  document.getElementById('authToggleTxt').textContent=_authMode==='login'?'Зарегистрироваться':'Войти';
+  document.getElementById('authSubmitBtn').textContent=_authMode==='login'?'Войти':'Создать аккаунт';
+  document.getElementById('authNameRow').style.display=_authMode==='register'?'block':'none';
+  document.getElementById('authErrMsg').className='authErr';
+}
+function showAuthErr(msg){
+  const el=document.getElementById('authErrMsg');el.textContent=msg;el.className='authErr show';
+}
+async function signInGoogle(){
+  try{
+    const provider=new firebase.auth.GoogleAuthProvider();
+    await auth.signInWithPopup(provider);
+  }catch(e){showAuthErr('Ошибка Google: '+e.message)}
+}
+async function authSubmit(){
+  const email=document.getElementById('authEmail').value.trim();
+  const pass=document.getElementById('authPass').value;
+  if(!email||!pass){showAuthErr('Заполни email и пароль');return;}
+  try{
+    if(_authMode==='login'){
+      await auth.signInWithEmailAndPassword(email,pass);
+    } else {
+      const cred=await auth.createUserWithEmailAndPassword(email,pass);
+      const name=document.getElementById('authName').value.trim();
+      if(name)await cred.user.updateProfile({displayName:name});
+    }
+  }catch(e){
+    const msgs={'auth/user-not-found':'Пользователь не найден','auth/wrong-password':'Неверный пароль','auth/invalid-credential':'Неверный email или пароль','auth/email-already-in-use':'Email уже используется','auth/weak-password':'Пароль слишком слабый','auth/invalid-email':'Неверный формат email','auth/too-many-requests':'Слишком много попыток, подожди'};
+    showAuthErr(msgs[e.code]||e.message);
+  }
+}
+
+function showUserMenu(){
+  if(confirm('Выйти из аккаунта?'))auth.signOut();
+}
+
+function updateUserUI(user){
+  document.getElementById('hUserName').textContent=user.displayName||user.email.split('@')[0];
+  document.getElementById('hUserEmoji').style.display='none';
+  const av=document.getElementById('hUserAvatar');
+  if(user.photoURL){av.src=user.photoURL;av.style.display='block';}
+  // Update greeting with name
+  const greeting=document.getElementById('dashGreet');
+  if(greeting){
+    const h=new Date().getHours();
+    const name=user.displayName?', '+user.displayName.split(' ')[0]:'';
+    greeting.textContent=(h<12?'Доброе утро':h<18?'Добрый день':'Добрый вечер')+name+' 👋';
+  }
+}
+
+// Auth state listener — entry point
+auth.onAuthStateChanged(async(user)=>{
+  if(user){
+    currentUser=user;
+    document.getElementById('authOverlay').classList.add('hidden');
+    document.getElementById('appWrap').style.display='block';
+    await loadFromCloud();
+    // Migrate old localStorage data on first login
+    const oldData=localStorage.getItem(SKEY);
+    if(oldData&&!G.tasks){
+      try{
+        G=JSON.parse(oldData)||{};
+        await db.collection('users').doc(user.uid).set(G,{merge:true});
+        localStorage.removeItem(SKEY);
+        showSaveStatus('saved','✓ Данные перенесены в облако');
+      }catch{}
+    }
+    updateUserUI(user);
+    initApp();
+  } else {
+    currentUser=null;
+    G={};
+    document.getElementById('authOverlay').classList.remove('hidden');
+    document.getElementById('appWrap').style.display='none';
+  }
+});
+
+function initApp(){
+  // Migrate old tasks (ensure they have IDs)
+  if(G.tasks)G.tasks=G.tasks.map(t=>t.id?t:{...t,id:uid()});
+  kbMigrate();
+  renderDash();
+  initMobileNav();
+}
 
 /* ─────────────────────────
    HELPERS
@@ -2709,16 +2953,8 @@ function renderStreakHeatmap(){
 }
 
 /* ─────────────────────────
-   INIT
+   INIT — called after auth
 ───────────────────────── */
-// Migrate old tasks (ensure they have IDs)
-(function(){
-  if(G.tasks)G.tasks=G.tasks.map(t=>t.id?t:{...t,id:uid()});
-  kbMigrate();
-  saveD();
-})();
-
-renderDash();
 
 /* ═══════════════════════════════════
    8. REWARD SYSTEM
@@ -2850,21 +3086,36 @@ function rwRenderTasks(){
           <div class="rwTaskPts">${ptsLabel}</div>
         </div>`;
       } else {
-        // Quantity stepper mode
+        // Quantity stepper mode — shows how many times completed today
         const ptsLabel=mult>1?`${t.pts}×${mult}`:t.pts;
-        html+=`<div class="rwTask" style="${curQty>0?'background:rgba(45,212,166,.06);border-color:rgba(45,212,166,.2)':''}">
-          <div class="rwCheckbox" style="${curQty>0?'background:var(--green);border-color:var(--green)':''}"><span class="rwCheckMark" style="${curQty>0?'display:block':'display:none'}">✓</span></div>
+        const ep=Math.round(t.pts*mult);
+        const allDone=curQty>=maxQty;
+        // Build progress dots (max 10 dots visible)
+        const dotCount=Math.min(maxQty,10);
+        let dots='';
+        for(let di=0;di<dotCount;di++){
+          dots+=`<div class="rwQtyDot${di<curQty?' filled':''}"></div>`;
+        }
+        if(maxQty>10)dots+=`<span style="font-size:9px;color:var(--muted)">×${maxQty}</span>`;
+        html+=`<div class="rwTask" style="${curQty>0?'background:rgba(45,212,166,.06);border-color:rgba(45,212,166,'+(allDone?'0.5':'0.2')+')':''}">
+          <div class="rwCheckbox" style="${curQty>0?'background:'+(allDone?'var(--green)':'rgba(45,212,166,.4)')+';border-color:'+(allDone?'var(--green)':'rgba(45,212,166,.5)'):''}">
+            <span class="rwCheckMark" style="${curQty>0?'display:block':'display:none'}">${allDone?'✓':'▸'}</span>
+          </div>
           <div class="rwTaskBody">
             <div class="rwTaskName">${esc(t.name)}</div>
-            <div class="rwTypeBadge rwt-${t.type}">${RW_TYPE_LABELS[t.type]||t.type} · за раз +${ptsLabel}</div>
+            <div style="display:flex;align-items:center;gap:6px;margin-top:4px;flex-wrap:wrap">
+              <div class="rwTypeBadge rwt-${t.type}">${RW_TYPE_LABELS[t.type]||t.type}</div>
+              <div class="rwQtyProgress">${dots}</div>
+              <span style="font-size:9px;color:var(--muted)">${curQty}/${maxQty} раз · +${curQty>0?Math.round(ep*curQty):ep} баллов</span>
+            </div>
           </div>
           <div class="rwTaskQtyWrap">
             <div class="rwQtyStepper">
-              <button class="rwQtyBtn" onclick="rwQtyChange('${t.id}',-1)">−</button>
-              <div class="rwQtyNum">${curQty}</div>
-              <button class="rwQtyBtn" onclick="rwQtyChange('${t.id}',1)">+</button>
+              <button class="rwQtyBtn" onclick="rwQtyChange('${t.id}',-1)" ${curQty===0?'disabled':''} style="${curQty===0?'opacity:.3':''}">&minus;</button>
+              <div class="rwQtyNum" style="${curQty>0?'color:var(--green)':''}">${curQty}</div>
+              <button class="rwQtyBtn" onclick="rwQtyChange('${t.id}',1)" ${allDone?'disabled':''} style="${allDone?'opacity:.3':''}">&plus;</button>
             </div>
-            <div class="rwQtyMax">макс ${maxQty} · итого +${curQty>0?Math.round(ep*curQty):ep}</div>
+            <div class="rwQtyMax">+${ptsLabel} за раз</div>
           </div>
         </div>`;
       }
@@ -3698,8 +3949,7 @@ window.addEventListener('resize',()=>{
   if(document.getElementById('tab-dash').classList.contains('on'))renderDash();
   if(document.getElementById('tab-gym').classList.contains('on')&&document.getElementById('gym-prog-ex-sel').value)gymRenderProgress();
 });
-
-initMobileNav();
 </script>
+</div><!-- /appWrap -->
 </body>
 </html>
