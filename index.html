@@ -31,6 +31,7 @@ const db = firebase.firestore();
 let currentUser = null;
 </script>
 <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'%3E%3Crect width='180' height='180' rx='40' fill='%230a0c16'/%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%23f59e0b'/%3E%3Cstop offset='.5' stop-color='%239b7cf4'/%3E%3Cstop offset='1' stop-color='%23f472b6'/%3E%3C/linearGradient%3E%3C/defs%3E%3Ctext x='90' y='115' text-anchor='middle' font-size='90' font-family='serif'%3E✦%3C/text%3E%3Crect x='30' y='130' width='120' height='3' rx='2' fill='url(%23g)'/%3E%3C/svg%3E">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%230a0c16'/%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%23f59e0b'/%3E%3Cstop offset='.5' stop-color='%239b7cf4'/%3E%3Cstop offset='1' stop-color='%23f472b6'/%3E%3C/linearGradient%3E%3C/defs%3E%3Ctext x='16' y='22' text-anchor='middle' font-size='18' font-family='serif' fill='url(%23g)'%3E✦%3C/text%3E%3C/svg%3E">
 <style>
 /* ────────── RESET & ROOT ────────── */
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
@@ -745,9 +746,42 @@ select.inp option{background:var(--card2);color:var(--text)}
 .rwQtyDot.filled{background:var(--green);box-shadow:0 0 4px rgba(45,212,166,.4)}
 /* Habit name wrapping fix */
 .htNameCell{overflow:visible!important}
+
+/* ────────── APP LOADER ────────── */
+#appLoader{position:fixed;inset:0;z-index:9999;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;transition:opacity .5s,visibility .5s}
+#appLoader.hidden{opacity:0;visibility:hidden;pointer-events:none}
+.loaderLogo{width:56px;height:56px;background:linear-gradient(135deg,#f59e0b,#9b7cf4,#f472b6);border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:26px;animation:loaderPulse 2s ease-in-out infinite}
+@keyframes loaderPulse{0%,100%{transform:scale(1);box-shadow:0 0 0 0 rgba(155,124,244,.4)}50%{transform:scale(1.05);box-shadow:0 0 0 12px rgba(155,124,244,0)}}
+.loaderTitle{font-family:'Syne',sans-serif;font-size:20px;font-weight:800;background:linear-gradient(110deg,#f59e0b,#9b7cf4);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.loaderMsg{font-size:11px;color:var(--muted);font-weight:600;letter-spacing:.04em;min-height:16px}
+.loaderTrack{width:140px;height:3px;background:var(--border2);border-radius:2px;overflow:hidden;margin-top:4px}
+.loaderFill{height:100%;background:linear-gradient(90deg,#f59e0b,#9b7cf4,#f472b6);border-radius:2px;width:0%;transition:width .6s ease}
+
+/* ────────── WEIGHT TRACKER ────────── */
+.wtAddRow{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap}
+.wtEntryList{display:flex;flex-direction:column;gap:6px;margin-bottom:14px}
+.wtEntry{display:flex;align-items:center;gap:8px;padding:9px 12px;background:var(--card);border:1px solid var(--border);border-radius:var(--r2)}
+.wtEntryDate{font-size:10px;color:var(--muted);min-width:80px;font-weight:600}
+.wtEntryVal{font-family:'Syne',sans-serif;font-size:16px;font-weight:800;color:var(--cyan);min-width:60px}
+.wtEntryDiff{font-size:10px;font-weight:700;min-width:48px}
+.wtEntryNote{flex:1;font-size:10px;color:var(--text2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.wtDel{border:none;background:none;cursor:pointer;color:var(--border3);font-size:14px;padding:0 2px;margin-left:auto;flex-shrink:0;transition:.15s}
+.wtDel:hover{color:var(--red)}
+.wtChartCard{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:14px 16px;margin-bottom:14px}
+.wtStatsRow{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px}
+.wtStatCard{background:var(--card);border:1px solid var(--border);border-radius:var(--r2);padding:12px 10px;text-align:center}
+.wtStatV{font-family:'Syne',sans-serif;font-size:20px;font-weight:800;line-height:1}
+.wtStatL{font-size:9px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);margin-top:4px;font-weight:700}
 </style>
 </head>
 <body>
+<!-- ══ APP LOADER ══ -->
+<div id="appLoader">
+  <div class="loaderLogo">✦</div>
+  <div class="loaderTitle">PlannerPro</div>
+  <div class="loaderMsg" id="loaderMsg">Подключение...</div>
+  <div class="loaderTrack"><div class="loaderFill" id="loaderFill"></div></div>
+</div>
 <div class="bg-glow"></div>
 
 <!-- HEADER -->
@@ -1297,6 +1331,7 @@ select.inp option{background:var(--card2);color:var(--text)}
     <button class="gymSubTab" onclick="gymSubTab('session',this)" id="gym-st-session">💪 Тренировка</button>
     <button class="gymSubTab" onclick="gymSubTab('history',this)">🕒 История</button>
     <button class="gymSubTab" onclick="gymSubTab('progress',this)">📈 Прогресс</button>
+    <button class="gymSubTab" onclick="gymSubTab('weight',this)">⚖️ Вес</button>
     <button class="gymSubTab" onclick="gymSubTab('library',this)">📚 Библиотека</button>
   </div>
 
@@ -1346,6 +1381,32 @@ select.inp option{background:var(--card2);color:var(--text)}
       <canvas id="gym-progress-chart" height="130" style="width:100%;display:block"></canvas>
     </div>
     <div id="gym-progress-table"></div>
+  </div>
+
+  <!-- WEIGHT TRACKER -->
+  <div class="gymPane" id="gymp-weight">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px">
+      <div style="font-family:'DM Serif Display',serif;font-size:20px;font-style:italic;color:var(--cyan)">⚖️ Трекер веса</div>
+    </div>
+    <!-- Stats -->
+    <div class="wtStatsRow" id="wt-stats-row"></div>
+    <!-- Chart -->
+    <div class="wtChartCard">
+      <div style="font-size:10px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px">Динамика веса</div>
+      <canvas id="wt-chart" height="130" style="width:100%;display:block"></canvas>
+    </div>
+    <!-- Add entry -->
+    <div class="card" style="padding:14px 16px;margin-bottom:14px">
+      <div class="secLbl" style="margin-bottom:10px">Добавить запись</div>
+      <div class="wtAddRow">
+        <input type="date" class="inp" id="wt-date" style="flex:1;min-width:130px;color-scheme:dark">
+        <input type="number" class="inp" id="wt-val" placeholder="Вес (кг)" step="0.1" min="20" max="300" style="flex:1;min-width:100px">
+        <input class="inp" id="wt-note" placeholder="Заметка..." style="flex:2;min-width:150px">
+        <button class="btn btnB" onclick="wtAdd()">Добавить</button>
+      </div>
+    </div>
+    <!-- List -->
+    <div class="wtEntryList" id="wt-list"></div>
   </div>
 
   <!-- LIBRARY -->
@@ -1645,14 +1706,26 @@ select.inp option{background:var(--card2);color:var(--text)}
 <script>
 'use strict';
 /* ─────────────────────────
-   DATA LAYER
-───────────────────────── */
-/* ─────────────────────────
    DATA LAYER — Firebase Firestore
 ───────────────────────── */
 const SKEY='planner_v5';
 let G={};
 let _saveTimer=null;
+let _pendingSave=false;      // true while we're writing to Firestore
+let _cloudListener=null;     // onSnapshot unsubscribe fn
+let _appReady=false;         // true after first cloud load
+
+// ── Loader helpers ──
+function loaderStep(msg,pct){
+  const m=document.getElementById('loaderMsg');
+  const f=document.getElementById('loaderFill');
+  if(m)m.textContent=msg;
+  if(f)f.style.width=pct+'%';
+}
+function hideLoader(){
+  const el=document.getElementById('appLoader');
+  if(el){el.classList.add('hidden');setTimeout(()=>{el.style.display='none'},600)}
+}
 
 // Show save status indicator
 function showSaveStatus(state,msg){
@@ -1666,24 +1739,55 @@ function setSyncDot(state){
   d.className='syncDot'+(state==='syncing'?' syncing':state==='error'?' error':'');
 }
 
-// Load from Firestore
-async function loadFromCloud(){
+// ── Re-render whichever tab is currently visible ──
+function reRenderCurrentTab(){
+  const renders={dash:renderDash,weekly:renderWP,habits:renderHT,tasks:renderTP,calendar:renderCal,kanban:renderKanban,finance:renderFin,goals:renderGrowth,rewards:rwRender,gym:gymRender};
+  for(const[name,fn] of Object.entries(renders)){
+    if(document.getElementById('tab-'+name)?.classList.contains('on')){try{fn();}catch(e){}break;}
+  }
+}
+
+// ── Subscribe to Firestore real-time updates ──
+function subscribeCloud(){
   if(!currentUser)return;
-  try{
-    setSyncDot('syncing');
-    const doc=await db.collection('users').doc(currentUser.uid).get();
-    if(doc.exists){
-      const data=doc.data();
-      // Merge with defaults — don't overwrite if already loaded
-      G=data;
-    }
+  if(_cloudListener){_cloudListener();_cloudListener=null;}
+  setSyncDot('syncing');
+  loaderStep('Загрузка данных...',50);
+  _cloudListener=db.collection('users').doc(currentUser.uid).onSnapshot(snap=>{
     setSyncDot('ok');
-  }catch(e){
-    console.warn('Load error',e);
+    if(!snap.exists){
+      // First time user — no data yet
+      if(!_appReady){_appReady=true;hideLoader();initApp();}
+      return;
+    }
+    // hasPendingWrites=true means this event is from our OWN local write echoing back
+    if(snap.metadata.hasPendingWrites){return;}
+    // If we are in the middle of a debounced save, this snapshot might be stale
+    if(_pendingSave){return;}
+    const incoming=snap.data();
+    G=incoming;
+    // Update local cache
+    try{localStorage.setItem(SKEY+'_cache',JSON.stringify(G));}catch{}
+    if(!_appReady){
+      _appReady=true;
+      hideLoader();
+      initApp();
+    } else {
+      // Data came from another device → re-render current tab
+      reRenderCurrentTab();
+      showSaveStatus('saved','↓ Синхронизировано');
+    }
+  },err=>{
+    console.warn('Snapshot error',err);
     setSyncDot('error');
     // Fall back to localStorage cache
-    try{const cached=localStorage.getItem(SKEY+'_cache');if(cached)G=JSON.parse(cached);}catch{}
-  }
+    if(!_appReady){
+      try{const c=localStorage.getItem(SKEY+'_cache');if(c)G=JSON.parse(c);}catch{}
+      _appReady=true;
+      hideLoader();
+      initApp();
+    }
+  });
 }
 
 // Save to Firestore (debounced 1.5s)
@@ -1695,6 +1799,7 @@ function saveD(){
   showSaveStatus('saving','⏳ Сохранение...');
   _saveTimer=setTimeout(async()=>{
     if(!currentUser){setSyncDot('error');return;}
+    _pendingSave=true;
     try{
       await db.collection('users').doc(currentUser.uid).set(G,{merge:true});
       setSyncDot('ok');
@@ -1703,6 +1808,10 @@ function saveD(){
       console.warn('Save error',e);
       setSyncDot('error');
       showSaveStatus('error','✗ Ошибка сохранения');
+    }finally{
+      // Allow a short delay so our own snapshot echo arrives and gets skipped
+      setTimeout(()=>{_pendingSave=false;},2000);
+      _saveTimer=null;
     }
   },1500);
 }
@@ -1767,26 +1876,31 @@ function updateUserUI(user){
 auth.onAuthStateChanged(async(user)=>{
   if(user){
     currentUser=user;
+    loaderStep('Авторизация...',20);
     document.getElementById('authOverlay').classList.add('hidden');
     document.getElementById('appWrap').style.display='block';
-    await loadFromCloud();
-    // Migrate old localStorage data on first login
+    // Migrate old localStorage data before subscribing
     const oldData=localStorage.getItem(SKEY);
-    if(oldData&&!G.tasks){
+    if(oldData){
       try{
-        G=JSON.parse(oldData)||{};
-        await db.collection('users').doc(user.uid).set(G,{merge:true});
-        localStorage.removeItem(SKEY);
-        showSaveStatus('saved','✓ Данные перенесены в облако');
+        const parsed=JSON.parse(oldData)||{};
+        if(Object.keys(parsed).length>0){
+          loaderStep('Перенос данных...',35);
+          await db.collection('users').doc(user.uid).set(parsed,{merge:true});
+          localStorage.removeItem(SKEY);
+        }
       }catch{}
     }
     updateUserUI(user);
-    initApp();
+    subscribeCloud(); // starts real-time sync; calls initApp() on first data
   } else {
     currentUser=null;
     G={};
+    _appReady=false;
+    if(_cloudListener){_cloudListener();_cloudListener=null;}
     document.getElementById('authOverlay').classList.remove('hidden');
     document.getElementById('appWrap').style.display='none';
+    hideLoader();
   }
 });
 
@@ -3500,23 +3614,139 @@ function gymRender(){
   if(d.activeSession){banner.style.display='flex';document.getElementById('gym-active-name').textContent=d.activeSession.name;}
   else banner.style.display='none';
   gymRenderPrograms();gymRenderSession();gymUpdateProgressSelects();gymRenderHistoryFilter();gymRenderLibrary();
+  // If weight tab is currently active
+  if(document.getElementById('gymp-weight')?.classList.contains('on'))wtRender();
 }
 
 function gymSubTab(name,btn){
   document.querySelectorAll('.gymSubTab').forEach(e=>e.classList.remove('on'));
   document.querySelectorAll('.gymPane').forEach(e=>e.classList.remove('on'));
   document.getElementById('gymp-'+name).classList.add('on');
-  btn.classList.add('on');
+  if(btn)btn.classList.add('on');
   if(name==='history')gymRenderHistory();
   if(name==='progress')gymRenderProgress();
   if(name==='library')gymRenderLibrary();
   if(name==='programs')gymRenderPrograms();
   if(name==='session')gymRenderSession();
+  if(name==='weight')wtRender();
 }
 function gymSubTabGo(name){
-  const names=['programs','session','history','progress','library'];
+  const names=['programs','session','history','progress','weight','library'];
   const idx=names.indexOf(name);
   if(idx>=0)gymSubTab(name,document.querySelectorAll('.gymSubTab')[idx]);
+}
+
+/* ═══════════════════════════════════
+   WEIGHT TRACKER
+═══════════════════════════════════ */
+function wtD(){
+  if(!G.gym)gymD();
+  if(!G.gym.weights)G.gym.weights=[];
+  return G.gym.weights;
+}
+function wtAdd(){
+  const dateVal=document.getElementById('wt-date').value;
+  const weightVal=parseFloat(document.getElementById('wt-val').value);
+  if(!dateVal||!weightVal||weightVal<=0){gymNotif('Введи дату и вес','error');return;}
+  const note=document.getElementById('wt-note').value.trim();
+  const entries=wtD();
+  // Replace if same date
+  const existing=entries.findIndex(e=>e.date===dateVal);
+  if(existing>=0){entries[existing]={date:dateVal,weight:weightVal,note};}
+  else{entries.push({date:dateVal,weight:weightVal,note});entries.sort((a,b)=>a.date.localeCompare(b.date));}
+  saveD();document.getElementById('wt-val').value='';document.getElementById('wt-note').value='';
+  wtRender();gymNotif('Вес добавлен','success');
+}
+function wtDelete(idx){
+  wtD().splice(idx,1);saveD();wtRender();gymNotif('Удалено','warn');
+}
+function wtRender(){
+  // Set today as default date if empty
+  const di=document.getElementById('wt-date');if(!di.value)di.value=dk(t0());
+  const entries=wtD();
+  // Stats
+  const statsEl=document.getElementById('wt-stats-row');
+  if(!entries.length){
+    statsEl.innerHTML='<div style="grid-column:1/-1;text-align:center;padding:20px;color:var(--muted);font-size:12px">Нет записей. Добавь первый вес!</div>';
+    document.getElementById('wt-list').innerHTML='';
+    wtDrawChart([]);return;
+  }
+  const weights=entries.map(e=>e.weight);
+  const cur=weights[weights.length-1];
+  const first=weights[0];
+  const mn=Math.min(...weights);const mx=Math.max(...weights);
+  const diff=+(cur-first).toFixed(1);
+  const diffColor=diff<0?'var(--green)':diff>0?'var(--red)':'var(--muted)';
+  statsEl.innerHTML=`
+    <div class="wtStatCard"><div class="wtStatV" style="color:var(--cyan)">${cur}</div><div class="wtStatL">Текущий (кг)</div></div>
+    <div class="wtStatCard"><div class="wtStatV" style="color:${diffColor}">${diff>0?'+':''}${diff}</div><div class="wtStatL">Изменение</div></div>
+    <div class="wtStatCard"><div class="wtStatV" style="color:var(--muted)">${mn} / ${mx}</div><div class="wtStatL">Мин / Макс</div></div>`;
+  // List (newest first)
+  const listEl=document.getElementById('wt-list');
+  const sorted=[...entries].reverse();
+  listEl.innerHTML=sorted.map((e,ri)=>{
+    const realIdx=entries.length-1-ri;
+    const prev=ri<sorted.length-1?sorted[ri+1].weight:null;
+    const diff2=prev!==null?+(e.weight-prev).toFixed(1):null;
+    const diffHtml=diff2!==null?`<span class="wtEntryDiff" style="color:${diff2<0?'var(--green)':diff2>0?'var(--red)':'var(--muted)'}">${diff2>0?'+':''}${diff2} кг</span>`:'<span class="wtEntryDiff" style="color:var(--muted)">—</span>';
+    const dt=new Date(e.date+'T00:00:00');
+    const dFmt=dt.getDate()+' '+['янв','фев','мар','апр','май','июн','июл','авг','сен','окт','ноя','дек'][dt.getMonth()];
+    return`<div class="wtEntry">
+      <div class="wtEntryDate">${dFmt}</div>
+      <div class="wtEntryVal">${e.weight} кг</div>
+      ${diffHtml}
+      <div class="wtEntryNote">${esc(e.note||'')}</div>
+      <button class="wtDel" onclick="wtDelete(${realIdx})">×</button>
+    </div>`;
+  }).join('');
+  wtDrawChart(entries);
+}
+function wtDrawChart(entries){
+  requestAnimationFrame(()=>{
+    const cv=document.getElementById('wt-chart');if(!cv)return;
+    const rect=cv.getBoundingClientRect();
+    const W=rect.width>10?rect.width:(cv.parentElement.getBoundingClientRect().width||600);
+    cv.width=W;cv.height=130;
+    const ctx=cv.getContext('2d'),H=cv.height,p={t:12,r:16,b:24,l:42};
+    ctx.clearRect(0,0,W,H);
+    if(entries.length<2){
+      ctx.fillStyle='rgba(90,99,130,.5)';ctx.font='12px DM Sans';ctx.textAlign='center';
+      ctx.fillText(entries.length===0?'Нет данных':'Добавь минимум 2 записи',W/2,H/2);return;
+    }
+    const vals=entries.map(e=>e.weight);
+    const mn=Math.min(...vals),mx=Math.max(...vals);
+    const pad=(mx-mn)||1;
+    const minV=mn-pad*.1,maxV=mx+pad*.1;
+    const cW=W-p.l-p.r,cH=H-p.t-p.b;
+    const sx=i=>p.l+(i/(entries.length-1))*cW;
+    const sy=v=>p.t+cH*(1-(v-minV)/(maxV-minV));
+    // Grid
+    ctx.strokeStyle='rgba(255,255,255,.05)';ctx.lineWidth=1;
+    for(let i=0;i<=4;i++){const y=p.t+(cH/4)*i;ctx.beginPath();ctx.moveTo(p.l,y);ctx.lineTo(W-p.r,y);ctx.stroke();}
+    // Fill
+    const g=ctx.createLinearGradient(0,p.t,0,H-p.b);
+    g.addColorStop(0,'rgba(34,211,238,.3)');g.addColorStop(1,'rgba(34,211,238,.02)');
+    ctx.beginPath();ctx.moveTo(sx(0),sy(vals[0]));
+    for(let i=1;i<vals.length;i++){const x0=sx(i-1),y0=sy(vals[i-1]),x1=sx(i),y1=sy(vals[i]),cp=(x1-x0)/2;ctx.bezierCurveTo(x0+cp,y0,x1-cp,y1,x1,y1);}
+    ctx.lineTo(sx(vals.length-1),H-p.b);ctx.lineTo(sx(0),H-p.b);ctx.closePath();ctx.fillStyle=g;ctx.fill();
+    // Line
+    ctx.beginPath();ctx.moveTo(sx(0),sy(vals[0]));
+    for(let i=1;i<vals.length;i++){const x0=sx(i-1),y0=sy(vals[i-1]),x1=sx(i),y1=sy(vals[i]),cp=(x1-x0)/2;ctx.bezierCurveTo(x0+cp,y0,x1-cp,y1,x1,y1);}
+    ctx.strokeStyle='#22d3ee';ctx.lineWidth=2;ctx.stroke();
+    // Dots
+    vals.forEach((v,i)=>{
+      ctx.beginPath();ctx.arc(sx(i),sy(v),3.5,0,Math.PI*2);
+      ctx.fillStyle=v===mn?'var(--green)':v===mx?'var(--red)':'#22d3ee';ctx.fill();
+    });
+    // Y labels
+    ctx.fillStyle='rgba(255,255,255,.35)';ctx.font='9px DM Sans';ctx.textAlign='right';
+    for(let i=0;i<=4;i++){const v=minV+(maxV-minV)*(1-i/4);ctx.fillText(v.toFixed(1),p.l-4,p.t+(cH/4)*i+4);}
+    // X labels
+    ctx.textAlign='center';const step=Math.max(1,Math.floor(entries.length/6));
+    entries.forEach((e,i)=>{
+      if(i%step===0){const dt=new Date(e.date+'T00:00:00');ctx.fillStyle='rgba(255,255,255,.3)';ctx.fillText(dt.getDate()+'.'+(dt.getMonth()+1),sx(i),H-4);}
+    });
+  });
 }
 
 /* TIMER */
@@ -3796,32 +4026,38 @@ function gymRenderProgress(){
   const prW=data.length?Math.max(...data.map(x=>x.maxW)):0;
   const prR=data.length?Math.max(...data.map(x=>x.maxR)):0;
   document.getElementById('gym-pr-badges').innerHTML=`<span class="gymPRBadge">🏆 Макс вес: ${prW} кг</span><span class="gymPRBadge">🔁 Макс повт: ${prR}</span><span class="gymMuscleChip ${gymMuscleClass(ex.muscle)}" style="padding:4px 10px">${ex.muscle}</span>`;
-  const cv=document.getElementById('gym-progress-chart');
-  cv.width=cv.offsetWidth||600;cv.height=130;
-  const ctx=cv.getContext('2d'),W=cv.width,H=cv.height,p={t:10,r:16,b:26,l:36};
-  ctx.clearRect(0,0,W,H);
-  if(data.length<2){ctx.fillStyle='rgba(90,99,130,.5)';ctx.font='12px DM Sans';ctx.textAlign='center';ctx.fillText('Нужно минимум 2 тренировки с этим упражнением',W/2,H/2);return;}
-  const vals=data.map(x=>x.maxW);const maxV=Math.max(...vals,1);
-  const cW=W-p.l-p.r,cH=H-p.t-p.b;
-  const sx=i=>p.l+(i/(data.length-1))*cW;const sy=v=>p.t+cH*(1-v/maxV);
-  ctx.strokeStyle='rgba(255,255,255,.05)';ctx.lineWidth=1;
-  for(let i=0;i<=4;i++){const y=p.t+(cH/4)*i;ctx.beginPath();ctx.moveTo(p.l,y);ctx.lineTo(W-p.r,y);ctx.stroke();}
-  const g=ctx.createLinearGradient(0,p.t,0,H-p.b);g.addColorStop(0,'rgba(34,211,238,.25)');g.addColorStop(1,'rgba(34,211,238,.02)');
-  ctx.beginPath();ctx.moveTo(sx(0),sy(vals[0]));
-  for(let i=1;i<data.length;i++){const x0=sx(i-1),y0=sy(vals[i-1]),x1=sx(i),y1=sy(vals[i]),cp=(x1-x0)/2;ctx.bezierCurveTo(x0+cp,y0,x1-cp,y1,x1,y1);}
-  ctx.lineTo(sx(data.length-1),H-p.b);ctx.lineTo(sx(0),H-p.b);ctx.closePath();ctx.fillStyle=g;ctx.fill();
-  ctx.beginPath();ctx.moveTo(sx(0),sy(vals[0]));
-  for(let i=1;i<data.length;i++){const x0=sx(i-1),y0=sy(vals[i-1]),x1=sx(i),y1=sy(vals[i]),cp=(x1-x0)/2;ctx.bezierCurveTo(x0+cp,y0,x1-cp,y1,x1,y1);}
-  ctx.strokeStyle='#22d3ee';ctx.lineWidth=2;ctx.stroke();
-  data.forEach((d,i)=>{ctx.beginPath();ctx.arc(sx(i),sy(vals[i]),d.maxW===prW?6:4,0,Math.PI*2);ctx.fillStyle=d.maxW===prW?'#f59e0b':'#22d3ee';ctx.fill();});
-  ctx.fillStyle='rgba(255,255,255,.3)';ctx.font='9px DM Sans';ctx.textAlign='right';
-  for(let i=0;i<=4;i++)ctx.fillText(Math.round(maxV*(1-i/4)),p.l-4,p.t+(cH/4)*i+4);
-  ctx.textAlign='center';const step=Math.max(1,Math.floor(data.length/6));
-  data.forEach((d,i)=>{if(i%step===0){const pt=d.date.split('-');ctx.fillStyle='rgba(255,255,255,.3)';ctx.fillText(pt[2]+'.'+pt[1],sx(i),H-4);}});
+  // Build table first so it's in DOM
   let th=`<div class="card" style="padding:0;overflow:hidden"><table style="width:100%;border-collapse:collapse;font-size:11px">
     <thead><tr style="background:var(--card2)"><th style="padding:8px 10px;text-align:left;font-size:9px;font-weight:700;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--border)">Дата</th><th style="padding:8px 10px;text-align:center;font-size:9px;font-weight:700;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--border)">Макс вес</th><th style="padding:8px 10px;text-align:center;font-size:9px;font-weight:700;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--border)">Макс повт</th><th style="padding:8px 10px;text-align:center;font-size:9px;font-weight:700;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--border)">Объём кг</th></tr></thead><tbody>`;
   [...data].reverse().forEach(r=>{const pr=r.maxW===prW;th+=`<tr style="border-bottom:1px solid rgba(255,255,255,.03)${pr?';background:rgba(245,158,11,.06)':''}"><td style="padding:7px 10px;color:var(--text2)">${gymFmtDate(r.date)}</td><td style="padding:7px 10px;text-align:center;font-family:'Syne',sans-serif;font-weight:800;color:${pr?'var(--gold)':'var(--text)'}">${r.maxW}кг${pr?' 🏆':''}</td><td style="padding:7px 10px;text-align:center;color:var(--cyan);font-weight:700">${r.maxR}</td><td style="padding:7px 10px;text-align:center;color:var(--muted)">${r.totalVol}</td></tr>`;});
   th+='</tbody></table></div>';document.getElementById('gym-progress-table').innerHTML=th;
+  // Draw chart after layout (requestAnimationFrame fixes 0-width canvas bug)
+  requestAnimationFrame(()=>{
+    const cv=document.getElementById('gym-progress-chart');
+    const rect=cv.getBoundingClientRect();
+    const W=rect.width>10?rect.width:(cv.parentElement.getBoundingClientRect().width||600);
+    cv.width=W;cv.height=130;
+    const ctx=cv.getContext('2d'),H=cv.height,p={t:10,r:16,b:26,l:36};
+    ctx.clearRect(0,0,W,H);
+    if(data.length<2){ctx.fillStyle='rgba(90,99,130,.5)';ctx.font='12px DM Sans';ctx.textAlign='center';ctx.fillText('Нужно минимум 2 тренировки с этим упражнением',W/2,H/2);return;}
+    const vals=data.map(x=>x.maxW);const maxV=Math.max(...vals,1);
+    const cW=W-p.l-p.r,cH=H-p.t-p.b;
+    const sx=i=>p.l+(i/(data.length-1))*cW;const sy=v=>p.t+cH*(1-v/maxV);
+    ctx.strokeStyle='rgba(255,255,255,.05)';ctx.lineWidth=1;
+    for(let i=0;i<=4;i++){const y=p.t+(cH/4)*i;ctx.beginPath();ctx.moveTo(p.l,y);ctx.lineTo(W-p.r,y);ctx.stroke();}
+    const g=ctx.createLinearGradient(0,p.t,0,H-p.b);g.addColorStop(0,'rgba(34,211,238,.25)');g.addColorStop(1,'rgba(34,211,238,.02)');
+    ctx.beginPath();ctx.moveTo(sx(0),sy(vals[0]));
+    for(let i=1;i<data.length;i++){const x0=sx(i-1),y0=sy(vals[i-1]),x1=sx(i),y1=sy(vals[i]),cp=(x1-x0)/2;ctx.bezierCurveTo(x0+cp,y0,x1-cp,y1,x1,y1);}
+    ctx.lineTo(sx(data.length-1),H-p.b);ctx.lineTo(sx(0),H-p.b);ctx.closePath();ctx.fillStyle=g;ctx.fill();
+    ctx.beginPath();ctx.moveTo(sx(0),sy(vals[0]));
+    for(let i=1;i<data.length;i++){const x0=sx(i-1),y0=sy(vals[i-1]),x1=sx(i),y1=sy(vals[i]),cp=(x1-x0)/2;ctx.bezierCurveTo(x0+cp,y0,x1-cp,y1,x1,y1);}
+    ctx.strokeStyle='#22d3ee';ctx.lineWidth=2;ctx.stroke();
+    data.forEach((d,i)=>{ctx.beginPath();ctx.arc(sx(i),sy(vals[i]),d.maxW===prW?6:4,0,Math.PI*2);ctx.fillStyle=d.maxW===prW?'#f59e0b':'#22d3ee';ctx.fill();});
+    ctx.fillStyle='rgba(255,255,255,.3)';ctx.font='9px DM Sans';ctx.textAlign='right';
+    for(let i=0;i<=4;i++)ctx.fillText(Math.round(maxV*(1-i/4)),p.l-4,p.t+(cH/4)*i+4);
+    ctx.textAlign='center';const step=Math.max(1,Math.floor(data.length/6));
+    data.forEach((d,i)=>{if(i%step===0){const pt=d.date.split('-');ctx.fillStyle='rgba(255,255,255,.3)';ctx.fillText(pt[2]+'.'+pt[1],sx(i),H-4);}});
+  });
 }
 
 /* LIBRARY */
@@ -3925,7 +4161,6 @@ function switchTabMob(name,btn){
   // Render
   const renders={dash:renderDash,weekly:renderWP,habits:renderHT,tasks:renderTP,calendar:renderCal,kanban:renderKanban,finance:renderFin,goals:renderGrowth,rewards:rwRender,gym:gymRender};
   if(renders[name])renders[name]();
-  // Scroll to top
   window.scrollTo(0,0);
 }
 
