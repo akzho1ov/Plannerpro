@@ -41,26 +41,26 @@ let currentUser = null;
 
 :root{
   /* ── Backgrounds ── */
-  --bg:#06070F;
-  --bg2:#09091A;
-  --card:#0D0E1D;
-  --card2:#111224;
-  --card3:#16172B;
-  --card-glass:rgba(13,14,29,.7);
+  --bg:#07080F;
+  --bg2:#0A0B18;
+  --card:#0F1020;
+  --card2:#141528;
+  --card3:#191B2F;
+  --card-glass:rgba(15,16,32,.75);
 
   /* ── Borders ── */
-  --border:rgba(255,255,255,.055);
-  --border2:rgba(255,255,255,.09);
-  --border3:rgba(255,255,255,.15);
+  --border:rgba(255,255,255,.08);
+  --border2:rgba(255,255,255,.13);
+  --border3:rgba(255,255,255,.22);
 
-  /* ── Typography ── */
-  --text:#EDF0FA;
-  --text2:#7882A4;
-  --muted:#3A3F5C;
+  /* ── Typography — MUCH higher contrast ── */
+  --text:#F0F2FF;
+  --text2:#9BA3C4;
+  --muted:#525A7A;
 
   /* ── Shadows ── */
-  --shadow:0 1px 3px rgba(0,0,0,.5),0 8px 32px rgba(0,0,0,.4);
-  --shadow2:0 2px 8px rgba(0,0,0,.6),0 20px 60px rgba(0,0,0,.5);
+  --shadow:0 1px 3px rgba(0,0,0,.6),0 8px 32px rgba(0,0,0,.4);
+  --shadow2:0 2px 8px rgba(0,0,0,.7),0 20px 60px rgba(0,0,0,.5);
   --glow:0 0 40px rgba(124,104,238,.15);
 
   /* ── Radius ── */
@@ -69,34 +69,34 @@ let currentUser = null;
   --r3:8px;
 
   /* ── PRIMARY accent: indigo-violet ── */
-  --p:#7C68EE;
-  --p2:#6A56D9;
-  --pdim:rgba(124,104,238,.12);
-  --pglow:rgba(124,104,238,.25);
+  --p:#8B7AF0;
+  --p2:#7A69DF;
+  --pdim:rgba(139,122,240,.14);
+  --pglow:rgba(139,122,240,.28);
 
-  /* ── Secondary: teal (success/growth) ── */
-  --s:#10D9A0;
-  --sdim:rgba(16,217,160,.1);
+  /* ── Secondary: teal ── */
+  --s:#12E8AC;
+  --sdim:rgba(18,232,172,.1);
 
-  /* ── Semantic colors (refined) ── */
-  --red:#FF4D6D;
-  --reddim:rgba(255,77,109,.1);
-  --gold:#F0A830;
-  --golddim:rgba(240,168,48,.1);
-  --blue:#5B8EF0;
-  --bluedim:rgba(91,142,240,.1);
-  --purple:#9D7CF4;
-  --purpledim:rgba(157,124,244,.1);
+  /* ── Semantic ── */
+  --red:#FF5C7A;
+  --reddim:rgba(255,92,122,.12);
+  --gold:#F5B53F;
+  --golddim:rgba(245,181,63,.12);
+  --blue:#6B9FFF;
+  --bluedim:rgba(107,159,255,.12);
+  --purple:#A882F8;
+  --purpledim:rgba(168,130,248,.12);
   --pink:#F472B6;
-  --pinkdim:rgba(244,114,182,.1);
-  --green:#10D9A0;
-  --greendim:rgba(16,217,160,.1);
-  --cyan:#22D3EE;
-  --cyandim:rgba(34,211,238,.1);
-  --orange:#FB923C;
-  --orangedim:rgba(251,146,60,.1);
+  --pinkdim:rgba(244,114,182,.12);
+  --green:#12E8AC;
+  --greendim:rgba(18,232,172,.12);
+  --cyan:#34D5F0;
+  --cyandim:rgba(52,213,240,.12);
+  --orange:#FF8F3C;
+  --orangedim:rgba(255,143,60,.12);
 
-  /* ── Typography scale ── */
+  /* ── Typography ── */
   --font-display:'Bricolage Grotesque',system-ui,sans-serif;
   --font-body:'Instrument Sans',system-ui,sans-serif;
   --font-mono:'JetBrains Mono',monospace;
@@ -104,7 +104,7 @@ let currentUser = null;
   /* ── Animation ── */
   --ease:cubic-bezier(.16,1,.3,1);
   --ease-out:cubic-bezier(0,0,.2,1);
-  --dur:220ms;
+  --dur:200ms;
 }
 
 html{font-size:13px;scroll-behavior:smooth}
@@ -2317,7 +2317,7 @@ select.inp option{background:var(--card2);color:var(--text)}
       <button class="modalClose" onclick="closeKbModal()">✕</button>
     </div>
     <div class="fldGrp"><div class="fldLbl">Заголовок</div><input class="inp" id="kbCardTitle" placeholder="Название задачи..."></div>
-    <div class="fldGrp"><div class="fldLbl">Описание</div><textarea class="kbTxtarea" id="kbCardDesc" placeholder="Подробное описание..."></textarea></div>
+    <div class="fldGrp"><div class="fldLbl">Описание / Заметки</div><textarea class="kbTxtarea" id="kbCardDesc" placeholder="Подробное описание..." style="min-height:56px;resize:none"></textarea></div>
     <div class="fldGrp"><div class="fldLbl">Приоритет</div>
       <div class="kbPriRow">
         <button class="kbPriBtn" data-p="1" onclick="selKbPri(1)">🔴 Высокий</button>
@@ -2325,7 +2325,15 @@ select.inp option{background:var(--card2);color:var(--text)}
         <button class="kbPriBtn" data-p="3" onclick="selKbPri(3)">🟢 Низкий</button>
       </div>
     </div>
-    <div class="fldGrp"><div class="fldLbl">Срок</div><input type="date" class="inp" id="kbCardDl" style="color-scheme:dark"></div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap">
+      <div class="fldGrp" style="flex:1;min-width:130px"><div class="fldLbl">Срок</div><input type="date" class="inp" id="kbCardDl" style="color-scheme:dark"></div>
+      <div class="fldGrp" style="flex:1;min-width:100px"><div class="fldLbl">Начало</div><input type="time" class="inp" id="kbCardTime" style="color-scheme:dark;font-family:var(--font-mono)"></div>
+      <div class="fldGrp" style="flex:1;min-width:100px"><div class="fldLbl">Конец</div><input type="time" class="inp" id="kbCardEndTime" style="color-scheme:dark;font-family:var(--font-mono)"></div>
+    </div>
+    <div class="fldGrp">
+      <div class="fldLbl" style="margin-bottom:6px">Метка</div>
+      <div style="display:flex;gap:5px;flex-wrap:wrap" id="kbLabelsList"></div>
+    </div>
     <div class="fldGrp"><div class="fldLbl">Колонка</div>
       <select class="inp" id="kbCardCol"></select>
     </div>
@@ -2423,27 +2431,30 @@ select.inp option{background:var(--card2);color:var(--text)}
 <div class="overlay" id="jOverlay" style="display:none">
   <div class="modalBox">
     <div class="modalHead">
-      <span class="modalTitle">Запись в дневник</span>
+      <span class="modalTitle" id="jModalTitle">Запись в дневник</span>
       <button class="modalClose" onclick="closeJournalModal()">✕</button>
     </div>
-    <div class="fldGrp"><div class="fldLbl">Дата</div><input type="date" class="inp" id="jDateInp" style="color-scheme:dark"></div>
-    <div class="fldGrp">
-      <div class="fldLbl">Настроение</div>
-      <div style="display:flex;gap:6px" id="jMoodPicker">
-        <button class="moodBtn" data-m="😊" onclick="selMood('😊')">😊</button>
-        <button class="moodBtn" data-m="😐" onclick="selMood('😐')">😐</button>
-        <button class="moodBtn" data-m="😔" onclick="selMood('😔')">😔</button>
-        <button class="moodBtn" data-m="😤" onclick="selMood('😤')">😤</button>
-        <button class="moodBtn" data-m="🤩" onclick="selMood('🤩')">🤩</button>
-        <button class="moodBtn" data-m="😴" onclick="selMood('😴')">😴</button>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:2px">
+      <div class="fldGrp" style="flex:1;min-width:130px"><div class="fldLbl">Дата</div><input type="date" class="inp" id="jDateInp" style="color-scheme:dark"></div>
+      <div class="fldGrp" style="flex:1;min-width:130px">
+        <div class="fldLbl">Настроение</div>
+        <div style="display:flex;gap:5px" id="jMoodPicker">
+          <button class="moodBtn" data-m="😊" onclick="selMood('😊')">😊</button>
+          <button class="moodBtn" data-m="😐" onclick="selMood('😐')">😐</button>
+          <button class="moodBtn" data-m="😔" onclick="selMood('😔')">😔</button>
+          <button class="moodBtn" data-m="😤" onclick="selMood('😤')">😤</button>
+          <button class="moodBtn" data-m="🤩" onclick="selMood('🤩')">🤩</button>
+          <button class="moodBtn" data-m="😴" onclick="selMood('😴')">😴</button>
+        </div>
       </div>
     </div>
-    <div class="fldGrp"><div class="fldLbl">Что произошло сегодня</div><textarea class="kbTxtarea" id="jTextInp" placeholder="Как прошёл день..." style="min-height:80px"></textarea></div>
-    <div class="fldGrp"><div class="fldLbl">3 вещи за которые я благодарен</div><textarea class="kbTxtarea" id="jGratInp" placeholder="1. ...\n2. ...\n3. ..." style="min-height:60px"></textarea></div>
-    <div class="fldGrp"><div class="fldLbl">Что я узнал сегодня</div><textarea class="kbTxtarea" id="jLearnInp" placeholder="Главный урок дня..." style="min-height:50px"></textarea></div>
+    <div class="fldGrp"><div class="fldLbl">Что произошло сегодня</div><textarea class="kbTxtarea" id="jTextInp" placeholder="Как прошёл день..." style="min-height:70px;resize:none"></textarea></div>
+    <div class="fldGrp"><div class="fldLbl">3 вещи за которые я благодарен</div><textarea class="kbTxtarea" id="jGratInp" placeholder="1. ...&#10;2. ...&#10;3. ..." style="min-height:55px;resize:none"></textarea></div>
+    <div class="fldGrp"><div class="fldLbl">Что я узнал сегодня</div><textarea class="kbTxtarea" id="jLearnInp" placeholder="Главный урок дня..." style="min-height:45px;resize:none"></textarea></div>
     <div style="display:flex;gap:8px">
+      <button class="btn btnR" id="jDeleteBtn" style="display:none;padding:7px 14px" onclick="jDeleteEntry()">Удалить</button>
       <button class="btn btnG" style="flex:1;justify-content:center" onclick="closeJournalModal()">Отмена</button>
-      <button class="btn btnP" style="flex:1;justify-content:center" onclick="addJEntry()">Сохранить</button>
+      <button class="btn btnP" style="flex:1;justify-content:center" onclick="saveJEntry()">Сохранить</button>
     </div>
   </div>
 </div>
@@ -2484,12 +2495,14 @@ function setSyncDot(state){
   d.className='syncDot'+(state==='syncing'?' syncing':state==='error'?' error':'');
 }
 
-// ── Re-render whichever tab is currently visible ──
+// ── Re-render whichever tab is currently visible (called after cloud sync) ──
 function reRenderCurrentTab(){
-  // After cloud sync, just use _refreshAllTaskViews + re-render active tab
   const renders={dash:renderDash,weekly:renderWP,habits:renderHT,tasks:renderTP,calendar:renderCal,kanban:renderKanban,finance:renderFin,goals:renderGrowth,rewards:rwRender,gym:gymRender};
   for(const[name,fn] of Object.entries(renders)){
-    if(document.getElementById('tab-'+name)?.classList.contains('on')){try{fn();}catch(e){}break;}
+    if(document.getElementById('tab-'+name)?.classList.contains('on')){
+      try{fn();}catch(e){console.warn('rerender err',e);}
+      break;
+    }
   }
 }
 
@@ -2736,11 +2749,16 @@ function renderWP(){
   const todK=dk(t0());
   for(let i=0;i<7;i++){
     const d=new Date(curMon);d.setDate(d.getDate()+i);
-    const key=dk(d),data=dayD(key),isT=key===todK;
+    const key=dk(d),isT=key===todK;
     const dow=d.getDay();
-    const tot=data.tasks.length,done=data.tasks.filter(t=>t.done).length;
+    // ── Use G.tasks filtered by this date (UNIFIED source) ──
+    const dayTasks=tpD().filter(t=>t.deadline===key);
+    const done=dayTasks.filter(t=>t.done).length;
+    const tot=dayTasks.length;
     const pct=tot?Math.round(done/tot*100):0;
     const C=2*Math.PI*28,off=C*(1-pct/100);
+    // day notes stored per-day
+    const data=dayD(key);
     const impr=data.impr||['','','',''];
     const card=document.createElement('div');
     card.className=`dCard${isT?' dToday':''}`;
@@ -2771,15 +2789,20 @@ function renderWP(){
   <div class="dStat"><div class="sl">итого</div><div class="sv">${tot}</div></div>
 </div>
 <div>
-  <div class="dSecLbl">Задачи:</div>
-  <div class="dTasks" id="dtl-${key}">${data.tasks.map((t,idx)=>`
-    <div class="dTask">
-      <input type="checkbox" ${t.done?'checked':''} onchange="toggleWT('${key}',${idx},this.checked)">
-      <input class="dTaskInp${t.done?' done':''}" value="${esc(t.text)}" placeholder="Задача..."
-        oninput="updWT('${key}',${idx},this.value)" onkeydown="wtkd(event,'${key}',${idx})">
-      <button class="dTaskDel" onclick="delWT('${key}',${idx})">×</button>
-    </div>`).join('')}</div>
-  <button class="dAddTask" onclick="addWT('${key}')">+ добавить задачу</button>
+  <div class="dSecLbl" style="margin-bottom:6px">Задачи</div>
+  <div class="dTasks" id="dtl-${key}">${dayTasks.map((t)=>{
+    const idx=tpD().indexOf(t);
+    const lbl=labelsD().find(l=>l.id===t.labelId);
+    const col=lbl?lbl.color:'var(--border3)';
+    const timeStr=t.time?`<span style="font-size:9px;color:var(--p);font-family:var(--font-mono)">${t.time}</span>`:'';
+    return`<div class="dTask" style="border-left:2px solid ${col};padding-left:5px;border-radius:2px">
+      <input type="checkbox" ${t.done?'checked':''} onchange="wTaskToggle(${idx},this.checked)" style="accent-color:var(--CC)">
+      <span class="dTaskInp${t.done?' done':''}" onclick="openTaskModal(${idx})" style="cursor:pointer;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:11px;color:${t.done?'var(--muted)':'var(--text)'}">${esc(t.text)||'Без названия'}</span>
+      ${timeStr}
+      <button class="dTaskDel" onclick="wTaskDel(${idx})">×</button>
+    </div>`;
+  }).join('')}</div>
+  <button class="dAddTask" onclick="wTaskAdd('${key}')">+ добавить задачу</button>
 </div>
 <div>
   <div class="dSecLbl">Заметки</div>
@@ -2788,7 +2811,7 @@ function renderWP(){
 <div>
   <div class="dSecLbl">Улучшить:</div>
   ${impr.map((v,j)=>`<div style="display:flex;align-items:center;gap:5px;margin-top:4px">
-    <span style="font-size:9px;color:var(--muted);width:10px">${j+1}</span>
+    <span style="font-size:9px;color:var(--muted);width:10px;font-weight:700">${j+1}</span>
     <input class="dImprInp" value="${esc(v)}" placeholder="..." oninput="updImpr('${key}',${j},this.value)">
   </div>`).join('')}
 </div>`;
@@ -2796,14 +2819,34 @@ function renderWP(){
   }
 }
 
+// Weekly planner task actions — use G.tasks (unified)
+function wTaskToggle(idx,c){const t=tpD()[idx];if(!t)return;t.done=c;saveD();_refreshAllTaskViews();}
+function wTaskDel(idx){delT(idx);} // delT already calls _refreshAllTaskViews
+function wTaskAdd(dateKey){
+  const id=uid();
+  tpD().push({id,text:'',deadline:dateKey,time:'',endTime:'',notes:'',done:false,labelId:'',priority:2});
+  syncNewTaskToKanban(id);
+  saveD();
+  renderWP();
+  // Focus last task in that day column
+  setTimeout(()=>{
+    const c=document.getElementById('dtl-'+dateKey);
+    if(c){const spans=c.querySelectorAll('.dTaskInp');if(spans.length){
+      // Click to open modal for the new empty task
+      const newIdx=tpD().findIndex(t=>t.id===id);
+      if(newIdx>=0)openTaskModal(newIdx);
+    }}
+  },50);
+}
+
 function updD(k,f,v){dayD(k)[f]=v;saveD()}
 function updImpr(k,i,v){const d=dayD(k);if(!d.impr)d.impr=['','','',''];d.impr[i]=v;saveD()}
-function addWT(k){dayD(k).tasks.push({text:'',done:false});saveD();renderWP();
-  setTimeout(()=>{const c=document.getElementById('dtl-'+k);if(c){const ii=c.querySelectorAll('.dTaskInp');if(ii.length)ii[ii.length-1].focus()}},20)}
-function toggleWT(k,i,c){dayD(k).tasks[i].done=c;saveD();renderWP()}
-function updWT(k,i,v){dayD(k).tasks[i].text=v;saveD()}
-function delWT(k,i){dayD(k).tasks.splice(i,1);saveD();renderWP()}
-function wtkd(e,k,i){if(e.key==='Enter'){e.preventDefault();addWT(k)}else if(e.key==='Backspace'&&!e.target.value){delWT(k,i)}}
+// Legacy stubs kept for backward compat
+function addWT(k){wTaskAdd(k)}
+function toggleWT(k,i,c){/* legacy - no-op, handled by unified tasks */}
+function updWT(k,i,v){/* legacy */}
+function delWT(k,i){/* legacy */}
+function wtkd(e,k,i){}
 
 /* ═══════════════════════════════════
    2. HABIT TRACKER  (FIXED)
@@ -2966,12 +3009,13 @@ function tpD(){if(!G.tasks)G.tasks=[];return G.tasks}
 
 // ── Global cross-section re-render after any task change ──
 function _refreshAllTaskViews(){
-  // Re-render whichever heavy views are currently visible
-  if(document.getElementById('tab-tasks')?.classList.contains('on'))renderTP();
-  if(document.getElementById('tab-calendar')?.classList.contains('on'))renderCal();
-  if(document.getElementById('tab-weekly')?.classList.contains('on'))renderWP();
-  if(document.getElementById('tab-kanban')?.classList.contains('on'))renderKanban();
-  if(document.getElementById('tab-dash')?.classList.contains('on'))renderDash();
+  try{
+    if(document.getElementById('tab-tasks')?.classList.contains('on'))renderTP();
+    else if(document.getElementById('tab-weekly')?.classList.contains('on'))renderWP();
+    else if(document.getElementById('tab-calendar')?.classList.contains('on'))renderCal();
+    else if(document.getElementById('tab-kanban')?.classList.contains('on'))renderKanban();
+    else if(document.getElementById('tab-dash')?.classList.contains('on'))renderDash();
+  }catch(e){console.warn('refresh error',e);}
 }
 
 function renderTP(){
@@ -3107,8 +3151,9 @@ function closeTaskModal(){document.getElementById('taskModal').classList.remove(
 function taskModalSave(){
   const text=document.getElementById('tm-text').value.trim();
   if(!text)return;
-  const labelId=document.getElementById('taskModal').dataset.labelId??
-    (_taskModalIdx>=0?tpD()[_taskModalIdx]?.labelId||'':'');
+  const labelId=document.getElementById('taskModal').dataset.labelId!==undefined
+    ?document.getElementById('taskModal').dataset.labelId
+    :(_taskModalIdx>=0?tpD()[_taskModalIdx]?.labelId||'':'');
   const data={
     text,
     deadline:document.getElementById('tm-deadline').value,
@@ -3120,6 +3165,10 @@ function taskModalSave(){
   };
   if(_taskModalIdx>=0&&_taskModalIdx<tpD().length){
     Object.assign(tpD()[_taskModalIdx],data);
+    // sync linked kanban card title/deadline
+    const taskId=tpD()[_taskModalIdx].id;
+    const linked=kbD().find(c=>c.taskId===taskId);
+    if(linked){linked.title=data.text;linked.deadline=data.deadline;linked.time=data.time;linked.endTime=data.endTime;linked.labelId=data.labelId;}
   } else {
     const id=uid();
     tpD().push({...data,id,priority:2});
@@ -3406,7 +3455,7 @@ function plRenderGrid(main){
   const nowLineHtml=dates.includes(todK)?`<div class="plGrid-now" style="top:${nowTop}px;position:absolute;left:0;right:0;pointer-events:none;z-index:6;display:flex;align-items:center"><div class="plGrid-nowDot"></div><div class="plGrid-nowBar" style="flex:1"></div></div>`:'';
 
   // Build complete grid (single render, no duplicate)
-  main.innerHTML=`<div class="plGrid">${hdrHtml}${adHtml}<div class="plGrid-scroll" id="plGrid-scroll" style="flex:1;overflow-y:auto;display:flex"><div style="width:52px;flex-shrink:0;position:relative;border-right:1px solid var(--border);min-height:${totalH}px">${Array.from({length:24},(_,h)=>`<div style="position:absolute;right:6px;top:${h*HOUR_H}px;font-size:8.5px;color:var(--muted);font-weight:600;transform:translateY(-50%);white-space:nowrap;pointer-events:none">${h}:00</div>`).join('')}</div><div style="flex:1;display:flex;position:relative;min-height:${totalH}px">${nowLineHtml}${dates.map((dstr,ci)=>{
+  main.innerHTML=`<div class="plGrid">${hdrHtml}${adHtml}<div class="plGrid-scroll" id="plGrid-scroll" style="flex:1;overflow-y:auto;display:flex"><div style="width:56px;flex-shrink:0;position:relative;border-right:1px solid var(--border2);min-height:${totalH}px;background:var(--bg2)">${Array.from({length:24},(_,h)=>`<div style="position:absolute;right:8px;top:${h*HOUR_H}px;font-size:10px;color:var(--text2);font-weight:600;transform:translateY(-50%);white-space:nowrap;pointer-events:none;font-family:var(--font-mono)">${h<10?'0'+h:h}:00</div>`).join('')}</div><div style="flex:1;display:flex;position:relative;min-height:${totalH}px">${nowLineHtml}${dates.map((dstr,ci)=>{
     const d=new Date(dstr+'T00:00:00');const isT=dstr===todK;
     let colHtml=`<div style="flex:1;border-right:1px solid rgba(255,255,255,.04);position:relative;cursor:crosshair;background:${isT?'rgba(124,104,238,.02)':''}" onclick="plCalGridClick(event,'${dstr}')">`;
     for(let h=0;h<24;h++){colHtml+=`<div style="position:absolute;left:0;right:0;top:${h*HOUR_H}px;border-top:1px solid rgba(255,255,255,.04);pointer-events:none"></div><div style="position:absolute;left:0;right:0;top:${h*HOUR_H+HOUR_H/2}px;border-top:1px dashed rgba(255,255,255,.025);pointer-events:none"></div>`;}
@@ -3607,33 +3656,55 @@ function renderKanban(){
       const card=document.createElement('div');card.className='kbCard';
       const priLbl=['','🔴 Высокий','🟡 Средний','🟢 Низкий'][c.priority]||'';
       const priCls=['','kbP1','kbP2','kbP3'][c.priority]||'kbP2';
+      const lbl=c.labelId?labelsD().find(l=>l.id===c.labelId):null;
+      const lblHtml=lbl?`<span style="display:inline-flex;align-items:center;gap:3px;font-size:9px;font-weight:700;color:${lbl.color};background:${hexA(lbl.color,.12)};padding:2px 7px;border-radius:20px;white-space:nowrap"><span style="width:6px;height:6px;border-radius:50%;background:${lbl.color};flex-shrink:0"></span>${esc(lbl.name)}</span>`:'';
+      const timeHtml=c.time?`<span style="font-family:var(--font-mono);font-size:9px;color:var(--p);font-weight:600">${c.time}${c.endTime?' – '+c.endTime:''}</span>`:'';
       let dlHtml='';
-      if(c.deadline){const dl=new Date(c.deadline+'T00:00:00'),td=t0(),diff=Math.floor((dl-td)/86400000);dlHtml=`<span class="kbDl">📅 ${c.deadline}${diff<0?' ⚠️':diff===0?' (сегодня)':''}</span>`}
+      if(c.deadline){const dl=new Date(c.deadline+'T00:00:00'),td=t0(),diff=Math.floor((dl-td)/86400000);dlHtml=`<span class="kbDl" style="color:${diff<0?'var(--red)':diff===0?'var(--gold)':'var(--muted)'}">📅 ${c.deadline}${diff<0?' ⚠️':diff===0?' (сегодня)':''}</span>`}
       const moveLeft=ci>0?`<button class="kbMoveBtn" onclick="moveCard('${c.id}',-1)">◀</button>`:'';
       const moveRight=ci<board.cols.length-1?`<button class="kbMoveBtn" onclick="moveCard('${c.id}',1)">▶</button>`:'';
-      const linked=c.taskId?'<span style="font-size:9px;color:var(--muted);margin-left:3px">🔗</span>':'';
+      const linked=c.taskId?'<span style="font-size:9px;color:var(--text2);margin-left:3px" title="Связано с задачей">🔗</span>':'';
+      if(lbl)card.style.borderLeft=`3px solid ${lbl.color}`;
       card.innerHTML=`<button class="kbDelBtn" onclick="delCard('${c.id}')">×</button>
         <div class="kbCardTitle" onclick="openKbModal('${col.id}','${c.id}')">${esc(c.title)}${linked}</div>
         ${c.desc?`<div class="kbCardDesc">${esc(c.desc)}</div>`:''}
-        <div class="kbCardFoot"><span class="kbPri ${priCls}">${priLbl}</span>${dlHtml}<div class="kbMoveBtns">${moveLeft}${moveRight}</div></div>`;
+        <div class="kbCardFoot">
+          <div style="display:flex;gap:4px;flex-wrap:wrap;align-items:center">${lblHtml}${timeHtml?`<span style="font-size:8px;color:var(--muted)">⏱</span>${timeHtml}`:''}</div>
+          <span class="kbPri ${priCls}">${priLbl}</span>
+        </div>
+        ${dlHtml?`<div style="margin-top:5px">${dlHtml}</div>`:''}
+        <div class="kbMoveBtns" style="margin-top:6px">${moveLeft}${moveRight}</div>`;
       cardsEl.appendChild(card);
     });
   });
 }
 
+let _kbLabelSel='';
 function openKbModal(colId,cardId){
   kbAddCol=colId;kbEditId=cardId||null;
   const c=cardId?kbD().find(x=>x.id===cardId):null;
+  // If card is linked to a task, get extra fields from task
+  const linkedTask=c?.taskId?tpD().find(t=>t.id===c.taskId):null;
   document.getElementById('kbModalTitle').textContent=c?'Редактировать':'Новая карточка';
-  document.getElementById('kbCardTitle').value=c?c.title:'';
-  document.getElementById('kbCardDesc').value=c?c.desc:'';
-  document.getElementById('kbCardDl').value=c?c.deadline:'';
+  document.getElementById('kbCardTitle').value=c?c.title:(linkedTask?linkedTask.text:'');
+  document.getElementById('kbCardDesc').value=c?c.desc:(linkedTask?linkedTask.notes:'');
+  document.getElementById('kbCardDl').value=c?c.deadline:(linkedTask?linkedTask.deadline:'');
+  document.getElementById('kbCardTime').value=c?.time||(linkedTask?.time||'');
+  document.getElementById('kbCardEndTime').value=c?.endTime||(linkedTask?.endTime||'');
+  _kbLabelSel=c?.labelId||(linkedTask?.labelId||'');
   selKbPri(c?c.priority:2);
+  // Render label selector
+  _renderKbLabels();
   // Populate col select
   const board=kbBoardsD().find(b=>b.id===kbActiveBoardId);
   const sel=document.getElementById('kbCardCol');sel.innerHTML='';
   if(board)board.cols.forEach(col=>{const o=document.createElement('option');o.value=col.id;o.textContent=`${col.icon||''} ${col.title}`;if((c?c.col:colId)===col.id)o.selected=true;sel.appendChild(o)});
   document.getElementById('kbOverlay').style.display='flex';
+}
+function _renderKbLabels(){
+  const el=document.getElementById('kbLabelsList');if(!el)return;
+  el.innerHTML=`<span style="cursor:pointer;font-size:10.5px;padding:3px 10px;border-radius:20px;border:1px solid ${!_kbLabelSel?'var(--p)':'var(--border2)'};background:${!_kbLabelSel?'var(--pdim)':'transparent'};color:${!_kbLabelSel?'var(--p)':'var(--muted)'};font-weight:600" onclick="_kbLabelSel='';_renderKbLabels()">Нет</span>`
+    +labelsD().map(l=>`<span style="cursor:pointer;font-size:10.5px;padding:3px 10px;border-radius:20px;border:1px solid ${l.id===_kbLabelSel?l.color:'transparent'};background:${l.id===_kbLabelSel?hexA(l.color,.15):'var(--card2)'};color:${l.color};font-weight:600;display:inline-flex;align-items:center;gap:4px" onclick="_kbLabelSel='${l.id}';_renderKbLabels()"><span style="width:7px;height:7px;border-radius:50%;background:${l.color}"></span>${esc(l.name)}</span>`).join('');
 }
 function closeKbModal(){document.getElementById('kbOverlay').style.display='none';kbEditId=null}
 function selKbPri(p){
@@ -3643,10 +3714,28 @@ function selKbPri(p){
 function saveKbCard(){
   const title=document.getElementById('kbCardTitle').value.trim();if(!title)return;
   const col=document.getElementById('kbCardCol').value;
-  const data={title,desc:document.getElementById('kbCardDesc').value,priority:kbSelPri,deadline:document.getElementById('kbCardDl').value,col,boardId:kbActiveBoardId};
-  if(kbEditId){const idx=kbD().findIndex(x=>x.id===kbEditId);if(idx>=0){kbD()[idx]={...kbD()[idx],...data}}}
-  else{kbD().push({...data,id:uid()})}
-  saveD();closeKbModal();renderKanban();
+  const deadline=document.getElementById('kbCardDl').value;
+  const time=document.getElementById('kbCardTime').value;
+  const endTime=document.getElementById('kbCardEndTime').value;
+  const desc=document.getElementById('kbCardDesc').value;
+  const data={title,desc,priority:kbSelPri,deadline,time,endTime,col,boardId:kbActiveBoardId,labelId:_kbLabelSel};
+  if(kbEditId){
+    const idx=kbD().findIndex(x=>x.id===kbEditId);
+    if(idx>=0){
+      kbD()[idx]={...kbD()[idx],...data};
+      // Sync back to linked task if exists
+      const linkedTask=kbD()[idx].taskId?tpD().find(t=>t.id===kbD()[idx].taskId):null;
+      if(linkedTask){Object.assign(linkedTask,{text:title,deadline,time,endTime,notes:desc,labelId:_kbLabelSel});saveD();_refreshAllTaskViews();return;}
+    }
+  } else {
+    const newCard={...data,id:uid()};
+    kbD().push(newCard);
+    // Also add to G.tasks for full sync (linked card)
+    const taskId=uid();
+    tpD().push({id:taskId,text:title,deadline,time,endTime,notes:desc,done:false,labelId:_kbLabelSel,priority:kbSelPri});
+    newCard.taskId=taskId;
+  }
+  saveD();closeKbModal();_refreshAllTaskViews();
 }
 function moveCard(id,dir){
   const cards=kbD();const idx=cards.findIndex(c=>c.id===id);if(idx<0)return;
@@ -3893,37 +3982,73 @@ function toggleMs(gid,idx,c){const g=goalsD().find(x=>x.id===gid);if(g&&g.milest
 function renderJournal(){
   const list=document.getElementById('journalList');list.innerHTML='';
   const entries=[...journalD()].reverse();
-  if(!entries.length){list.innerHTML='<div class="card" style="padding:20px;text-align:center;color:var(--muted);font-size:12px">Начните вести дневник — это мощный инструмент роста!</div>';return}
+  if(!entries.length){
+    list.innerHTML='<div class="card" style="padding:24px;text-align:center;color:var(--text2);font-size:13px;border:1.5px dashed var(--border2)">Начни вести дневник — мощный инструмент роста.<br><button class="btn btnP" style="margin-top:12px;font-size:12px" onclick="openJournalModal()">+ Первая запись</button></div>';
+    return;
+  }
   entries.slice(0,10).forEach(e=>{
     const el=document.createElement('div');el.className='jEntry';
     el.innerHTML=`<div class="jEntHead">
-      <div class="jEntDate">${e.mood||''} ${e.date}</div>
-      <button class="jEntDel" onclick="delJEntry('${e.id}')">×</button>
+      <div style="display:flex;align-items:center;gap:8px">
+        <span style="font-size:20px">${e.mood||'📓'}</span>
+        <div>
+          <div class="jEntDate">${e.date}</div>
+          <div style="font-size:10px;color:var(--muted)">${e.mood?'Настроение записано':''}</div>
+        </div>
+      </div>
+      <div style="display:flex;gap:6px">
+        <button class="btn btnG" style="font-size:10px;padding:4px 10px" onclick="openJournalModal('${e.id}')">✏️ Изменить</button>
+        <button class="jEntDel" onclick="delJEntry('${e.id}')">×</button>
+      </div>
     </div>
-    ${e.text?`<div style="font-size:12px;color:var(--text2);margin-bottom:8px;line-height:1.6">${esc(e.text)}</div>`:''}
-    ${e.gratitude?`<div><div class="jFldLbl" style="margin-bottom:3px">🙏 Благодарность</div><div style="font-size:11px;color:var(--muted);white-space:pre-line">${esc(e.gratitude)}</div></div>`:''}
-    ${e.learned?`<div style="margin-top:6px"><div class="jFldLbl" style="margin-bottom:3px">💡 Урок дня</div><div style="font-size:11px;color:var(--cyan)">${esc(e.learned)}</div></div>`:''}`;
+    ${e.text?`<div style="font-size:13px;color:var(--text);margin-bottom:10px;line-height:1.65">${esc(e.text)}</div>`:''}
+    ${e.gratitude?`<div style="margin-bottom:8px"><div class="jFldLbl" style="margin-bottom:4px;color:var(--green)">🙏 Благодарность</div><div style="font-size:12px;color:var(--text2);white-space:pre-line;line-height:1.6">${esc(e.gratitude)}</div></div>`:''}
+    ${e.learned?`<div><div class="jFldLbl" style="margin-bottom:4px;color:var(--cyan)">💡 Урок дня</div><div style="font-size:12px;color:var(--text2);line-height:1.6">${esc(e.learned)}</div></div>`:''}`;
     list.appendChild(el);
   });
 }
 
-function openJournalModal(){
-  document.getElementById('jDateInp').value=dk(t0());
-  document.getElementById('jTextInp').value='';
-  document.getElementById('jGratInp').value='';
-  document.getElementById('jLearnInp').value='';
-  selMood('😊');
+let _jEditId=null;
+function openJournalModal(editId){
+  _jEditId=editId||null;
+  const e=editId?journalD().find(x=>x.id===editId):null;
+  document.getElementById('jModalTitle').textContent=e?'Редактировать запись':'Запись в дневник';
+  document.getElementById('jDateInp').value=e?e.date:dk(t0());
+  document.getElementById('jTextInp').value=e?e.text||'':'';
+  document.getElementById('jGratInp').value=e?e.gratitude||'':'';
+  document.getElementById('jLearnInp').value=e?e.learned||'':'';
+  document.getElementById('jDeleteBtn').style.display=e?'':'none';
+  selMood(e?e.mood||'😊':'😊');
   document.getElementById('jOverlay').style.display='flex';
 }
-function closeJournalModal(){document.getElementById('jOverlay').style.display='none'}
+function closeJournalModal(){document.getElementById('jOverlay').style.display='none';_jEditId=null;}
 function selMood(m){
   jMoodSel=m;
   document.querySelectorAll('.moodBtn').forEach(b=>b.classList.toggle('sel',b.dataset.m===m));
 }
-function addJEntry(){
-  journalD().push({id:uid(),date:document.getElementById('jDateInp').value||dk(t0()),mood:jMoodSel,text:document.getElementById('jTextInp').value,gratitude:document.getElementById('jGratInp').value,learned:document.getElementById('jLearnInp').value});
+function saveJEntry(){
+  const entry={
+    id:_jEditId||uid(),
+    date:document.getElementById('jDateInp').value||dk(t0()),
+    mood:jMoodSel,
+    text:document.getElementById('jTextInp').value,
+    gratitude:document.getElementById('jGratInp').value,
+    learned:document.getElementById('jLearnInp').value
+  };
+  if(_jEditId){
+    const idx=journalD().findIndex(x=>x.id===_jEditId);
+    if(idx>=0)journalD()[idx]=entry;else journalD().push(entry);
+  } else {journalD().push(entry);}
   saveD();closeJournalModal();renderJournal();
 }
+function jDeleteEntry(){
+  if(!_jEditId||!confirm('Удалить запись?'))return;
+  const idx=journalD().findIndex(x=>x.id===_jEditId);
+  if(idx>=0){journalD().splice(idx,1);saveD();}
+  closeJournalModal();renderJournal();
+}
+// Keep old name working
+function addJEntry(){saveJEntry();}
 function delJEntry(id){const i=journalD().findIndex(x=>x.id===id);if(i>=0){journalD().splice(i,1);saveD();renderJournal()}}
 
 /* ═══════════════════════════════════
