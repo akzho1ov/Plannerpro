@@ -552,38 +552,94 @@ select.inp option{background:var(--card2);color:var(--text)}
 .chartCard{background:var(--card);border-radius:var(--r);border:1px solid var(--border);padding:16px}
 
 /* ══════════════════════════════
-   3. TASK PLANNER
+   3. TASK PLANNER — mobile-first
 ══════════════════════════════ */
 .tpLayout{display:grid;grid-template-columns:160px 1fr;gap:12px;align-items:start}
 @media(max-width:700px){.tpLayout{grid-template-columns:1fr}}
-.tpSide{background:var(--card);border-radius:var(--r);border:1px solid var(--border);padding:16px;display:flex;flex-direction:column;gap:14px;position:sticky;top:76px}
-@media(max-width:700px){.tpSide{position:static}}
-.tpStatV{font-size:22px;font-weight:800;font-family:var(--font-display)}
+.tpSide{background:var(--card);border-radius:var(--r);border:1px solid var(--border);padding:14px;display:flex;flex-direction:row;gap:12px;flex-wrap:wrap;position:sticky;top:56px;z-index:10}
+@media(max-width:700px){.tpSide{position:static;top:auto}}
+.tpSideStat{flex:1;min-width:60px;text-align:center}
+.tpStatV{font-size:20px;font-weight:800;font-family:var(--font-display)}
 .stot{color:var(--text)}.sover{color:var(--red)}.sinp{color:var(--blue)}.sdone{color:var(--green)}
-.tpBar{height:9px;background:var(--border2);border-radius:5px;overflow:hidden}
+.tpBar{height:8px;background:var(--border2);border-radius:5px;overflow:hidden}
 .tpBarFill{height:100%;background:linear-gradient(90deg,var(--green),var(--cyan));border-radius:5px;transition:.4s}
 .ldot{width:10px;height:10px;border-radius:3px;flex-shrink:0}
 .lov{background:rgba(248,113,113,.3)}.lto{background:rgba(251,146,60,.3)}.lso{background:rgba(245,158,11,.3)}.ln{background:var(--border2)}.ld{background:rgba(45,212,166,.3)}
 .taskCard{background:var(--card);border-radius:var(--r);border:1px solid var(--border);overflow:hidden}
+
+/* Desktop table view */
 .tTbl{width:100%;border-collapse:collapse;font-size:12px}
 .tTbl th{padding:9px 10px;text-align:left;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);border-bottom:1px solid var(--border);background:var(--card2)}
-.tTbl td{padding:7px 10px;border-bottom:1px solid rgba(255,255,255,.03);vertical-align:middle}
-.tTbl tbody tr:hover{background:rgba(255,255,255,.03)}
-.trOv td{background:rgba(248,113,113,.05)!important}.trTd td{background:rgba(251,146,60,.05)!important}.trSo td{background:rgba(245,158,11,.05)!important}.trDn td{background:rgba(45,212,166,.04)!important}
+.tTbl td{padding:7px 10px;border-bottom:1px solid rgba(255,255,255,.04);vertical-align:middle}
+.tTbl tbody tr:hover{background:rgba(255,255,255,.04)}
+.trOv td{background:rgba(248,113,113,.05)!important}.trTd td{background:rgba(251,146,60,.05)!important}.trSo td{background:rgba(245,158,11,.04)!important}.trDn td{background:rgba(45,212,166,.04)!important}
 .tCb{width:15px;height:15px;cursor:pointer;accent-color:var(--green)}
 .tNameInp{border:none;background:transparent;font-family:var(--font-body);font-size:12px;font-weight:600;color:var(--text);outline:none;width:100%}
-.tDateInp,.tTimeInp{border:1px solid transparent;border-radius:7px;padding:3px 7px;font-family:var(--font-body);font-size:11px;font-weight:500;outline:none;background:transparent;color:var(--text);color-scheme:dark}
-.tDateInp:hover,.tDateInp:focus,.tTimeInp:hover,.tTimeInp:focus{border-color:var(--border2);background:var(--card2)}
-.dlNeg{color:var(--red)}.dlZero{color:var(--orange)}.dlSoon{color:var(--gold)}.dlOk{color:var(--green)}
-.tNoteInp{border:none;background:transparent;font-family:var(--font-body);font-size:11px;color:var(--muted);outline:none;width:100%}
+.tDateInp{border:1px solid var(--border2);border-radius:7px;padding:4px 7px;font-family:var(--font-mono);font-size:11px;outline:none;background:var(--card2);color:var(--text);color-scheme:dark;transition:border-color var(--dur) var(--ease)}
+.tDateInp:hover,.tDateInp:focus{border-color:var(--p)}
+.dlNeg{color:var(--red);font-weight:700}.dlZero{color:var(--orange);font-weight:700}.dlSoon{color:var(--gold);font-weight:600}.dlOk{color:var(--green)}
 .tDelBtn{border:none;background:none;cursor:pointer;color:var(--border2);font-size:16px;padding:2px 4px;opacity:0;transition:.15s}
 .tTbl tbody tr:hover .tDelBtn{opacity:1}.tTbl tbody tr:hover .tDelBtn:hover{color:var(--red)}
-.tAddInp{width:100%;border:2px dashed var(--border2);border-radius:9px;padding:8px 14px;font-family:var(--font-body);font-size:12px;font-weight:600;outline:none;background:var(--card2);color:var(--muted);transition:.15s}
-.tAddInp:focus{border-color:var(--blue);background:var(--card);color:var(--text)}
+.tAddInp{width:100%;border:2px dashed var(--border2);border-radius:9px;padding:10px 14px;font-family:var(--font-body);font-size:13px;font-weight:600;outline:none;background:transparent;color:var(--text2);transition:.15s}
+.tAddInp:focus{border-color:var(--p);background:var(--card2);color:var(--text)}
+.tAddInp::placeholder{color:var(--muted)}
+
+/* Mobile task card view */
+.mTaskCard{
+  background:var(--card);border:1px solid var(--border);
+  border-radius:var(--r2);padding:12px 14px;margin-bottom:8px;
+  cursor:pointer;transition:border-color var(--dur) var(--ease);
+  display:flex;flex-direction:column;gap:8px;
+}
+.mTaskCard:hover,.mTaskCard:active{border-color:var(--border2)}
+.mTaskCard.mDone{opacity:.5}
+.mTaskCard.mOv{border-left:3px solid var(--red)}
+.mTaskCard.mTd{border-left:3px solid var(--orange)}
+.mTaskCard.mSoon{border-left:3px solid var(--gold)}
+.mTaskTop{display:flex;align-items:flex-start;gap:10px}
+.mTaskCb{width:18px;height:18px;flex-shrink:0;accent-color:var(--green);cursor:pointer;margin-top:1px}
+.mTaskName{font-size:13px;font-weight:600;color:var(--text);flex:1;line-height:1.4}
+.mTaskName.done{text-decoration:line-through;color:var(--muted)}
+.mTaskMeta{display:flex;gap:6px;flex-wrap:wrap;align-items:center;padding-left:28px}
+.mTaskMetaChip{display:inline-flex;align-items:center;gap:3px;font-size:10px;font-weight:600;padding:2px 8px;border-radius:20px;white-space:nowrap}
+.mTaskRepeatBadge{background:var(--pdim);color:var(--p);font-size:9px;font-weight:700;padding:2px 7px;border-radius:20px;display:inline-flex;align-items:center;gap:3px}
+
+/* Repeat indicator */
+.repeatDot{width:6px;height:6px;border-radius:50%;background:var(--p);display:inline-block;box-shadow:0 0 6px var(--p)}
 
 /* ══════════════════════════════
-   4. CALENDAR — PLANYWAY STYLE
+   KAIZEN JOURNAL
 ══════════════════════════════ */
+.kzEntry{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:16px;margin-bottom:10px;transition:border-color var(--dur) var(--ease)}
+.kzEntry:hover{border-color:var(--border2)}
+.kzEntHead{display:flex;align-items:center;gap:8px;margin-bottom:12px}
+.kzDate{font-size:11px;font-weight:700;color:var(--p)}
+.kzScore{font-family:var(--font-display);font-size:22px;font-weight:800;color:var(--gold);min-width:32px}
+.kzQ{margin-bottom:10px}
+.kzQLbl{font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:5px}
+.kzQVal{font-size:13px;color:var(--text);line-height:1.55}
+.kzScoreBar{height:6px;background:var(--border2);border-radius:4px;overflow:hidden;margin-top:4px}
+.kzScoreFill{height:100%;border-radius:4px;transition:.4s var(--ease)}
+
+/* ══════════════════════════════
+   ROUTINE BOARD
+══════════════════════════════ */
+.rbGrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px;margin-top:14px}
+@media(max-width:700px){.rbGrid{grid-template-columns:1fr}}
+.rbCard{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:14px 16px;transition:border-color var(--dur) var(--ease)}
+.rbCard:hover{border-color:var(--border2)}
+.rbCardHead{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+.rbCardIcon{width:32px;height:32px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0}
+.rbCardTitle{font-family:var(--font-display);font-size:13px;font-weight:700;color:var(--text);flex:1;letter-spacing:-.2px}
+.rbFreqBadge{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;padding:2px 7px;border-radius:20px;white-space:nowrap}
+.rbItem{display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid rgba(255,255,255,.04);cursor:pointer}
+.rbItem:last-child{border-bottom:none}
+.rbItemCb{width:16px;height:16px;flex-shrink:0;accent-color:var(--green);cursor:pointer}
+.rbItemText{flex:1;font-size:12px;font-weight:500;color:var(--text2)}
+.rbItemText.done{text-decoration:line-through;color:var(--muted)}
+.rbItemTime{font-family:var(--font-mono);font-size:10px;color:var(--p);flex-shrink:0}
+.rbAddBtn{border:1.5px dashed var(--border2);border-radius:8px;background:none;width:100%;padding:6px;font-family:var(--font-body);font-size:11px;font-weight:600;color:var(--muted);cursor:pointer;margin-top:8px;transition:.15s}
+.rbAddBtn:hover{border-color:var(--p);color:var(--p)}
 #tab-calendar{padding:0!important;height:calc(100vh - 58px);display:none;flex-direction:column;max-width:100%;overflow:hidden}
 #tab-calendar.on{display:flex}
 @media(max-width:700px){#tab-calendar{height:calc(100vh - 110px)}}
@@ -1277,23 +1333,42 @@ select.inp option{background:var(--card2);color:var(--text)}
 .tTimeInp:hover,.tTimeInp:focus{border-color:var(--p);background:var(--card)}
 .tTimeInp::-webkit-calendar-picker-indicator{filter:invert(60%);cursor:pointer}
 
+/* ── Repeat picker ── */
+.tm-repeat-opt{
+  cursor:pointer;font-size:11px;padding:5px 12px;border-radius:20px;
+  border:1px solid var(--border2);background:var(--card2);color:var(--text2);
+  font-weight:600;transition:all var(--dur) var(--ease);white-space:nowrap;
+}
+.tm-repeat-opt.sel{background:var(--pdim);border-color:var(--p);color:var(--p)}
+.tm-repeat-opt:hover{border-color:var(--border3);color:var(--text)}
+
 /* ── Unified Task Modal ── */
-#taskModal{display:none;position:fixed;inset:0;z-index:1100;background:rgba(0,0,0,.7);backdrop-filter:blur(10px);align-items:center;justify-content:center;padding:16px;animation:fadeOverlay .18s var(--ease)}
+#taskModal{display:none;position:fixed;inset:0;z-index:1100;background:rgba(0,0,0,.7);backdrop-filter:blur(10px);align-items:center;justify-content:center;padding:12px;animation:fadeOverlay .18s var(--ease)}
 #taskModal.open{display:flex}
 #taskModalBox{
   background:var(--card);border:1px solid var(--border2);border-radius:18px;
-  padding:24px;width:100%;max-width:520px;max-height:92vh;overflow-y:auto;
+  padding:20px;width:100%;max-width:520px;max-height:95vh;overflow-y:auto;
   box-shadow:var(--shadow2),0 0 60px rgba(124,104,238,.12);
   animation:slideModal .22s var(--ease);
 }
 .tmField{display:flex;flex-direction:column;gap:6px;margin-bottom:14px}
 .tmLabel{font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:1.2px;color:var(--muted)}
 .tmRow{display:flex;gap:10px;flex-wrap:wrap}
-.tmRow .tmField{flex:1;min-width:120px}
-.tmColorDot{width:10px;height:10px;border-radius:50%;flex-shrink:0;display:inline-block;vertical-align:middle;margin-right:4px}
+.tmRow .tmField{flex:1;min-width:110px}
 /* left accent bar on task rows in calendar */
 .calTaskRow{cursor:pointer;transition:all var(--dur) var(--ease)}
 .calTaskRow:hover{filter:brightness(1.15)}
+
+/* ── labelPickerDrop ── */
+.labelPickerDrop{animation:fadeUp .15s ease;z-index:1200}
+@keyframes fadeUp{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
+
+/* ── Mobile layout fix ── */
+@media(max-width:700px){
+  #tpDesktop{display:none}
+  #tpMobile{display:block!important}
+  .tpLayout{display:block}
+}
 
 /* ────────── APP LOADER ────────── */
 #appLoader{position:fixed;inset:0;z-index:9999;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;transition:opacity .5s,visibility .5s}
@@ -1400,6 +1475,7 @@ select.inp option{background:var(--card2);color:var(--text)}
           <button class="hTab" onclick="switchTab('weekly',this)">Неделя</button>
           <button class="hTab" onclick="switchTab('habits',this)">Привычки</button>
           <button class="hTab" onclick="switchTab('tasks',this)">Задачи</button>
+          <button class="hTab" onclick="switchTab('routine',this)">Рутина</button>
           <button class="hTab" onclick="switchTab('calendar',this)">Календарь</button>
           <button class="hTab" onclick="switchTab('kanban',this)">Канбан</button>
           <button class="hTab" onclick="switchTab('finance',this)">Финансы</button>
@@ -1470,6 +1546,7 @@ select.inp option{background:var(--card2);color:var(--text)}
     <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">
       <button class="mMoreBtn" onclick="switchTabMob('weekly',null);closeMoreMenu()">📅<br>Неделя</button>
       <button class="mMoreBtn" onclick="switchTabMob('tasks',null);closeMoreMenu()">📋<br>Задачи</button>
+      <button class="mMoreBtn" onclick="switchTabMob('routine',null);closeMoreMenu()">🔄<br>Рутина</button>
       <button class="mMoreBtn" onclick="switchTabMob('calendar',null);closeMoreMenu()">📆<br>Календарь</button>
       <button class="mMoreBtn" onclick="switchTabMob('kanban',null);closeMoreMenu()">🎯<br>Канбан</button>
       <button class="mMoreBtn" onclick="switchTabMob('finance',null);closeMoreMenu()">💰<br>Финансы</button>
@@ -1670,56 +1747,70 @@ select.inp option{background:var(--card2);color:var(--text)}
 
 <!-- ═══ 3. TASK PLANNER ═══ -->
 <div id="tab-tasks" class="pane hInner">
-  <!-- Labels filter bar -->
-  <div class="card" style="padding:10px 14px;margin-bottom:10px;display:flex;align-items:center;gap:8px;flex-wrap:wrap">
-    <span style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--muted)">Метки:</span>
-    <div class="labelsFilterBar" id="labelsFilterBar" style="margin:0;flex:1"></div>
-    <button class="btn btnG" style="font-size:10.5px;padding:5px 12px" onclick="openLabelsModal()">⚙ Метки</button>
-  </div>
-  <div class="tpLayout">
-    <div class="tpSide">
-      <div>
-        <div class="fldLbl">Дата сегодня</div>
-        <div style="font-size:12px;font-weight:600;margin-top:3px" id="tpTodayLbl"></div>
-      </div>
-      <div><div class="fldLbl">Всего задач</div><div class="tpStatV stot" id="stot">0</div></div>
-      <div><div class="fldLbl">Просрочено</div><div class="tpStatV sover" id="sover">0</div></div>
-      <div><div class="fldLbl">В работе</div><div class="tpStatV sinp" id="sinp">0</div></div>
-      <div><div class="fldLbl">Готово</div><div class="tpStatV sdone" id="sdone">0</div></div>
-      <div>
-        <div class="fldLbl" style="margin-bottom:7px">Легенда</div>
-        <div style="display:flex;flex-direction:column;gap:4px">
-          <div style="display:flex;align-items:center;gap:7px;font-size:10px;color:var(--muted)"><div class="ldot lov"></div>Просрочено</div>
-          <div style="display:flex;align-items:center;gap:7px;font-size:10px;color:var(--muted)"><div class="ldot lto"></div>Сегодня</div>
-          <div style="display:flex;align-items:center;gap:7px;font-size:10px;color:var(--muted)"><div class="ldot lso"></div>В течение 3 дн.</div>
-          <div style="display:flex;align-items:center;gap:7px;font-size:10px;color:var(--muted)"><div class="ldot ld"></div>Готово</div>
-        </div>
-      </div>
+  <!-- Top bar: stats + filters -->
+  <div class="card" style="padding:12px 14px;margin-bottom:12px">
+    <!-- Stats strip -->
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:10px">
+      <div class="tpSideStat"><div class="fldLbl">Всего</div><div class="tpStatV stot" id="stot">0</div></div>
+      <div class="tpSideStat"><div class="fldLbl">Просроч.</div><div class="tpStatV sover" id="sover">0</div></div>
+      <div class="tpSideStat"><div class="fldLbl">В работе</div><div class="tpStatV sinp" id="sinp">0</div></div>
+      <div class="tpSideStat"><div class="fldLbl">Готово</div><div class="tpStatV sdone" id="sdone">0</div></div>
     </div>
+    <!-- Progress bar -->
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+      <div class="tpBar" style="flex:1"><div class="tpBarFill" id="tpFill" style="width:0%"></div></div>
+      <span style="font-size:13px;font-weight:800;color:var(--green);font-family:var(--font-display);flex-shrink:0" id="tpPct">0%</span>
+    </div>
+    <!-- Labels + add button -->
+    <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+      <div class="labelsFilterBar" id="labelsFilterBar" style="margin:0;flex:1"></div>
+      <button class="btn btnG" style="font-size:10.5px;padding:5px 10px;flex-shrink:0" onclick="openLabelsModal()">⚙ Метки</button>
+    </div>
+  </div>
+  <!-- Add task input -->
+  <div style="margin-bottom:12px;position:relative">
+    <input class="tAddInp" id="tAddInp" placeholder="＋ Новая задача — нажмите Enter..." onkeydown="onNewTask(event)">
+    <div id="tpTodayLbl" style="position:absolute;right:14px;top:50%;transform:translateY(-50%);font-size:10px;color:var(--muted)"></div>
+  </div>
+  <!-- Task list — desktop: table, mobile: cards -->
+  <div id="tpDesktop" class="taskCard">
+    <table class="tTbl">
+      <thead><tr>
+        <th style="width:24px">#</th>
+        <th style="width:28px">✓</th>
+        <th>Задача</th>
+        <th>Метка</th>
+        <th>Срок</th>
+        <th>Время</th>
+        <th style="text-align:center;width:44px">Дней</th>
+        <th style="width:24px"></th>
+      </tr></thead>
+      <tbody id="tBody"></tbody>
+    </table>
+  </div>
+  <!-- Mobile card list -->
+  <div id="tpMobile" style="display:none">
+    <div id="tBodyMobile"></div>
+  </div>
+</div>
+
+<!-- ═══ 3.5. ROUTINE BOARD ═══ -->
+<div id="tab-routine" class="pane hInner">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px">
     <div>
-      <div class="card" style="padding:14px 16px;margin-bottom:10px">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
-          <span class="cardTitle">Прогресс выполнения</span>
-          <span style="font-size:14px;font-weight:800;color:var(--green);font-family:var(--font-display)" id="tpPct">0%</span>
-        </div>
-        <div class="tpBar"><div class="tpBarFill" id="tpFill" style="width:0%"></div></div>
-      </div>
-      <div class="taskCard">
-        <table class="tTbl">
-          <thead><tr>
-            <th style="width:24px">#</th><th style="width:28px">✓</th>
-            <th>Задача</th><th>Метка</th><th>Срок</th>
-            <th>Время</th><th style="text-align:center;width:50px">Дней</th>
-            <th>Примечания</th><th style="width:28px"></th>
-          </tr></thead>
-          <tbody id="tBody"></tbody>
-          <tfoot><tr><td colspan="9" style="padding:8px 10px">
-            <input class="tAddInp" id="tAddInp" placeholder="+ Введите задачу и нажмите Enter..." onkeydown="onNewTask(event)">
-          </td></tr></tfoot>
-        </table>
-      </div>
+      <div style="font-family:var(--font-display);font-size:22px;font-weight:800;letter-spacing:-.4px;color:var(--text)">Доска рутин</div>
+      <div style="font-size:12px;color:var(--text2);margin-top:3px">Регулярные задачи — ежедневные, еженедельные, ежемесячные</div>
     </div>
+    <button class="btn btnB" onclick="rbOpenModal(null)">＋ Добавить рутину</button>
   </div>
+  <!-- Sub-tabs -->
+  <div style="display:flex;gap:4px;border-bottom:1px solid var(--border);margin-bottom:16px;overflow-x:auto">
+    <button class="rwSubTab on" onclick="rbSetFreq('daily',this)" id="rb-tab-daily">Ежедневно</button>
+    <button class="rwSubTab" onclick="rbSetFreq('weekly',this)" id="rb-tab-weekly">Еженедельно</button>
+    <button class="rwSubTab" onclick="rbSetFreq('monthly',this)" id="rb-tab-monthly">Ежемесячно</button>
+    <button class="rwSubTab" onclick="rbSetFreq('all',this)" id="rb-tab-all">Все</button>
+  </div>
+  <div id="rb-grid" class="rbGrid"></div>
 </div>
 
 <!-- ═══ 4. CALENDAR ═══ -->
@@ -1828,35 +1919,57 @@ select.inp option{background:var(--card2);color:var(--text)}
 
 <!-- ═══ 7. GOALS & GROWTH ═══ -->
 <div id="tab-goals" class="pane hInner">
-  <!-- Growth charts -->
-  <div class="growthChartsRow">
-    <div class="chartCard">
-      <div class="secLbl" style="margin-bottom:10px">😊 Динамика настроения</div>
-      <div class="moodTimeline" id="moodTimeline"></div>
-    </div>
-    <div class="chartCard">
-      <div class="secLbl" style="margin-bottom:10px">📊 Задачи по неделям</div>
-      <canvas id="taskWeekChart" height="90" style="width:100%;display:block"></canvas>
-    </div>
-    <div class="chartCard">
-      <div class="secLbl" style="margin-bottom:10px">🔥 Тепловая карта привычек</div>
-      <div class="streakHeatmap" id="streakHeatmap"></div>
-    </div>
+  <!-- Sub-tabs -->
+  <div style="display:flex;gap:4px;border-bottom:1px solid var(--border);margin-bottom:16px;overflow-x:auto">
+    <button class="rwSubTab on" onclick="goalSubTab('goals',this)">🌱 Цели</button>
+    <button class="rwSubTab" onclick="goalSubTab('kaizen',this)">🧠 Кайдзен</button>
+    <button class="rwSubTab" onclick="goalSubTab('charts',this)">📊 Аналитика</button>
   </div>
-  <div class="growthGrid">
-    <div>
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
-        <div style="font-family:var(--font-display);font-size:20px;font-style:normal;font-weight:700;letter-spacing:-.4px;color:var(--green)">🌱 Мои цели</div>
-        <button class="btn btnE" onclick="openGoalModal(null)">+ Новая цель</button>
-      </div>
-      <div id="goalsList"></div>
+
+  <!-- GOALS tab -->
+  <div id="gst-goals">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+      <div style="font-family:var(--font-display);font-size:20px;font-weight:700;letter-spacing:-.4px;color:var(--green)">Мои цели</div>
+      <button class="btn btnE" onclick="openGoalModal(null)">+ Новая цель</button>
     </div>
-    <div>
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
-        <div style="font-family:var(--font-display);font-size:20px;font-style:normal;font-weight:700;letter-spacing:-.4px;color:var(--purple)">📓 Дневник</div>
-        <button class="btn btnP" onclick="openJournalModal()">+ Запись</button>
+    <div id="goalsList"></div>
+  </div>
+
+  <!-- KAIZEN tab -->
+  <div id="gst-kaizen" style="display:none">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px">
+      <div>
+        <div style="font-family:var(--font-display);font-size:20px;font-weight:700;letter-spacing:-.4px;color:var(--p)">Кайдзен-дневник</div>
+        <div style="font-size:12px;color:var(--text2);margin-top:2px">1% улучшений каждый день</div>
       </div>
-      <div id="journalList"></div>
+      <div style="display:flex;gap:8px">
+        <button class="btn btnG" style="font-size:11px" onclick="kzOpenQuestions()">⚙ Вопросы</button>
+        <button class="btn btnB" onclick="kzOpenModal(null)">+ Запись</button>
+      </div>
+    </div>
+    <div id="kzList"></div>
+  </div>
+
+  <!-- CHARTS tab -->
+  <div id="gst-charts" style="display:none">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+      <div style="font-family:var(--font-display);font-size:20px;font-weight:700;letter-spacing:-.4px;color:var(--purple)">Дневник роста</div>
+      <button class="btn btnP" onclick="openJournalModal()">+ Запись</button>
+    </div>
+    <div id="journalList"></div>
+    <div class="growthChartsRow" style="margin-top:16px">
+      <div class="chartCard">
+        <div class="secLbl" style="margin-bottom:10px">😊 Динамика настроения</div>
+        <div class="moodTimeline" id="moodTimeline"></div>
+      </div>
+      <div class="chartCard">
+        <div class="secLbl" style="margin-bottom:10px">📊 Задачи по неделям</div>
+        <canvas id="taskWeekChart" height="90" style="width:100%;display:block"></canvas>
+      </div>
+      <div class="chartCard">
+        <div class="secLbl" style="margin-bottom:10px">🔥 Тепловая карта привычек</div>
+        <div class="streakHeatmap" id="streakHeatmap"></div>
+      </div>
     </div>
   </div>
 </div>
@@ -2206,6 +2319,76 @@ select.inp option{background:var(--card2);color:var(--text)}
 <!-- Notif bar -->
 <div class="rwNotifBar" id="rw-notif"></div>
 
+<!-- ═══ ROUTINE BOARD MODAL ═══ -->
+<div class="overlay" id="rbModal" style="display:none">
+  <div class="modalBox" style="max-width:480px">
+    <div class="modalHead"><span class="modalTitle" id="rbModalTitle">Новая рутина</span><button class="modalClose" onclick="rbCloseModal()">✕</button></div>
+    <input type="hidden" id="rb-id">
+    <div class="fldGrp"><div class="fldLbl">Название группы</div><input class="inp" id="rb-name" placeholder="Утренняя рутина, Тренировка..."></div>
+    <div class="fldGrp"><div class="fldLbl">Иконка</div><input class="inp" id="rb-icon" placeholder="☀️" style="width:80px" maxlength="4"></div>
+    <div class="fldGrp">
+      <div class="fldLbl">Частота</div>
+      <div style="display:flex;gap:8px">
+        <button class="kbPriBtn" data-f="daily" onclick="rbSelFreq('daily',this)">Ежедневно</button>
+        <button class="kbPriBtn sel" data-f="weekly" onclick="rbSelFreq('weekly',this)">Еженедельно</button>
+        <button class="kbPriBtn" data-f="monthly" onclick="rbSelFreq('monthly',this)">Ежемесячно</button>
+      </div>
+    </div>
+    <div class="fldGrp">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+        <div class="fldLbl" style="margin:0">Задачи рутины</div>
+        <button class="btn btnG" style="font-size:10px;padding:3px 8px" onclick="rbAddItem()">+ Добавить</button>
+      </div>
+      <div id="rb-items-list"></div>
+    </div>
+    <div style="display:flex;gap:8px">
+      <button class="btn btnR" id="rb-del-btn" style="display:none" onclick="rbDelete()">Удалить</button>
+      <button class="btn btnG" style="flex:1;justify-content:center" onclick="rbCloseModal()">Отмена</button>
+      <button class="btn btnB" style="flex:1;justify-content:center" onclick="rbSave()">Сохранить</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ KAIZEN ENTRY MODAL ═══ -->
+<div class="overlay" id="kzModal" style="display:none">
+  <div class="modalBox" style="max-width:500px">
+    <div class="modalHead"><span class="modalTitle" id="kzModalTitle">Кайдзен запись</span><button class="modalClose" onclick="kzCloseModal()">✕</button></div>
+    <input type="hidden" id="kz-id">
+    <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:4px">
+      <div class="fldGrp" style="flex:1;min-width:130px">
+        <div class="fldLbl">Дата</div>
+        <input type="date" class="inp" id="kz-date" style="color-scheme:dark">
+      </div>
+      <div class="fldGrp" style="flex:1;min-width:120px">
+        <div class="fldLbl">Оценка дня (1-10)</div>
+        <input type="range" id="kz-score" min="1" max="10" value="7" style="width:100%;accent-color:var(--p)" oninput="document.getElementById('kz-score-lbl').textContent=this.value">
+        <div style="text-align:center;font-family:var(--font-display);font-size:18px;font-weight:800;color:var(--gold)" id="kz-score-lbl">7</div>
+      </div>
+    </div>
+    <!-- Dynamic questions from kzQuestions -->
+    <div id="kz-questions-form"></div>
+    <div style="display:flex;gap:8px;margin-top:4px">
+      <button class="btn btnR" id="kz-del-btn" style="display:none" onclick="kzDelete()">Удалить</button>
+      <button class="btn btnG" style="flex:1;justify-content:center" onclick="kzCloseModal()">Отмена</button>
+      <button class="btn btnB" style="flex:1;justify-content:center" onclick="kzSave()">Сохранить</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ KAIZEN QUESTIONS EDITOR ═══ -->
+<div class="overlay" id="kzQuestionsModal" style="display:none">
+  <div class="modalBox" style="max-width:460px">
+    <div class="modalHead"><span class="modalTitle">Вопросы Кайдзен-дневника</span><button class="modalClose" onclick="document.getElementById('kzQuestionsModal').style.display='none'">✕</button></div>
+    <div style="font-size:11px;color:var(--text2);margin-bottom:12px">Настрой вопросы которые будут появляться в каждой записи</div>
+    <div id="kzQList" style="display:flex;flex-direction:column;gap:6px;margin-bottom:10px"></div>
+    <div style="display:flex;gap:8px;margin-bottom:12px">
+      <input class="inp" id="kzNewQ" placeholder="Что ты сделал сегодня на 1% лучше?">
+      <button class="btn btnB" style="flex-shrink:0" onclick="kzAddQuestion()">+</button>
+    </div>
+    <button class="btn btnG" style="width:100%;justify-content:center" onclick="document.getElementById('kzQuestionsModal').style.display='none';kzRenderList()">Готово</button>
+  </div>
+</div>
+
 <!-- ═══ UNIFIED TASK MODAL ═══ -->
 <div id="taskModal">
   <div id="taskModalBox">
@@ -2257,6 +2440,18 @@ select.inp option{background:var(--card2);color:var(--text)}
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">
       <input type="checkbox" id="tm-done" style="width:16px;height:16px;accent-color:var(--green);cursor:pointer">
       <label for="tm-done" style="font-size:12px;color:var(--text2);cursor:pointer;font-weight:500">Отметить как выполненное</label>
+    </div>
+
+    <!-- Repeat -->
+    <div class="tmField">
+      <label class="tmLabel">Повтор</label>
+      <div style="display:flex;gap:6px;flex-wrap:wrap" id="tm-repeat-picker">
+        <span class="tm-repeat-opt" data-v="" onclick="tmSelRepeat('')">Нет</span>
+        <span class="tm-repeat-opt" data-v="daily" onclick="tmSelRepeat('daily')">Каждый день</span>
+        <span class="tm-repeat-opt" data-v="weekdays" onclick="tmSelRepeat('weekdays')">Будни</span>
+        <span class="tm-repeat-opt" data-v="weekly" onclick="tmSelRepeat('weekly')">Еженедельно</span>
+        <span class="tm-repeat-opt" data-v="monthly" onclick="tmSelRepeat('monthly')">Ежемесячно</span>
+      </div>
     </div>
 
     <!-- Actions -->
@@ -2497,7 +2692,7 @@ function setSyncDot(state){
 
 // ── Re-render whichever tab is currently visible (called after cloud sync) ──
 function reRenderCurrentTab(){
-  const renders={dash:renderDash,weekly:renderWP,habits:renderHT,tasks:renderTP,calendar:renderCal,kanban:renderKanban,finance:renderFin,goals:renderGrowth,rewards:rwRender,gym:gymRender};
+  const renders={dash:renderDash,weekly:renderWP,habits:renderHT,tasks:renderTP,routine:renderRoutine,calendar:renderCal,kanban:renderKanban,finance:renderFin,goals:renderGrowth,rewards:rwRender,gym:gymRender};
   for(const[name,fn] of Object.entries(renders)){
     if(document.getElementById('tab-'+name)?.classList.contains('on')){
       try{fn();}catch(e){console.warn('rerender err',e);}
@@ -2726,8 +2921,8 @@ function switchTab(name,btn){
   document.querySelectorAll('.pane').forEach(e=>e.classList.remove('on'));
   document.querySelectorAll('.hTab').forEach(e=>e.classList.remove('on'));
   document.getElementById('tab-'+name).classList.add('on');
-  btn.classList.add('on');
-  const renders={dash:renderDash,weekly:renderWP,habits:renderHT,tasks:renderTP,calendar:renderCal,kanban:renderKanban,finance:renderFin,goals:renderGrowth,rewards:rwRender,gym:gymRender};
+  if(btn)btn.classList.add('on');
+  const renders={dash:renderDash,weekly:renderWP,habits:renderHT,tasks:renderTP,routine:renderRoutine,calendar:renderCal,kanban:renderKanban,finance:renderFin,goals:renderGrowth,rewards:rwRender,gym:gymRender};
   if(renders[name])renders[name]();
 }
 
@@ -3010,11 +3205,13 @@ function tpD(){if(!G.tasks)G.tasks=[];return G.tasks}
 // ── Global cross-section re-render after any task change ──
 function _refreshAllTaskViews(){
   try{
-    if(document.getElementById('tab-tasks')?.classList.contains('on'))renderTP();
-    else if(document.getElementById('tab-weekly')?.classList.contains('on'))renderWP();
-    else if(document.getElementById('tab-calendar')?.classList.contains('on'))renderCal();
-    else if(document.getElementById('tab-kanban')?.classList.contains('on'))renderKanban();
-    else if(document.getElementById('tab-dash')?.classList.contains('on'))renderDash();
+    const active=name=>document.getElementById('tab-'+name)?.classList.contains('on');
+    if(active('tasks'))renderTP();
+    else if(active('weekly'))renderWP();
+    else if(active('calendar'))renderCal();
+    else if(active('kanban'))renderKanban();
+    else if(active('dash'))renderDash();
+    else if(active('routine'))renderRoutine();
   }catch(e){console.warn('refresh error',e);}
 }
 
@@ -3022,7 +3219,7 @@ function renderTP(){
   const tasks=tpD(),td=t0();
   const dws=['вс','пн','вт','ср','чт','пт','сб'];
   const mons=['янв','фев','мар','апр','май','июн','июл','авг','сен','окт','ноя','дек'];
-  document.getElementById('tpTodayLbl').textContent=`${td.getDate()} ${MG[td.getMonth()]} ${td.getFullYear()}`;
+  document.getElementById('tpTodayLbl').textContent=`${td.getDate()} ${MG[td.getMonth()]}`;
   let tot=tasks.length,done=0,over=0,inp=0;
   tasks.forEach(t=>{
     if(t.done){done++;return}
@@ -3038,56 +3235,101 @@ function renderTP(){
   document.getElementById('tpPct').textContent=pct+'%';
   document.getElementById('tpFill').style.width=pct+'%';
   renderLabelsFilterBar();
-  const tbody=document.getElementById('tBody');tbody.innerHTML='';
   const filtered=activeLabel?tasks.filter(t=>t.labelId===activeLabel):tasks;
-  filtered.forEach((t,i)=>{
-    const realIdx=tasks.indexOf(t);
-    const tr=document.createElement('tr');
-    let rc='';
-    if(t.done)rc='trDn';
-    else if(t.deadline){
-      const dl=new Date(t.deadline+'T00:00:00');dl.setHours(0,0,0,0);
-      const diff=Math.floor((dl-td)/86400000);
-      if(diff<0)rc='trOv';else if(diff===0)rc='trTd';else if(diff<=3)rc='trSo';
-    }
-    tr.className=rc;
-    // Days badge
-    let dlHtml='<span style="color:var(--border3)">—</span>';
-    if(t.done)dlHtml='<span style="color:var(--green);font-size:15px">✓</span>';
-    else if(t.deadline){
-      const dl=new Date(t.deadline+'T00:00:00');dl.setHours(0,0,0,0);
-      const diff=Math.floor((dl-td)/86400000);
-      const cls=diff<0?'dlNeg':diff===0?'dlZero':diff<=3?'dlSoon':'dlOk';
-      dlHtml=`<span class="${cls}">${diff>0?'+':''}${diff}д</span>`;
-    }
-    let dlLabel='';
-    if(t.deadline){const dl=new Date(t.deadline+'T00:00:00');dlLabel=`${dws[dl.getDay()]}, ${dl.getDate()} ${mons[dl.getMonth()]}.`}
-    const label=labelsD().find(l=>l.id===t.labelId);
-    // Label cell — left color bar + pill
-    const labelHtml=label
-      ?`<span class="labelPill" style="background:${hexA(label.color,0.15)};color:${label.color};cursor:pointer;border:1px solid ${hexA(label.color,0.35)}" onclick="openLabelPicker(${realIdx},this);event.stopPropagation()"><span class="labelDot" style="background:${label.color}"></span>${esc(label.name)}</span>`
-      :`<span style="color:var(--muted);cursor:pointer;font-size:10px;padding:2px 8px;border:1px dashed var(--border2);border-radius:20px;white-space:nowrap" onclick="openLabelPicker(${realIdx},this);event.stopPropagation()">＋ метка</span>`;
-    // Color bar on left based on label
-    const barColor=label?label.color:'transparent';
-    tr.style.borderLeft=`3px solid ${barColor}`;
-    // Time display
-    const timeDisplay=t.time?`<span style="font-family:var(--font-mono);font-size:10.5px;color:var(--p);font-weight:600">${t.time}${t.endTime?' – '+t.endTime:''}</span>`:'<span style="color:var(--border3)">—</span>';
-    tr.innerHTML=`
-      <td style="color:var(--muted);font-size:10px;width:24px;padding-left:10px">${i+1}</td>
-      <td style="width:28px"><input type="checkbox" class="tCb" ${t.done?'checked':''} onchange="toggleT(${realIdx},this.checked)"></td>
-      <td style="cursor:pointer" onclick="openTaskModal(${realIdx})">
-        <span class="tNameInp" style="font-family:var(--font-body);font-size:12px;font-weight:600;color:${t.done?'var(--muted)':'var(--text)'};${t.done?'text-decoration:line-through':''}">${esc(t.text)||'<em style="color:var(--muted)">Без названия</em>'}</span>
-      </td>
-      <td>${labelHtml}</td>
-      <td>
-        <input type="date" class="tDateInp" value="${t.deadline||''}" onchange="updTField(${realIdx},'deadline',this.value)" title="${dlLabel}" style="color-scheme:dark;font-size:11px">
-      </td>
-      <td>${timeDisplay}</td>
-      <td style="text-align:center;font-weight:700;width:50px;font-size:11px">${dlHtml}</td>
-      <td><span style="font-size:11px;color:var(--text2);max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:block">${esc(t.notes||'')}</span></td>
-      <td><button class="tDelBtn" onclick="delT(${realIdx})">×</button></td>`;
-    tbody.appendChild(tr);
-  });
+  const isMob=window.innerWidth<=700;
+
+  if(!isMob){
+    // ── Desktop table ──
+    const tbody=document.getElementById('tBody');tbody.innerHTML='';
+    filtered.forEach((t,i)=>{
+      const realIdx=tasks.indexOf(t);
+      const tr=document.createElement('tr');
+      let rc='';
+      if(t.done)rc='trDn';
+      else if(t.deadline){
+        const dl=new Date(t.deadline+'T00:00:00');dl.setHours(0,0,0,0);
+        const diff=Math.floor((dl-td)/86400000);
+        if(diff<0)rc='trOv';else if(diff===0)rc='trTd';else if(diff<=3)rc='trSo';
+      }
+      tr.className=rc;
+      let dlHtml='<span style="color:var(--border3)">—</span>';
+      if(t.done)dlHtml='<span style="color:var(--green);font-size:15px">✓</span>';
+      else if(t.deadline){
+        const dl=new Date(t.deadline+'T00:00:00');dl.setHours(0,0,0,0);
+        const diff=Math.floor((dl-td)/86400000);
+        const cls=diff<0?'dlNeg':diff===0?'dlZero':diff<=3?'dlSoon':'dlOk';
+        dlHtml=`<span class="${cls}">${diff>0?'+':''}${diff}д</span>`;
+      }
+      let dlLabel='';
+      if(t.deadline){const dl=new Date(t.deadline+'T00:00:00');dlLabel=`${dws[dl.getDay()]}, ${dl.getDate()} ${mons[dl.getMonth()]}.`}
+      const label=labelsD().find(l=>l.id===t.labelId);
+      const labelHtml=label
+        ?`<span class="labelPill" style="background:${hexA(label.color,0.15)};color:${label.color};cursor:pointer;border:1px solid ${hexA(label.color,0.35)}" onclick="openLabelPicker(${realIdx},this);event.stopPropagation()"><span class="labelDot" style="background:${label.color}"></span>${esc(label.name)}</span>`
+        :`<span style="color:var(--muted);cursor:pointer;font-size:10px;padding:2px 8px;border:1px dashed var(--border2);border-radius:20px;white-space:nowrap" onclick="openLabelPicker(${realIdx},this);event.stopPropagation()">＋</span>`;
+      const barColor=label?label.color:'transparent';
+      tr.style.borderLeft=`3px solid ${barColor}`;
+      const repeatBadge=t.repeat?`<span class="mTaskRepeatBadge" style="font-size:8px;margin-left:4px">↻</span>`:'';
+      const timeDisplay=t.time?`<span style="font-family:var(--font-mono);font-size:10.5px;color:var(--p);font-weight:600">${t.time}${t.endTime?' – '+t.endTime:''}</span>`:'<span style="color:var(--border3)">—</span>';
+      tr.innerHTML=`
+        <td style="color:var(--muted);font-size:10px;padding-left:10px">${i+1}</td>
+        <td><input type="checkbox" class="tCb" ${t.done?'checked':''} onchange="toggleT(${realIdx},this.checked)"></td>
+        <td style="cursor:pointer" onclick="openTaskModal(${realIdx})">
+          <span style="font-size:12px;font-weight:600;color:${t.done?'var(--muted)':'var(--text)'};${t.done?'text-decoration:line-through':''}">${esc(t.text)||'<em style="color:var(--muted)">Нет названия</em>'}</span>${repeatBadge}
+        </td>
+        <td>${labelHtml}</td>
+        <td><input type="date" class="tDateInp" value="${t.deadline||''}" onchange="updTField(${realIdx},'deadline',this.value)" title="${dlLabel}" style="color-scheme:dark;font-size:11px"></td>
+        <td>${timeDisplay}</td>
+        <td style="text-align:center;font-weight:700;font-size:11px">${dlHtml}</td>
+        <td><button class="tDelBtn" onclick="delT(${realIdx})">×</button></td>`;
+      tbody.appendChild(tr);
+    });
+  } else {
+    // ── Mobile card view ──
+    const mob=document.getElementById('tBodyMobile');mob.innerHTML='';
+    filtered.forEach((t,i)=>{
+      const realIdx=tasks.indexOf(t);
+      const label=labelsD().find(l=>l.id===t.labelId);
+      const col=label?label.color:'transparent';
+      let cls='mTaskCard';
+      if(t.done)cls+=' mDone';
+      else if(t.deadline){
+        const dl=new Date(t.deadline+'T00:00:00');dl.setHours(0,0,0,0);
+        const diff=Math.floor((dl-td)/86400000);
+        if(diff<0)cls+=' mOv';else if(diff===0)cls+=' mTd';else if(diff<=3)cls+=' mSoon';
+      }
+      const div=document.createElement('div');
+      div.className=cls;
+      div.style.borderLeft=`3px solid ${col||'var(--border)'}`;
+      // date display
+      let dateStr='';
+      if(t.deadline){
+        const dl=new Date(t.deadline+'T00:00:00');
+        dateStr=`${dl.getDate()} ${mons[dl.getMonth()]}`;
+        const diff=Math.floor((dl-td)/86400000);
+        if(diff<0)dateStr+=` <span style="color:var(--red);font-weight:700">просроч.</span>`;
+        else if(diff===0)dateStr+=` <span style="color:var(--orange);font-weight:700">сегодня</span>`;
+      }
+      const repeatBadge=t.repeat?`<span class="mTaskRepeatBadge">↻ ${{'daily':'ежедн','weekly':'еженед','weekdays':'будни','monthly':'ежемес'}[t.repeat]||t.repeat}</span>`:'';
+      div.innerHTML=`
+        <div class="mTaskTop">
+          <input class="mTaskCb" type="checkbox" ${t.done?'checked':''} onchange="toggleT(${realIdx},this.checked);event.stopPropagation()">
+          <span class="mTaskName${t.done?' done':''}" onclick="openTaskModal(${realIdx})">${esc(t.text)||'Без названия'}</span>
+          <button style="border:none;background:none;color:var(--border3);font-size:18px;padding:0 4px;cursor:pointer;flex-shrink:0" onclick="delT(${realIdx});event.stopPropagation()">×</button>
+        </div>
+        <div class="mTaskMeta">
+          ${label?`<span class="mTaskMetaChip" style="background:${hexA(label.color,.14)};color:${label.color}"><span style="width:6px;height:6px;border-radius:50%;background:${label.color}"></span>${esc(label.name)}</span>`:''}
+          ${t.deadline?`<span class="mTaskMetaChip" style="background:var(--card2);color:var(--text2)">📅 ${dateStr}</span>`:''}
+          ${t.time?`<span class="mTaskMetaChip" style="background:var(--pdim);color:var(--p);font-family:var(--font-mono)">⏱ ${t.time}${t.endTime?' – '+t.endTime:''}</span>`:''}
+          ${repeatBadge}
+        </div>`;
+      div.addEventListener('click',e=>{if(e.target.classList.contains('mTaskCb')||e.target.tagName==='BUTTON')return;openTaskModal(realIdx);});
+      mob.appendChild(div);
+    });
+    // Add task button on mobile
+    const addDiv=document.createElement('div');
+    addDiv.innerHTML=`<button class="dAddTask" style="width:100%;padding:12px;font-size:13px;border-radius:10px" onclick="openTaskModal(-1)">＋ Добавить задачу</button>`;
+    mob.appendChild(addDiv);
+  }
 }
 
 function toggleT(i,c){const t=tpD()[i];if(!t)return;t.done=c;saveD();_refreshAllTaskViews();}
@@ -3126,6 +3368,10 @@ function openTaskModal(idx,prefillDate){
   document.getElementById('taskModalDeleteBtn').style.display=t?'':'none';
   // Render label selector
   _renderTaskModalLabels(t?.labelId||'');
+  document.getElementById('taskModal').dataset.labelId=t?.labelId||'';
+  // Set repeat
+  _tmRepeatVal=t?.repeat||'';
+  tmSelRepeat(_tmRepeatVal);
   // Update accent dot
   const lbl=t?labelsD().find(l=>l.id===t.labelId):null;
   document.getElementById('taskModalLabelDot').style.background=lbl?lbl.color:'var(--border2)';
@@ -3139,13 +3385,20 @@ function _renderTaskModalLabels(selectedId){
     +labelsD().map(l=>`<span style="cursor:pointer;font-size:10.5px;padding:4px 10px;border-radius:20px;border:1px solid ${l.id===selectedId?l.color:'transparent'};background:${l.id===selectedId?hexA(l.color,.15):'var(--card2)'};color:${l.color};font-weight:600;display:inline-flex;align-items:center;gap:5px" onclick="taskModalSelectLabel('${l.id}')"><span style="width:8px;height:8px;border-radius:50%;background:${l.color};flex-shrink:0"></span>${esc(l.name)}</span>`).join('');
 }
 function taskModalSelectLabel(id){
-  document.getElementById('tm-id'); // keep modal open
   _renderTaskModalLabels(id);
-  // store on hidden field via data attr
   document.getElementById('taskModal').dataset.labelId=id;
   const lbl=id?labelsD().find(l=>l.id===id):null;
   document.getElementById('taskModalLabelDot').style.background=lbl?lbl.color:'var(--border2)';
 }
+
+let _tmRepeatVal='';
+function tmSelRepeat(v){
+  _tmRepeatVal=v;
+  document.querySelectorAll('.tm-repeat-opt').forEach(el=>{
+    el.classList.toggle('sel',el.dataset.v===v);
+  });
+}
+
 function closeTaskModal(){document.getElementById('taskModal').classList.remove('open');}
 
 function taskModalSave(){
@@ -3162,10 +3415,10 @@ function taskModalSave(){
     notes:document.getElementById('tm-notes').value,
     done:document.getElementById('tm-done').checked,
     labelId,
+    repeat:_tmRepeatVal,
   };
   if(_taskModalIdx>=0&&_taskModalIdx<tpD().length){
     Object.assign(tpD()[_taskModalIdx],data);
-    // sync linked kanban card title/deadline
     const taskId=tpD()[_taskModalIdx].id;
     const linked=kbD().find(c=>c.taskId===taskId);
     if(linked){linked.title=data.text;linked.deadline=data.deadline;linked.time=data.time;linked.endTime=data.endTime;linked.labelId=data.labelId;}
@@ -5560,6 +5813,249 @@ document.addEventListener('keydown',e=>{
   if(e.key==='Escape'&&document.getElementById('cmdOverlay').classList.contains('open'))closeCmdPalette();
 });
 
+/* ═══════════════════════════════════
+   GOAL SUB-TABS
+═══════════════════════════════════ */
+function goalSubTab(name,btn){
+  document.querySelectorAll('.rwSubTab').forEach(b=>b.classList.remove('on'));
+  if(btn)btn.classList.add('on');
+  ['goals','kaizen','charts'].forEach(n=>{
+    const el=document.getElementById('gst-'+n);
+    if(el)el.style.display=n===name?'block':'none';
+  });
+  if(name==='kaizen')kzRenderList();
+  if(name==='charts'){renderMoodTimeline();renderTaskWeekChart();renderStreakHeatmap();renderJournal();}
+  if(name==='goals')renderGoals();
+}
+
+function renderGrowth(){
+  goalSubTab('goals',document.querySelector('#tab-goals .rwSubTab'));
+  renderGoals();
+}
+
+/* ═══════════════════════════════════
+   ROUTINE BOARD
+═══════════════════════════════════ */
+function rbD(){if(!G.routines)G.routines=[];return G.routines}
+let _rbFreq='daily';
+let _rbEditId=null;
+let _rbItems=[];
+let _rbSelFreqVal='daily';
+
+function rbSetFreq(f,btn){
+  _rbFreq=f;
+  document.querySelectorAll('.rwSubTab').forEach(b=>b.classList.remove('on'));
+  if(btn)btn.classList.add('on');
+  rbRenderGrid();
+}
+function rbRenderGrid(){
+  const el=document.getElementById('rb-grid');if(!el)return;
+  const routines=_rbFreq==='all'?rbD():rbD().filter(r=>r.freq===_rbFreq);
+  if(!routines.length){
+    el.innerHTML=`<div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--text2);font-size:13px">
+      <div style="font-size:32px;margin-bottom:12px">📋</div>
+      <div style="font-weight:600;margin-bottom:6px">Нет рутин</div>
+      <div style="color:var(--muted);font-size:12px;margin-bottom:16px">Добавь регулярные задачи чтобы не забывать</div>
+      <button class="btn btnB" onclick="rbOpenModal(null)">+ Добавить рутину</button>
+    </div>`;
+    return;
+  }
+  el.innerHTML='';
+  const freqColors={'daily':'var(--green)','weekly':'var(--blue)','monthly':'var(--purple)'};
+  const freqNames={'daily':'Ежедневно','weekly':'Еженедельно','monthly':'Ежемесячно'};
+  const today=dk(t0());
+  routines.forEach(r=>{
+    const col=freqColors[r.freq]||'var(--p)';
+    const items=r.items||[];
+    const done=items.filter(it=>it.doneDate===today).length;
+    const pct=items.length?Math.round(done/items.length*100):0;
+    const card=document.createElement('div');
+    card.className='rbCard';
+    card.innerHTML=`
+      <div class="rbCardHead">
+        <div class="rbCardIcon" style="background:${hexA(col.replace('var(--','').replace(')',''),0.15)||'var(--pdim)'}">${r.icon||'📋'}</div>
+        <div>
+          <div class="rbCardTitle">${esc(r.name)}</div>
+          <span class="rbFreqBadge" style="background:${hexA(col,0.12)||'var(--pdim)'};color:${col}">${freqNames[r.freq]||r.freq}</span>
+        </div>
+        <button class="btn btnG" style="font-size:10px;padding:3px 8px;margin-left:auto" onclick="rbOpenModal('${r.id}')">✏️</button>
+      </div>
+      <div style="height:4px;background:var(--border2);border-radius:2px;overflow:hidden;margin-bottom:10px">
+        <div style="height:100%;width:${pct}%;background:${col};border-radius:2px;transition:.4s"></div>
+      </div>
+      ${items.map((it,idx)=>`
+        <div class="rbItem" onclick="rbToggleItem('${r.id}',${idx},event)">
+          <input class="rbItemCb" type="checkbox" ${it.doneDate===today?'checked':''} onchange="rbToggleItem('${r.id}',${idx},event)" onclick="event.stopPropagation()">
+          <span class="rbItemText${it.doneDate===today?' done':''}">${esc(it.text)}</span>
+          ${it.time?`<span class="rbItemTime">⏱ ${it.time}</span>`:''}
+        </div>`).join('')}
+      <button class="rbAddBtn" onclick="rbQuickAddItem('${r.id}')">+ добавить задачу</button>
+    `;
+    el.appendChild(card);
+  });
+}
+function rbToggleItem(rid,idx,e){
+  e.stopPropagation&&e.stopPropagation();
+  const r=rbD().find(x=>x.id===rid);if(!r||!r.items[idx])return;
+  const today=dk(t0());
+  r.items[idx].doneDate=r.items[idx].doneDate===today?null:today;
+  saveD();rbRenderGrid();
+}
+function rbQuickAddItem(rid){
+  const text=prompt('Название задачи:');
+  if(!text)return;
+  const r=rbD().find(x=>x.id===rid);if(!r)return;
+  if(!r.items)r.items=[];
+  r.items.push({id:uid(),text:text.trim(),time:'',doneDate:null});
+  saveD();rbRenderGrid();
+}
+function rbOpenModal(id){
+  _rbEditId=id||null;
+  const r=id?rbD().find(x=>x.id===id):null;
+  document.getElementById('rbModalTitle').textContent=r?'Редактировать рутину':'Новая рутина';
+  document.getElementById('rb-id').value=id||'';
+  document.getElementById('rb-name').value=r?r.name:'';
+  document.getElementById('rb-icon').value=r?r.icon:'📋';
+  _rbItems=r?(r.items||[]).map(it=>({...it})):[];
+  _rbSelFreqVal=r?r.freq:'daily';
+  document.querySelectorAll('[data-f]').forEach(b=>b.classList.toggle('sel',b.dataset.f===_rbSelFreqVal));
+  document.getElementById('rb-del-btn').style.display=r?'':'none';
+  rbRenderItems();
+  document.getElementById('rbModal').style.display='flex';
+}
+function rbCloseModal(){document.getElementById('rbModal').style.display='none';}
+function rbSelFreq(f,btn){
+  _rbSelFreqVal=f;
+  document.querySelectorAll('[data-f]').forEach(b=>b.classList.toggle('sel',b.dataset.f===f));
+}
+function rbRenderItems(){
+  const el=document.getElementById('rb-items-list');
+  el.innerHTML=_rbItems.map((it,i)=>`
+    <div style="display:flex;align-items:center;gap:7px;padding:6px 0;border-bottom:1px solid var(--border)">
+      <input class="inp" value="${esc(it.text)}" style="flex:1;font-size:12px" oninput="_rbItems[${i}].text=this.value" placeholder="Задача...">
+      <input type="time" class="inp" value="${it.time||''}" style="width:90px;font-size:11px;color-scheme:dark;font-family:var(--font-mono)" oninput="_rbItems[${i}].time=this.value">
+      <button class="btn btnR" style="font-size:10px;padding:3px 8px" onclick="_rbItems.splice(${i},1);rbRenderItems()">×</button>
+    </div>`).join('');
+}
+function rbAddItem(){_rbItems.push({id:uid(),text:'',time:'',doneDate:null});rbRenderItems();}
+function rbSave(){
+  const name=document.getElementById('rb-name').value.trim();if(!name)return;
+  const data={name,icon:document.getElementById('rb-icon').value||'📋',freq:_rbSelFreqVal,items:_rbItems.filter(it=>it.text.trim())};
+  if(_rbEditId){const idx=rbD().findIndex(x=>x.id===_rbEditId);if(idx>=0)rbD()[idx]={...rbD()[idx],...data}}
+  else{rbD().push({...data,id:uid()});}
+  saveD();rbCloseModal();rbRenderGrid();
+}
+function rbDelete(){
+  if(!_rbEditId||!confirm('Удалить рутину?'))return;
+  const idx=rbD().findIndex(x=>x.id===_rbEditId);
+  if(idx>=0){rbD().splice(idx,1);saveD();}
+  rbCloseModal();rbRenderGrid();
+}
+function renderRoutine(){rbRenderGrid();}
+
+/* ═══════════════════════════════════
+   KAIZEN JOURNAL
+═══════════════════════════════════ */
+const KZ_DEFAULT_QUESTIONS=[
+  'Что я сделал сегодня на 1% лучше?',
+  'Что мешало мне быть продуктивным?',
+  'Главный урок дня',
+  'Что я хочу улучшить завтра?',
+  'За что я благодарен сегодня?',
+];
+function kzD(){if(!G.kaizen)G.kaizen={entries:[],questions:[...KZ_DEFAULT_QUESTIONS]};return G.kaizen}
+let _kzEditId=null;
+
+function kzOpenModal(id){
+  _kzEditId=id||null;
+  const e=id?kzD().entries.find(x=>x.id===id):null;
+  document.getElementById('kzModalTitle').textContent=e?'Редактировать запись':'Новая Кайдзен запись';
+  document.getElementById('kz-id').value=id||'';
+  document.getElementById('kz-date').value=e?e.date:dk(t0());
+  const score=e?e.score:7;
+  document.getElementById('kz-score').value=score;
+  document.getElementById('kz-score-lbl').textContent=score;
+  document.getElementById('kz-del-btn').style.display=e?'':'none';
+  // Render question inputs
+  const qf=document.getElementById('kz-questions-form');
+  const questions=kzD().questions;
+  qf.innerHTML=questions.map((q,i)=>`
+    <div class="tmField" style="margin-bottom:10px">
+      <label class="tmLabel">${esc(q)}</label>
+      <textarea class="kbTxtarea" id="kz-q-${i}" style="min-height:52px;resize:none">${esc(e?e.answers?.[i]||'':'')}</textarea>
+    </div>`).join('');
+  document.getElementById('kzModal').style.display='flex';
+}
+function kzCloseModal(){document.getElementById('kzModal').style.display='none';}
+function kzSave(){
+  const score=parseInt(document.getElementById('kz-score').value)||7;
+  const questions=kzD().questions;
+  const answers=questions.map((_,i)=>document.getElementById('kz-q-'+i)?.value||'');
+  const entry={
+    id:_kzEditId||uid(),
+    date:document.getElementById('kz-date').value||dk(t0()),
+    score,answers
+  };
+  if(_kzEditId){
+    const idx=kzD().entries.findIndex(x=>x.id===_kzEditId);
+    if(idx>=0)kzD().entries[idx]=entry;else kzD().entries.push(entry);
+  } else {kzD().entries.push(entry);}
+  saveD();kzCloseModal();kzRenderList();
+}
+function kzDelete(){
+  if(!_kzEditId||!confirm('Удалить запись?'))return;
+  const idx=kzD().entries.findIndex(x=>x.id===_kzEditId);
+  if(idx>=0){kzD().entries.splice(idx,1);saveD();}
+  kzCloseModal();kzRenderList();
+}
+function kzRenderList(){
+  const el=document.getElementById('kzList');if(!el)return;
+  const entries=[...kzD().entries].sort((a,b)=>b.date.localeCompare(a.date));
+  if(!entries.length){
+    el.innerHTML=`<div style="text-align:center;padding:40px;color:var(--text2)">
+      <div style="font-size:32px;margin-bottom:12px">🧠</div>
+      <div style="font-weight:600;margin-bottom:6px">Начни Кайдзен-дневник</div>
+      <div style="color:var(--muted);font-size:12px;margin-bottom:16px">1% улучшений каждый день = 37× рост за год</div>
+      <button class="btn btnB" onclick="kzOpenModal(null)">+ Первая запись</button>
+    </div>`;
+    return;
+  }
+  const questions=kzD().questions;
+  el.innerHTML=entries.map(e=>{
+    const pct=(e.score/10)*100;
+    const col=e.score>=8?'var(--green)':e.score>=5?'var(--gold)':'var(--red)';
+    return`<div class="kzEntry">
+      <div class="kzEntHead">
+        <div style="font-size:22px;font-weight:800;color:${col};font-family:var(--font-display)">${e.score}<span style="font-size:12px;color:var(--muted)">/10</span></div>
+        <div style="flex:1">
+          <div class="kzDate">${e.date}</div>
+          <div class="kzScoreBar"><div class="kzScoreFill" style="width:${pct}%;background:${col}"></div></div>
+        </div>
+        <button class="btn btnG" style="font-size:10px;padding:3px 8px" onclick="kzOpenModal('${e.id}')">✏️</button>
+      </div>
+      ${(e.answers||[]).map((a,i)=>a?`<div class="kzQ"><div class="kzQLbl">${esc(questions[i]||'Вопрос '+(i+1))}</div><div class="kzQVal">${esc(a)}</div></div>`:'').join('')}
+    </div>`;
+  }).join('');
+}
+function kzOpenQuestions(){
+  kzRenderQList();
+  document.getElementById('kzQuestionsModal').style.display='flex';
+}
+function kzRenderQList(){
+  const qs=kzD().questions;
+  document.getElementById('kzQList').innerHTML=qs.map((q,i)=>`
+    <div style="display:flex;align-items:center;gap:7px">
+      <input class="inp" value="${esc(q)}" style="flex:1;font-size:12px" oninput="kzD().questions[${i}]=this.value;saveD()">
+      <button class="btn btnR" style="font-size:10px;padding:3px 8px" onclick="kzD().questions.splice(${i},1);saveD();kzRenderQList()">×</button>
+    </div>`).join('');
+}
+function kzAddQuestion(){
+  const v=document.getElementById('kzNewQ').value.trim();if(!v)return;
+  kzD().questions.push(v);saveD();
+  document.getElementById('kzNewQ').value='';
+  kzRenderQList();
+}
+
 function isMobile(){return window.innerWidth<=700}
 
 function initMobileNav(){
@@ -5583,7 +6079,7 @@ function switchTabMob(name,btn){
   document.querySelectorAll('.mNavBtn').forEach(b=>b.classList.remove('on'));
   if(btn)btn.classList.add('on');
   // Render
-  const renders={dash:renderDash,weekly:renderWP,habits:renderHT,tasks:renderTP,calendar:renderCal,kanban:renderKanban,finance:renderFin,goals:renderGrowth,rewards:rwRender,gym:gymRender};
+  const renders={dash:renderDash,weekly:renderWP,habits:renderHT,tasks:renderTP,routine:renderRoutine,calendar:renderCal,kanban:renderKanban,finance:renderFin,goals:renderGrowth,rewards:rwRender,gym:gymRender};
   if(renders[name])renders[name]();
   window.scrollTo(0,0);
 }
@@ -5601,12 +6097,13 @@ self.addEventListener('fetch',e=>{e.respondWith(caches.match(e.request).then(r=>
   navigator.serviceWorker.register(url,{scope:'/'}).catch(()=>{});
 }
 
-setInterval(()=>{if(document.getElementById('tab-tasks').classList.contains('on'))renderTP()},60000);
+setInterval(()=>{if(document.getElementById('tab-tasks')?.classList.contains('on'))renderTP()},60000);
 window.addEventListener('resize',()=>{
   initMobileNav();
-  if(document.getElementById('tab-habits').classList.contains('on')){const d=htD();drawHChart(d,dim(htY,htM))}
-  if(document.getElementById('tab-dash').classList.contains('on'))renderDash();
-  if(document.getElementById('tab-gym').classList.contains('on')&&document.getElementById('gym-prog-ex-sel').value)gymRenderProgress();
+  if(document.getElementById('tab-habits')?.classList.contains('on')){const d=htD();drawHChart(d,dim(htY,htM))}
+  if(document.getElementById('tab-dash')?.classList.contains('on'))renderDash();
+  if(document.getElementById('tab-tasks')?.classList.contains('on'))renderTP();
+  if(document.getElementById('tab-gym')?.classList.contains('on')&&document.getElementById('gym-prog-ex-sel')?.value)gymRenderProgress();
 });
 </script>
 </div><!-- /appWrap -->
