@@ -4087,280 +4087,148 @@ function calGoToday(){plCalGoToday();}
 function calNav(d){plCalNav(d);}
 
 /* ═══════════════════════════════════
-   5. KANBAN (MULTI-BOARD)
+   5. KANBAN — Smart date-driven board + drag & drop
 ═══════════════════════════════════ */
-/* ── Smart Kanban — date-driven auto columns ── */
-/* ══════════════════════════════════════════════════
-   KANBAN — Smart date-driven board with drag & drop
-══════════════════════════════════════════════════ */
 const SMART_BOARD_ID='smart';
 const SMART_COLS=[
-  {id:'focus',   title:'🎯 Фокус / Цель',       color:'#a882f8', isDone:false, isAuto:false, hint:'Важные цели и фокус'},
-  {id:'new',     title:'📥 Новый',               color:'#6b9fff', isDone:false, isAuto:false, hint:'Новые задачи'},
-  {id:'planned', title:'📋 Планированное',        color:'#34d5f0', isDone:false, isAuto:false, hint:'Регулярные задачи'},
-  {id:'next',    title:'📅 Следующая неделя',     color:'#12e8ac', isDone:false, isAuto:true},
-  {id:'week',    title:'🗓 Текущая неделя',       color:'#f5b53f', isDone:false, isAuto:true},
-  {id:'tomorrow',title:'⏰ Завтра',              color:'#ff8f3c', isDone:false, isAuto:true},
-  {id:'today',   title:'🔥 Сегодня',             color:'#ff5c7a', isDone:false, isAuto:true},
-  {id:'done',    title:'✅ Готово',               color:'#12e8ac', isDone:true,  isAuto:true},
+  {id:'focus',    title:'🎯 Фокус / Цель',      color:'#a882f8', isDone:false},
+  {id:'new',      title:'📥 Новый',              color:'#6b9fff', isDone:false},
+  {id:'planned',  title:'📋 Планированное',       color:'#34d5f0', isDone:false},
+  {id:'next',     title:'📅 Следующая неделя',    color:'#12e8ac', isDone:false},
+  {id:'week',     title:'🗓 Текущая неделя',      color:'#f5b53f', isDone:false},
+  {id:'tomorrow', title:'⏰ Завтра',             color:'#ff8f3c', isDone:false},
+  {id:'today',    title:'🔥 Сегодня',            color:'#ff5c7a', isDone:false},
+  {id:'done',     title:'✅ Готово',              color:'#12e8ac', isDone:true },
 ];
-
-// ── Compute correct column for a task based on today's date ──
 function kbSmartColForTask(t){
-  if(t.done)return 'done';
-  if(t.repeat)return 'planned';
-  if(!t.deadline)return 'new';
-  const tod=dk(t0());
-  const tom=dk(new Date(t0().getTime()+86400000));
-  const wMon=getMon(t0());
-  const wSun=new Date(wMon);wSun.setDate(wSun.getDate()+6);
-  const nMon=new Date(wMon);nMon.setDate(nMon.getDate()+7);
-  const nSun=new Date(nMon);nSun.setDate(nSun.getDate()+6);
-  if(t.deadline<tod)return 'today';      // overdue
-  if(t.deadline===tod)return 'today';
-  if(t.deadline===tom)return 'tomorrow';
-  if(t.deadline>=dk(wMon)&&t.deadline<=dk(wSun))return 'week';
-  if(t.deadline>=dk(nMon)&&t.deadline<=dk(nSun))return 'next';
-  return 'new'; // far future → new
+  if(t.done)return'done';
+  if(t.repeat)return'planned';
+  if(!t.deadline)return'new';
+  const tod=dk(t0()),tom=dk(new Date(+t0()+86400000));
+  const wMon=getMon(t0()),wSun=new Date(+wMon+6*86400000);
+  const nMon=new Date(+wMon+7*86400000),nSun=new Date(+nMon+6*86400000);
+  if(t.deadline<=tod)return'today';
+  if(t.deadline===tom)return'tomorrow';
+  if(t.deadline<=dk(wSun))return'week';
+  if(t.deadline<=dk(nSun))return'next';
+  return'new';
 }
-
-// ── Ensure board structure is correct ──
 function kbBoardsD(){
-  if(!G.kbBoards||!G.kbBoards.length){
-    G.kbBoards=[{id:SMART_BOARD_ID,title:'Задачи',cols:SMART_COLS.map(c=>({...c}))}];
-  }
-  const sb=G.kbBoards.find(b=>b.id===SMART_BOARD_ID);
-  if(sb){
-    // Ensure all columns exist, maintain order
-    const orderedCols=[];
-    SMART_COLS.forEach(sc=>{
-      const existing=sb.cols.find(c=>c.id===sc.id);
-      orderedCols.push(existing?{...sc,...existing,id:sc.id}:{...sc});
-    });
-    sb.cols=orderedCols;
-  }
+  if(!G.kbBoards)G.kbBoards=[];
+  let sb=G.kbBoards.find(b=>b.id===SMART_BOARD_ID);
+  if(!sb){sb={id:SMART_BOARD_ID,title:'Задачи',cols:[]};G.kbBoards.unshift(sb);}
+  sb.cols=SMART_COLS.map(sc=>{const f=sb.cols.find(c=>c.id===sc.id);return f?{...sc,...f,id:sc.id,color:sc.color,isDone:sc.isDone}:{...sc};});
   return G.kbBoards;
 }
 function kbD(){if(!G.kanban||!Array.isArray(G.kanban))G.kanban=[];return G.kanban}
-let kbEditId=null,kbSelPri=2,kbAddCol=null,kbActiveBoardId=null;
-
-// ── Auto-migrate + auto-move cards daily ──
-let _kbLastMigrateDay='';
+let kbEditId=null,kbSelPri=2,kbAddCol=null,kbActiveBoardId=SMART_BOARD_ID;
 function kbMigrate(){
-  const boards=kbBoardsD();
-  kbD().forEach(c=>{if(!c.boardId)c.boardId=boards[0].id;if(!c.id)c.id=uid();});
-  const sb=boards.find(b=>b.id===SMART_BOARD_ID);if(!sb)return;
-  kbD().filter(c=>c.boardId===SMART_BOARD_ID).forEach(c=>{
-    const task=c.taskId?tpD().find(t=>t.id===c.taskId):null;
-    if(!task)return;
-    // Sync title/deadline from task
-    if(task.text)c.title=task.text;
-    c.deadline=task.deadline||'';
-    c.done=task.done||false;
-    // If task is done → always move to done col
+  kbBoardsD();
+  const legacyMap={todo:'new',inprog:'week',review:'week',main:'new'};
+  kbD().forEach(c=>{if(!c.boardId)c.boardId=SMART_BOARD_ID;if(!c.id)c.id=uid();if(legacyMap[c.col])c.col=legacyMap[c.col];});
+  kbD().filter(c=>c.boardId===SMART_BOARD_ID&&c.taskId).forEach(c=>{
+    const task=tpD().find(t=>t.id===c.taskId);if(!task)return;
+    c.title=task.text||c.title;c.deadline=task.deadline||'';c.done=!!task.done;
     if(task.done){c.col='done';return;}
-    // Don't auto-move cards manually pinned to focus or planned (unless done)
     if(c.col==='focus')return;
-    if(c.col==='planned'&&task.repeat)return;
-    // Auto-move based on deadline
-    const correct=kbSmartColForTask(task);
-    c.col=correct;
+    if(task.repeat&&c.col==='planned')return;
+    c.col=kbSmartColForTask(task);
   });
 }
-
-// ── Sync all tasks into kanban ──
 function kbAutoSyncFromTasks(){
-  const sb=kbBoardsD().find(b=>b.id===SMART_BOARD_ID);if(!sb)return;
-  const cards=kbD();
+  const cards=kbD(),inKanban=new Set(cards.filter(c=>c.taskId).map(c=>c.taskId));
   tpD().forEach(t=>{
-    const existing=cards.find(c=>c.boardId===SMART_BOARD_ID&&c.taskId===t.id);
-    if(existing){
-      existing.title=t.text||existing.title;
-      existing.deadline=t.deadline||'';
-      existing.done=t.done||false;
-      if(t.done)existing.col='done';
-      return;
-    }
-    const col=kbSmartColForTask(t);
-    cards.push({
-      id:uid(),title:t.text,desc:t.notes||'',
-      priority:t.priority||2,deadline:t.deadline||'',
-      col,boardId:SMART_BOARD_ID,taskId:t.id,
-      done:t.done||false,isRepeat:!!t.repeat
-    });
+    if(inKanban.has(t.id))return;
+    cards.push({id:uid(),title:t.text,desc:t.notes||'',priority:t.priority||2,deadline:t.deadline||'',col:kbSmartColForTask(t),boardId:SMART_BOARD_ID,taskId:t.id,done:!!t.done,isRepeat:!!t.repeat});
   });
-  // Remove orphan cards
   const taskIds=new Set(tpD().map(t=>t.id));
-  for(let i=cards.length-1;i>=0;i--){
-    const c=cards[i];
-    if(c.boardId===SMART_BOARD_ID&&c.taskId&&!taskIds.has(c.taskId))cards.splice(i,1);
-  }
+  for(let i=cards.length-1;i>=0;i--){if(cards[i].boardId===SMART_BOARD_ID&&cards[i].taskId&&!taskIds.has(cards[i].taskId))cards.splice(i,1);}
 }
-
-// ── Drag state ──
-let _kbDragId=null,_kbDragOver=null;
-
-function kbDragStart(e,cardId){
-  _kbDragId=cardId;
-  e.dataTransfer.effectAllowed='move';
-  e.dataTransfer.setData('text/plain',cardId);
-  setTimeout(()=>{const el=document.getElementById('kbcard-'+cardId);if(el){el.style.opacity='0.4';el.style.transform='scale(0.97)';}},0);
-}
-function kbDragEnd(e){
-  const el=document.getElementById('kbcard-'+_kbDragId);
-  if(el){el.style.opacity='';el.style.transform='';}
-  document.querySelectorAll('.kbCards').forEach(z=>{z.classList.remove('kbDragOver');});
-  _kbDragId=null;_kbDragOver=null;
-}
-function kbDragOver(e,colId){
-  e.preventDefault();e.dataTransfer.dropEffect='move';
-  if(_kbDragOver===colId)return;
-  document.querySelectorAll('.kbCards').forEach(z=>z.classList.remove('kbDragOver'));
-  const el=document.getElementById('kb-'+colId);if(el)el.classList.add('kbDragOver');
-  _kbDragOver=colId;
-}
-function kbDrop(e,colId){
-  e.preventDefault();
-  if(!_kbDragId)return;
-  const cardId=_kbDragId;
-  document.querySelectorAll('.kbCards').forEach(z=>z.classList.remove('kbDragOver'));
-  const cards=kbD();
-  const idx=cards.findIndex(c=>c.id===cardId);if(idx<0)return;
-  const board=kbBoardsD().find(b=>b.id===cards[idx].boardId);if(!board)return;
-  const newColDef=board.cols.find(c=>c.id===colId);if(!newColDef)return;
-  // Don't move repeat tasks out of planned automatically
-  if(cards[idx].isRepeat&&colId!=='done'&&colId!=='planned')cards[idx].isRepeat=false;
-  cards[idx].col=colId;
-  // Sync linked task
-  const linkedTask=cards[idx].taskId?tpD().find(x=>x.id===cards[idx].taskId):null;
-  if(linkedTask){
-    if(newColDef.isDone){linkedTask.done=true;cards[idx].done=true;}
-    else{linkedTask.done=false;cards[idx].done=false;}
-    // Update deadline hint when moved to today/tomorrow/week
-    if(colId==='today'&&!linkedTask.deadline)linkedTask.deadline=dk(t0());
-    if(colId==='tomorrow'&&!linkedTask.deadline){
-      const tom=new Date(t0());tom.setDate(tom.getDate()+1);linkedTask.deadline=dk(tom);
-    }
-    cards[idx].deadline=linkedTask.deadline||'';
-  }
-  saveD();renderKanban();_kbDragId=null;
-}
-
-// ── Main render ──
+let _kbDragId=null;
 function renderKanban(){
-  kbMigrate();
-  kbAutoSyncFromTasks();
+  kbMigrate();kbAutoSyncFromTasks();
   const boards=kbBoardsD();
-  if(!kbActiveBoardId||!boards.find(b=>b.id===kbActiveBoardId))kbActiveBoardId=boards[0].id;
+  if(!kbActiveBoardId||!boards.find(b=>b.id===kbActiveBoardId))kbActiveBoardId=SMART_BOARD_ID;
   const bar=document.getElementById('kbBoardBar');
-  if(bar){
-    bar.innerHTML='';
-    if(boards.length>1){
-      boards.forEach(b=>{
-        const btn=document.createElement('button');btn.className='kbBoardTab'+(b.id===kbActiveBoardId?' on':'');
-        btn.textContent=b.title;btn.onclick=()=>{kbActiveBoardId=b.id;renderKanban()};bar.appendChild(btn);
-      });
-    } else {
-      bar.innerHTML=`<span style="font-family:var(--font-display);font-size:20px;font-weight:700;letter-spacing:-.4px;color:var(--purple)">🗂 Канбан</span>`;
-    }
-  }
+  if(bar)bar.innerHTML=`<span style="font-family:var(--font-display);font-size:20px;font-weight:700;letter-spacing:-.4px;color:var(--purple)">🗂 Канбан</span>`;
   const board=boards.find(b=>b.id===kbActiveBoardId);if(!board)return;
   const allCards=kbD();
-  const filter=document.getElementById('kbFilter')?.value||'';
   const layout=document.getElementById('kbLayout');if(!layout)return;
   layout.innerHTML='';
-
   board.cols.forEach((col,ci)=>{
-    const colCards=allCards.filter(c=>
-      c.boardId===kbActiveBoardId&&c.col===col.id&&
-      (filter===''||String(c.priority)===filter)
-    );
-    const colEl=document.createElement('div');
-    colEl.className='kbCol';
-    colEl.style.borderTop=`3px solid ${col.color}`;
-
-    // Column header
+    const colCards=allCards.filter(c=>c.boardId===kbActiveBoardId&&c.col===col.id);
+    const colEl=document.createElement('div');colEl.className='kbCol';
+    colEl.style.cssText=`width:270px;background:var(--card2);border-radius:var(--r);border:1px solid var(--border);display:flex;flex-direction:column;border-top:3px solid ${col.color};flex-shrink:0`;
     const head=document.createElement('div');head.className='kbColHead';
-    head.innerHTML=`<div class="kbColTitle"><div class="kbColDot" style="background:${col.color}"></div>${col.title}</div>
-      <div class="kbColCnt" style="background:${col.color}22;color:${col.color}">${colCards.length}</div>`;
+    head.innerHTML=`<div class="kbColTitle"><div class="kbColDot" style="background:${col.color}"></div>${col.title}</div><div style="background:${col.color}22;color:${col.color};border-radius:20px;padding:2px 9px;font-size:10px;font-weight:700">${colCards.length}</div>`;
     colEl.appendChild(head);
-
-    // Cards container — drop zone
-    const cardsEl=document.createElement('div');
-    cardsEl.className='kbCards';
-    cardsEl.id='kb-'+col.id;
-    cardsEl.addEventListener('dragover',e=>kbDragOver(e,col.id));
-    cardsEl.addEventListener('drop',e=>kbDrop(e,col.id));
+    const cardsEl=document.createElement('div');cardsEl.className='kbCards';cardsEl.id='kb-'+col.id;cardsEl.style.minHeight='80px';
+    cardsEl.addEventListener('dragover',e=>{e.preventDefault();e.dataTransfer.dropEffect='move';document.querySelectorAll('.kbCards').forEach(z=>z.style.background='');cardsEl.style.background='rgba(139,122,240,.1)';cardsEl.style.outline='1.5px dashed var(--p)';});
+    cardsEl.addEventListener('dragleave',e=>{if(!cardsEl.contains(e.relatedTarget)){cardsEl.style.background='';cardsEl.style.outline='';}});
+    cardsEl.addEventListener('drop',e=>{e.preventDefault();cardsEl.style.background='';cardsEl.style.outline='';const id=e.dataTransfer.getData('text/plain')||_kbDragId;if(id)_kbDropToCol(id,col.id);});
     colEl.appendChild(cardsEl);
-
-    // Render each card
     colCards.forEach(c=>{
-      const card=document.createElement('div');
-      card.className='kbCard'+(c.done?' kbCardDone':'');
-      card.id='kbcard-'+c.id;
-      card.draggable=true;
-      card.addEventListener('dragstart',e=>kbDragStart(e,c.id));
-      card.addEventListener('dragend',kbDragEnd);
-
+      const card=document.createElement('div');card.className='kbCard';card.id='kbcard-'+c.id;card.draggable=true;
+      card.style.cssText=`background:var(--card);border-radius:10px;padding:11px 12px;border:1px solid var(--border);margin:0 8px 7px;cursor:grab;transition:all .15s;position:relative;${c.done?'opacity:.5':''}`;
+      card.addEventListener('dragstart',e=>{_kbDragId=c.id;e.dataTransfer.setData('text/plain',c.id);e.dataTransfer.effectAllowed='move';setTimeout(()=>{card.style.opacity='.3';card.style.transform='scale(.96)';},0);});
+      card.addEventListener('dragend',()=>{card.style.opacity='';card.style.transform='';document.querySelectorAll('.kbCards').forEach(z=>{z.style.background='';z.style.outline='';});_kbDragId=null;});
       const lbl=c.labelId?labelsD().find(l=>l.id===c.labelId):null;
       if(lbl)card.style.borderLeft=`3px solid ${lbl.color}`;
-
-      const lblHtml=lbl?`<span style="display:inline-flex;align-items:center;gap:3px;font-size:9px;font-weight:700;color:${lbl.color};background:${hexA(lbl.color,.12)};padding:2px 6px;border-radius:20px;white-space:nowrap"><span style="width:5px;height:5px;border-radius:50%;background:${lbl.color};flex-shrink:0"></span>${esc(lbl.name)}</span>`:'';
-      const repeatBadge=c.isRepeat?`<span style="font-size:8px;color:var(--cyan);background:var(--cyandim);padding:1px 5px;border-radius:4px;font-weight:700">↻</span>`:'';
-
+      const lblHtml=lbl?`<span style="display:inline-flex;align-items:center;gap:3px;font-size:9px;font-weight:700;color:${lbl.color};background:${hexA(lbl.color,.12)};padding:2px 6px;border-radius:20px">${esc(lbl.name)}</span>`:'';
+      const repeatBadge=c.isRepeat?`<span style="font-size:8px;color:var(--cyan);background:var(--cyandim);padding:1px 5px;border-radius:4px;font-weight:700;margin-left:4px">↻</span>`:'';
       let dlHtml='';
-      if(c.deadline){
-        const diff=Math.floor((new Date(c.deadline+'T00:00:00')-t0())/86400000);
-        const dlColor=diff<0?'var(--red)':diff===0?'var(--gold)':diff===1?'var(--orange)':'var(--muted)';
-        const dlLabel=diff<0?`${Math.abs(diff)}д просроч.`:diff===0?'сегодня':diff===1?'завтра':`через ${diff}д`;
-        dlHtml=`<span style="font-size:9px;color:${dlColor};font-weight:600;display:flex;align-items:center;gap:3px">📅 ${c.deadline} <span style="opacity:.7">(${dlLabel})</span></span>`;
-      }
-
-      const priColors={'1':'var(--red)','2':'var(--gold)','3':'var(--green)'};
-      const priDot=c.priority?`<span style="width:6px;height:6px;border-radius:50%;background:${priColors[c.priority]||'var(--border2)'};flex-shrink:0;display:inline-block"></span>`:'';
-
+      if(c.deadline){const diff=Math.floor((new Date(c.deadline+'T00:00:00')-t0())/86400000);const dlColor=diff<0?'var(--red)':diff===0?'var(--gold)':diff===1?'var(--orange)':'var(--muted)';const dlLabel=diff<0?`${-diff}д просроч.`:diff===0?'сегодня':diff===1?'завтра':`+${diff}д`;dlHtml=`<div style="font-size:9px;color:${dlColor};font-weight:600;margin-top:6px">📅 ${c.deadline} <span style="opacity:.7">(${dlLabel})</span></div>`;}
+      const priDotColors={1:'var(--red)',2:'var(--gold)',3:'var(--green)'};
+      const priDot=`<span style="width:7px;height:7px;border-radius:50%;background:${priDotColors[c.priority]||'var(--border2)'};display:inline-block;flex-shrink:0"></span>`;
       card.innerHTML=`
-        <button class="kbDelBtn" onclick="event.stopPropagation();delCard('${c.id}')">×</button>
-        <div style="display:flex;align-items:flex-start;gap:6px;cursor:pointer" onclick="openKbModal('${col.id}','${c.id}')">
-          <span style="cursor:grab;color:var(--border2);font-size:14px;padding-top:1px;flex-shrink:0;user-select:none">⠿</span>
-          <div style="flex:1;min-width:0">
-            <div class="kbCardTitle" style="${c.done?'text-decoration:line-through;opacity:.6':''}">${esc(c.title)}${c.taskId?'<span style="font-size:8px;color:var(--border3);margin-left:3px">🔗</span>':''}</div>
-            ${c.desc?`<div class="kbCardDesc">${esc(c.desc)}</div>`:''}
+        <button onclick="event.stopPropagation();delCard('${c.id}')" style="position:absolute;top:7px;right:7px;border:none;background:none;cursor:pointer;color:var(--border2);font-size:16px;padding:0;line-height:1;display:none" class="kbDelBtn">×</button>
+        <div style="display:flex;align-items:flex-start;gap:6px">
+          <span style="color:var(--border2);font-size:13px;padding-top:1px;flex-shrink:0;cursor:grab">⠿</span>
+          <div style="flex:1;min-width:0;cursor:pointer" onclick="openKbModal('${col.id}','${c.id}')">
+            <div style="font-size:12px;font-weight:700;color:${c.done?'var(--muted)':'var(--text)'};${c.done?'text-decoration:line-through':''}">${esc(c.title)}${c.taskId?'<span style="font-size:8px;color:var(--border3);margin-left:3px">🔗</span>':''}</div>
+            ${c.desc?`<div style="font-size:11px;color:var(--muted);margin-top:3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(c.desc)}</div>`:''}
           </div>
         </div>
-        <div style="display:flex;align-items:center;gap:5px;flex-wrap:wrap;margin-top:7px">
-          ${priDot}${lblHtml}${repeatBadge}
-        </div>
-        ${dlHtml?`<div style="margin-top:5px">${dlHtml}</div>`:''}
-        <div style="display:flex;gap:4px;margin-top:8px;justify-content:flex-end">
-          ${ci>0?`<button class="kbMoveBtn" onclick="moveCard('${c.id}',-1)" title="Назад">◀</button>`:''}
-          ${!c.done&&col.id!=='done'?`<button class="kbMoveBtn" style="background:var(--greendim);color:var(--green);border-color:rgba(18,232,172,.3)" onclick="kbMarkDone('${c.id}')" title="Готово">✓</button>`:''}
-          ${ci<board.cols.length-1?`<button class="kbMoveBtn" onclick="moveCard('${c.id}',1)" title="Вперёд">▶</button>`:''}
+        <div style="display:flex;align-items:center;gap:5px;flex-wrap:wrap;margin-top:7px">${priDot}${lblHtml}${repeatBadge}</div>
+        ${dlHtml}
+        <div style="display:flex;gap:5px;margin-top:8px;justify-content:flex-end">
+          ${ci>0?`<button class="kbMoveBtn" onclick="event.stopPropagation();moveCard('${c.id}',-1)">◀</button>`:''}
+          ${!col.isDone?`<button onclick="event.stopPropagation();kbMarkDone('${c.id}')" style="background:var(--greendim);color:var(--green);border:1px solid rgba(18,232,172,.3);border-radius:6px;padding:2px 9px;font-size:10px;font-weight:700;cursor:pointer">✓ Готово</button>`:''}
+          ${ci<board.cols.length-1?`<button class="kbMoveBtn" onclick="event.stopPropagation();moveCard('${c.id}',1)">▶</button>`:''}
         </div>`;
+      card.addEventListener('mouseover',()=>{const d=card.querySelector('.kbDelBtn');if(d)d.style.display='block';});
+      card.addEventListener('mouseout',()=>{const d=card.querySelector('.kbDelBtn');if(d)d.style.display='none';});
       cardsEl.appendChild(card);
     });
-
-    // Add button
-    if(col.id!=='done'){
-      const addBtn=document.createElement('button');
-      addBtn.className='kbAddBtn';
-      addBtn.textContent='+ Добавить';
-      addBtn.onclick=()=>openKbModal(col.id);
-      colEl.appendChild(addBtn);
-    }
+    if(!col.isDone){const addBtn=document.createElement('button');addBtn.className='kbAddBtn';addBtn.textContent='+ Добавить';addBtn.onclick=()=>openKbModal(col.id);colEl.appendChild(addBtn);}
     layout.appendChild(colEl);
   });
 }
-
-// ── Mark card as done (quick button) ──
+function _kbDropToCol(cardId,colId){
+  const cards=kbD();const idx=cards.findIndex(c=>c.id===cardId);if(idx<0)return;
+  const board=kbBoardsD().find(b=>b.id===cards[idx].boardId);if(!board)return;
+  const newColDef=board.cols.find(c=>c.id===colId);if(!newColDef)return;
+  cards[idx].col=colId;
+  const task=cards[idx].taskId?tpD().find(x=>x.id===cards[idx].taskId):null;
+  if(task){
+    if(newColDef.isDone){task.done=true;cards[idx].done=true;}
+    else{task.done=false;cards[idx].done=false;}
+    if(colId==='today'&&!task.deadline)task.deadline=dk(t0());
+    if(colId==='tomorrow'&&!task.deadline){const tm=new Date(t0());tm.setDate(tm.getDate()+1);task.deadline=dk(tm);}
+    cards[idx].deadline=task.deadline||'';
+    if(task.repeat&&colId!=='done')cards[idx].isRepeat=true;
+  }
+  saveD();renderKanban();
+  if(document.getElementById('tab-tasks')?.classList.contains('on'))renderTP();
+}
 function kbMarkDone(cardId){
   const c=kbD().find(x=>x.id===cardId);if(!c)return;
   c.col='done';c.done=true;
   const task=c.taskId?tpD().find(t=>t.id===c.taskId):null;
-  if(task){task.done=true;}
+  if(task)task.done=true;
   saveD();renderKanban();
+  if(document.getElementById('tab-tasks')?.classList.contains('on'))renderTP();
 }
-
 let _kbLabelSel='';
 function openKbModal(colId,cardId){
   kbAddCol=colId;kbEditId=cardId||null;
@@ -4373,8 +4241,7 @@ function openKbModal(colId,cardId){
   document.getElementById('kbCardTime').value=c?.time||(linkedTask?.time||'');
   document.getElementById('kbCardEndTime').value=c?.endTime||(linkedTask?.endTime||'');
   _kbLabelSel=c?.labelId||(linkedTask?.labelId||'');
-  selKbPri(c?c.priority:2);
-  _renderKbLabels();
+  selKbPri(c?c.priority:2);_renderKbLabels();
   const board=kbBoardsD().find(b=>b.id===kbActiveBoardId);
   const sel=document.getElementById('kbCardCol');sel.innerHTML='';
   if(board)board.cols.forEach(col=>{const o=document.createElement('option');o.value=col.id;o.textContent=col.title;if((c?c.col:colId)===col.id)o.selected=true;sel.appendChild(o)});
@@ -4386,38 +4253,23 @@ function _renderKbLabels(){
   let html=`<span style="cursor:pointer;font-size:10.5px;padding:3px 10px;border-radius:20px;border:1px solid ${!_kbLabelSel?'var(--p)':'var(--border2)'};background:${!_kbLabelSel?'var(--pdim)':'transparent'};color:${!_kbLabelSel?'var(--p)':'var(--muted)'};font-weight:600" onclick="_kbLabelSel='';_renderKbLabels()">Нет</span>`;
   groups.forEach(g=>{
     html+=`<span style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.6px;color:${g.color};padding:0 3px;opacity:.7;align-self:center">${esc(g.name)}</span>`;
-    g.labels.forEach(l=>{
-      html+=`<span style="cursor:pointer;font-size:10.5px;padding:3px 10px;border-radius:20px;border:1px solid ${l.id===_kbLabelSel?l.color:'transparent'};background:${l.id===_kbLabelSel?hexA(l.color,.15):'var(--card2)'};color:${l.color};font-weight:600;display:inline-flex;align-items:center;gap:4px" onclick="_kbLabelSel='${l.id}';_renderKbLabels()"><span style="width:7px;height:7px;border-radius:50%;background:${l.color}"></span>${esc(l.name)}</span>`;
-    });
+    g.labels.forEach(l=>{html+=`<span style="cursor:pointer;font-size:10.5px;padding:3px 10px;border-radius:20px;border:1px solid ${l.id===_kbLabelSel?l.color:'transparent'};background:${l.id===_kbLabelSel?hexA(l.color,.15):'var(--card2)'};color:${l.color};font-weight:600;display:inline-flex;align-items:center;gap:4px" onclick="_kbLabelSel='${l.id}';_renderKbLabels()"><span style="width:7px;height:7px;border-radius:50%;background:${l.color}"></span>${esc(l.name)}</span>`;});
   });
   el.innerHTML=html;
 }
-function closeKbModal(){document.getElementById('kbOverlay').style.display='none';kbEditId=null}
-function selKbPri(p){
-  kbSelPri=p;
-  document.querySelectorAll('.kbPriBtn').forEach(b=>{b.classList.toggle('sel',parseInt(b.dataset.p)===p)});
-}
+function closeKbModal(){document.getElementById('kbOverlay').style.display='none';kbEditId=null;}
+function selKbPri(p){kbSelPri=p;document.querySelectorAll('.kbPriBtn').forEach(b=>{b.classList.toggle('sel',parseInt(b.dataset.p)===p)});}
 function saveKbCard(){
   const title=document.getElementById('kbCardTitle').value.trim();if(!title)return;
-  const col=document.getElementById('kbCardCol').value;
-  const deadline=document.getElementById('kbCardDl').value;
-  const time=document.getElementById('kbCardTime').value;
-  const endTime=document.getElementById('kbCardEndTime').value;
-  const desc=document.getElementById('kbCardDesc').value;
+  const col=document.getElementById('kbCardCol').value;const deadline=document.getElementById('kbCardDl').value;
+  const time=document.getElementById('kbCardTime').value;const endTime=document.getElementById('kbCardEndTime').value;const desc=document.getElementById('kbCardDesc').value;
   const data={title,desc,priority:kbSelPri,deadline,time,endTime,col,boardId:kbActiveBoardId,labelId:_kbLabelSel};
   if(kbEditId){
     const idx=kbD().findIndex(x=>x.id===kbEditId);
-    if(idx>=0){
-      kbD()[idx]={...kbD()[idx],...data};
-      const linkedTask=kbD()[idx].taskId?tpD().find(t=>t.id===kbD()[idx].taskId):null;
-      if(linkedTask){Object.assign(linkedTask,{text:title,deadline,time,endTime,notes:desc,labelId:_kbLabelSel});saveD();_refreshAllTaskViews();return;}
-    }
+    if(idx>=0){kbD()[idx]={...kbD()[idx],...data};const linkedTask=kbD()[idx].taskId?tpD().find(t=>t.id===kbD()[idx].taskId):null;if(linkedTask){Object.assign(linkedTask,{text:title,deadline,time,endTime,notes:desc,labelId:_kbLabelSel});saveD();_refreshAllTaskViews();return;}}
   } else {
-    const newCard={...data,id:uid()};
-    kbD().push(newCard);
-    const taskId=uid();
-    tpD().push({id:taskId,text:title,deadline,time,endTime,notes:desc,done:false,labelId:_kbLabelSel,priority:kbSelPri});
-    newCard.taskId=taskId;
+    const newCard={...data,id:uid()};kbD().push(newCard);const taskId=uid();
+    tpD().push({id:taskId,text:title,deadline,time,endTime,notes:desc,done:false,labelId:_kbLabelSel,priority:kbSelPri});newCard.taskId=taskId;
   }
   saveD();closeKbModal();_refreshAllTaskViews();
 }
@@ -4426,16 +4278,9 @@ function moveCard(id,dir){
   const board=kbBoardsD().find(b=>b.id===cards[idx].boardId);if(!board)return;
   const ci=board.cols.findIndex(c=>c.id===cards[idx].col);const ni=ci+dir;
   if(ni<0||ni>=board.cols.length)return;
-  const newCol=board.cols[ni];
-  cards[idx].col=newCol.id;
-  const linkedTask=cards[idx].taskId?tpD().find(x=>x.id===cards[idx].taskId):null;
-  if(linkedTask){
-    if(newCol.isDone){linkedTask.done=true;cards[idx].done=true;}
-    else{linkedTask.done=false;cards[idx].done=false;}
-  }
-  saveD();renderKanban();
+  _kbDropToCol(id,board.cols[ni].id);
 }
-function delCard(id){if(!confirm('Удалить карточку?'))return;const i=kbD().findIndex(c=>c.id===id);if(i>=0){kbD().splice(i,1);saveD();renderKanban()}}
+function delCard(id){if(!confirm('Удалить карточку?'))return;const i=kbD().findIndex(c=>c.id===id);if(i>=0){kbD().splice(i,1);saveD();renderKanban();}}
 
 /* Board Editor */
 let boardEditTmpId=null,boardEditTmpCols=[];
@@ -4537,11 +4382,12 @@ function renderFin(){
   // Accounts row
   const acctsRow=document.getElementById('finAccountsRow');
   const accts=finAccountsD();
-  // Update account balances from transactions
+  // Compute balances as LOCAL variables — never mutate stored .balance
+  const acctBals={};
   accts.forEach(a=>{
     const aInc=finTxD().filter(t=>t.type==='in'&&t.acctId===a.id).reduce((s,t)=>s+Number(t.amount),0);
     const aExp=finTxD().filter(t=>t.type==='out'&&t.acctId===a.id).reduce((s,t)=>s+Number(t.amount),0);
-    a.balance=(a.initialBalance||0)+aInc-aExp;
+    acctBals[a.id]=(a.initialBalance||0)+aInc-aExp;
   });
   // Populate account filter dropdown
   const acctFilterSel=document.getElementById('finAcctFilter');
@@ -4552,10 +4398,11 @@ function renderFin(){
   }
   acctsRow.innerHTML=accts.map(a=>{
     const col=a.color||'#8B7AF0';
+    const bal=acctBals[a.id]||0;
     return `<div class="finAcctCard${a.id===acctFilter?' active':''}" onclick="filterFinAcct('${a.id}')" style="border-left:3px solid ${col}">
       <div class="finAcctIcon">${esc(a.icon||'💰')}</div>
       <div class="finAcctName">${esc(a.name)}</div>
-      <div class="finAcctBal" style="color:${a.balance>=0?col:'var(--red)'}">${fmtMoney(a.balance)}</div>
+      <div class="finAcctBal" style="color:${bal>=0?col:'var(--red)'}">${fmtMoney(bal)}</div>
     </div>`;
   }).join('')+
     `<div class="finAcctCard" onclick="openAccountModal(null)" style="opacity:.6;border-style:dashed;display:flex;align-items:center;justify-content:center;min-height:74px;flex-direction:column;gap:4px">
@@ -4752,7 +4599,6 @@ function closeAccountModal(){document.getElementById('acctOverlay').style.displa
 function renderAccountList(){
   const el=document.getElementById('acctList');if(!el)return;
   const accts=finAccountsD();
-  // Calculate real balance per account
   el.innerHTML=accts.map((a,i)=>{
     const aInc=finTxD().filter(t=>t.type==='in'&&t.acctId===a.id).reduce((s,t)=>s+Number(t.amount),0);
     const aExp=finTxD().filter(t=>t.type==='out'&&t.acctId===a.id).reduce((s,t)=>s+Number(t.amount),0);
