@@ -1499,7 +1499,7 @@ select.inp option{background:var(--card2);color:var(--text)}
   <div class="hInner">
     <!-- Desktop -->
     <div class="hDesktop">
-      <a class="hLogo" href="#">
+      <a class="hLogo" href="#" onclick="event.preventDefault();switchTab('dash',document.querySelector('.hTab'))">
         <div class="hLogoMark">✦</div>
         <div class="hLogoText">PlannerPro</div>
       </a>
@@ -1510,7 +1510,6 @@ select.inp option{background:var(--card2);color:var(--text)}
           <button class="hTab" onclick="switchTab('weekly',this)">Неделя</button>
           <button class="hTab" onclick="switchTab('habits',this)">Привычки</button>
           <button class="hTab" onclick="switchTab('tasks',this)">Задачи</button>
-          <button class="hTab" onclick="switchTab('routine',this)">Рутина</button>
           <button class="hTab" onclick="switchTab('calendar',this)">Календарь</button>
           <button class="hTab" onclick="switchTab('kanban',this)">Канбан</button>
           <button class="hTab" onclick="switchTab('finance',this)">Финансы</button>
@@ -1831,10 +1830,24 @@ select.inp option{background:var(--card2);color:var(--text)}
   <div id="tpMobile" style="display:none">
     <div id="tBodyMobile"></div>
   </div>
+  <!-- Repeat / Routine section inside Tasks -->
+  <div style="margin-top:20px">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px">
+      <div class="secLbl" style="margin:0">↻ Регулярные задачи</div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap">
+        <button class="rwSubTab on" onclick="rbSetFreq('daily',this)" id="rb-tab-daily" style="font-size:10px">Ежедневно</button>
+        <button class="rwSubTab" onclick="rbSetFreq('weekly',this)" id="rb-tab-weekly" style="font-size:10px">Еженедельно</button>
+        <button class="rwSubTab" onclick="rbSetFreq('monthly',this)" id="rb-tab-monthly" style="font-size:10px">Ежемесячно</button>
+        <button class="rwSubTab" onclick="rbSetFreq('all',this)" id="rb-tab-all" style="font-size:10px">Все</button>
+        <button class="btn btnB" style="font-size:10px;padding:4px 10px" onclick="rbOpenModal(null)">+ Рутина</button>
+      </div>
+    </div>
+    <div id="rb-grid" class="rbGrid"></div>
+  </div>
 </div>
 
-<!-- ═══ 3.5. ROUTINE BOARD ═══ -->
-<div id="tab-routine" class="pane hInner">
+<!-- ═══ 3.5. ROUTINE BOARD (merged into Tasks) ═══ -->
+<div id="tab-routine" class="pane hInner" style="display:none!important">
   <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px">
     <div>
       <div style="font-family:var(--font-display);font-size:22px;font-weight:800;letter-spacing:-.4px;color:var(--text)">Доска рутин</div>
@@ -2627,18 +2640,21 @@ select.inp option{background:var(--card2);color:var(--text)}
 
 <!-- Labels Modal -->
 <div class="overlay" id="labelsOverlay" style="display:none">
-  <div class="modalBox" style="max-width:400px">
+  <div class="modalBox" style="max-width:460px">
     <div class="modalHead">
-      <span class="modalTitle">Управление метками</span>
+      <span class="modalTitle">Группы меток</span>
       <button class="modalClose" onclick="closeLabelsModal()">✕</button>
     </div>
-    <div id="labelsEditorList" style="display:flex;flex-direction:column;gap:7px"></div>
-    <div style="display:flex;gap:8px;margin-top:4px">
-      <input class="inp" id="newLabelNameInp" placeholder="Название метки..." style="flex:1">
-      <input type="color" id="newLabelColorInp" value="#4f87f7" style="width:40px;height:36px;border:none;border-radius:8px;cursor:pointer;padding:2px;background:var(--card2);border:1px solid var(--border2)">
+    <div id="labelsEditorList" style="display:flex;flex-direction:column;gap:4px;max-height:60vh;overflow-y:auto;margin-bottom:10px"></div>
+    <div style="display:flex;gap:8px;margin-bottom:8px">
+      <input class="inp" id="newLabelNameInp" placeholder="Быстро добавить метку..." style="flex:1">
+      <input type="color" id="newLabelColorInp" value="#4f87f7" style="width:38px;height:36px;border:none;border-radius:8px;cursor:pointer;padding:2px;background:var(--card2);border:1px solid var(--border2)">
       <button class="btn btnB" style="padding:7px 12px" onclick="addLabel()">+</button>
     </div>
-    <button class="btn btnG" style="width:100%;justify-content:center" onclick="closeLabelsModal()">Готово</button>
+    <div style="display:flex;gap:8px">
+      <button class="btn btnG" style="flex:1;justify-content:center;font-size:11px" onclick="addLabelGroup()">+ Новая группа</button>
+      <button class="btn btnG" style="flex:1;justify-content:center" onclick="closeLabelsModal()">Готово</button>
+    </div>
   </div>
 </div>
 
@@ -3387,6 +3403,8 @@ function tpD(){if(!G.tasks)G.tasks=[];return G.tasks}
 // ── Global cross-section re-render after any task change ──
 function _refreshAllTaskViews(){
   try{
+    // Always sync kanban card positions when tasks change (auto-move to done, etc)
+    kbMigrate();
     const active=name=>document.getElementById('tab-'+name)?.classList.contains('on');
     if(active('tasks'))renderTP();
     else if(active('weekly'))renderWP();
@@ -3512,6 +3530,8 @@ function renderTP(){
     addDiv.innerHTML=`<button class="dAddTask" style="width:100%;padding:12px;font-size:13px;border-radius:10px" onclick="openTaskModal(-1)">＋ Добавить задачу</button>`;
     mob.appendChild(addDiv);
   }
+  // Always render routine grid below
+  if(document.getElementById('rb-grid'))renderRoutine();
 }
 
 function toggleT(i,c){const t=tpD()[i];if(!t)return;t.done=c;saveD();_refreshAllTaskViews();}
@@ -3563,8 +3583,15 @@ function openTaskModal(idx,prefillDate){
 
 function _renderTaskModalLabels(selectedId){
   const el=document.getElementById('tm-labels-list');
-  el.innerHTML=`<span style="cursor:pointer;font-size:10.5px;padding:4px 10px;border-radius:20px;border:1px solid ${!selectedId?'var(--p)':'var(--border2)'};background:${!selectedId?'var(--pdim)':'transparent'};color:${!selectedId?'var(--p)':'var(--muted)'};font-weight:600" onclick="taskModalSelectLabel('')">Без метки</span>`
-    +labelsD().map(l=>`<span style="cursor:pointer;font-size:10.5px;padding:4px 10px;border-radius:20px;border:1px solid ${l.id===selectedId?l.color:'transparent'};background:${l.id===selectedId?hexA(l.color,.15):'var(--card2)'};color:${l.color};font-weight:600;display:inline-flex;align-items:center;gap:5px" onclick="taskModalSelectLabel('${l.id}')"><span style="width:8px;height:8px;border-radius:50%;background:${l.color};flex-shrink:0"></span>${esc(l.name)}</span>`).join('');
+  const groups=labelGroupsD();
+  let html=`<span style="cursor:pointer;font-size:10.5px;padding:4px 10px;border-radius:20px;border:1px solid ${!selectedId?'var(--p)':'var(--border2)'};background:${!selectedId?'var(--pdim)':'transparent'};color:${!selectedId?'var(--p)':'var(--muted)'};font-weight:600" onclick="taskModalSelectLabel('')">Без</span>`;
+  groups.forEach(g=>{
+    html+=`<span style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.6px;color:${g.color};padding:0 3px;opacity:.7;align-self:center">${esc(g.name)}</span>`;
+    g.labels.forEach(l=>{
+      html+=`<span style="cursor:pointer;font-size:10.5px;padding:4px 10px;border-radius:20px;border:1px solid ${l.id===selectedId?l.color:'transparent'};background:${l.id===selectedId?hexA(l.color,.15):'var(--card2)'};color:${l.color};font-weight:600;display:inline-flex;align-items:center;gap:5px" onclick="taskModalSelectLabel('${l.id}')"><span style="width:8px;height:8px;border-radius:50%;background:${l.color};flex-shrink:0"></span>${esc(l.name)}</span>`;
+    });
+  });
+  el.innerHTML=html;
 }
 function taskModalSelectLabel(id){
   _renderTaskModalLabels(id);
@@ -4038,8 +4065,6 @@ function plCalDeleteEvt(){
 }
 
 // ── Backward compat stubs ──
-function syncTaskCal(idx){_refreshAllTaskViews();}
-function removeTaskFromCal(){}
 function renderCalUpcoming(){plRenderUpcoming();}
 function addCalEvent(){plCalSaveEvt();}
 function delCalEvent(dstr,idx){const evts=calEventsD();if(evts[dstr]){evts[dstr].splice(idx,1);if(!evts[dstr].length)delete evts[dstr];}saveD();renderCal();}
@@ -4049,36 +4074,138 @@ function calNav(d){plCalNav(d);}
 /* ═══════════════════════════════════
    5. KANBAN (MULTI-BOARD)
 ═══════════════════════════════════ */
+/* ── Smart Kanban — date-driven auto columns ── */
+const SMART_BOARD_ID='smart';
+const SMART_COLS=[
+  {id:'focus',   title:'🎯 Фокус / Цели',    color:'var(--purple)', isDone:false, isAuto:false},
+  {id:'planned', title:'📋 Регулярные',       color:'var(--blue)',   isDone:false, isAuto:false},
+  {id:'next',    title:'📅 Следующая неделя', color:'var(--cyan)',   isDone:false, isAuto:true, autoKey:'next'},
+  {id:'week',    title:'🗓 Текущая неделя',   color:'var(--gold)',   isDone:false, isAuto:true, autoKey:'week'},
+  {id:'tomorrow',title:'⏰ Завтра',           color:'var(--orange)', isDone:false, isAuto:true, autoKey:'tomorrow'},
+  {id:'today',   title:'🔥 Сегодня',          color:'var(--red)',    isDone:false, isAuto:true, autoKey:'today'},
+  {id:'done',    title:'✅ Готово',            color:'var(--green)',  isDone:true,  isAuto:true, autoKey:'done'},
+];
+
+function kbSmartColForTask(t){
+  // Auto-assigns a task to the correct column based on deadline & done status
+  if(t.done)return'done';
+  if(!t.deadline)return null; // no deadline → don't auto-assign
+  const today=dk(t0());
+  const tomorrow=dk(new Date(t0().getTime()+86400000));
+  const wkStart=dk(getMon(t0()));
+  const wkEnd=dk(new Date(getMon(t0()).getTime()+6*86400000));
+  const nextWkStart=dk(new Date(getMon(t0()).getTime()+7*86400000));
+  const nextWkEnd=dk(new Date(getMon(t0()).getTime()+13*86400000));
+  if(t.deadline<today)return'today'; // overdue → today
+  if(t.deadline===today)return'today';
+  if(t.deadline===tomorrow)return'tomorrow';
+  if(t.deadline>=wkStart&&t.deadline<=wkEnd)return'week';
+  if(t.deadline>=nextWkStart&&t.deadline<=nextWkEnd)return'next';
+  return null; // far future → don't auto-assign
+}
+
 function kbBoardsD(){
+  // Always ensure smart board exists as first board
   if(!G.kbBoards||!G.kbBoards.length){
-    G.kbBoards=[{id:'main',title:'Основная',cols:[
-      {id:'todo',title:'Новые',icon:'📥',color:'var(--blue)'},
-      {id:'inprog',title:'В работе',icon:'🔄',color:'var(--gold)'},
-      {id:'review',title:'Проверка',icon:'👀',color:'var(--purple)'},
-      {id:'done',title:'Готово',icon:'✅',color:'var(--green)',isDone:true}
-    ]}];
+    G.kbBoards=[{id:SMART_BOARD_ID,title:'Задачи',cols:JSON.parse(JSON.stringify(SMART_COLS))}];
+  }
+  // Migrate: ensure smart board has all required cols
+  const sb=G.kbBoards.find(b=>b.id===SMART_BOARD_ID);
+  if(sb){
+    SMART_COLS.forEach(sc=>{
+      if(!sb.cols.find(c=>c.id===sc.id))sb.cols.push({...sc});
+    });
   }
   return G.kbBoards;
 }
 function kbD(){if(!G.kanban||!Array.isArray(G.kanban))G.kanban=[];return G.kanban}
 let kbEditId=null,kbSelPri=2,kbAddCol=null,kbActiveBoardId=null;
-// backward compat: assign boardId to old cards
+
 function kbMigrate(){
   const boards=kbBoardsD();
-  kbD().forEach(c=>{if(!c.boardId)c.boardId=boards[0].id;if(!c.id)c.id=uid()});
+  const today=dk(t0());
+  // Migrate old cards without boardId
+  kbD().forEach(c=>{
+    if(!c.boardId)c.boardId=boards[0].id;
+    if(!c.id)c.id=uid();
+  });
+  // AUTO-MOVE cards on smart board based on deadline & done
+  const sb=boards.find(b=>b.id===SMART_BOARD_ID);if(!sb)return;
+  kbD().filter(c=>c.boardId===SMART_BOARD_ID).forEach(c=>{
+    // Find linked task
+    const task=c.taskId?tpD().find(t=>t.id===c.taskId):null;
+    if(!task)return;
+    // Sync title/deadline
+    c.title=task.text||c.title;
+    c.deadline=task.deadline||'';
+    c.done=task.done||false;
+    const autoCol=kbSmartColForTask(task);
+    if(autoCol){
+      // Only auto-move if card is in an auto-managed column (not focus/planned/done pinned)
+      const currentCol=sb.cols.find(col=>col.id===c.col);
+      const isDoneCol=c.col==='done';
+      if(!isDoneCol||(isDoneCol&&!task.done)){
+        // move to correct auto col if it differs
+        if(c.col!==autoCol&&c.col!=='focus'&&c.col!=='planned'){
+          c.col=autoCol;
+        }
+      }
+      if(task.done&&c.col!=='done')c.col='done';
+    }
+  });
+}
+
+function kbAutoSyncFromTasks(){
+  // Sync all tasks into smart board — add missing, update existing
+  const sb=kbBoardsD().find(b=>b.id===SMART_BOARD_ID);if(!sb)return;
+  const cards=kbD();
+  const today=dk(t0());
+
+  tpD().forEach(t=>{
+    const existing=cards.find(c=>c.boardId===SMART_BOARD_ID&&c.taskId===t.id);
+    if(existing){
+      // Update title/deadline from task
+      existing.title=t.text||existing.title;
+      existing.deadline=t.deadline||'';
+      existing.done=t.done||false;
+      return;
+    }
+    // New task — determine where to place it
+    if(t.repeat){
+      // Recurring tasks go to Регулярные column
+      cards.push({id:uid(),title:t.text,desc:t.notes||'',priority:t.priority||2,deadline:'',col:'planned',boardId:SMART_BOARD_ID,taskId:t.id,done:false,isRepeat:true,repeat:t.repeat});
+    } else {
+      const autoCol=kbSmartColForTask(t);
+      if(autoCol){
+        cards.push({id:uid(),title:t.text,desc:t.notes||'',priority:t.priority||2,deadline:t.deadline||'',col:autoCol,boardId:SMART_BOARD_ID,taskId:t.id,done:t.done||false});
+      }
+    }
+  });
+
+  // Remove kanban cards whose linked task was deleted
+  const taskIds=new Set(tpD().map(t=>t.id));
+  for(let i=cards.length-1;i>=0;i--){
+    const c=cards[i];
+    if(c.boardId===SMART_BOARD_ID&&c.taskId&&!taskIds.has(c.taskId))cards.splice(i,1);
+  }
 }
 
 function renderKanban(){
   kbMigrate();
+  kbAutoSyncFromTasks();
   const boards=kbBoardsD();
   if(!kbActiveBoardId||!boards.find(b=>b.id===kbActiveBoardId))kbActiveBoardId=boards[0].id;
-  // Board tabs
+  // Board tabs (hide if only 1 board)
   const bar=document.getElementById('kbBoardBar');
   bar.innerHTML='';
-  boards.forEach(b=>{
-    const btn=document.createElement('button');btn.className='kbBoardTab'+(b.id===kbActiveBoardId?' on':'');
-    btn.textContent=b.title;btn.onclick=()=>{kbActiveBoardId=b.id;renderKanban()};bar.appendChild(btn);
-  });
+  if(boards.length>1){
+    boards.forEach(b=>{
+      const btn=document.createElement('button');btn.className='kbBoardTab'+(b.id===kbActiveBoardId?' on':'');
+      btn.textContent=b.title;btn.onclick=()=>{kbActiveBoardId=b.id;renderKanban()};bar.appendChild(btn);
+    });
+  } else {
+    bar.innerHTML=`<span style="font-family:var(--font-display);font-size:20px;font-style:normal;font-weight:700;letter-spacing:-.4px;color:var(--purple)">🗂 Канбан</span>`;
+  }
   const board=boards.find(b=>b.id===kbActiveBoardId);if(!board)return;
   const cards=kbD();const filter=document.getElementById('kbFilter').value;
   const layout=document.getElementById('kbLayout');layout.innerHTML='';
@@ -4086,15 +4213,15 @@ function renderKanban(){
     const colCards=cards.filter(c=>c.boardId===kbActiveBoardId&&c.col===col.id&&(filter===''||String(c.priority)===filter));
     const colEl=document.createElement('div');colEl.className='kbCol';
     colEl.innerHTML=`<div class="kbColHead">
-      <div class="kbColTitle"><div class="kbColDot" style="background:${col.color}"></div>${col.icon||''} ${esc(col.title)}</div>
+      <div class="kbColTitle"><div class="kbColDot" style="background:${col.color}"></div>${col.title}</div>
       <div class="kbColCnt">${colCards.length}</div>
     </div><div class="kbCards" id="kb-${col.id}"></div>
-    <button class="kbAddBtn" onclick="openKbModal('${col.id}')">+ Добавить карточку</button>`;
+    ${col.id!=='done'?`<button class="kbAddBtn" onclick="openKbModal('${col.id}')">+ Добавить</button>`:''}`;
     layout.appendChild(colEl);
     const cardsEl=colEl.querySelector('.kbCards');
     colCards.forEach(c=>{
       const card=document.createElement('div');card.className='kbCard';
-      const priLbl=['','🔴 Высокий','🟡 Средний','🟢 Низкий'][c.priority]||'';
+      const priLbl=['','🔴','🟡','🟢'][c.priority]||'';
       const priCls=['','kbP1','kbP2','kbP3'][c.priority]||'kbP2';
       const lbl=c.labelId?labelsD().find(l=>l.id===c.labelId):null;
       const lblHtml=lbl?`<span style="display:inline-flex;align-items:center;gap:3px;font-size:9px;font-weight:700;color:${lbl.color};background:${hexA(lbl.color,.12)};padding:2px 7px;border-radius:20px;white-space:nowrap"><span style="width:6px;height:6px;border-radius:50%;background:${lbl.color};flex-shrink:0"></span>${esc(lbl.name)}</span>`:'';
@@ -4103,8 +4230,9 @@ function renderKanban(){
       if(c.deadline){const dl=new Date(c.deadline+'T00:00:00'),td=t0(),diff=Math.floor((dl-td)/86400000);dlHtml=`<span class="kbDl" style="color:${diff<0?'var(--red)':diff===0?'var(--gold)':'var(--muted)'}">📅 ${c.deadline}${diff<0?' ⚠️':diff===0?' (сегодня)':''}</span>`}
       const moveLeft=ci>0?`<button class="kbMoveBtn" onclick="moveCard('${c.id}',-1)">◀</button>`:'';
       const moveRight=ci<board.cols.length-1?`<button class="kbMoveBtn" onclick="moveCard('${c.id}',1)">▶</button>`:'';
-      const linked=c.taskId?'<span style="font-size:9px;color:var(--text2);margin-left:3px" title="Связано с задачей">🔗</span>':'';
+      const linked=c.taskId?'<span style="font-size:9px;color:var(--text2);margin-left:3px" title="Связано">🔗</span>':'';
       if(lbl)card.style.borderLeft=`3px solid ${lbl.color}`;
+      if(c.done)card.style.opacity='0.6';
       card.innerHTML=`<button class="kbDelBtn" onclick="delCard('${c.id}')">×</button>
         <div class="kbCardTitle" onclick="openKbModal('${col.id}','${c.id}')">${esc(c.title)}${linked}</div>
         ${c.desc?`<div class="kbCardDesc">${esc(c.desc)}</div>`:''}
@@ -4143,8 +4271,15 @@ function openKbModal(colId,cardId){
 }
 function _renderKbLabels(){
   const el=document.getElementById('kbLabelsList');if(!el)return;
-  el.innerHTML=`<span style="cursor:pointer;font-size:10.5px;padding:3px 10px;border-radius:20px;border:1px solid ${!_kbLabelSel?'var(--p)':'var(--border2)'};background:${!_kbLabelSel?'var(--pdim)':'transparent'};color:${!_kbLabelSel?'var(--p)':'var(--muted)'};font-weight:600" onclick="_kbLabelSel='';_renderKbLabels()">Нет</span>`
-    +labelsD().map(l=>`<span style="cursor:pointer;font-size:10.5px;padding:3px 10px;border-radius:20px;border:1px solid ${l.id===_kbLabelSel?l.color:'transparent'};background:${l.id===_kbLabelSel?hexA(l.color,.15):'var(--card2)'};color:${l.color};font-weight:600;display:inline-flex;align-items:center;gap:4px" onclick="_kbLabelSel='${l.id}';_renderKbLabels()"><span style="width:7px;height:7px;border-radius:50%;background:${l.color}"></span>${esc(l.name)}</span>`).join('');
+  const groups=labelGroupsD();
+  let html=`<span style="cursor:pointer;font-size:10.5px;padding:3px 10px;border-radius:20px;border:1px solid ${!_kbLabelSel?'var(--p)':'var(--border2)'};background:${!_kbLabelSel?'var(--pdim)':'transparent'};color:${!_kbLabelSel?'var(--p)':'var(--muted)'};font-weight:600" onclick="_kbLabelSel='';_renderKbLabels()">Нет</span>`;
+  groups.forEach(g=>{
+    html+=`<span style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.6px;color:${g.color};padding:0 3px;opacity:.7;align-self:center">${esc(g.name)}</span>`;
+    g.labels.forEach(l=>{
+      html+=`<span style="cursor:pointer;font-size:10.5px;padding:3px 10px;border-radius:20px;border:1px solid ${l.id===_kbLabelSel?l.color:'transparent'};background:${l.id===_kbLabelSel?hexA(l.color,.15):'var(--card2)'};color:${l.color};font-weight:600;display:inline-flex;align-items:center;gap:4px" onclick="_kbLabelSel='${l.id}';_renderKbLabels()"><span style="width:7px;height:7px;border-radius:50%;background:${l.color}"></span>${esc(l.name)}</span>`;
+    });
+  });
+  el.innerHTML=html;
 }
 function closeKbModal(){document.getElementById('kbOverlay').style.display='none';kbEditId=null}
 function selKbPri(p){
@@ -4182,10 +4317,12 @@ function moveCard(id,dir){
   const board=kbBoardsD().find(b=>b.id===cards[idx].boardId);if(!board)return;
   const ci=board.cols.findIndex(c=>c.id===cards[idx].col);const ni=ci+dir;
   if(ni<0||ni>=board.cols.length)return;
-  cards[idx].col=board.cols[ni].id;
-  // if moved to done col, mark linked task done
-  if(board.cols[ni].isDone&&cards[idx].taskId){
-    const t=tpD().find(x=>x.id===cards[idx].taskId);if(t){t.done=true;saveD()}
+  const newCol=board.cols[ni];
+  cards[idx].col=newCol.id;
+  const linkedTask=cards[idx].taskId?tpD().find(x=>x.id===cards[idx].taskId):null;
+  if(linkedTask){
+    if(newCol.isDone){linkedTask.done=true;cards[idx].done=true;}
+    else if(newCol.id!=='done'){linkedTask.done=false;cards[idx].done=false;}
   }
   saveD();renderKanban();
 }
@@ -4758,66 +4895,84 @@ function jAddQuestion(){
 /* ═══════════════════════════════════
    LABELS
 ═══════════════════════════════════ */
-const DEFAULT_LABELS=[
-  {id:'lw',name:'Работа',color:'#4f87f7'},
-  {id:'lp',name:'Личное',color:'#2dd4a6'},
-  {id:'lu',name:'Срочно',color:'#f87171'},
-  {id:'le',name:'Учёба',color:'#9b7cf4'}
+const DEFAULT_LABEL_GROUPS=[
+  {id:'lg1',name:'Баланс',color:'#4f87f7',labels:[
+    {id:'lw',name:'Работа',color:'#4f87f7'},
+    {id:'lp',name:'Личное',color:'#2dd4a6'},
+    {id:'le',name:'Учёба',color:'#9b7cf4'},
+    {id:'lh',name:'Здоровье',color:'#34d5f0'},
+  ]},
+  {id:'lg2',name:'Внимание',color:'#f59e0b',labels:[
+    {id:'linv',name:'Инвестиция',color:'#f59e0b'},
+    {id:'lsp',name:'Трата',color:'#f87171'},
+    {id:'lur',name:'Срочно',color:'#ff5c7a'},
+    {id:'ldev',name:'Развитие',color:'#a882f8'},
+  ]},
 ];
-function labelsD(){if(!G.labels){G.labels=DEFAULT_LABELS.map(l=>({...l}))}return G.labels}
+
+function labelGroupsD(){
+  if(!G.labelGroups){G.labelGroups=JSON.parse(JSON.stringify(DEFAULT_LABEL_GROUPS));}
+  return G.labelGroups;
+}
+function labelsD(){
+  // Flat list of all labels across all groups
+  return labelGroupsD().flatMap(g=>g.labels.map(l=>({...l,groupId:g.id,groupName:g.name,groupColor:g.color})));
+}
 let activeLabel=null;
 
-// Close any open label picker dropdowns
 function closeAllLabelPickers(){
   document.querySelectorAll('.labelPickerDrop').forEach(el=>el.remove());
 }
 
-// Show an inline label picker dropdown for a task row
 function openLabelPicker(taskIdx, anchorEl){
   closeAllLabelPickers();
-  const labels=labelsD();
+  const groups=labelGroupsD();
   const drop=document.createElement('div');
   drop.className='labelPickerDrop';
-  drop.style.cssText=`position:fixed;z-index:900;background:var(--card);border:1px solid var(--border2);border-radius:10px;padding:6px;box-shadow:var(--shadow2);min-width:150px;`;
-
-  // Position near anchor
+  drop.style.cssText=`position:fixed;z-index:1200;background:var(--card);border:1px solid var(--border2);border-radius:12px;padding:8px;box-shadow:var(--shadow2);min-width:180px;max-width:220px;`;
   const rect=anchorEl.getBoundingClientRect();
   let top=rect.bottom+4, left=rect.left;
-  if(top+220>window.innerHeight) top=rect.top-220;
-  if(left+160>window.innerWidth) left=window.innerWidth-165;
+  if(top+320>window.innerHeight) top=rect.top-320;
+  if(left+220>window.innerWidth) left=window.innerWidth-225;
   drop.style.top=top+'px';
   drop.style.left=left+'px';
-
-  // "None" option
+  // None option
   const none=document.createElement('div');
-  none.style.cssText='padding:5px 8px;cursor:pointer;border-radius:6px;font-size:11px;color:var(--muted);display:flex;align-items:center;gap:7px;';
+  none.style.cssText='padding:5px 8px;cursor:pointer;border-radius:6px;font-size:11px;color:var(--muted);display:flex;align-items:center;gap:7px;margin-bottom:6px;';
   none.textContent='— Без метки';
   none.onmouseenter=()=>none.style.background='rgba(255,255,255,.07)';
   none.onmouseleave=()=>none.style.background='';
   none.onclick=()=>{updT(taskIdx,'labelId','');saveD();closeAllLabelPickers();renderTP()};
   drop.appendChild(none);
-
-  labels.forEach(l=>{
-    const row=document.createElement('div');
-    row.style.cssText='padding:5px 8px;cursor:pointer;border-radius:6px;font-size:11px;display:flex;align-items:center;gap:7px;';
-    row.innerHTML=`<span style="width:10px;height:10px;border-radius:50%;background:${l.color};flex-shrink:0;display:inline-block"></span><span style="color:${l.color};font-weight:600">${esc(l.name)}</span>`;
-    row.onmouseenter=()=>row.style.background='rgba(255,255,255,.07)';
-    row.onmouseleave=()=>row.style.background='';
-    row.onclick=()=>{updT(taskIdx,'labelId',l.id);saveD();closeAllLabelPickers();renderTP()};
-    drop.appendChild(row);
+  groups.forEach(g=>{
+    const grpHdr=document.createElement('div');
+    grpHdr.style.cssText=`font-size:8.5px;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:${g.color};padding:3px 8px 2px;opacity:.8;`;
+    grpHdr.textContent=g.name;
+    drop.appendChild(grpHdr);
+    g.labels.forEach(l=>{
+      const row=document.createElement('div');
+      row.style.cssText='padding:5px 8px;cursor:pointer;border-radius:6px;font-size:11px;display:flex;align-items:center;gap:7px;';
+      row.innerHTML=`<span style="width:10px;height:10px;border-radius:50%;background:${l.color};flex-shrink:0;display:inline-block"></span><span style="color:${l.color};font-weight:600">${esc(l.name)}</span>`;
+      row.onmouseenter=()=>row.style.background='rgba(255,255,255,.07)';
+      row.onmouseleave=()=>row.style.background='';
+      row.onclick=()=>{updT(taskIdx,'labelId',l.id);saveD();closeAllLabelPickers();renderTP()};
+      drop.appendChild(row);
+    });
   });
-
   document.body.appendChild(drop);
-  // Close on outside click
   setTimeout(()=>document.addEventListener('click',closeAllLabelPickers,{once:true}),10);
 }
 
 function renderLabelsFilterBar(){
   const bar=document.getElementById('labelsFilterBar');if(!bar)return;
+  const groups=labelGroupsD();
   let html=`<span class="labelPill" onclick="setActiveLabel(null)" style="background:${!activeLabel?'rgba(255,255,255,.12)':'rgba(255,255,255,.05)'};color:var(--text2);cursor:pointer">Все</span>`;
-  labelsD().forEach(l=>{
-    const active=activeLabel===l.id;
-    html+=`<span class="labelPill" onclick="setActiveLabel('${l.id}')" style="background:${hexA(l.color,active?0.25:0.12)};color:${l.color};cursor:pointer;${active?'outline:1px solid '+l.color:''}">${esc(l.name)}</span>`;
+  groups.forEach(g=>{
+    html+=`<span style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.8px;color:${g.color};padding:0 4px;opacity:.7;align-self:center">${esc(g.name)}</span>`;
+    g.labels.forEach(l=>{
+      const active=activeLabel===l.id;
+      html+=`<span class="labelPill" onclick="setActiveLabel('${l.id}')" style="background:${hexA(l.color,active?0.25:0.12)};color:${l.color};cursor:pointer;${active?'outline:1px solid '+l.color:''}">${esc(l.name)}</span>`;
+    });
   });
   bar.innerHTML=html;
 }
@@ -4829,33 +4984,61 @@ function openLabelsModal(){
 }
 function closeLabelsModal(){
   document.getElementById('labelsOverlay').style.display='none';
-  renderLabelsFilterBar();
-  renderTP(); // refresh task list so label pills update
+  renderLabelsFilterBar();renderTP();
 }
+
 function renderLabelsEditorList(){
-  const el=document.getElementById('labelsEditorList');
-  el.innerHTML=labelsD().map((l,i)=>`<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border)">
-    <div style="width:18px;height:18px;border-radius:50%;background:${l.color};cursor:pointer;flex-shrink:0" onclick="pickLabelColor(${i})"></div>
-    <input class="inp" value="${esc(l.name)}" style="flex:1" oninput="labelsD()[${i}].name=this.value;saveD()">
-    <button class="btn btnG" style="padding:4px 8px;font-size:12px" onclick="delLabel('${l.id}')">×</button>
-  </div>`).join('');
+  const el=document.getElementById('labelsEditorList');if(!el)return;
+  const groups=labelGroupsD();
+  el.innerHTML=groups.map((g,gi)=>`
+    <div style="margin-bottom:14px">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+        <input type="color" value="${g.color}" style="width:28px;height:28px;border:none;border-radius:6px;cursor:pointer;padding:1px;background:var(--card3);flex-shrink:0" onchange="labelGroupsD()[${gi}].color=this.value;saveD();renderLabelsEditorList()">
+        <input class="inp" value="${esc(g.name)}" style="flex:1;font-weight:700;font-size:12px" oninput="labelGroupsD()[${gi}].name=this.value;saveD()">
+        <button class="btn btnO" style="font-size:10px;padding:3px 8px" onclick="addLabelToGroup(${gi})">+ Метка</button>
+        <button class="btn btnR" style="font-size:10px;padding:3px 8px" onclick="delLabelGroup(${gi})">×</button>
+      </div>
+      ${g.labels.map((l,li)=>`<div style="display:flex;align-items:center;gap:6px;padding:4px 0 4px 16px;border-left:2px solid ${g.color}22">
+        <input type="color" value="${l.color}" style="width:22px;height:22px;border:none;border-radius:50%;cursor:pointer;padding:1px;background:none;flex-shrink:0" onchange="labelGroupsD()[${gi}].labels[${li}].color=this.value;saveD();renderLabelsEditorList()">
+        <input class="inp" value="${esc(l.name)}" style="flex:1;font-size:11px" oninput="labelGroupsD()[${gi}].labels[${li}].name=this.value;saveD()">
+        <button class="btn btnG" style="font-size:10px;padding:2px 6px" onclick="delLabelFromGroup(${gi},'${l.id}')">×</button>
+      </div>`).join('')}
+    </div>`).join('');
 }
-function pickLabelColor(i){
-  const inp=document.createElement('input');inp.type='color';inp.value=labelsD()[i].color;
-  inp.oninput=()=>{labelsD()[i].color=inp.value;saveD();renderLabelsEditorList()};inp.click();
+
+function addLabelToGroup(gi){
+  const name=prompt('Название метки:');if(!name)return;
+  labelGroupsD()[gi].labels.push({id:uid(),name:name.trim(),color:'#9b7cf4'});
+  saveD();renderLabelsEditorList();renderLabelsFilterBar();renderTP();
+}
+function delLabelFromGroup(gi,lid){
+  labelGroupsD()[gi].labels=labelGroupsD()[gi].labels.filter(l=>l.id!==lid);
+  if(G.tasks)G.tasks.forEach(t=>{if(t.labelId===lid)t.labelId='';});
+  saveD();renderLabelsEditorList();renderLabelsFilterBar();renderTP();
+}
+function delLabelGroup(gi){
+  if(!confirm('Удалить группу и все метки в ней?'))return;
+  const lids=labelGroupsD()[gi].labels.map(l=>l.id);
+  labelGroupsD().splice(gi,1);
+  if(G.tasks)G.tasks.forEach(t=>{if(lids.includes(t.labelId))t.labelId='';});
+  saveD();renderLabelsEditorList();renderLabelsFilterBar();renderTP();
+}
+function addLabelGroup(){
+  labelGroupsD().push({id:uid(),name:'Новая группа',color:'#9b7cf4',labels:[]});
+  saveD();renderLabelsEditorList();
 }
 function addLabel(){
+  // Legacy: add to first group
   const name=document.getElementById('newLabelNameInp').value.trim();if(!name)return;
   const color=document.getElementById('newLabelColorInp').value;
-  labelsD().push({id:uid(),name,color});saveD();
+  if(!labelGroupsD().length)labelGroupsD().push({id:uid(),name:'Группа 1',color:'#4f87f7',labels:[]});
+  labelGroupsD()[0].labels.push({id:uid(),name,color});
+  saveD();
   document.getElementById('newLabelNameInp').value='';
-  renderLabelsEditorList();
-  renderLabelsFilterBar();
-  renderTP(); // update task rows immediately
+  renderLabelsEditorList();renderLabelsFilterBar();renderTP();
 }
 function delLabel(id){
-  G.labels=labelsD().filter(l=>l.id!==id);
-  // clear that label from all tasks
+  labelGroupsD().forEach(g=>{g.labels=g.labels.filter(l=>l.id!==id);});
   if(G.tasks)G.tasks.forEach(t=>{if(t.labelId===id)t.labelId='';});
   saveD();renderLabelsEditorList();renderLabelsFilterBar();renderTP();
 }
@@ -4879,10 +5062,10 @@ function removeTaskFromCal(taskId){
 ═══════════════════════════════════ */
 function syncNewTaskToKanban(taskId){
   const t=tpD().find(x=>x.id===taskId);if(!t)return;
-  const boards=kbBoardsD();if(!boards.length)return;
-  const board=boards[0];
-  const firstCol=board.cols[0];
-  kbD().push({id:uid(),title:t.text,desc:'',priority:2,deadline:t.deadline||'',col:firstCol.id,boardId:board.id,taskId});
+  if(t.repeat)return; // recurring tasks shown in Регулярные, not individually synced
+  if(kbD().find(c=>c.taskId===taskId))return; // already synced
+  const autoCol=kbSmartColForTask(t)||'week';
+  kbD().push({id:uid(),title:t.text,desc:t.notes||'',priority:t.priority||2,deadline:t.deadline||'',col:autoCol,boardId:SMART_BOARD_ID,taskId});
   saveD();
 }
 
@@ -6436,8 +6619,10 @@ let _rbSelFreqVal='daily';
 
 function rbSetFreq(f,btn){
   _rbFreq=f;
-  document.querySelectorAll('.rwSubTab').forEach(b=>b.classList.remove('on'));
-  if(btn)btn.classList.add('on');
+  ['daily','weekly','monthly','all'].forEach(id=>{
+    const el=document.getElementById('rb-tab-'+id);
+    if(el)el.classList.toggle('on',id===f);
+  });
   rbRenderGrid();
 }
 function rbRenderGrid(){
