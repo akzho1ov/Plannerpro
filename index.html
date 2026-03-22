@@ -25,7 +25,6 @@ const firebaseConfig = {
   appId: "1:68666541106:web:b9e78a5769222d5f67282b",
   measurementId: "G-8RQB3MR8Y0"
 };
-
 firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
@@ -1266,9 +1265,35 @@ select.inp option{background:var(--card2);color:var(--text)}
 /* Habit name wrapping fix */
 .htNameCell{overflow:visible!important}
 
-/* ────────── LABEL PICKER DROP ────────── */
-.labelPickerDrop{animation:fadeUp .15s ease}
-@keyframes fadeUp{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
+/* ── tTimeInp visibility fix ── */
+.tTimeInp{
+  border:1px solid var(--border2);border-radius:7px;
+  padding:4px 8px;
+  font-family:var(--font-mono);font-size:11px;font-weight:500;
+  outline:none;background:var(--card2);color:var(--text);
+  color-scheme:dark;min-width:88px;width:90px;
+  transition:border-color var(--dur) var(--ease),background var(--dur) var(--ease);
+}
+.tTimeInp:hover,.tTimeInp:focus{border-color:var(--p);background:var(--card)}
+.tTimeInp::-webkit-calendar-picker-indicator{filter:invert(60%);cursor:pointer}
+
+/* ── Unified Task Modal ── */
+#taskModal{display:none;position:fixed;inset:0;z-index:1100;background:rgba(0,0,0,.7);backdrop-filter:blur(10px);align-items:center;justify-content:center;padding:16px;animation:fadeOverlay .18s var(--ease)}
+#taskModal.open{display:flex}
+#taskModalBox{
+  background:var(--card);border:1px solid var(--border2);border-radius:18px;
+  padding:24px;width:100%;max-width:520px;max-height:92vh;overflow-y:auto;
+  box-shadow:var(--shadow2),0 0 60px rgba(124,104,238,.12);
+  animation:slideModal .22s var(--ease);
+}
+.tmField{display:flex;flex-direction:column;gap:6px;margin-bottom:14px}
+.tmLabel{font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:1.2px;color:var(--muted)}
+.tmRow{display:flex;gap:10px;flex-wrap:wrap}
+.tmRow .tmField{flex:1;min-width:120px}
+.tmColorDot{width:10px;height:10px;border-radius:50%;flex-shrink:0;display:inline-block;vertical-align:middle;margin-right:4px}
+/* left accent bar on task rows in calendar */
+.calTaskRow{cursor:pointer;transition:all var(--dur) var(--ease)}
+.calTaskRow:hover{filter:brightness(1.15)}
 
 /* ────────── APP LOADER ────────── */
 #appLoader{position:fixed;inset:0;z-index:9999;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;transition:opacity .5s,visibility .5s}
@@ -1682,8 +1707,10 @@ select.inp option{background:var(--card2);color:var(--text)}
       <div class="taskCard">
         <table class="tTbl">
           <thead><tr>
-            <th>#</th><th>✓</th><th>Задача</th><th>Метка</th><th>Срок</th>
-            <th>Начало</th><th>Конец</th><th style="text-align:center">Дней</th><th>Примечания</th><th></th>
+            <th style="width:24px">#</th><th style="width:28px">✓</th>
+            <th>Задача</th><th>Метка</th><th>Срок</th>
+            <th>Время</th><th style="text-align:center;width:50px">Дней</th>
+            <th>Примечания</th><th style="width:28px"></th>
           </tr></thead>
           <tbody id="tBody"></tbody>
           <tfoot><tr><td colspan="9" style="padding:8px 10px">
@@ -2179,6 +2206,67 @@ select.inp option{background:var(--card2);color:var(--text)}
 <!-- Notif bar -->
 <div class="rwNotifBar" id="rw-notif"></div>
 
+<!-- ═══ UNIFIED TASK MODAL ═══ -->
+<div id="taskModal">
+  <div id="taskModalBox">
+    <div class="modalHead" style="margin-bottom:18px">
+      <span class="modalTitle" id="taskModalTitle">Задача</span>
+      <div style="display:flex;gap:8px;align-items:center">
+        <div id="taskModalLabelDot" style="width:10px;height:10px;border-radius:50%;background:var(--border2);flex-shrink:0"></div>
+        <button id="taskModalDeleteBtn" class="btn btnR" style="font-size:11px;padding:5px 10px;display:none" onclick="taskModalDelete()">Удалить</button>
+        <button class="modalClose" onclick="closeTaskModal()">✕</button>
+      </div>
+    </div>
+    <input type="hidden" id="tm-id">
+
+    <!-- Task name -->
+    <div class="tmField">
+      <label class="tmLabel">Название задачи</label>
+      <input class="inp" id="tm-text" placeholder="Что нужно сделать?" style="font-size:14px;font-weight:600;padding:10px 14px">
+    </div>
+
+    <!-- Date + Times row -->
+    <div class="tmRow">
+      <div class="tmField">
+        <label class="tmLabel">Срок выполнения</label>
+        <input type="date" class="inp" id="tm-deadline" style="color-scheme:dark">
+      </div>
+      <div class="tmField">
+        <label class="tmLabel">Начало</label>
+        <input type="time" class="inp" id="tm-time" style="color-scheme:dark;font-family:var(--font-mono)">
+      </div>
+      <div class="tmField">
+        <label class="tmLabel">Конец</label>
+        <input type="time" class="inp" id="tm-endTime" style="color-scheme:dark;font-family:var(--font-mono)">
+      </div>
+    </div>
+
+    <!-- Label -->
+    <div class="tmField">
+      <label class="tmLabel">Метка</label>
+      <div style="display:flex;gap:6px;flex-wrap:wrap" id="tm-labels-list"></div>
+    </div>
+
+    <!-- Notes -->
+    <div class="tmField">
+      <label class="tmLabel">Примечания</label>
+      <textarea class="kbTxtarea" id="tm-notes" placeholder="Заметки к задаче..." style="min-height:56px;resize:none"></textarea>
+    </div>
+
+    <!-- Done toggle -->
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">
+      <input type="checkbox" id="tm-done" style="width:16px;height:16px;accent-color:var(--green);cursor:pointer">
+      <label for="tm-done" style="font-size:12px;color:var(--text2);cursor:pointer;font-weight:500">Отметить как выполненное</label>
+    </div>
+
+    <!-- Actions -->
+    <div style="display:flex;gap:8px">
+      <button class="btn btnG" style="flex:1;justify-content:center" onclick="closeTaskModal()">Отмена</button>
+      <button class="btn btnB" style="flex:1;justify-content:center" onclick="taskModalSave()">Сохранить</button>
+    </div>
+  </div>
+</div>
+
 <!-- ═══ CALENDAR EVENT MODAL ═══ -->
 <div class="overlay" id="plCalModal" style="display:none">
   <div class="modalBox" style="max-width:440px">
@@ -2398,6 +2486,7 @@ function setSyncDot(state){
 
 // ── Re-render whichever tab is currently visible ──
 function reRenderCurrentTab(){
+  // After cloud sync, just use _refreshAllTaskViews + re-render active tab
   const renders={dash:renderDash,weekly:renderWP,habits:renderHT,tasks:renderTP,calendar:renderCal,kanban:renderKanban,finance:renderFin,goals:renderGrowth,rewards:rwRender,gym:gymRender};
   for(const[name,fn] of Object.entries(renders)){
     if(document.getElementById('tab-'+name)?.classList.contains('on')){try{fn();}catch(e){}break;}
@@ -2871,13 +2960,24 @@ function updHN(hi,v){htD().habits[hi].name=v;saveD()}
 function updHG(hi,v){htD().habits[hi].goal=parseInt(v)||0;saveD()}
 
 /* ═══════════════════════════════════
-   3. TASK PLANNER
+   3. TASK PLANNER — Unified task model
 ═══════════════════════════════════ */
 function tpD(){if(!G.tasks)G.tasks=[];return G.tasks}
+
+// ── Global cross-section re-render after any task change ──
+function _refreshAllTaskViews(){
+  // Re-render whichever heavy views are currently visible
+  if(document.getElementById('tab-tasks')?.classList.contains('on'))renderTP();
+  if(document.getElementById('tab-calendar')?.classList.contains('on'))renderCal();
+  if(document.getElementById('tab-weekly')?.classList.contains('on'))renderWP();
+  if(document.getElementById('tab-kanban')?.classList.contains('on'))renderKanban();
+  if(document.getElementById('tab-dash')?.classList.contains('on'))renderDash();
+}
+
 function renderTP(){
   const tasks=tpD(),td=t0();
-  const mons=['янв','фев','мар','апр','май','июн','июл','авг','сен','окт','ноя','дек'];
   const dws=['вс','пн','вт','ср','чт','пт','сб'];
+  const mons=['янв','фев','мар','апр','май','июн','июл','авг','сен','окт','ноя','дек'];
   document.getElementById('tpTodayLbl').textContent=`${td.getDate()} ${MG[td.getMonth()]} ${td.getFullYear()}`;
   let tot=tasks.length,done=0,over=0,inp=0;
   tasks.forEach(t=>{
@@ -2907,52 +3007,131 @@ function renderTP(){
       if(diff<0)rc='trOv';else if(diff===0)rc='trTd';else if(diff<=3)rc='trSo';
     }
     tr.className=rc;
+    // Days badge
     let dlHtml='<span style="color:var(--border3)">—</span>';
-    if(t.done)dlHtml='<span style="color:var(--green);font-size:16px">✓</span>';
+    if(t.done)dlHtml='<span style="color:var(--green);font-size:15px">✓</span>';
     else if(t.deadline){
       const dl=new Date(t.deadline+'T00:00:00');dl.setHours(0,0,0,0);
       const diff=Math.floor((dl-td)/86400000);
       const cls=diff<0?'dlNeg':diff===0?'dlZero':diff<=3?'dlSoon':'dlOk';
-      dlHtml=`<span class="${cls}">${diff>0?'+':''}${diff}</span>`;
+      dlHtml=`<span class="${cls}">${diff>0?'+':''}${diff}д</span>`;
     }
     let dlLabel='';
     if(t.deadline){const dl=new Date(t.deadline+'T00:00:00');dlLabel=`${dws[dl.getDay()]}, ${dl.getDate()} ${mons[dl.getMonth()]}.`}
     const label=labelsD().find(l=>l.id===t.labelId);
+    // Label cell — left color bar + pill
     const labelHtml=label
-      ?`<span class="labelPill" style="background:${hexA(label.color,0.18)};color:${label.color};cursor:pointer;border:1px dashed ${hexA(label.color,0.4)}" onclick="openLabelPicker(${realIdx},this);event.stopPropagation()"><span class="labelDot" style="background:${label.color}"></span>${esc(label.name)} ▾</span>`
-      :`<span style="color:var(--border3);cursor:pointer;font-size:10px;padding:2px 6px;border:1px dashed var(--border2);border-radius:6px" onclick="openLabelPicker(${realIdx},this);event.stopPropagation()">+ метка</span>`;
+      ?`<span class="labelPill" style="background:${hexA(label.color,0.15)};color:${label.color};cursor:pointer;border:1px solid ${hexA(label.color,0.35)}" onclick="openLabelPicker(${realIdx},this);event.stopPropagation()"><span class="labelDot" style="background:${label.color}"></span>${esc(label.name)}</span>`
+      :`<span style="color:var(--muted);cursor:pointer;font-size:10px;padding:2px 8px;border:1px dashed var(--border2);border-radius:20px;white-space:nowrap" onclick="openLabelPicker(${realIdx},this);event.stopPropagation()">＋ метка</span>`;
+    // Color bar on left based on label
+    const barColor=label?label.color:'transparent';
+    tr.style.borderLeft=`3px solid ${barColor}`;
+    // Time display
+    const timeDisplay=t.time?`<span style="font-family:var(--font-mono);font-size:10.5px;color:var(--p);font-weight:600">${t.time}${t.endTime?' – '+t.endTime:''}</span>`:'<span style="color:var(--border3)">—</span>';
     tr.innerHTML=`
-      <td style="color:var(--muted);font-size:10px;width:28px">${i+1}</td>
+      <td style="color:var(--muted);font-size:10px;width:24px;padding-left:10px">${i+1}</td>
       <td style="width:28px"><input type="checkbox" class="tCb" ${t.done?'checked':''} onchange="toggleT(${realIdx},this.checked)"></td>
-      <td><input class="tNameInp" value="${esc(t.text)}" placeholder="Задача..." oninput="updT(${realIdx},'text',this.value)" style="${t.done?'text-decoration:line-through;color:var(--muted)':''}"></td>
+      <td style="cursor:pointer" onclick="openTaskModal(${realIdx})">
+        <span class="tNameInp" style="font-family:var(--font-body);font-size:12px;font-weight:600;color:${t.done?'var(--muted)':'var(--text)'};${t.done?'text-decoration:line-through':''}">${esc(t.text)||'<em style="color:var(--muted)">Без названия</em>'}</span>
+      </td>
       <td>${labelHtml}</td>
-      <td><input type="date" class="tDateInp" value="${t.deadline||''}" onchange="updT(${realIdx},'deadline',this.value);syncTaskCal(${realIdx});renderTP()" title="${dlLabel}" style="color-scheme:dark"></td>
-      <td><input type="time" class="tTimeInp" value="${t.time||''}" onchange="updT(${realIdx},'time',this.value)" style="width:80px;color-scheme:dark" title="Время начала"></td>
-      <td><input type="time" class="tTimeInp" value="${t.endTime||''}" onchange="updT(${realIdx},'endTime',this.value)" style="width:80px;color-scheme:dark" title="Время окончания"></td>
-      <td style="text-align:center;font-weight:900;width:50px;font-size:12px">${dlHtml}</td>
-      <td><input class="tNoteInp" value="${esc(t.notes||'')}" placeholder="Примечания..." oninput="updT(${realIdx},'notes',this.value)"></td>
+      <td>
+        <input type="date" class="tDateInp" value="${t.deadline||''}" onchange="updTField(${realIdx},'deadline',this.value)" title="${dlLabel}" style="color-scheme:dark;font-size:11px">
+      </td>
+      <td>${timeDisplay}</td>
+      <td style="text-align:center;font-weight:700;width:50px;font-size:11px">${dlHtml}</td>
+      <td><span style="font-size:11px;color:var(--text2);max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:block">${esc(t.notes||'')}</span></td>
       <td><button class="tDelBtn" onclick="delT(${realIdx})">×</button></td>`;
     tbody.appendChild(tr);
   });
 }
-function toggleT(i,c){tpD()[i].done=c;saveD();renderTP()}
-function updT(i,f,v){tpD()[i][f]=v;saveD()}
+
+function toggleT(i,c){const t=tpD()[i];if(!t)return;t.done=c;saveD();_refreshAllTaskViews();}
+function updTField(i,f,v){const t=tpD()[i];if(!t)return;t[f]=v;saveD();_refreshAllTaskViews();}
+// Keep old updT for backward compat
+function updT(i,f,v){updTField(i,f,v);}
+
 function delT(i){
-  const t=tpD()[i];
-  // remove from calendar
-  if(t.id)removeTaskFromCal(t.id);
-  // remove linked kanban card
+  const t=tpD()[i];if(!t)return;
   if(t.id)kbD().forEach((c,ci)=>{if(c.taskId===t.id)kbD().splice(ci,1)});
-  G.tasks.splice(i,1);saveD();renderTP();
+  G.tasks.splice(i,1);saveD();_refreshAllTaskViews();
 }
 function onNewTask(e){
   if(e.key==='Enter'&&e.target.value.trim()){
     const id=uid();
-    tpD().push({id,text:e.target.value.trim(),deadline:'',time:'',notes:'',done:false,labelId:''});
-    // auto add to kanban first column
+    tpD().push({id,text:e.target.value.trim(),deadline:'',time:'',endTime:'',notes:'',done:false,labelId:'',priority:2});
     syncNewTaskToKanban(id);
     saveD();e.target.value='';renderTP();
   }
+}
+
+/* ── Unified Task Modal ── */
+let _taskModalIdx=-1; // -1 = new task
+
+function openTaskModal(idx,prefillDate){
+  _taskModalIdx=idx;
+  const t=(idx>=0&&idx<tpD().length)?tpD()[idx]:null;
+  document.getElementById('taskModalTitle').textContent=t?'Редактировать задачу':'Новая задача';
+  document.getElementById('tm-id').value=t?.id||'';
+  document.getElementById('tm-text').value=t?.text||'';
+  document.getElementById('tm-deadline').value=t?.deadline||prefillDate||'';
+  document.getElementById('tm-time').value=t?.time||'';
+  document.getElementById('tm-endTime').value=t?.endTime||'';
+  document.getElementById('tm-notes').value=t?.notes||'';
+  document.getElementById('tm-done').checked=t?.done||false;
+  document.getElementById('taskModalDeleteBtn').style.display=t?'':'none';
+  // Render label selector
+  _renderTaskModalLabels(t?.labelId||'');
+  // Update accent dot
+  const lbl=t?labelsD().find(l=>l.id===t.labelId):null;
+  document.getElementById('taskModalLabelDot').style.background=lbl?lbl.color:'var(--border2)';
+  document.getElementById('taskModal').classList.add('open');
+  setTimeout(()=>document.getElementById('tm-text').focus(),60);
+}
+
+function _renderTaskModalLabels(selectedId){
+  const el=document.getElementById('tm-labels-list');
+  el.innerHTML=`<span style="cursor:pointer;font-size:10.5px;padding:4px 10px;border-radius:20px;border:1px solid ${!selectedId?'var(--p)':'var(--border2)'};background:${!selectedId?'var(--pdim)':'transparent'};color:${!selectedId?'var(--p)':'var(--muted)'};font-weight:600" onclick="taskModalSelectLabel('')">Без метки</span>`
+    +labelsD().map(l=>`<span style="cursor:pointer;font-size:10.5px;padding:4px 10px;border-radius:20px;border:1px solid ${l.id===selectedId?l.color:'transparent'};background:${l.id===selectedId?hexA(l.color,.15):'var(--card2)'};color:${l.color};font-weight:600;display:inline-flex;align-items:center;gap:5px" onclick="taskModalSelectLabel('${l.id}')"><span style="width:8px;height:8px;border-radius:50%;background:${l.color};flex-shrink:0"></span>${esc(l.name)}</span>`).join('');
+}
+function taskModalSelectLabel(id){
+  document.getElementById('tm-id'); // keep modal open
+  _renderTaskModalLabels(id);
+  // store on hidden field via data attr
+  document.getElementById('taskModal').dataset.labelId=id;
+  const lbl=id?labelsD().find(l=>l.id===id):null;
+  document.getElementById('taskModalLabelDot').style.background=lbl?lbl.color:'var(--border2)';
+}
+function closeTaskModal(){document.getElementById('taskModal').classList.remove('open');}
+
+function taskModalSave(){
+  const text=document.getElementById('tm-text').value.trim();
+  if(!text)return;
+  const labelId=document.getElementById('taskModal').dataset.labelId??
+    (_taskModalIdx>=0?tpD()[_taskModalIdx]?.labelId||'':'');
+  const data={
+    text,
+    deadline:document.getElementById('tm-deadline').value,
+    time:document.getElementById('tm-time').value,
+    endTime:document.getElementById('tm-endTime').value,
+    notes:document.getElementById('tm-notes').value,
+    done:document.getElementById('tm-done').checked,
+    labelId,
+  };
+  if(_taskModalIdx>=0&&_taskModalIdx<tpD().length){
+    Object.assign(tpD()[_taskModalIdx],data);
+  } else {
+    const id=uid();
+    tpD().push({...data,id,priority:2});
+    syncNewTaskToKanban(id);
+  }
+  saveD();closeTaskModal();_refreshAllTaskViews();
+}
+
+function taskModalDelete(){
+  if(_taskModalIdx<0)return;
+  if(!confirm('Удалить задачу?'))return;
+  delT(_taskModalIdx);closeTaskModal();
 }
 
 /* ═══════════════════════════════════
@@ -2973,20 +3152,52 @@ let _plNowTimer=null;
 function calEventsD(){if(!G.calEvents)G.calEvents={};return G.calEvents}
 
 function plEvtsForDate(dstr){
-  // Returns [{id,text,time,endTime,color,allDay,src:'ev'|'task',done,labelId}]
+  // Returns unified event list with label colors for tasks
   const evts=calEventsD();
   const out=[];
   (evts[dstr]||[]).forEach((e,i)=>out.push({
     id:e.id||dstr+'_'+i,text:e.text,time:e.time||'',endTime:e.endTime||'',
-    color:e.color||CAL_COLORS[0],allDay:!e.time,note:e.note||'',src:'ev',_idx:i,_date:dstr
+    color:e.color||CAL_COLORS[0],allDay:!e.time,note:e.note||'',
+    src:'ev',_idx:i,_date:dstr
   }));
   tpD().filter(t=>t.deadline===dstr).forEach(t=>{
     const lbl=labelsD().find(l=>l.id===t.labelId);
-    const col=lbl?lbl.color:'#4f87f7';
-    out.push({id:t.id,text:t.text,time:t.time||'',endTime:t.endTime||'',
-      color:col,allDay:!t.time,src:'task',done:t.done,labelId:t.labelId,_date:dstr});
+    // Use label color if set, otherwise a muted indigo for tasks
+    const col=lbl?lbl.color:'#7C68EE';
+    out.push({
+      id:t.id,text:t.text,
+      time:t.time||'',endTime:t.endTime||'',
+      color:col,allDay:!t.time,
+      src:'task',done:t.done,labelId:t.labelId,
+      labelName:lbl?.name||'',_date:dstr
+    });
   });
   return out;
+}
+
+// Click a task in calendar → open task modal + keep calendar in sync
+function plCalOpenTask(taskId,dstr){
+  const tasks=tpD();
+  const idx=tasks.findIndex(t=>t.id===taskId);
+  if(idx>=0){
+    openTaskModal(idx);
+  } else {
+    // Task not found — create a new one pre-filled with the date
+    _taskModalIdx=-1;
+    openTaskModal(-1,dstr);
+  }
+}
+
+// Click on empty grid slot → open new task modal pre-filled with date+time
+function plCalGridOpenTask(dstr,startMin){
+  _taskModalIdx=-1;
+  openTaskModal(-1,dstr);
+  if(startMin!==undefined){
+    setTimeout(()=>{
+      document.getElementById('tm-time').value=plMinToTime(startMin);
+      document.getElementById('tm-endTime').value=plMinToTime(Math.min(startMin+60,1439));
+    },60);
+  }
 }
 
 function plDatesInView(){
@@ -3093,10 +3304,11 @@ function plRenderMonth(main){
     html+=`<div class="plMonth-dn">${day}</div>`;
     evts.slice(0,maxShow).forEach(e=>{
       const alpha=e.done?'0.4':'0.85';
-      const bg=e.color+'28',col=e.color;
-      const timeStr=e.time?plFmtTime(e.time)+' ':'';
-      const icon=e.src==='task'?'':'';
-      html+=`<div class="plMonth-pill" style="background:${bg};color:${col};border-left:2px solid ${col};opacity:${e.done?0.5:1}" title="${esc(e.text)}" onclick="event.stopPropagation();${e.src==='task'?'':('plCalOpenModal(\''+e.id+'\',\''+dstr+'\')')}">${timeStr}${icon}${esc(e.text)}</div>`;
+      const bg=e.color+'22',col=e.color;
+      const timeStr=e.time?`<span style="font-size:8px;opacity:.7;margin-right:2px">${plFmtTime(e.time)}</span>`:'';
+      const icon=e.src==='task'?'📋':' ';
+      const clickFn=e.src==='task'?`plCalOpenTask('${e.id}','${dstr}')`:`plCalOpenModal('${e.id}','${dstr}')`;
+      html+=`<div class="plMonth-pill calTaskRow" style="background:${bg};color:${col};border-left:2px solid ${col};opacity:${e.done?0.5:1}" title="${esc(e.text)}" onclick="event.stopPropagation();${clickFn}">${timeStr}${esc(e.text)}</div>`;
     });
     if(evts.length>maxShow)html+=`<div class="plMonth-more">+${evts.length-maxShow} ещё</div>`;
     html+=`</div>`;
@@ -3127,11 +3339,13 @@ function plRenderGrid(main){
   // All-day row
   let adHtml=`<div class="plGrid-allday"><div class="plGrid-adGut">весь<br>день</div><div class="plGrid-adCols">`;
   dates.forEach(dstr=>{
-    const evts=plEvtsForDate(dstr).filter(e=>e.allDay);
-    adHtml+=`<div class="plGrid-adCol" onclick="plCalOpenModal(null,'${dstr}')">`;
-    evts.forEach(e=>{
-      const bg=e.color+'30',col=e.color;
-      adHtml+=`<div class="plEvt-allday" style="background:${bg};color:${col};border-left-color:${col};opacity:${e.done?0.5:1}" title="${esc(e.text)}" onclick="event.stopPropagation();${e.src==='ev'?'plCalOpenModal(\''+e.id+'\',\''+dstr+'\')':''}">📋 ${esc(e.text)}</div>`;
+    const allDayEvts=plEvtsForDate(dstr).filter(e=>e.allDay);
+    adHtml+=`<div class="plGrid-adCol" onclick="plCalGridOpenTask('${dstr}')">`;
+    allDayEvts.forEach(e=>{
+      const bg=e.color+'28',col=e.color;
+      const icon=e.src==='task'?'📋 ':'📅 ';
+      const clickFn=e.src==='task'?`plCalOpenTask('${e.id}','${dstr}')`:`plCalOpenModal('${e.id}','${dstr}')`;
+      adHtml+=`<div class="plEvt-allday calTaskRow" style="background:${bg};color:${col};border-left-color:${col};opacity:${e.done?0.5:1}" title="${esc(e.text)}" onclick="event.stopPropagation();${clickFn}">${icon}${esc(e.text)}</div>`;
     });
     adHtml+=`</div>`;
   });
@@ -3142,13 +3356,11 @@ function plRenderGrid(main){
   for(let h=0;h<24;h++){
     const top=h*HOUR_H;
     gutHtml+=`<div class="plGrid-hrLbl" style="top:${top}px">${h}:00</div>`;
-    // half-hour line marker (positioned in the cols, not gutter)
   }
   gutHtml+=`</div>`;
 
   // Cols
   let colsHtml=`<div class="plGrid-cols" style="height:${totalH}px">`;
-  // H-lines
   let linesHtml='';
   for(let h=0;h<24;h++){
     linesHtml+=`<div class="plGrid-hline" style="top:${h*HOUR_H}px;left:0;right:0;position:absolute"></div>`;
@@ -3158,12 +3370,10 @@ function plRenderGrid(main){
   dates.forEach((dstr,ci)=>{
     const d=new Date(dstr+'T00:00:00');
     const isT=dstr===todK;
-    colsHtml+=`<div class="plGrid-col${isT?' plGrid-col-today':''}" style="background:${isT?'rgba(34,211,238,.02)':''};" onclick="plCalGridClick(event,'${dstr}')">`;
+    colsHtml+=`<div class="plGrid-col${isT?' plGrid-col-today':''}" style="background:${isT?'rgba(124,104,238,.025)':''};" onclick="plCalGridClick(event,'${dstr}')">`;
     colsHtml+=linesHtml;
 
-    // Timed events
     const timedEvts=plEvtsForDate(dstr).filter(e=>!e.allDay&&e.time);
-    // Simple overlap detection: sort by start, assign lanes
     const sorted=[...timedEvts].sort((a,b)=>plTimeToMin(a.time)-plTimeToMin(b.time));
     const lanes=[];
     sorted.forEach(e=>{
@@ -3174,19 +3384,18 @@ function plRenderGrid(main){
       lanes[lane]=em;
       const nLanes=lanes.length;
       const top=sm/60*HOUR_H;
-      const height=Math.max((em-sm)/60*HOUR_H,24);
+      const height=Math.max((em-sm)/60*HOUR_H,26);
       const width=Math.round(90/nLanes);
       const left=lane*(90/nLanes);
-      const bg=e.color+'28',col=e.color,bord=e.color;
+      const bg=e.color+'22',col=e.color;
       const tStr=plFmtTime(e.time)+(e.endTime?' – '+plFmtTime(e.endTime):'');
       const icon=e.src==='task'?'📋 ':'';
-      colsHtml+=`<div class="plEvt" style="top:${top}px;height:${height}px;left:calc(${left}% + 2px);width:calc(${width}% - 4px);background:${bg};color:${col};border-left-color:${bord};opacity:${e.done?0.5:1}"
-        onclick="event.stopPropagation();${e.src==='ev'?'plCalOpenModal(\''+e.id+'\',\''+dstr+'\')':(e.src==='task'?'':'')}">
+      const clickFn=e.src==='task'?`plCalOpenTask('${e.id}','${dstr}')`:`plCalOpenModal('${e.id}','${dstr}')`;
+      colsHtml+=`<div class="plEvt calTaskRow" style="top:${top}px;height:${height}px;left:calc(${left}% + 2px);width:calc(${width}% - 4px);background:${bg};color:${col};border-left-color:${col};opacity:${e.done?0.5:1}" onclick="event.stopPropagation();${clickFn}" title="${esc(e.text)}">
         <div class="plEvt-title">${icon}${esc(e.text)}</div>
         ${height>28?`<div class="plEvt-time">${tStr}</div>`:''}
       </div>`;
     });
-
     colsHtml+=`</div>`;
   });
   colsHtml+=`</div>`;
@@ -3196,31 +3405,29 @@ function plRenderGrid(main){
   const nowTop=nowMin/60*HOUR_H;
   const nowLineHtml=dates.includes(todK)?`<div class="plGrid-now" style="top:${nowTop}px;position:absolute;left:0;right:0;pointer-events:none;z-index:6;display:flex;align-items:center"><div class="plGrid-nowDot"></div><div class="plGrid-nowBar" style="flex:1"></div></div>`:'';
 
-  const scrollHtml=`<div class="plGrid-scroll" id="plGrid-scroll"><div class="plGrid-timeGut" style="min-height:${totalH}px;position:relative">${gutHtml.replace(/<div class="plGrid-timeGut"[^>]*>/,'').replace('</div>','')}</div><div class="plGrid-cols" style="min-height:${totalH}px;flex:1;display:flex;position:relative">${nowLineHtml}${colsHtml.replace('<div class="plGrid-cols" style="height:'+totalH+'px">','').replace('</div>','')}</div></div>`;
-
-  // Build complete grid
-  main.innerHTML=`<div class="plGrid">${hdrHtml}${adHtml}<div class="plGrid-scroll" id="plGrid-scroll" style="flex:1;overflow-y:auto;display:flex"><div style="width:52px;flex-shrink:0;position:relative;border-right:1px solid var(--border);min-height:${totalH}px">${Array.from({length:24},(_,h)=>`<div style="position:absolute;right:6px;top:${h*HOUR_H}px;font-size:8.5px;color:var(--muted);font-weight:600;transform:translateY(-50%);white-space:nowrap">${h}:00</div>`).join('')}</div><div style="flex:1;display:flex;position:relative;min-height:${totalH}px">${nowLineHtml}${dates.map((dstr,ci)=>{
+  // Build complete grid (single render, no duplicate)
+  main.innerHTML=`<div class="plGrid">${hdrHtml}${adHtml}<div class="plGrid-scroll" id="plGrid-scroll" style="flex:1;overflow-y:auto;display:flex"><div style="width:52px;flex-shrink:0;position:relative;border-right:1px solid var(--border);min-height:${totalH}px">${Array.from({length:24},(_,h)=>`<div style="position:absolute;right:6px;top:${h*HOUR_H}px;font-size:8.5px;color:var(--muted);font-weight:600;transform:translateY(-50%);white-space:nowrap;pointer-events:none">${h}:00</div>`).join('')}</div><div style="flex:1;display:flex;position:relative;min-height:${totalH}px">${nowLineHtml}${dates.map((dstr,ci)=>{
     const d=new Date(dstr+'T00:00:00');const isT=dstr===todK;
-    let col=`<div style="flex:1;border-right:1px solid rgba(255,255,255,.04);position:relative;cursor:crosshair;background:${isT?'rgba(34,211,238,.025)':''}" onclick="plCalGridClick(event,'${dstr}')">`;
-    // hlines
-    for(let h=0;h<24;h++){col+=`<div style="position:absolute;left:0;right:0;top:${h*HOUR_H}px;border-top:1px solid rgba(255,255,255,.04);pointer-events:none"></div><div style="position:absolute;left:0;right:0;top:${h*HOUR_H+HOUR_H/2}px;border-top:1px dashed rgba(255,255,255,.025);pointer-events:none"></div>`;}
-    // events
-    const sorted=[...plEvtsForDate(dstr).filter(e=>!e.allDay&&e.time)].sort((a,b)=>plTimeToMin(a.time)-plTimeToMin(b.time));
-    const lanes=[];
-    sorted.forEach(e=>{
+    let colHtml=`<div style="flex:1;border-right:1px solid rgba(255,255,255,.04);position:relative;cursor:crosshair;background:${isT?'rgba(124,104,238,.02)':''}" onclick="plCalGridClick(event,'${dstr}')">`;
+    for(let h=0;h<24;h++){colHtml+=`<div style="position:absolute;left:0;right:0;top:${h*HOUR_H}px;border-top:1px solid rgba(255,255,255,.04);pointer-events:none"></div><div style="position:absolute;left:0;right:0;top:${h*HOUR_H+HOUR_H/2}px;border-top:1px dashed rgba(255,255,255,.025);pointer-events:none"></div>`;}
+    const sortedInner=[...plEvtsForDate(dstr).filter(e=>!e.allDay&&e.time)].sort((a,b)=>plTimeToMin(a.time)-plTimeToMin(b.time));
+    const lanesInner=[];
+    sortedInner.forEach(e=>{
       const sm=plTimeToMin(e.time),em=e.endTime?plTimeToMin(e.endTime):sm+60;
-      let ln=0;while(lanes[ln]&&lanes[ln]>sm)ln++;lanes[ln]=em;
-      const nL=lanes.length;
-      const top=sm/60*HOUR_H,height=Math.max((em-sm)/60*HOUR_H,24);
+      let ln=0;while(lanesInner[ln]&&lanesInner[ln]>sm)ln++;lanesInner[ln]=em;
+      const nL=lanesInner.length;
+      const top=sm/60*HOUR_H,height=Math.max((em-sm)/60*HOUR_H,26);
       const w=Math.round(90/nL),l=ln*(90/nL);
-      const bg=e.color+'2a',col2=e.color;
+      const bg=e.color+'22',colC=e.color;
       const tStr=plFmtTime(e.time)+(e.endTime?' – '+plFmtTime(e.endTime):'');
-      col+=`<div class="plEvt" style="top:${top}px;height:${height}px;left:calc(${l}% + 2px);width:calc(${w}% - 4px);background:${bg};color:${col2};border-left-color:${col2};opacity:${e.done?0.5:1}" onclick="event.stopPropagation();${e.src==='ev'?'plCalOpenModal(\''+e.id+'\',\''+dstr+'\')':''}" title="${esc(e.text)}">
-        <div class="plEvt-title">${e.src==='task'?'📋 ':''}${esc(e.text)}</div>
+      const icon=e.src==='task'?'📋 ':'';
+      const clickFn=e.src==='task'?`plCalOpenTask('${e.id}','${dstr}')`:`plCalOpenModal('${e.id}','${dstr}')`;
+      colHtml+=`<div class="plEvt calTaskRow" style="top:${top}px;height:${height}px;left:calc(${l}% + 2px);width:calc(${w}% - 4px);background:${bg};color:${colC};border-left-color:${colC};opacity:${e.done?0.5:1}" onclick="event.stopPropagation();${clickFn}" title="${esc(e.text)}">
+        <div class="plEvt-title">${icon}${esc(e.text)}</div>
         ${height>28?`<div class="plEvt-time">${tStr}</div>`:''}
       </div>`;
     });
-    col+=`</div>`;return col;
+    colHtml+=`</div>`;return colHtml;
   }).join('')}</div></div></div>`;
 
   // Scroll to 7am on first render
@@ -3238,20 +3445,16 @@ function plRenderGrid(main){
   },60000);
 }
 
-// ── Grid click → open modal with prefilled time ──
+// ── Grid click → open task/event modal with prefilled time ──
 function plCalGridClick(ev,dstr){
   const col=ev.currentTarget;
   const rect=col.getBoundingClientRect();
-  const relY=ev.clientY-rect.top+(col.closest('.plGrid-scroll')||{scrollTop:0}).scrollTop;
-  // Actually use scroll offset properly
   const scroll=document.getElementById('plGrid-scroll');
   const scrollTop=scroll?scroll.scrollTop:0;
-  const relYS=ev.clientY-rect.top+scrollTop;
-  // Hmm, rect already accounts for scroll. Let's just use relY:
+  const relY=ev.clientY-rect.top+scrollTop;
   const totalMin=Math.round((relY/HOUR_H)*60/15)*15;
   const startMin=Math.max(0,Math.min(totalMin,23*60));
-  const endMin=Math.min(startMin+60,24*60);
-  plCalOpenModal(null,dstr,plMinToTime(startMin),plMinToTime(endMin));
+  plCalGridOpenTask(dstr,startMin);
 }
 
 // ── Upcoming list ──
@@ -3345,11 +3548,10 @@ function plCalDeleteEvt(){
   saveD();plCalCloseModal();renderCal();
 }
 
-// ── Backward compat stubs (used by task sync) ──
-function syncTaskCal(idx){if(document.getElementById('tab-calendar')?.classList.contains('on'))renderCal();}
+// ── Backward compat stubs ──
+function syncTaskCal(idx){_refreshAllTaskViews();}
 function removeTaskFromCal(){}
 function renderCalUpcoming(){plRenderUpcoming();}
-// Keep old addCalEvent/delCalEvent names working
 function addCalEvent(){plCalSaveEvt();}
 function delCalEvent(dstr,idx){const evts=calEventsD();if(evts[dstr]){evts[dstr].splice(idx,1);if(!evts[dstr].length)delete evts[dstr];}saveD();renderCal();}
 function calGoToday(){plCalGoToday();}
