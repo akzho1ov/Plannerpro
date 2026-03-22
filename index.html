@@ -1711,9 +1711,9 @@ select.inp option{background:var(--card2);color:var(--text)}
 const SKEY='planner_v5';
 let G={};
 let _saveTimer=null;
-let _pendingSave=false;      // true while we're writing to Firestore
-let _cloudListener=null;     // onSnapshot unsubscribe fn
-let _appReady=false;         // true after first cloud load
+let _cloudListener=null;   // onSnapshot unsubscribe fn
+let _appReady=false;       // true after first cloud load
+let _myLastWriteAt=0;      // timestamp of OUR last confirmed write
 
 // ── Loader helpers ──
 function loaderStep(msg,pct){
@@ -1747,41 +1747,61 @@ function reRenderCurrentTab(){
   }
 }
 
+// Strip undefined values so Firestore doesn't choke
+function cleanForFirestore(obj){
+  return JSON.parse(JSON.stringify(obj,(_k,v)=>v===undefined?null:v));
+}
+
 // ── Subscribe to Firestore real-time updates ──
 function subscribeCloud(){
   if(!currentUser)return;
   if(_cloudListener){_cloudListener();_cloudListener=null;}
   setSyncDot('syncing');
   loaderStep('Загрузка данных...',50);
-  _cloudListener=db.collection('users').doc(currentUser.uid).onSnapshot(snap=>{
+
+  _cloudListener=db.collection('users').doc(currentUser.uid)
+    .onSnapshot({includeMetadataChanges:true}, snap=>{
+
+    // Skip snapshots that are our OWN local writes still pending on server
+    if(snap.metadata.hasPendingWrites){return;}
+
     setSyncDot('ok');
+
     if(!snap.exists){
-      // First time user — no data yet
+      // New user — no data yet
       if(!_appReady){_appReady=true;hideLoader();initApp();}
       return;
     }
-    // hasPendingWrites=true means this event is from our OWN local write echoing back
-    if(snap.metadata.hasPendingWrites){return;}
-    // If we are in the middle of a debounced save, this snapshot might be stale
-    if(_pendingSave){return;}
+
     const incoming=snap.data();
-    G=incoming;
+
     // Update local cache
-    try{localStorage.setItem(SKEY+'_cache',JSON.stringify(G));}catch{}
+    try{localStorage.setItem(SKEY+'_cache',JSON.stringify(incoming));}catch{}
+
+    // Was this snapshot triggered by OUR own recent write (within 4s)?
+    const isOwnEcho=Date.now()-_myLastWriteAt<4000;
+
+    // Always keep G up to date with server state
+    G=incoming;
+
     if(!_appReady){
       _appReady=true;
       hideLoader();
       initApp();
     } else {
-      // Data came from another device → re-render current tab
+      // Re-render so UI reflects latest data
       reRenderCurrentTab();
-      showSaveStatus('saved','↓ Синхронизировано');
+      // Show "synced from another device" only when it's not our own echo
+      if(!isOwnEcho){
+        showSaveStatus('saved','↓ Синхронизировано');
+      }
     }
-  },err=>{
+
+  }, err=>{
     console.warn('Snapshot error',err);
     setSyncDot('error');
-    // Fall back to localStorage cache
     if(!_appReady){
+      // Fall back to local cache so app still works offline
       try{const c=localStorage.getItem(SKEY+'_cache');if(c)G=JSON.parse(c);}catch{}
       _appReady=true;
       hideLoader();
@@ -1790,18 +1810,30 @@ function subscribeCloud(){
   });
 }
 
+// Re-subscribe when tab becomes visible again (phone coming back from background)
+document.addEventListener('visibilitychange',()=>{
+  if(document.visibilityState==='visible'&&currentUser&&_appReady){
+    subscribeCloud();
+  }
+});
+
 // Save to Firestore (debounced 1.5s)
+// Uses set() WITHOUT merge so the server always has the EXACT current state.
+// merge:true caused phantom data: a device with partial G would NOT delete
+// keys it didn't know about, leading to zombie data staying in Firestore forever.
 function saveD(){
-  // Cache locally first for offline resilience
+  // Cache locally immediately for resilience
   try{localStorage.setItem(SKEY+'_cache',JSON.stringify(G))}catch{}
   clearTimeout(_saveTimer);
   setSyncDot('syncing');
   showSaveStatus('saving','⏳ Сохранение...');
   _saveTimer=setTimeout(async()=>{
-    if(!currentUser){setSyncDot('error');return;}
-    _pendingSave=true;
+    if(!currentUser){setSyncDot('error');showSaveStatus('error','✗ Нет сессии');return;}
     try{
-      await db.collection('users').doc(currentUser.uid).set(G,{merge:true});
+      // Clean undefined fields — Firestore rejects them
+      const payload=cleanForFirestore(G);
+      await db.collection('users').doc(currentUser.uid).set(payload);
+      _myLastWriteAt=Date.now(); // mark so we can recognise our own echo
       setSyncDot('ok');
       showSaveStatus('saved','✓ Сохранено');
     }catch(e){
@@ -1809,8 +1841,6 @@ function saveD(){
       setSyncDot('error');
       showSaveStatus('error','✗ Ошибка сохранения');
     }finally{
-      // Allow a short delay so our own snapshot echo arrives and gets skipped
-      setTimeout(()=>{_pendingSave=false;},2000);
       _saveTimer=null;
     }
   },1500);
