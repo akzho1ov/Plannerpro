@@ -1951,6 +1951,7 @@ select.inp option{background:var(--card2);color:var(--text)}
     <div class="finMonName" id="finMonName"></div>
     <button class="btn btnG" onclick="finNav(1)">▶</button>
     <button class="btn btnO" style="margin-left:auto;font-size:11px" onclick="openFinModal()">+ Транзакция</button>
+    <button class="btn btnG" style="font-size:11px" onclick="openTransferModal()">↔ Перевод</button>
     <button class="btn btnG" style="font-size:11px" onclick="openAccountModal(null)">🏦 Счета</button>
   </div>
   <!-- Summary cards -->
@@ -2745,6 +2746,44 @@ select.inp option{background:var(--card2);color:var(--text)}
   </div>
 </div>
 
+<!-- Transfer Modal -->
+<div class="overlay" id="transferOverlay" style="display:none">
+  <div class="modalBox" style="max-width:440px">
+    <div class="modalHead">
+      <span class="modalTitle">↔ Перевод между счетами</span>
+      <button class="modalClose" onclick="closeTransferModal()">✕</button>
+    </div>
+    <div style="font-size:11px;color:var(--text2);margin-bottom:14px;padding:10px 12px;background:var(--card2);border-radius:var(--r2);border:1px solid var(--border)">
+      Деньги спишутся с одного счёта и зачислятся на другой. В истории появятся две записи.
+    </div>
+    <div class="fldGrp">
+      <div class="fldLbl">Откуда</div>
+      <select class="inp" id="trFromAcct"></select>
+    </div>
+    <div class="fldGrp">
+      <div class="fldLbl">Куда</div>
+      <select class="inp" id="trToAcct"></select>
+    </div>
+    <div class="fldGrp">
+      <div class="fldLbl">Сумма</div>
+      <input type="number" class="inp" id="trAmount" placeholder="0.00" min="0.01" step="0.01">
+    </div>
+    <div class="fldGrp">
+      <div class="fldLbl">Дата</div>
+      <input type="date" class="inp" id="trDate" style="color-scheme:dark">
+    </div>
+    <div class="fldGrp">
+      <div class="fldLbl">Примечание (необязательно)</div>
+      <input class="inp" id="trNote" placeholder="Пополнение карты, обмен...">
+    </div>
+    <div id="trErrMsg" style="color:var(--red);font-size:11px;margin-bottom:8px;display:none"></div>
+    <div style="display:flex;gap:8px">
+      <button class="btn btnG" style="flex:1;justify-content:center" onclick="closeTransferModal()">Отмена</button>
+      <button class="btn btnB" style="flex:1;justify-content:center" onclick="doTransfer()">↔ Перевести</button>
+    </div>
+  </div>
+</div>
+
 <!-- Category Budget Modal -->
 <div class="overlay" id="catBudgetOverlay" style="display:none">
   <div class="modalBox" style="max-width:460px">
@@ -2917,14 +2956,31 @@ function cleanForFirestore(obj){
 }
 
 // ── Subscribe to Firestore real-time updates ──
+let _connectTimeout=null;
 function subscribeCloud(){
   if(!currentUser)return;
   if(_cloudListener){_cloudListener();_cloudListener=null;}
   setSyncDot('syncing');
   loaderStep('Загрузка данных...',50);
 
+  // Safety timeout — if Firestore doesn't respond in 10s, fall back to cache
+  clearTimeout(_connectTimeout);
+  _connectTimeout=setTimeout(()=>{
+    if(!_appReady){
+      console.warn('Firestore timeout — falling back to cache');
+      try{const c=localStorage.getItem(SKEY+'_cache');if(c)G=JSON.parse(c);}catch{}
+      _appReady=true;
+      hideLoader();
+      setSyncDot('error');
+      initApp();
+      // Show a subtle notice
+      setTimeout(()=>showSaveStatus('error','⚠️ Офлайн режим — данные могут быть устаревшими'),500);
+    }
+  },10000);
+
   _cloudListener=db.collection('users').doc(currentUser.uid)
     .onSnapshot({includeMetadataChanges:true}, snap=>{
+    clearTimeout(_connectTimeout); // connected — cancel timeout
 
     // Skip snapshots that are our OWN local writes still pending on server
     if(snap.metadata.hasPendingWrites){return;}
@@ -2950,6 +3006,7 @@ function subscribeCloud(){
 
     if(!_appReady){
       _appReady=true;
+      clearTimeout(_connectTimeout);
       hideLoader();
       initApp();
     } else {
@@ -2961,6 +3018,7 @@ function subscribeCloud(){
     }
 
   }, err=>{
+    clearTimeout(_connectTimeout);
     console.warn('Snapshot error',err);
     setSyncDot('error');
     if(!_appReady){
@@ -2969,6 +3027,7 @@ function subscribeCloud(){
       _appReady=true;
       hideLoader();
       initApp();
+      showSaveStatus('error','⚠️ Нет подключения — работаем офлайн');
     }
   });
 }
@@ -4492,6 +4551,7 @@ let finY=t0().getFullYear(),finM=t0().getMonth(),finTypeVal='out';
 const FIN_CATS=[
   {id:'salary',  name:'Зарплата',     icon:'💼', type:'in',  color:'#2dd4a6'},
   {id:'other_in',name:'Прочий доход', icon:'💰', type:'in',  color:'#22d3ee'},
+  {id:'transfer',name:'Перевод',      icon:'↔',  type:'in',  color:'#8B7AF0'},
   {id:'food',    name:'Еда и кафе',   icon:'🍕', type:'out', color:'#f87171'},
   {id:'transport',name:'Транспорт',   icon:'🚗', type:'out', color:'#fb923c'},
   {id:'home',    name:'Жильё/ком.', icon:'🏠', type:'out', color:'#f59e0b'},
@@ -4513,8 +4573,8 @@ function renderFin(){
   document.getElementById('finMonName').textContent=`${MN[finM]} ${finY}`;
   const acctFilter=document.getElementById('finAcctFilter')?.value||'';
   const txs=finTxD().filter(t=>{const d=new Date(t.date);return d.getFullYear()===finY&&d.getMonth()===finM&&(!acctFilter||t.acctId===acctFilter)});
-  const inc=txs.filter(t=>t.type==='in').reduce((a,t)=>a+Number(t.amount),0);
-  const exp=txs.filter(t=>t.type==='out').reduce((a,t)=>a+Number(t.amount),0);
+  const inc=txs.filter(t=>t.type==='in'&&!t.isTransfer).reduce((a,t)=>a+Number(t.amount),0);
+  const exp=txs.filter(t=>t.type==='out'&&!t.isTransfer).reduce((a,t)=>a+Number(t.amount),0);
   const bal=inc-exp;
   document.getElementById('finIncVal').textContent=fmtMoney(inc);
   document.getElementById('finExpVal').textContent=fmtMoney(exp);
@@ -4782,6 +4842,61 @@ function deleteAccount(id){
   if(!confirm('Удалить счёт? Транзакции останутся'))return;
   G.finAccounts=finAccountsD().filter(a=>a.id!==id);
   saveD();renderAccountList();renderFin();
+}
+
+/* ─── Transfer between accounts ─── */
+function openTransferModal(){
+  const accts=finAccountsD();
+  if(accts.length<2){alert('Нужно минимум 2 счёта для перевода. Добавь счёта в разделе 🏦 Счета.');return;}
+  const fromSel=document.getElementById('trFromAcct');
+  const toSel=document.getElementById('trToAcct');
+  fromSel.innerHTML='';toSel.innerHTML='';
+  accts.forEach(a=>{
+    const aInc=finTxD().filter(t=>t.type==='in'&&t.acctId===a.id).reduce((s,t)=>s+Number(t.amount),0);
+    const aExp=finTxD().filter(t=>t.type==='out'&&t.acctId===a.id).reduce((s,t)=>s+Number(t.amount),0);
+    const bal=fmtMoney((a.initialBalance||0)+aInc-aExp);
+    const opt1=document.createElement('option');opt1.value=a.id;opt1.textContent=`${a.icon||''} ${a.name} (${bal})`;
+    const opt2=opt1.cloneNode(true);
+    fromSel.appendChild(opt1);toSel.appendChild(opt2);
+  });
+  // Default: select different accounts
+  if(accts.length>=2)toSel.selectedIndex=1;
+  document.getElementById('trAmount').value='';
+  document.getElementById('trDate').value=dk(t0());
+  document.getElementById('trNote').value='';
+  document.getElementById('trErrMsg').style.display='none';
+  document.getElementById('transferOverlay').style.display='flex';
+}
+function closeTransferModal(){document.getElementById('transferOverlay').style.display='none';}
+function doTransfer(){
+  const fromId=document.getElementById('trFromAcct').value;
+  const toId=document.getElementById('trToAcct').value;
+  const amt=parseFloat(document.getElementById('trAmount').value);
+  const date=document.getElementById('trDate').value||dk(t0());
+  const note=document.getElementById('trNote').value||'Перевод';
+  const errEl=document.getElementById('trErrMsg');
+  errEl.style.display='none';
+  if(fromId===toId){errEl.textContent='Счёта совпадают — выбери разные счета';errEl.style.display='block';return;}
+  if(!amt||amt<=0){errEl.textContent='Введи сумму больше нуля';errEl.style.display='block';return;}
+  const fromAcct=finAccountsD().find(a=>a.id===fromId);
+  const toAcct=finAccountsD().find(a=>a.id===toId);
+  if(!fromAcct||!toAcct){errEl.textContent='Счёт не найден';errEl.style.display='block';return;}
+  // Check balance
+  const aInc=finTxD().filter(t=>t.type==='in'&&t.acctId===fromId).reduce((s,t)=>s+Number(t.amount),0);
+  const aExp=finTxD().filter(t=>t.type==='out'&&t.acctId===fromId).reduce((s,t)=>s+Number(t.amount),0);
+  const fromBal=(fromAcct.initialBalance||0)+aInc-aExp;
+  if(amt>fromBal){
+    // Warn but don't block — might be intentional (overdraft)
+    if(!confirm(`На счёте "${fromAcct.name}" только ${fmtMoney(fromBal)}. Всё равно перевести?`))return;
+  }
+  const transferNote=`Перевод: ${fromAcct.icon||''}${fromAcct.name} → ${toAcct.icon||''}${toAcct.name}${note&&note!=='Перевод'?' ('+note+')':''}`;
+  // Debit from source
+  finTxD().push({id:uid(),date,amount:amt,type:'out',category:'transfer',note:transferNote,acctId:fromId,isTransfer:true});
+  // Credit to destination
+  finTxD().push({id:uid(),date,amount:amt,type:'in',category:'transfer',note:transferNote,acctId:toId,isTransfer:true});
+  saveD();closeTransferModal();renderFin();
+  // Show success toast via sync dot area
+  showSaveStatus('saved',`✓ Переведено ${fmtMoney(amt)} → ${toAcct.name}`);
 }
 
 // Category budgets
@@ -5711,18 +5826,26 @@ function rwRenderLog(){
   const el=document.getElementById('rw-log-out');
   if(!d.history.length){el.innerHTML='<div style="font-size:11px;color:var(--muted);padding:24px 0;text-align:center">Нет записей. Начни выполнять задачи!</div>';return;}
   let html=`<div style="display:flex;justify-content:flex-end;margin-bottom:10px">
-    <button class="btn btnR" style="font-size:10px;padding:5px 12px" onclick="rwClearHistory()">🗑 Очистить историю</button>
+    <button class="btn btnR" style="font-size:10px;padding:5px 12px" onclick="rwClearHistory()">🗑 Очистить всё</button>
   </div>`;
-  d.history.slice(0,100).forEach(e=>{
+  d.history.slice(0,200).forEach((e,i)=>{
     const pos=e.pts>0;
-    html+=`<div class="rwLogItem">
+    html+=`<div class="rwLogItem" style="position:relative">
       <div class="rwLogDot ${pos?'rwLogPos':'rwLogNeg'}"></div>
       <div class="rwLogName">${esc(e.name)}</div>
       <div class="rwLogDate">${e.date}</div>
       <div class="rwLogPts ${pos?'rwLogPtsP':'rwLogPtsN'}">${pos?'+':''}${e.pts}</div>
+      <button onclick="rwDeleteLogEntry(${i})" style="border:none;background:none;color:var(--muted);font-size:15px;cursor:pointer;padding:0 4px;line-height:1;flex-shrink:0;transition:.15s" title="Удалить запись" onmouseover="this.style.color='var(--red)'" onmouseout="this.style.color='var(--muted)'">×</button>
     </div>`;
   });
   el.innerHTML=html;
+}
+
+function rwDeleteLogEntry(idx){
+  const d=rwD();
+  if(idx<0||idx>=d.history.length)return;
+  d.history.splice(idx,1);
+  saveD();rwRenderLog();
 }
 
 function rwClearHistory(){
@@ -6764,7 +6887,7 @@ function rbRenderGrid(){
         <div class="rbItem" onclick="rbToggleItem('${r.id}',${idx},event)">
           <input class="rbItemCb" type="checkbox" ${it.doneDate===today?'checked':''} onchange="rbToggleItem('${r.id}',${idx},event)" onclick="event.stopPropagation()">
           <span class="rbItemText${it.doneDate===today?' done':''}">${esc(it.text)}</span>
-          ${it.time?`<span class="rbItemTime">⏱ ${it.time}</span>`:''}
+          ${(it.startTime||it.time)?`<span class="rbItemTime">⏱ ${it.startTime||it.time}${it.endTime?' – '+it.endTime:''}</span>`:''}
         </div>`).join('')}
       <button class="rbAddBtn" onclick="rbQuickAddItem('${r.id}')">+ добавить задачу</button>
     `;
@@ -6808,10 +6931,15 @@ function rbSelFreq(f,btn){
 function rbRenderItems(){
   const el=document.getElementById('rb-items-list');
   el.innerHTML=_rbItems.map((it,i)=>`
-    <div style="display:flex;align-items:center;gap:7px;padding:6px 0;border-bottom:1px solid var(--border)">
-      <input class="inp" value="${esc(it.text)}" style="flex:1;font-size:12px" oninput="_rbItems[${i}].text=this.value" placeholder="Задача...">
-      <input type="time" class="inp" value="${it.time||''}" style="width:90px;font-size:11px;color-scheme:dark;font-family:var(--font-mono)" oninput="_rbItems[${i}].time=this.value">
-      <button class="btn btnR" style="font-size:10px;padding:3px 8px" onclick="_rbItems.splice(${i},1);rbRenderItems()">×</button>
+    <div style="display:flex;align-items:center;gap:6px;padding:7px 0;border-bottom:1px solid var(--border);flex-wrap:wrap">
+      <input class="inp" value="${esc(it.text)}" style="flex:2;min-width:120px;font-size:12px" oninput="_rbItems[${i}].text=this.value" placeholder="Задача...">
+      <div style="display:flex;align-items:center;gap:4px;flex-shrink:0">
+        <span style="font-size:10px;color:var(--muted)">с</span>
+        <input type="time" class="inp" value="${it.startTime||it.time||''}" style="width:86px;font-size:11px;color-scheme:dark;font-family:var(--font-mono)" oninput="_rbItems[${i}].startTime=this.value;_rbItems[${i}].time=this.value">
+        <span style="font-size:10px;color:var(--muted)">до</span>
+        <input type="time" class="inp" value="${it.endTime||''}" style="width:86px;font-size:11px;color-scheme:dark;font-family:var(--font-mono)" oninput="_rbItems[${i}].endTime=this.value">
+      </div>
+      <button class="btn btnR" style="font-size:10px;padding:3px 8px;flex-shrink:0" onclick="_rbItems.splice(${i},1);rbRenderItems()">×</button>
     </div>`).join('');
 }
 function rbAddItem(){_rbItems.push({id:uid(),text:'',time:'',doneDate:null});rbRenderItems();}
