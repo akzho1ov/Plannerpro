@@ -3503,7 +3503,8 @@ function renderTP(){
     const mob=document.getElementById('tBodyMobile');mob.innerHTML='';
     filtered.forEach((t,i)=>{
       const realIdx=tasks.indexOf(t);
-      const label=labelsD().find(l=>l.id===t.labelId);
+      const taskLbls=getTaskLabels(t);
+      const label=taskLbls[0]||null;
       const col=label?label.color:'transparent';
       let cls='mTaskCard';
       if(t.done)cls+=' mDone';
@@ -3532,7 +3533,7 @@ function renderTP(){
           <button style="border:none;background:none;color:var(--border3);font-size:18px;padding:0 4px;cursor:pointer;flex-shrink:0" onclick="delT(${realIdx});event.stopPropagation()">×</button>
         </div>
         <div class="mTaskMeta">
-          ${label?`<span class="mTaskMetaChip" style="background:${hexA(label.color,.14)};color:${label.color}"><span style="width:6px;height:6px;border-radius:50%;background:${label.color}"></span>${esc(label.name)}</span>`:''}
+          ${taskLbls.map(l=>`<span class="mTaskMetaChip" style="background:${hexA(l.color,.14)};color:${l.color}"><span style="width:6px;height:6px;border-radius:50%;background:${l.color}"></span>${esc(l.name)}</span>`).join('')}
           ${t.deadline?`<span class="mTaskMetaChip" style="background:var(--card2);color:var(--text2)">📅 ${dateStr}</span>`:''}
           ${t.time?`<span class="mTaskMetaChip" style="background:var(--pdim);color:var(--p);font-family:var(--font-mono)">⏱ ${t.time}${t.endTime?' – '+t.endTime:''}</span>`:''}
           ${repeatBadge}
@@ -3583,62 +3584,37 @@ function openTaskModal(idx,prefillDate){
   document.getElementById('tm-notes').value=t?.notes||'';
   document.getElementById('tm-done').checked=t?.done||false;
   document.getElementById('taskModalDeleteBtn').style.display=t?'':'none';
-  // Render label selector
-  _renderTaskModalLabels(t?.labelId||'');
-  document.getElementById('taskModal').dataset.labelId=t?.labelId||'';
-  // Set repeat
+  const tm=document.getElementById('taskModal');
+  let initIds=[];
+  if(t?.labelIds&&Array.isArray(t.labelIds)&&t.labelIds.length)initIds=t.labelIds;
+  else if(t?.labelId)initIds=[t.labelId];
+  tm.dataset.labelIds=JSON.stringify(initIds);
+  tm.dataset.labelId=initIds[0]||'';
+  _renderTaskModalLabels(initIds);
   _tmRepeatVal=t?.repeat||'';
   tmSelRepeat(_tmRepeatVal);
-  // Update accent dot
-  const lbl=t?labelsD().find(l=>l.id===t.labelId):null;
-  document.getElementById('taskModalLabelDot').style.background=lbl?lbl.color:'var(--border2)';
+  const firstLbl=initIds.length?labelsD().find(l=>l.id===initIds[0]):null;
+  document.getElementById('taskModalLabelDot').style.background=firstLbl?firstLbl.color:'var(--border2)';
   document.getElementById('taskModal').classList.add('open');
   setTimeout(()=>document.getElementById('tm-text').focus(),60);
 }
 
-function _renderTaskModalLabels(selectedId){
-  const el=document.getElementById('tm-labels-list');
-  const groups=labelGroupsD();
-  let html=`<span style="cursor:pointer;font-size:10.5px;padding:4px 10px;border-radius:20px;border:1px solid ${!selectedId?'var(--p)':'var(--border2)'};background:${!selectedId?'var(--pdim)':'transparent'};color:${!selectedId?'var(--p)':'var(--muted)'};font-weight:600" onclick="taskModalSelectLabel('')">Без</span>`;
-  groups.forEach(g=>{
-    html+=`<span style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.6px;color:${g.color};padding:0 3px;opacity:.7;align-self:center">${esc(g.name)}</span>`;
-    g.labels.forEach(l=>{
-      html+=`<span style="cursor:pointer;font-size:10.5px;padding:4px 10px;border-radius:20px;border:1px solid ${l.id===selectedId?l.color:'transparent'};background:${l.id===selectedId?hexA(l.color,.15):'var(--card2)'};color:${l.color};font-weight:600;display:inline-flex;align-items:center;gap:5px" onclick="taskModalSelectLabel('${l.id}')"><span style="width:8px;height:8px;border-radius:50%;background:${l.color};flex-shrink:0"></span>${esc(l.name)}</span>`;
-    });
-  });
-  el.innerHTML=html;
-}
-function taskModalSelectLabel(id){
-  _renderTaskModalLabels(id);
-  document.getElementById('taskModal').dataset.labelId=id;
-  const lbl=id?labelsD().find(l=>l.id===id):null;
-  document.getElementById('taskModalLabelDot').style.background=lbl?lbl.color:'var(--border2)';
-}
-
-let _tmRepeatVal='';
-function tmSelRepeat(v){
-  _tmRepeatVal=v;
-  document.querySelectorAll('.tm-repeat-opt').forEach(el=>{
-    el.classList.toggle('sel',el.dataset.v===v);
-  });
-}
-
-function closeTaskModal(){document.getElementById('taskModal').classList.remove('open');}
-
 function taskModalSave(){
   const text=document.getElementById('tm-text').value.trim();
   if(!text)return;
-  const labelId=document.getElementById('taskModal').dataset.labelId!==undefined
-    ?document.getElementById('taskModal').dataset.labelId
-    :(_taskModalIdx>=0?tpD()[_taskModalIdx]?.labelId||'':'');
+  const tm=document.getElementById('taskModal');
+  let labelIds=[];try{labelIds=JSON.parse(tm.dataset.labelIds||'[]');}catch{labelIds=[];}
+  const labelId=labelIds[0]||'';
+  const timeVal=document.getElementById('tm-time').value||'';
+  const endTimeVal=document.getElementById('tm-endTime').value||'';
   const data={
     text,
-    deadline:document.getElementById('tm-deadline').value,
-    time:document.getElementById('tm-time').value,
-    endTime:document.getElementById('tm-endTime').value,
-    notes:document.getElementById('tm-notes').value,
+    deadline:document.getElementById('tm-deadline').value||'',
+    time:timeVal,
+    endTime:endTimeVal,
+    notes:document.getElementById('tm-notes').value||'',
     done:document.getElementById('tm-done').checked,
-    labelId,
+    labelId,labelIds,
     repeat:_tmRepeatVal,
   };
   if(_taskModalIdx>=0&&_taskModalIdx<tpD().length){
@@ -3654,7 +3630,39 @@ function taskModalSave(){
   saveD();closeTaskModal();_refreshAllTaskViews();
 }
 
-function taskModalDelete(){
+function closeTaskModal(){document.getElementById('taskModal').classList.remove('open');}
+
+function _renderTaskModalLabels(selectedIds){
+  const el=document.getElementById('tm-labels-list');if(!el)return;
+  const selSet=new Set(Array.isArray(selectedIds)?selectedIds:(selectedIds?[selectedIds]:[]));
+  const groups=labelGroupsD();
+  let html=`<span style="cursor:pointer;font-size:10.5px;padding:4px 10px;border-radius:20px;border:1px solid ${selSet.size===0?'var(--p)':'var(--border2)'};background:${selSet.size===0?'var(--pdim)':'transparent'};color:${selSet.size===0?'var(--p)':'var(--muted)'};font-weight:600" onclick="taskModalClearLabels()">Без</span>`;
+  groups.forEach(g=>{
+    html+=`<span style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.6px;color:${g.color};padding:0 4px;opacity:.7;align-self:center;white-space:nowrap">${esc(g.name)}</span>`;
+    g.labels.forEach(l=>{
+      const sel=selSet.has(l.id);
+      html+=`<span style="cursor:pointer;font-size:10.5px;padding:4px 10px;border-radius:20px;border:1px solid ${sel?l.color:'transparent'};background:${sel?hexA(l.color,.2):'var(--card2)'};color:${l.color};font-weight:600;display:inline-flex;align-items:center;gap:5px;transition:.12s" onclick="taskModalToggleLabel('${l.id}')"><span style="width:8px;height:8px;border-radius:50%;background:${l.color};flex-shrink:0"></span>${esc(l.name)}${sel?` <span style="font-size:9px;opacity:.7">✓</span>`:''}</span>`;
+    });
+  });
+  el.innerHTML=html;
+}
+function taskModalToggleLabel(id){
+  const tm=document.getElementById('taskModal');
+  let ids=[];try{ids=JSON.parse(tm.dataset.labelIds||'[]');}catch{ids=[];}
+  if(ids.includes(id)){ids=ids.filter(x=>x!==id);}else{ids.push(id);}
+  tm.dataset.labelIds=JSON.stringify(ids);
+  tm.dataset.labelId=ids[0]||'';
+  _renderTaskModalLabels(ids);
+  const firstLbl=ids.length?labelsD().find(l=>l.id===ids[0]):null;
+  document.getElementById('taskModalLabelDot').style.background=firstLbl?firstLbl.color:'var(--border2)';
+}
+function taskModalClearLabels(){
+  const tm=document.getElementById('taskModal');
+  tm.dataset.labelIds='[]';tm.dataset.labelId='';
+  _renderTaskModalLabels([]);
+  document.getElementById('taskModalLabelDot').style.background='var(--border2)';
+}
+function taskModalSelectLabel(id){taskModalToggleLabel(id);}
   if(_taskModalIdx<0)return;
   if(!confirm('Удалить задачу?'))return;
   delT(_taskModalIdx);closeTaskModal();
@@ -3677,8 +3685,42 @@ let _plNowTimer=null;
 // ── Data helpers ──
 function calEventsD(){if(!G.calEvents)G.calEvents={};return G.calEvents}
 
+/* ── Check if a task with repeat should appear on a given date ── */
+function taskAppearsOnDate(t, dstr){
+  if(!t.repeat)return t.deadline===dstr;
+  const d=new Date(dstr+'T00:00:00');
+  const dow=d.getDay(); // 0=Sun, 1=Mon...
+  const day=d.getDate();
+  if(t.repeat==='daily')return true;
+  if(t.repeat==='weekdays')return dow>=1&&dow<=5;
+  if(t.repeat==='weekly'){
+    // Show on same day of week as the original deadline
+    if(!t.deadline)return false;
+    const orig=new Date(t.deadline+'T00:00:00');
+    return orig.getDay()===dow;
+  }
+  if(t.repeat==='monthly'){
+    if(!t.deadline)return false;
+    const orig=new Date(t.deadline+'T00:00:00');
+    return orig.getDate()===day;
+  }
+  return t.deadline===dstr;
+}
+
+/* ── Get labels for a task (supports both old labelId and new labelIds[]) ── */
+function getTaskLabels(t){
+  const labels=labelsD();
+  if(t.labelIds&&Array.isArray(t.labelIds)&&t.labelIds.length){
+    return t.labelIds.map(id=>labels.find(l=>l.id===id)).filter(Boolean);
+  }
+  if(t.labelId){
+    const l=labels.find(l=>l.id===t.labelId);
+    return l?[l]:[];
+  }
+  return [];
+}
+
 function plEvtsForDate(dstr){
-  // Returns unified event list with label colors for tasks
   const evts=calEventsD();
   const out=[];
   (evts[dstr]||[]).forEach((e,i)=>out.push({
@@ -3686,17 +3728,17 @@ function plEvtsForDate(dstr){
     color:e.color||CAL_COLORS[0],allDay:!e.time,note:e.note||'',
     src:'ev',_idx:i,_date:dstr
   }));
-  tpD().filter(t=>t.deadline===dstr).forEach(t=>{
-    const lbl=labelsD().find(l=>l.id===t.labelId);
-    // Use label color if set, otherwise a muted indigo for tasks
-    const col=lbl?lbl.color:'#7C68EE';
-    // Tasks without a time go to all-day area; tasks WITH time go to time grid
+  tpD().filter(t=>taskAppearsOnDate(t,dstr)&&!t.done).forEach(t=>{
+    const taskLabels=getTaskLabels(t);
+    const col=taskLabels.length?taskLabels[0].color:'#7C68EE';
     out.push({
       id:t.id,text:t.text,
       time:t.time||'',endTime:t.endTime||'',
       color:col,allDay:!t.time,
-      src:'task',done:t.done,labelId:t.labelId,
-      labelName:lbl?.name||'',_date:dstr
+      src:'task',done:t.done,
+      labelIds:t.labelIds||[],labelId:t.labelId||'',
+      labelName:taskLabels.map(l=>l.name).join(', '),_date:dstr,
+      isRepeat:!!t.repeat
     });
   });
   return out;
@@ -3870,7 +3912,7 @@ function plRenderGrid(main){
     adHtml+=`<div class="plGrid-adCol" onclick="plCalGridOpenTask('${dstr}')">`;
     allDayEvts.forEach(e=>{
       const bg=e.color+'28',col=e.color;
-      const icon=e.src==='task'?'📋 ':'📅 ';
+      const icon=e.src==='task'?(e.isRepeat?'↻ ':'📋 '):'📅 ';
       const clickFn=e.src==='task'?`plCalOpenTask('${e.id}','${dstr}')`:`plCalOpenModal('${e.id}','${dstr}')`;
       adHtml+=`<div class="plEvt-allday calTaskRow" style="background:${bg};color:${col};border-left-color:${col};opacity:${e.done?0.5:1}" title="${esc(e.text)}" onclick="event.stopPropagation();${clickFn}">${icon}${esc(e.text)}</div>`;
     });
@@ -3880,48 +3922,40 @@ function plRenderGrid(main){
 
   // Time gutter
   let gutHtml=`<div class="plGrid-timeGut" style="height:${totalH}px">`;
-  for(let h=0;h<24;h++){
-    const top=h*HOUR_H;
-    gutHtml+=`<div class="plGrid-hrLbl" style="top:${top}px">${h}:00</div>`;
-  }
+  for(let h=0;h<24;h++){gutHtml+=`<div class="plGrid-hrLbl" style="top:${h*HOUR_H}px">${h}:00</div>`;}
   gutHtml+=`</div>`;
 
-  // Cols
+  // Cols with timed events
   let colsHtml=`<div class="plGrid-cols" style="height:${totalH}px">`;
   let linesHtml='';
   for(let h=0;h<24;h++){
     linesHtml+=`<div class="plGrid-hline" style="top:${h*HOUR_H}px;left:0;right:0;position:absolute"></div>`;
     linesHtml+=`<div class="plGrid-hline half" style="top:${h*HOUR_H+HOUR_H/2}px;left:0;right:0;position:absolute"></div>`;
   }
-
   dates.forEach((dstr,ci)=>{
-    const d=new Date(dstr+'T00:00:00');
     const isT=dstr===todK;
-    colsHtml+=`<div class="plGrid-col${isT?' plGrid-col-today':''}" style="background:${isT?'rgba(124,104,238,.025)':''};" onclick="plCalGridClick(event,'${dstr}')">`;
+    colsHtml+=`<div class="plGrid-col${isT?' plGrid-col-today':''}" data-dstr="${dstr}" style="background:${isT?'rgba(124,104,238,.025)':''};">`;
     colsHtml+=linesHtml;
-
     const timedEvts=plEvtsForDate(dstr).filter(e=>!e.allDay&&e.time);
     const sorted=[...timedEvts].sort((a,b)=>plTimeToMin(a.time)-plTimeToMin(b.time));
     const lanes=[];
     sorted.forEach(e=>{
       const sm=plTimeToMin(e.time);
       const em=e.endTime?Math.min(plTimeToMin(e.endTime),1440):sm+60;
-      // Ensure end is after start and doesn't overflow 24h
       const duration=Math.max(em-sm,15);
       let lane=0;
       while(lanes[lane]&&lanes[lane]>sm)lane++;
       lanes[lane]=sm+duration;
       const nLanes=lanes.length;
       const top=sm/60*HOUR_H;
-      // Strict height — never exceed actual duration, minimum 22px for readability
       const height=Math.max((duration/60)*HOUR_H,22);
       const width=Math.round(90/nLanes);
       const left=lane*(90/nLanes);
       const bg=e.color+'22',col=e.color;
       const tStr=plFmtTime(e.time)+(e.endTime?' – '+plFmtTime(e.endTime):'');
-      const icon=e.src==='task'?'📋 ':'';
-      const clickFn=e.src==='task'?`plCalOpenTask('${e.id}','${dstr}')`:`plCalOpenModal('${e.id}','${dstr}')`;
-      colsHtml+=`<div class="plEvt calTaskRow" style="top:${top}px;height:${height}px;left:calc(${left}% + 2px);width:calc(${width}% - 4px);background:${bg};color:${col};border-left-color:${col};opacity:${e.done?0.5:1};overflow:hidden" onclick="event.stopPropagation();${clickFn}" title="${esc(e.text)}">
+      const icon=e.src==='task'?(e.isRepeat?'↻ ':''):'';
+      const evtSrc=e.src;const evtId=e.id;
+      colsHtml+=`<div class="plEvt calTaskRow" data-evtid="${e.id}" data-dstr="${dstr}" data-src="${e.src}" draggable="true" style="top:${top}px;height:${height}px;left:calc(${left}% + 2px);width:calc(${width}% - 4px);background:${bg};color:${col};border-left-color:${col};opacity:${e.done?0.5:1};overflow:hidden;cursor:grab" title="${esc(e.text)}">
         <div class="plEvt-title">${icon}${esc(e.text)}</div>
         ${height>30?`<div class="plEvt-time">${tStr}</div>`:''}
       </div>`;
@@ -3935,45 +3969,152 @@ function plRenderGrid(main){
   const nowTop=nowMin/60*HOUR_H;
   const nowLineHtml=dates.includes(todK)?`<div class="plGrid-now" style="top:${nowTop}px;position:absolute;left:0;right:0;pointer-events:none;z-index:6;display:flex;align-items:center"><div class="plGrid-nowDot"></div><div class="plGrid-nowBar" style="flex:1"></div></div>`:'';
 
-  // Build complete grid (single render, no duplicate)
-  main.innerHTML=`<div class="plGrid">${hdrHtml}${adHtml}<div class="plGrid-scroll" id="plGrid-scroll" style="flex:1;overflow-y:auto;display:flex"><div style="width:56px;flex-shrink:0;position:relative;border-right:1px solid var(--border2);min-height:${totalH}px;background:var(--bg2)">${Array.from({length:24},(_,h)=>`<div style="position:absolute;right:8px;top:${h*HOUR_H}px;font-size:10px;color:var(--text2);font-weight:600;transform:translateY(-50%);white-space:nowrap;pointer-events:none;font-family:var(--font-mono)">${h<10?'0'+h:h}:00</div>`).join('')}</div><div style="flex:1;display:flex;position:relative;min-height:${totalH}px">${nowLineHtml}${dates.map((dstr,ci)=>{
-    const d=new Date(dstr+'T00:00:00');const isT=dstr===todK;
-    let colHtml=`<div style="flex:1;border-right:1px solid rgba(255,255,255,.04);position:relative;cursor:crosshair;background:${isT?'rgba(124,104,238,.02)':''}" onclick="plCalGridClick(event,'${dstr}')">`;
-    for(let h=0;h<24;h++){colHtml+=`<div style="position:absolute;left:0;right:0;top:${h*HOUR_H}px;border-top:1px solid rgba(255,255,255,.04);pointer-events:none"></div><div style="position:absolute;left:0;right:0;top:${h*HOUR_H+HOUR_H/2}px;border-top:1px dashed rgba(255,255,255,.025);pointer-events:none"></div>`;}
-    const sortedInner=[...plEvtsForDate(dstr).filter(e=>!e.allDay&&e.time)].sort((a,b)=>plTimeToMin(a.time)-plTimeToMin(b.time));
-    const lanesInner=[];
-    sortedInner.forEach(e=>{
-      const sm=plTimeToMin(e.time),em=e.endTime?Math.min(plTimeToMin(e.endTime),1440):sm+60;
-      const dur=Math.max(em-sm,15);
-      let ln=0;while(lanesInner[ln]&&lanesInner[ln]>sm)ln++;lanesInner[ln]=sm+dur;
-      const nL=lanesInner.length;
-      const top=sm/60*HOUR_H,height=Math.max((dur/60)*HOUR_H,22);
-      const w=Math.round(90/nL),l=ln*(90/nL);
-      const bg=e.color+'22',colC=e.color;
-      const tStr=plFmtTime(e.time)+(e.endTime?' – '+plFmtTime(e.endTime):'');
-      const icon=e.src==='task'?'📋 ':'';
-      const clickFn=e.src==='task'?`plCalOpenTask('${e.id}','${dstr}')`:`plCalOpenModal('${e.id}','${dstr}')`;
-      colHtml+=`<div class="plEvt calTaskRow" style="top:${top}px;height:${height}px;left:calc(${l}% + 2px);width:calc(${w}% - 4px);background:${bg};color:${colC};border-left-color:${colC};opacity:${e.done?0.5:1};overflow:hidden" onclick="event.stopPropagation();${clickFn}" title="${esc(e.text)}">
-        <div class="plEvt-title">${icon}${esc(e.text)}</div>
-        ${height>30?`<div class="plEvt-time">${tStr}</div>`:''}
-      </div>`;
-    });
-    colHtml+=`</div>`;return colHtml;
-  }).join('')}</div></div></div>`;
+  main.innerHTML=`<div class="plGrid">${hdrHtml}${adHtml}<div class="plGrid-scroll" id="plGrid-scroll" style="flex:1;overflow-y:auto;display:flex"><div style="width:56px;flex-shrink:0;position:relative;border-right:1px solid var(--border2);min-height:${totalH}px;background:var(--bg2)">${Array.from({length:24},(_,h)=>`<div style="position:absolute;right:8px;top:${h*HOUR_H}px;font-size:10px;color:var(--text2);font-weight:600;transform:translateY(-50%);white-space:nowrap;pointer-events:none;font-family:var(--font-mono)">${h<10?'0'+h:h}:00</div>`).join('')}</div><div id="plGridCols" style="flex:1;display:flex;position:relative;min-height:${totalH}px">${nowLineHtml}${colsHtml}</div></div></div>`;
 
-  // Scroll to 7am on first render
+  // Attach interactive events AFTER render
   requestAnimationFrame(()=>{
+    _plSetupGridInteraction(main,dates,totalH);
     const sc=document.getElementById('plGrid-scroll');
     if(sc&&sc.dataset.scrolled!=='1'){sc.scrollTop=7*HOUR_H;sc.dataset.scrolled='1';}
   });
 
-  // Live "now" line update
   if(_plNowTimer)clearInterval(_plNowTimer);
   _plNowTimer=setInterval(()=>{
     if(!document.getElementById('tab-calendar')?.classList.contains('on'))return;
     const nm=new Date().getHours()*60+new Date().getMinutes();
     document.querySelectorAll('.plGrid-now').forEach(el=>el.style.top=(nm/60*HOUR_H)+'px');
   },60000);
+}
+
+/* ── Calendar grid interaction: drag-to-create (right mouse), drag-to-move ── */
+let _plDragEvtId=null,_plDragEvtSrc=null,_plDragEvtOrigDate=null;
+let _plRightDrag=false,_plRightDragStart=null,_plRightDragDstr=null,_plRightDragPreview=null;
+
+function _plSetupGridInteraction(main,dates,totalH){
+  const colsWrap=main.querySelector('#plGridCols');if(!colsWrap)return;
+
+  // ── Drag-to-MOVE existing events ──
+  colsWrap.querySelectorAll('.plEvt[data-evtid]').forEach(evtEl=>{
+    evtEl.addEventListener('dragstart',e=>{
+      _plDragEvtId=evtEl.dataset.evtid;
+      _plDragEvtSrc=evtEl.dataset.src;
+      _plDragEvtOrigDate=evtEl.dataset.dstr;
+      e.dataTransfer.setData('text/plain',_plDragEvtId);
+      e.dataTransfer.effectAllowed='move';
+      setTimeout(()=>{evtEl.style.opacity='.3';},0);
+    });
+    evtEl.addEventListener('dragend',()=>{evtEl.style.opacity='';_plDragEvtId=null;});
+  });
+
+  // ── Drop zones: each day column ──
+  colsWrap.querySelectorAll('.plGrid-col').forEach(col=>{
+    const dstr=col.dataset.dstr;
+    col.addEventListener('dragover',e=>{e.preventDefault();e.dataTransfer.dropEffect='move';});
+    col.addEventListener('drop',e=>{
+      e.preventDefault();
+      if(!_plDragEvtId)return;
+      const rect=col.getBoundingClientRect();
+      const relY=e.clientY-rect.top+(col.closest('.plGrid-scroll')?.scrollTop||0);
+      const mins=Math.round((relY/HOUR_H)*60/15)*15; // snap to 15min
+      const newTime=plMinToTime(Math.max(0,Math.min(1410,mins)));
+      _plMoveCalEvt(_plDragEvtId,_plDragEvtSrc,_plDragEvtOrigDate,dstr,newTime);
+      _plDragEvtId=null;
+    });
+
+    // ── Right mouse drag to CREATE event at specific time range ──
+    col.addEventListener('mousedown',e=>{
+      if(e.button!==2)return; // only right mouse
+      e.preventDefault();
+      _plRightDrag=true;
+      _plRightDragDstr=dstr;
+      const rect=col.getBoundingClientRect();
+      const scrollTop=col.closest('.plGrid-scroll')?.scrollTop||0;
+      const relY=e.clientY-rect.top+scrollTop;
+      const mins=Math.round((relY/HOUR_H)*60/15)*15;
+      _plRightDragStart=Math.max(0,Math.min(1410,mins));
+      // Preview element
+      if(_plRightDragPreview)_plRightDragPreview.remove();
+      _plRightDragPreview=document.createElement('div');
+      _plRightDragPreview.style.cssText=`position:absolute;left:2px;right:6px;background:rgba(139,122,240,.35);border:1.5px solid var(--p);border-radius:5px;z-index:20;pointer-events:none;border-left:3px solid var(--p);`;
+      _plRightDragPreview.style.top=(_plRightDragStart/60*HOUR_H)+'px';
+      _plRightDragPreview.style.height='4px';
+      col.appendChild(_plRightDragPreview);
+    });
+    col.addEventListener('mousemove',e=>{
+      if(!_plRightDrag||_plRightDragDstr!==dstr)return;
+      const rect=col.getBoundingClientRect();
+      const scrollTop=col.closest('.plGrid-scroll')?.scrollTop||0;
+      const relY=e.clientY-rect.top+scrollTop;
+      const curMin=Math.round((relY/HOUR_H)*60/15)*15;
+      const endMin=Math.max(_plRightDragStart+15,Math.min(1440,curMin));
+      if(_plRightDragPreview){
+        const t=_plRightDragStart/60*HOUR_H;
+        const h=(endMin-_plRightDragStart)/60*HOUR_H;
+        _plRightDragPreview.style.top=t+'px';
+        _plRightDragPreview.style.height=h+'px';
+        _plRightDragPreview.textContent=plMinToTime(_plRightDragStart)+' – '+plMinToTime(endMin);
+        _plRightDragPreview.style.cssText+=';color:var(--p);font-size:9px;font-weight:700;padding:2px 4px;';
+      }
+    });
+    col.addEventListener('mouseup',e=>{
+      if(!_plRightDrag||e.button!==2)return;
+      const rect=col.getBoundingClientRect();
+      const scrollTop=col.closest('.plGrid-scroll')?.scrollTop||0;
+      const relY=e.clientY-rect.top+scrollTop;
+      const endMin=Math.max(_plRightDragStart+15,Math.round((relY/HOUR_H)*60/15)*15);
+      if(_plRightDragPreview){_plRightDragPreview.remove();_plRightDragPreview=null;}
+      _plRightDrag=false;
+      // Open new task modal with pre-filled time
+      _taskModalIdx=-1;
+      openTaskModal(-1,dstr);
+      setTimeout(()=>{
+        document.getElementById('tm-time').value=plMinToTime(_plRightDragStart);
+        document.getElementById('tm-endTime').value=plMinToTime(Math.min(1440,endMin));
+        document.getElementById('tm-deadline').value=dstr;
+      },60);
+    });
+    // Prevent right-click context menu on the grid
+    col.addEventListener('contextmenu',e=>e.preventDefault());
+  });
+
+  // Global mouseup to cancel right drag if mouse leaves column
+  const cancelDrag=()=>{if(_plRightDragPreview){_plRightDragPreview.remove();_plRightDragPreview=null;}_plRightDrag=false;};
+  colsWrap.addEventListener('mouseleave',cancelDrag,{once:false});
+}
+
+/* ── Move a calendar event/task to new date+time ── */
+function _plMoveCalEvt(evtId,src,origDate,newDate,newTime){
+  if(src==='task'){
+    const task=tpD().find(t=>t.id===evtId);
+    if(!task)return;
+    task.deadline=newDate;
+    task.time=newTime;
+    // Recalculate end time (keep duration)
+    if(task.endTime&&task.time){
+      const origDur=plTimeToMin(task.endTime)-plTimeToMin(task.time.replace(newTime,''));
+      const newStart=plTimeToMin(newTime);
+      task.endTime=plMinToTime(Math.min(1440,newStart+Math.max(30,origDur||60)));
+    }
+    saveD();renderCal();
+  } else {
+    // Calendar event
+    const evts=calEventsD();
+    let found=null;
+    Object.keys(evts).forEach(d=>{evts[d]=evts[d]||[];evts[d].forEach(e=>{if(e.id===evtId)found=e;});});
+    if(!found)return;
+    // Remove from original date
+    Object.keys(evts).forEach(d=>{evts[d]=evts[d].filter(e=>e.id!==evtId);if(!evts[d].length)delete evts[d];});
+    // Recalculate duration
+    let endTime=found.endTime;
+    if(found.time&&endTime){
+      const dur=plTimeToMin(endTime)-plTimeToMin(found.time);
+      const newStart=plTimeToMin(newTime);
+      endTime=plMinToTime(Math.min(1440,newStart+Math.max(30,dur||60)));
+    }
+    if(!evts[newDate])evts[newDate]=[];
+    evts[newDate].push({...found,time:newTime,endTime:endTime||'',_date:newDate});
+    saveD();renderCal();
+  }
 }
 
 // ── Grid click → open task/event modal with prefilled time ──
@@ -4377,18 +4518,22 @@ function renderFin(){
   const bal=inc-exp;
   document.getElementById('finIncVal').textContent=fmtMoney(inc);
   document.getElementById('finExpVal').textContent=fmtMoney(exp);
-  document.getElementById('finBalVal').textContent=fmtMoney(bal);
-
-  // Accounts row
-  const acctsRow=document.getElementById('finAccountsRow');
+  // BALANCE = sum of all account balances (initialBalance + all-time transactions)
   const accts=finAccountsD();
-  // Compute balances as LOCAL variables — never mutate stored .balance
   const acctBals={};
+  let totalBalance=0;
   accts.forEach(a=>{
     const aInc=finTxD().filter(t=>t.type==='in'&&t.acctId===a.id).reduce((s,t)=>s+Number(t.amount),0);
     const aExp=finTxD().filter(t=>t.type==='out'&&t.acctId===a.id).reduce((s,t)=>s+Number(t.amount),0);
     acctBals[a.id]=(a.initialBalance||0)+aInc-aExp;
+    totalBalance+=acctBals[a.id];
   });
+  // If no accounts set, fall back to monthly balance
+  const displayBal=accts.length>0?totalBalance:bal;
+  document.getElementById('finBalVal').textContent=fmtMoney(displayBal);
+
+  // Accounts row
+  const acctsRow=document.getElementById('finAccountsRow');
   // Populate account filter dropdown
   const acctFilterSel=document.getElementById('finAcctFilter');
   if(acctFilterSel){
@@ -4398,11 +4543,11 @@ function renderFin(){
   }
   acctsRow.innerHTML=accts.map(a=>{
     const col=a.color||'#8B7AF0';
-    const bal=acctBals[a.id]||0;
+    const balV=acctBals[a.id]||0;
     return `<div class="finAcctCard${a.id===acctFilter?' active':''}" onclick="filterFinAcct('${a.id}')" style="border-left:3px solid ${col}">
       <div class="finAcctIcon">${esc(a.icon||'💰')}</div>
       <div class="finAcctName">${esc(a.name)}</div>
-      <div class="finAcctBal" style="color:${bal>=0?col:'var(--red)'}">${fmtMoney(bal)}</div>
+      <div class="finAcctBal" style="color:${balV>=0?col:'var(--red)'}">${fmtMoney(balV)}</div>
     </div>`;
   }).join('')+
     `<div class="finAcctCard" onclick="openAccountModal(null)" style="opacity:.6;border-style:dashed;display:flex;align-items:center;justify-content:center;min-height:74px;flex-direction:column;gap:4px">
