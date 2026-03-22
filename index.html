@@ -747,6 +747,10 @@ select.inp option{background:var(--card2);color:var(--text)}
 /* Habit name wrapping fix */
 .htNameCell{overflow:visible!important}
 
+/* ────────── LABEL PICKER DROP ────────── */
+.labelPickerDrop{animation:fadeUp .15s ease}
+@keyframes fadeUp{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
+
 /* ────────── APP LOADER ────────── */
 #appLoader{position:fixed;inset:0;z-index:9999;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;transition:opacity .5s,visibility .5s}
 #appLoader.hidden{opacity:0;visibility:hidden;pointer-events:none}
@@ -2261,7 +2265,9 @@ function renderTP(){
     let dlLabel='';
     if(t.deadline){const dl=new Date(t.deadline+'T00:00:00');dlLabel=`${dws[dl.getDay()]}, ${dl.getDate()} ${mons[dl.getMonth()]}.`}
     const label=labelsD().find(l=>l.id===t.labelId);
-    const labelHtml=label?`<span class="labelPill" style="background:${hexA(label.color,0.18)};color:${label.color}"><span class="labelDot" style="background:${label.color}"></span>${esc(label.name)}</span>`:'<span style="color:var(--border3)">—</span>';
+    const labelHtml=label
+      ?`<span class="labelPill" style="background:${hexA(label.color,0.18)};color:${label.color};cursor:pointer;border:1px dashed ${hexA(label.color,0.4)}" onclick="openLabelPicker(${realIdx},this);event.stopPropagation()"><span class="labelDot" style="background:${label.color}"></span>${esc(label.name)} ▾</span>`
+      :`<span style="color:var(--border3);cursor:pointer;font-size:10px;padding:2px 6px;border:1px dashed var(--border2);border-radius:6px" onclick="openLabelPicker(${realIdx},this);event.stopPropagation()">+ метка</span>`;
     tr.innerHTML=`
       <td style="color:var(--muted);font-size:10px;width:28px">${i+1}</td>
       <td style="width:28px"><input type="checkbox" class="tCb" ${t.done?'checked':''} onchange="toggleT(${realIdx},this.checked)"></td>
@@ -2821,6 +2827,51 @@ const DEFAULT_LABELS=[
 function labelsD(){if(!G.labels){G.labels=DEFAULT_LABELS.map(l=>({...l}))}return G.labels}
 let activeLabel=null;
 
+// Close any open label picker dropdowns
+function closeAllLabelPickers(){
+  document.querySelectorAll('.labelPickerDrop').forEach(el=>el.remove());
+}
+
+// Show an inline label picker dropdown for a task row
+function openLabelPicker(taskIdx, anchorEl){
+  closeAllLabelPickers();
+  const labels=labelsD();
+  const drop=document.createElement('div');
+  drop.className='labelPickerDrop';
+  drop.style.cssText=`position:fixed;z-index:900;background:var(--card);border:1px solid var(--border2);border-radius:10px;padding:6px;box-shadow:var(--shadow2);min-width:150px;`;
+
+  // Position near anchor
+  const rect=anchorEl.getBoundingClientRect();
+  let top=rect.bottom+4, left=rect.left;
+  if(top+220>window.innerHeight) top=rect.top-220;
+  if(left+160>window.innerWidth) left=window.innerWidth-165;
+  drop.style.top=top+'px';
+  drop.style.left=left+'px';
+
+  // "None" option
+  const none=document.createElement('div');
+  none.style.cssText='padding:5px 8px;cursor:pointer;border-radius:6px;font-size:11px;color:var(--muted);display:flex;align-items:center;gap:7px;';
+  none.textContent='— Без метки';
+  none.onmouseenter=()=>none.style.background='rgba(255,255,255,.07)';
+  none.onmouseleave=()=>none.style.background='';
+  none.onclick=()=>{updT(taskIdx,'labelId','');saveD();closeAllLabelPickers();renderTP()};
+  drop.appendChild(none);
+
+  labels.forEach(l=>{
+    const row=document.createElement('div');
+    row.style.cssText='padding:5px 8px;cursor:pointer;border-radius:6px;font-size:11px;display:flex;align-items:center;gap:7px;';
+    row.innerHTML=`<span style="width:10px;height:10px;border-radius:50%;background:${l.color};flex-shrink:0;display:inline-block"></span><span style="color:${l.color};font-weight:600">${esc(l.name)}</span>`;
+    row.onmouseenter=()=>row.style.background='rgba(255,255,255,.07)';
+    row.onmouseleave=()=>row.style.background='';
+    row.onclick=()=>{updT(taskIdx,'labelId',l.id);saveD();closeAllLabelPickers();renderTP()};
+    drop.appendChild(row);
+  });
+
+  document.body.appendChild(drop);
+  // Close on outside click
+  setTimeout(()=>document.addEventListener('click',closeAllLabelPickers,{once:true}),10);
+}
+
 function renderLabelsFilterBar(){
   const bar=document.getElementById('labelsFilterBar');if(!bar)return;
   let html=`<span class="labelPill" onclick="setActiveLabel(null)" style="background:${!activeLabel?'rgba(255,255,255,.12)':'rgba(255,255,255,.05)'};color:var(--text2);cursor:pointer">Все</span>`;
@@ -2836,7 +2887,11 @@ function openLabelsModal(){
   renderLabelsEditorList();
   document.getElementById('labelsOverlay').style.display='flex';
 }
-function closeLabelsModal(){document.getElementById('labelsOverlay').style.display='none';renderLabelsFilterBar()}
+function closeLabelsModal(){
+  document.getElementById('labelsOverlay').style.display='none';
+  renderLabelsFilterBar();
+  renderTP(); // refresh task list so label pills update
+}
 function renderLabelsEditorList(){
   const el=document.getElementById('labelsEditorList');
   el.innerHTML=labelsD().map((l,i)=>`<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border)">
@@ -2855,8 +2910,15 @@ function addLabel(){
   labelsD().push({id:uid(),name,color});saveD();
   document.getElementById('newLabelNameInp').value='';
   renderLabelsEditorList();
+  renderLabelsFilterBar();
+  renderTP(); // update task rows immediately
 }
-function delLabel(id){G.labels=labelsD().filter(l=>l.id!==id);saveD();renderLabelsEditorList()}
+function delLabel(id){
+  G.labels=labelsD().filter(l=>l.id!==id);
+  // clear that label from all tasks
+  if(G.tasks)G.tasks.forEach(t=>{if(t.labelId===id)t.labelId='';});
+  saveD();renderLabelsEditorList();renderLabelsFilterBar();renderTP();
+}
 
 /* ═══════════════════════════════════
    TASK ↔ CALENDAR SYNC
