@@ -3722,6 +3722,7 @@ function taskModalClearLabels(){
   document.getElementById('taskModalLabelDot').style.background='var(--border2)';
 }
 function taskModalSelectLabel(id){taskModalToggleLabel(id);}
+function taskModalDelete(){
   if(_taskModalIdx<0)return;
   if(!confirm('Удалить задачу?'))return;
   delT(_taskModalIdx);closeTaskModal();
