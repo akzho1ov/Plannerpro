@@ -25,7 +25,6 @@ const firebaseConfig = {
   appId: "1:68666541106:web:b9e78a5769222d5f67282b",
   measurementId: "G-8RQB3MR8Y0"
 };
-
 firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
@@ -1323,20 +1322,31 @@ select.inp option{background:var(--card2);color:var(--text)}
 .htNameCell{overflow:visible!important}
 
 /* ── Principles ── */
-.princCard{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:14px 16px;margin-bottom:10px;display:flex;align-items:flex-start;gap:12px;transition:.15s;cursor:pointer}
-.princCard:hover{border-color:var(--border3);background:var(--card2)}
-.princNum{font-family:var(--font-display);font-size:20px;font-weight:800;color:var(--gold);min-width:32px;line-height:1}
-.princIcon{font-size:18px;flex-shrink:0;min-width:28px}
-.princText{font-size:13px;font-weight:500;color:var(--text);line-height:1.6;flex:1}
-.princCat{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);margin-top:4px}
+.princGrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px}
+@media(max-width:600px){.princGrid{grid-template-columns:1fr}}
+.princCard{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:16px;transition:.15s;cursor:pointer;position:relative;overflow:hidden}
+.princCard::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;border-radius:3px 0 0 3px}
+.princCard:hover{border-color:var(--border3);background:var(--card2);transform:translateY(-1px);box-shadow:0 4px 20px rgba(0,0,0,.4)}
+.princNum{font-family:var(--font-display);font-size:11px;font-weight:800;color:var(--gold);opacity:.6;letter-spacing:.5px;margin-bottom:8px}
+.princIcon{font-size:22px;margin-bottom:6px;display:block}
+.princText{font-size:13px;font-weight:500;color:var(--text);line-height:1.65;flex:1;word-break:break-word}
+.princCat{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);margin-top:8px;display:inline-block;padding:2px 8px;border-radius:20px;background:var(--card3)}
+.princCatChip{padding:4px 12px;border-radius:20px;font-size:10.5px;font-weight:700;cursor:pointer;border:1px solid var(--border2);background:var(--card2);color:var(--text2);transition:.15s;white-space:nowrap}
+.princCatChip:hover,.princCatChip.on{background:var(--pdim);border-color:var(--p);color:var(--p)}
 
-/* ── Finance Accounts ── */
-.finAcctCard{background:var(--card2);border:1px solid var(--border2);border-radius:var(--r);padding:12px 14px;min-width:140px;flex-shrink:0;cursor:pointer;transition:.15s}
-.finAcctCard:hover{border-color:var(--border3)}
+/* ── Account edit row ── */
+.acctEditRow{background:var(--card2);border:1px solid var(--border2);border-radius:var(--r);padding:12px 14px}
+.acctEditRow-head{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.acctEditRow-fields{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+
+/* ── Finance account card with color ── */
+.finAcctCard{background:var(--card2);border:1px solid var(--border2);border-radius:var(--r);padding:12px 14px;min-width:130px;flex-shrink:0;cursor:pointer;transition:.15s;position:relative;overflow:hidden}
+.finAcctCard::after{content:'';position:absolute;inset:0;opacity:0;transition:.15s;background:rgba(255,255,255,.03)}
+.finAcctCard:hover::after{opacity:1}
 .finAcctCard.active{border-color:var(--p);background:var(--pdim)}
-.finAcctIcon{font-size:20px;margin-bottom:4px}
+.finAcctIcon{font-size:22px;margin-bottom:4px}
 .finAcctName{font-size:11px;font-weight:700;color:var(--text2)}
-.finAcctBal{font-family:var(--font-display);font-size:16px;font-weight:800;color:var(--cyan);margin-top:2px}
+.finAcctBal{font-family:var(--font-display);font-size:16px;font-weight:800;margin-top:2px}
 
 /* ── Finance category budget bars ── */
 .finCatBudRow{display:flex;flex-direction:column;gap:4px;margin-bottom:10px}
@@ -1982,13 +1992,20 @@ select.inp option{background:var(--card2);color:var(--text)}
 
   <!-- PRINCIPLES tab -->
   <div id="gst-principles" style="display:none">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px">
+    <!-- Header -->
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px">
       <div>
-        <div style="font-family:var(--font-display);font-size:20px;font-weight:700;letter-spacing:-.4px;color:var(--gold)">⚡ Мои принципы</div>
-        <div style="font-size:12px;color:var(--text2);margin-top:2px">Правила жизни которыми я руководствуюсь</div>
+        <div style="font-family:var(--font-display);font-size:22px;font-weight:800;letter-spacing:-.4px;color:var(--gold)">⚡ Мои принципы</div>
+        <div style="font-size:12px;color:var(--text2);margin-top:2px">Правила жизни · <span id="princCount" style="color:var(--gold);font-weight:700">0</span> принципов</div>
       </div>
-      <button class="btn btnO" onclick="princOpenModal(null)">+ Добавить принцип</button>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <input class="inp" id="princSearch" placeholder="🔍 Поиск..." style="width:180px;font-size:12px" oninput="princRenderList()">
+        <button class="btn btnO" onclick="princOpenModal(null)">+ Принцип</button>
+      </div>
     </div>
+    <!-- Category filter chips -->
+    <div id="princCatFilter" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px"></div>
+    <!-- Cards grid -->
     <div id="princList"></div>
   </div>
 
@@ -2001,7 +2018,8 @@ select.inp option{background:var(--card2);color:var(--text)}
         <div style="font-size:12px;color:var(--text2);margin-top:2px">1% улучшений каждый день = 37× за год</div>
       </div>
       <div style="display:flex;gap:8px;flex-wrap:wrap">
-        <button class="btn btnG" style="font-size:11px" onclick="kzOpenQuestions()">⚙ Вопросы</button>
+        <button class="btn btnG" style="font-size:11px" onclick="kzOpenQuestions()">⚙ Кайдзен вопросы</button>
+        <button class="btn btnG" style="font-size:11px" onclick="openJournalQuestionsEditor()">📝 Вопросы дневника</button>
         <button class="btn btnP" onclick="openJournalModal()">+ Дневник</button>
         <button class="btn btnB" onclick="kzOpenModal(null)">+ Кайдзен</button>
       </div>
@@ -2673,20 +2691,25 @@ select.inp option{background:var(--card2);color:var(--text)}
 
 <!-- Account Modal -->
 <div class="overlay" id="acctOverlay" style="display:none">
-  <div class="modalBox" style="max-width:440px">
+  <div class="modalBox" style="max-width:480px">
     <div class="modalHead">
       <span class="modalTitle">Счета и кошельки</span>
       <button class="modalClose" onclick="closeAccountModal()">✕</button>
     </div>
-    <div id="acctList" style="display:flex;flex-direction:column;gap:7px;margin-bottom:14px"></div>
+    <!-- Existing accounts list -->
+    <div id="acctList" style="display:flex;flex-direction:column;gap:10px;margin-bottom:16px"></div>
+    <!-- Add new account form -->
     <div style="border-top:1px solid var(--border);padding-top:14px">
-      <div style="font-size:11px;font-weight:700;color:var(--text2);margin-bottom:10px">Новый счёт</div>
-      <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <div style="font-size:11px;font-weight:700;color:var(--gold);margin-bottom:10px;text-transform:uppercase;letter-spacing:.8px">➕ Новый счёт</div>
+      <div style="display:flex;gap:8px;margin-bottom:8px;flex-wrap:wrap">
         <input class="inp" id="acctNameInp" placeholder="Название (Наличка, Карта...)" style="flex:2;min-width:120px">
-        <input class="inp" id="acctIconInp" placeholder="💳" style="width:56px;text-align:center" maxlength="4">
-        <input type="number" class="inp" id="acctBalInp" placeholder="Баланс" style="flex:1;min-width:90px">
+        <input class="inp" id="acctIconInp" placeholder="💳" style="width:56px;text-align:center;font-size:18px" maxlength="4">
       </div>
-      <button class="btn btnB" style="margin-top:8px;width:100%;justify-content:center" onclick="addAccount()">+ Добавить счёт</button>
+      <div style="display:flex;gap:8px;margin-bottom:8px;flex-wrap:wrap">
+        <input type="number" class="inp" id="acctBalInp" placeholder="Начальный баланс" style="flex:1;min-width:120px">
+        <input type="color" id="acctColorInp" value="#8B7AF0" style="width:46px;height:36px;border:none;border-radius:8px;cursor:pointer;padding:2px;background:var(--card2);border:1px solid var(--border2)">
+      </div>
+      <button class="btn btnB" style="width:100%;justify-content:center" onclick="addAccount()">+ Добавить счёт</button>
     </div>
   </div>
 </div>
@@ -2723,7 +2746,11 @@ select.inp option{background:var(--card2);color:var(--text)}
       </div>
       <div class="fldGrp" style="flex:2;min-width:150px">
         <div class="fldLbl">Категория</div>
-        <input class="inp" id="princ-cat" placeholder="Дисциплина, Отношения, Деньги...">
+        <input class="inp" id="princ-cat" placeholder="Дисциплина, Мышление..." list="princCatsList">
+        <datalist id="princCatsList">
+          <option value="Дисциплина"><option value="Мышление"><option value="Действие">
+          <option value="Финансы"><option value="Отношения"><option value="Духовность"><option value="Честь">
+        </datalist>
       </div>
     </div>
     <div style="display:flex;gap:8px;margin-top:4px">
@@ -2758,33 +2785,51 @@ select.inp option{background:var(--card2);color:var(--text)}
 
 <!-- Journal Modal -->
 <div class="overlay" id="jOverlay" style="display:none">
-  <div class="modalBox">
+  <div class="modalBox" style="max-width:500px">
     <div class="modalHead">
       <span class="modalTitle" id="jModalTitle">Запись в дневник</span>
       <button class="modalClose" onclick="closeJournalModal()">✕</button>
     </div>
-    <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:2px">
-      <div class="fldGrp" style="flex:1;min-width:130px"><div class="fldLbl">Дата</div><input type="date" class="inp" id="jDateInp" style="color-scheme:dark"></div>
-      <div class="fldGrp" style="flex:1;min-width:130px">
-        <div class="fldLbl">Настроение</div>
-        <div style="display:flex;gap:5px" id="jMoodPicker">
-          <button class="moodBtn" data-m="😊" onclick="selMood('😊')">😊</button>
-          <button class="moodBtn" data-m="😐" onclick="selMood('😐')">😐</button>
-          <button class="moodBtn" data-m="😔" onclick="selMood('😔')">😔</button>
-          <button class="moodBtn" data-m="😤" onclick="selMood('😤')">😤</button>
-          <button class="moodBtn" data-m="🤩" onclick="selMood('🤩')">🤩</button>
-          <button class="moodBtn" data-m="😴" onclick="selMood('😴')">😴</button>
-        </div>
+    <!-- Date + Mood — always stack on mobile -->
+    <div class="tmField">
+      <div class="fldLbl">Дата</div>
+      <input type="date" class="inp" id="jDateInp" style="color-scheme:dark">
+    </div>
+    <div class="tmField">
+      <div class="fldLbl">Настроение</div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap" id="jMoodPicker">
+        <button class="moodBtn" data-m="😊" onclick="selMood('😊')">😊</button>
+        <button class="moodBtn" data-m="😐" onclick="selMood('😐')">😐</button>
+        <button class="moodBtn" data-m="😔" onclick="selMood('😔')">😔</button>
+        <button class="moodBtn" data-m="😤" onclick="selMood('😤')">😤</button>
+        <button class="moodBtn" data-m="🤩" onclick="selMood('🤩')">🤩</button>
+        <button class="moodBtn" data-m="😴" onclick="selMood('😴')">😴</button>
       </div>
     </div>
-    <div class="fldGrp"><div class="fldLbl">Что произошло сегодня</div><textarea class="kbTxtarea" id="jTextInp" placeholder="Как прошёл день..." style="min-height:70px;resize:none"></textarea></div>
-    <div class="fldGrp"><div class="fldLbl">3 вещи за которые я благодарен</div><textarea class="kbTxtarea" id="jGratInp" placeholder="1. ...&#10;2. ...&#10;3. ..." style="min-height:55px;resize:none"></textarea></div>
-    <div class="fldGrp"><div class="fldLbl">Что я узнал сегодня</div><textarea class="kbTxtarea" id="jLearnInp" placeholder="Главный урок дня..." style="min-height:45px;resize:none"></textarea></div>
-    <div style="display:flex;gap:8px">
-      <button class="btn btnR" id="jDeleteBtn" style="display:none;padding:7px 14px" onclick="jDeleteEntry()">Удалить</button>
-      <button class="btn btnG" style="flex:1;justify-content:center" onclick="closeJournalModal()">Отмена</button>
-      <button class="btn btnP" style="flex:1;justify-content:center" onclick="saveJEntry()">Сохранить</button>
+    <!-- Custom journal questions (editable) -->
+    <div id="jQuestionsForm"></div>
+    <div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap">
+      <button class="btn btnR" id="jDeleteBtn" style="display:none;padding:7px 14px" onclick="jDeleteEntry()">🗑 Удалить</button>
+      <button class="btn btnG" style="flex:1;justify-content:center;min-width:80px" onclick="closeJournalModal()">Отмена</button>
+      <button class="btn btnP" style="flex:1;justify-content:center;min-width:80px" onclick="saveJEntry()">Сохранить</button>
     </div>
+  </div>
+</div>
+
+<!-- Journal Questions Editor -->
+<div class="overlay" id="jQuestionsEditorOverlay" style="display:none">
+  <div class="modalBox" style="max-width:460px">
+    <div class="modalHead">
+      <span class="modalTitle">Вопросы дневника</span>
+      <button class="modalClose" onclick="document.getElementById('jQuestionsEditorOverlay').style.display='none';renderJournal()">✕</button>
+    </div>
+    <div style="font-size:11px;color:var(--text2);margin-bottom:12px">Настрой вопросы которые появляются в каждой записи дневника</div>
+    <div id="jQList" style="display:flex;flex-direction:column;gap:7px;margin-bottom:12px"></div>
+    <div style="display:flex;gap:8px;margin-bottom:10px">
+      <input class="inp" id="jNewQ" placeholder="Новый вопрос дневника..." style="flex:1">
+      <button class="btn btnB" onclick="jAddQuestion()">+</button>
+    </div>
+    <button class="btn btnG" style="width:100%;justify-content:center" onclick="document.getElementById('jQuestionsEditorOverlay').style.display='none';renderJournal()">Готово</button>
   </div>
 </div>
 
@@ -3818,22 +3863,25 @@ function plRenderGrid(main){
     const lanes=[];
     sorted.forEach(e=>{
       const sm=plTimeToMin(e.time);
-      const em=e.endTime?plTimeToMin(e.endTime):sm+60;
+      const em=e.endTime?Math.min(plTimeToMin(e.endTime),1440):sm+60;
+      // Ensure end is after start and doesn't overflow 24h
+      const duration=Math.max(em-sm,15);
       let lane=0;
       while(lanes[lane]&&lanes[lane]>sm)lane++;
-      lanes[lane]=em;
+      lanes[lane]=sm+duration;
       const nLanes=lanes.length;
       const top=sm/60*HOUR_H;
-      const height=Math.max((em-sm)/60*HOUR_H,26);
+      // Strict height — never exceed actual duration, minimum 22px for readability
+      const height=Math.max((duration/60)*HOUR_H,22);
       const width=Math.round(90/nLanes);
       const left=lane*(90/nLanes);
       const bg=e.color+'22',col=e.color;
       const tStr=plFmtTime(e.time)+(e.endTime?' – '+plFmtTime(e.endTime):'');
       const icon=e.src==='task'?'📋 ':'';
       const clickFn=e.src==='task'?`plCalOpenTask('${e.id}','${dstr}')`:`plCalOpenModal('${e.id}','${dstr}')`;
-      colsHtml+=`<div class="plEvt calTaskRow" style="top:${top}px;height:${height}px;left:calc(${left}% + 2px);width:calc(${width}% - 4px);background:${bg};color:${col};border-left-color:${col};opacity:${e.done?0.5:1}" onclick="event.stopPropagation();${clickFn}" title="${esc(e.text)}">
+      colsHtml+=`<div class="plEvt calTaskRow" style="top:${top}px;height:${height}px;left:calc(${left}% + 2px);width:calc(${width}% - 4px);background:${bg};color:${col};border-left-color:${col};opacity:${e.done?0.5:1};overflow:hidden" onclick="event.stopPropagation();${clickFn}" title="${esc(e.text)}">
         <div class="plEvt-title">${icon}${esc(e.text)}</div>
-        ${height>28?`<div class="plEvt-time">${tStr}</div>`:''}
+        ${height>30?`<div class="plEvt-time">${tStr}</div>`:''}
       </div>`;
     });
     colsHtml+=`</div>`;
@@ -3853,18 +3901,19 @@ function plRenderGrid(main){
     const sortedInner=[...plEvtsForDate(dstr).filter(e=>!e.allDay&&e.time)].sort((a,b)=>plTimeToMin(a.time)-plTimeToMin(b.time));
     const lanesInner=[];
     sortedInner.forEach(e=>{
-      const sm=plTimeToMin(e.time),em=e.endTime?plTimeToMin(e.endTime):sm+60;
-      let ln=0;while(lanesInner[ln]&&lanesInner[ln]>sm)ln++;lanesInner[ln]=em;
+      const sm=plTimeToMin(e.time),em=e.endTime?Math.min(plTimeToMin(e.endTime),1440):sm+60;
+      const dur=Math.max(em-sm,15);
+      let ln=0;while(lanesInner[ln]&&lanesInner[ln]>sm)ln++;lanesInner[ln]=sm+dur;
       const nL=lanesInner.length;
-      const top=sm/60*HOUR_H,height=Math.max((em-sm)/60*HOUR_H,26);
+      const top=sm/60*HOUR_H,height=Math.max((dur/60)*HOUR_H,22);
       const w=Math.round(90/nL),l=ln*(90/nL);
       const bg=e.color+'22',colC=e.color;
       const tStr=plFmtTime(e.time)+(e.endTime?' – '+plFmtTime(e.endTime):'');
       const icon=e.src==='task'?'📋 ':'';
       const clickFn=e.src==='task'?`plCalOpenTask('${e.id}','${dstr}')`:`plCalOpenModal('${e.id}','${dstr}')`;
-      colHtml+=`<div class="plEvt calTaskRow" style="top:${top}px;height:${height}px;left:calc(${l}% + 2px);width:calc(${w}% - 4px);background:${bg};color:${colC};border-left-color:${colC};opacity:${e.done?0.5:1}" onclick="event.stopPropagation();${clickFn}" title="${esc(e.text)}">
+      colHtml+=`<div class="plEvt calTaskRow" style="top:${top}px;height:${height}px;left:calc(${l}% + 2px);width:calc(${w}% - 4px);background:${bg};color:${colC};border-left-color:${colC};opacity:${e.done?0.5:1};overflow:hidden" onclick="event.stopPropagation();${clickFn}" title="${esc(e.text)}">
         <div class="plEvt-title">${icon}${esc(e.text)}</div>
-        ${height>28?`<div class="plEvt-time">${tStr}</div>`:''}
+        ${height>30?`<div class="plEvt-time">${tStr}</div>`:''}
       </div>`;
     });
     colHtml+=`</div>`;return colHtml;
@@ -4246,7 +4295,7 @@ function renderFin(){
   accts.forEach(a=>{
     const aInc=finTxD().filter(t=>t.type==='in'&&t.acctId===a.id).reduce((s,t)=>s+Number(t.amount),0);
     const aExp=finTxD().filter(t=>t.type==='out'&&t.acctId===a.id).reduce((s,t)=>s+Number(t.amount),0);
-    a.balance=aInc-aExp;
+    a.balance=(a.initialBalance||0)+aInc-aExp;
   });
   // Populate account filter dropdown
   const acctFilterSel=document.getElementById('finAcctFilter');
@@ -4255,14 +4304,17 @@ function renderFin(){
     acctFilterSel.innerHTML='<option value="">Все счета</option>';
     accts.forEach(a=>{const o=document.createElement('option');o.value=a.id;o.textContent=`${a.icon} ${a.name}`;if(a.id===cur)o.selected=true;acctFilterSel.appendChild(o);});
   }
-  acctsRow.innerHTML=accts.map(a=>`
-    <div class="finAcctCard${a.id===acctFilter?' active':''}" onclick="filterFinAcct('${a.id}')">
-      <div class="finAcctIcon">${esc(a.icon)}</div>
+  acctsRow.innerHTML=accts.map(a=>{
+    const col=a.color||'#8B7AF0';
+    return `<div class="finAcctCard${a.id===acctFilter?' active':''}" onclick="filterFinAcct('${a.id}')" style="border-left:3px solid ${col}">
+      <div class="finAcctIcon">${esc(a.icon||'💰')}</div>
       <div class="finAcctName">${esc(a.name)}</div>
-      <div class="finAcctBal">${fmtMoney(a.balance)}</div>
-    </div>`).join('')+
-    `<div class="finAcctCard" onclick="openAccountModal(null)" style="opacity:.6;border-style:dashed;display:flex;align-items:center;justify-content:center;min-height:74px">
+      <div class="finAcctBal" style="color:${a.balance>=0?col:'var(--red)'}">${fmtMoney(a.balance)}</div>
+    </div>`;
+  }).join('')+
+    `<div class="finAcctCard" onclick="openAccountModal(null)" style="opacity:.6;border-style:dashed;display:flex;align-items:center;justify-content:center;min-height:74px;flex-direction:column;gap:4px">
       <div style="font-size:20px;color:var(--muted)">＋</div>
+      <div style="font-size:9px;color:var(--muted);font-weight:700">Новый счёт</div>
     </div>`;
 
   // Line chart
@@ -4450,22 +4502,42 @@ function openAccountModal(){
   renderAccountList();
   document.getElementById('acctOverlay').style.display='flex';
 }
-function closeAccountModal(){document.getElementById('acctOverlay').style.display='none';}
+function closeAccountModal(){document.getElementById('acctOverlay').style.display='none';renderFin();}
 function renderAccountList(){
   const el=document.getElementById('acctList');if(!el)return;
   const accts=finAccountsD();
-  el.innerHTML=accts.map((a,i)=>`
-    <div style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--border)">
-      <input class="inp" value="${esc(a.icon)}" style="width:52px;text-align:center;font-size:16px" maxlength="4" oninput="finAccountsD()[${i}].icon=this.value;saveD()">
-      <input class="inp" value="${esc(a.name)}" style="flex:1" oninput="finAccountsD()[${i}].name=this.value;saveD()">
-      <button class="btn btnR" style="font-size:10px;padding:4px 8px" onclick="deleteAccount('${a.id}')">×</button>
-    </div>`).join('');
+  // Calculate real balance per account
+  el.innerHTML=accts.map((a,i)=>{
+    const aInc=finTxD().filter(t=>t.type==='in'&&t.acctId===a.id).reduce((s,t)=>s+Number(t.amount),0);
+    const aExp=finTxD().filter(t=>t.type==='out'&&t.acctId===a.id).reduce((s,t)=>s+Number(t.amount),0);
+    const realBal=(a.initialBalance||0)+aInc-aExp;
+    const acctColor=a.color||'#8B7AF0';
+    return `<div class="acctEditRow" style="border-left:3px solid ${acctColor}">
+      <div class="acctEditRow-head">
+        <input class="inp" value="${esc(a.icon||'💰')}" style="width:50px;text-align:center;font-size:18px;flex-shrink:0" maxlength="4" oninput="finAccountsD()[${i}].icon=this.value;saveD()">
+        <input class="inp" value="${esc(a.name)}" style="flex:1;font-weight:600" oninput="finAccountsD()[${i}].name=this.value;saveD()">
+        <input type="color" value="${acctColor}" style="width:38px;height:36px;border:none;border-radius:8px;cursor:pointer;padding:2px;background:var(--card3);border:1px solid var(--border2);flex-shrink:0" onchange="finAccountsD()[${i}].color=this.value;saveD();renderAccountList()">
+        <button class="btn btnR" style="font-size:10px;padding:4px 8px;flex-shrink:0" onclick="deleteAccount('${a.id}')">🗑</button>
+      </div>
+      <div class="acctEditRow-fields">
+        <div style="flex:1;min-width:150px">
+          <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);margin-bottom:4px">Начальный баланс</div>
+          <input type="number" class="inp" value="${a.initialBalance||0}" style="font-size:12px" oninput="finAccountsD()[${i}].initialBalance=Number(this.value)||0;saveD()">
+        </div>
+        <div style="text-align:right;flex-shrink:0">
+          <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);margin-bottom:4px">Текущий баланс</div>
+          <div style="font-family:var(--font-display);font-size:16px;font-weight:800;color:${realBal>=0?'var(--cyan)':'var(--red)'}">${fmtMoney(realBal)}</div>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
 }
 function addAccount(){
   const name=document.getElementById('acctNameInp').value.trim();if(!name)return;
   const icon=document.getElementById('acctIconInp').value||'💰';
   const balance=parseFloat(document.getElementById('acctBalInp').value)||0;
-  finAccountsD().push({id:uid(),name,icon,balance});
+  const color=document.getElementById('acctColorInp').value||'#8B7AF0';
+  finAccountsD().push({id:uid(),name,icon,initialBalance:balance,color});
   saveD();renderAccountList();renderFin();
   document.getElementById('acctNameInp').value='';document.getElementById('acctIconInp').value='';document.getElementById('acctBalInp').value='';
 }
@@ -4561,33 +4633,57 @@ function delGoal(id){if(!confirm('Удалить цель?'))return;const i=goal
 function toggleMs(gid,idx,c){const g=goalsD().find(x=>x.id===gid);if(g&&g.milestones&&g.milestones[idx])g.milestones[idx].done=c;saveD();renderGoals()}
 
 function renderJournal(){
-  const list=document.getElementById('journalList');list.innerHTML='';
-  const entries=[...journalD()].reverse();
+  const list=document.getElementById('journalList');if(!list)return;
+  list.innerHTML='';
+  const entries=[...journalD()].sort((a,b)=>b.date.localeCompare(a.date));
   if(!entries.length){
-    list.innerHTML='<div class="card" style="padding:24px;text-align:center;color:var(--text2);font-size:13px;border:1.5px dashed var(--border2)">Начни вести дневник — мощный инструмент роста.<br><button class="btn btnP" style="margin-top:12px;font-size:12px" onclick="openJournalModal()">+ Первая запись</button></div>';
+    list.innerHTML=`<div class="card" style="padding:28px;text-align:center;color:var(--text2);font-size:13px;border:1.5px dashed var(--border2)">
+      <div style="font-size:32px;margin-bottom:12px">📓</div>
+      <div style="font-weight:600;margin-bottom:6px">Начни вести дневник</div>
+      <div style="font-size:12px;color:var(--muted);margin-bottom:16px">Мощный инструмент роста и самопознания</div>
+      <button class="btn btnP" onclick="openJournalModal()">+ Первая запись</button>
+    </div>`;
     return;
   }
-  entries.slice(0,10).forEach(e=>{
+  const questions=jQuestionsD();
+  entries.slice(0,20).forEach(e=>{
     const el=document.createElement('div');el.className='jEntry';
+    // Build answers display
+    let answersHtml='';
+    if(e.answers){
+      questions.forEach((q,i)=>{
+        const a=e.answers[i]||'';
+        if(a)answersHtml+=`<div style="margin-bottom:8px"><div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);margin-bottom:3px">${esc(q)}</div><div style="font-size:12.5px;color:var(--text2);line-height:1.65;white-space:pre-line">${esc(a)}</div></div>`;
+      });
+    } else {
+      // legacy format
+      if(e.text)answersHtml+=`<div style="font-size:13px;color:var(--text);margin-bottom:8px;line-height:1.65">${esc(e.text)}</div>`;
+      if(e.gratitude)answersHtml+=`<div style="margin-bottom:8px"><div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--green);margin-bottom:3px">🙏 Благодарность</div><div style="font-size:12px;color:var(--text2);white-space:pre-line;line-height:1.6">${esc(e.gratitude)}</div></div>`;
+      if(e.learned)answersHtml+=`<div><div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--cyan);margin-bottom:3px">💡 Урок дня</div><div style="font-size:12px;color:var(--text2);line-height:1.6">${esc(e.learned)}</div></div>`;
+    }
     el.innerHTML=`<div class="jEntHead">
       <div style="display:flex;align-items:center;gap:8px">
-        <span style="font-size:20px">${e.mood||'📓'}</span>
-        <div>
-          <div class="jEntDate">${e.date}</div>
-          <div style="font-size:10px;color:var(--muted)">${e.mood?'Настроение записано':''}</div>
-        </div>
+        <span style="font-size:22px">${e.mood||'📓'}</span>
+        <div><div class="jEntDate">${e.date}</div></div>
       </div>
-      <div style="display:flex;gap:6px">
-        <button class="btn btnG" style="font-size:10px;padding:4px 10px" onclick="openJournalModal('${e.id}')">✏️ Изменить</button>
+      <div style="display:flex;gap:6px;flex-shrink:0">
+        <button class="btn btnG" style="font-size:10px;padding:4px 10px" onclick="openJournalModal('${e.id}')">✏️</button>
         <button class="jEntDel" onclick="delJEntry('${e.id}')">×</button>
       </div>
     </div>
-    ${e.text?`<div style="font-size:13px;color:var(--text);margin-bottom:10px;line-height:1.65">${esc(e.text)}</div>`:''}
-    ${e.gratitude?`<div style="margin-bottom:8px"><div class="jFldLbl" style="margin-bottom:4px;color:var(--green)">🙏 Благодарность</div><div style="font-size:12px;color:var(--text2);white-space:pre-line;line-height:1.6">${esc(e.gratitude)}</div></div>`:''}
-    ${e.learned?`<div><div class="jFldLbl" style="margin-bottom:4px;color:var(--cyan)">💡 Урок дня</div><div style="font-size:12px;color:var(--text2);line-height:1.6">${esc(e.learned)}</div></div>`:''}`;
+    ${answersHtml}`;
     list.appendChild(el);
   });
 }
+
+// Journal questions data
+const J_DEFAULT_QUESTIONS=[
+  'Как прошёл день?',
+  'За что я благодарен сегодня?\n1. \n2. \n3. ',
+  'Что я узнал / чему научился?',
+  'Что можно было сделать лучше?',
+];
+function jQuestionsD(){if(!G.jQuestions)G.jQuestions=[...J_DEFAULT_QUESTIONS];return G.jQuestions}
 
 let _jEditId=null;
 function openJournalModal(editId){
@@ -4595,11 +4691,17 @@ function openJournalModal(editId){
   const e=editId?journalD().find(x=>x.id===editId):null;
   document.getElementById('jModalTitle').textContent=e?'Редактировать запись':'Запись в дневник';
   document.getElementById('jDateInp').value=e?e.date:dk(t0());
-  document.getElementById('jTextInp').value=e?e.text||'':'';
-  document.getElementById('jGratInp').value=e?e.gratitude||'':'';
-  document.getElementById('jLearnInp').value=e?e.learned||'':'';
   document.getElementById('jDeleteBtn').style.display=e?'':'none';
   selMood(e?e.mood||'😊':'😊');
+  // Render dynamic questions
+  const questions=jQuestionsD();
+  const answers=e&&e.answers?e.answers:(e?[e.text||'',e.gratitude||'',e.learned||'']:[]);
+  const qForm=document.getElementById('jQuestionsForm');
+  qForm.innerHTML=questions.map((q,i)=>`
+    <div class="tmField">
+      <label class="tmLabel">${esc(q.split('\n')[0])}</label>
+      <textarea class="kbTxtarea" id="jQ-${i}" style="min-height:60px;resize:vertical">${esc(answers[i]||'')}</textarea>
+    </div>`).join('');
   document.getElementById('jOverlay').style.display='flex';
 }
 function closeJournalModal(){document.getElementById('jOverlay').style.display='none';_jEditId=null;}
@@ -4608,13 +4710,13 @@ function selMood(m){
   document.querySelectorAll('.moodBtn').forEach(b=>b.classList.toggle('sel',b.dataset.m===m));
 }
 function saveJEntry(){
+  const questions=jQuestionsD();
+  const answers=questions.map((_,i)=>document.getElementById('jQ-'+i)?.value||'');
   const entry={
     id:_jEditId||uid(),
     date:document.getElementById('jDateInp').value||dk(t0()),
     mood:jMoodSel,
-    text:document.getElementById('jTextInp').value,
-    gratitude:document.getElementById('jGratInp').value,
-    learned:document.getElementById('jLearnInp').value
+    answers
   };
   if(_jEditId){
     const idx=journalD().findIndex(x=>x.id===_jEditId);
@@ -4631,6 +4733,27 @@ function jDeleteEntry(){
 // Keep old name working
 function addJEntry(){saveJEntry();}
 function delJEntry(id){const i=journalD().findIndex(x=>x.id===id);if(i>=0){journalD().splice(i,1);saveD();renderJournal()}}
+
+// Journal questions editor
+function openJournalQuestionsEditor(){
+  renderJQList();
+  document.getElementById('jQuestionsEditorOverlay').style.display='flex';
+}
+function renderJQList(){
+  const qs=jQuestionsD();
+  document.getElementById('jQList').innerHTML=qs.map((q,i)=>`
+    <div style="display:flex;align-items:flex-start;gap:7px">
+      <span style="color:var(--muted);font-size:11px;font-weight:700;min-width:20px;padding-top:9px">${i+1}</span>
+      <input class="inp" value="${esc(q.split('\n')[0])}" style="flex:1;font-size:12px" oninput="jQuestionsD()[${i}]=this.value;saveD()">
+      <button class="btn btnR" style="font-size:10px;padding:3px 8px;flex-shrink:0;margin-top:1px" onclick="jQuestionsD().splice(${i},1);saveD();renderJQList()">×</button>
+    </div>`).join('');
+}
+function jAddQuestion(){
+  const v=document.getElementById('jNewQ').value.trim();if(!v)return;
+  jQuestionsD().push(v);saveD();
+  document.getElementById('jNewQ').value='';
+  renderJQList();
+}
 
 /* ═══════════════════════════════════
    LABELS
@@ -6175,58 +6298,118 @@ function renderGrowth(){
 }
 
 /* ── PRINCIPLES ── */
-function princD(){if(!G.principles)G.principles=[];return G.principles}
+const PRINCIPLES_SEED=[
+  {id:'p1',text:'Бүгүн бүтпөгөн иш эртен эч качан бүтпөйт',icon:'⏰',cat:'Дисциплина'},
+  {id:'p2',text:'Ар дайым башкалардын сырын сактайм',icon:'🔒',cat:'Честь'},
+  {id:'p3',text:'Ар дайым туруп учурашам, жылмаю менен көзүнө карап бекем кол алышам',icon:'🤝',cat:'Отношения'},
+  {id:'p4',text:'Баштаган нерсени аягына чыгарам, секирип кетпейм же кийинкиге калтырбайм',icon:'🎯',cat:'Дисциплина'},
+  {id:'p5',text:'Биринчи дегенде керебетти түздөө',icon:'🛏️',cat:'Дисциплина'},
+  {id:'p6',text:'Ишенсем дароо төлөйм, бирок коротконго чейин алгач табышым керек',icon:'💡',cat:'Финансы'},
+  {id:'p7',text:'Ар дайым башкалар жана өзүм жөнүндө жакшы гана нерселерди сүйлөшүм керек',icon:'🗣️',cat:'Мышление'},
+  {id:'p8',text:'Мен таасир эте алчу нерселерди гана ойлоном жана сүйлөйм',icon:'🎛️',cat:'Мышление'},
+  {id:'p9',text:'Баштапкы берилген суммага макул болбойм',icon:'💰',cat:'Финансы'},
+  {id:'p10',text:'Башкаларга кызыксам көбүрөөк дос табам — биринчи кадам менден',icon:'❤️',cat:'Отношения'},
+  {id:'p11',text:'Мен күмөндүү нерселерден алысмын',icon:'⚡',cat:'Мышление'},
+  {id:'p12',text:'Менин ар дайым жеке оюм бар',icon:'🧠',cat:'Мышление'},
+  {id:'p13',text:'Бир жылдан кийин бүгүн баштабаганыма өкүнүшүм мүмкүн',icon:'📅',cat:'Действие'},
+  {id:'p14',text:'Биринчи кыйынчылыкта багынбайм, каталарымдан сабак алам',icon:'💪',cat:'Дисциплина'},
+  {id:'p15',text:'Башкалардын мен үчүн кылганын баалайм, ыраазычылыгымды сөзсүз билдирем',icon:'🙏',cat:'Отношения'},
+  {id:'p16',text:'Мен дароо жооп бербейм, эмоциямды кетирүү үчүн тыныгуу алам',icon:'🧘',cat:'Мышление'},
+  {id:'p17',text:'Мен бул кинодогу эң мыкты актёрмун',icon:'🎬',cat:'Мышление'},
+  {id:'p18',text:'Дүйнө кереметтерге толгон',icon:'🌍',cat:'Мышление'},
+  {id:'p19',text:'Мен дал келчүү убакытты күтпөйм — мен аны түзөм',icon:'🔥',cat:'Действие'},
+  {id:'p20',text:'Чоң максаттарды ойлоонордон мурда 0 чекитин жабыш керек',icon:'🎯',cat:'Финансы'},
+  {id:'p21',text:'Сураганын үчүн мурунга урбайт — ийгилик кайратуулукта',icon:'💬',cat:'Действие'},
+  {id:'p22',text:'Акылмандык менен адамдарга инвестиция кылам',icon:'🤝',cat:'Отношения'},
+  {id:'p23',text:'Мен алганыма караганда бергеним көбүрөөк',icon:'🎁',cat:'Отношения'},
+  {id:'p24',text:'Бир нерсеге толук фокус менен көңүл бурам. Минимальное переключение — максимальный фокус',icon:'🎯',cat:'Дисциплина'},
+  {id:'p25',text:'Никогда не раскрывайте свой следующий шаг — просто сделайте его',icon:'🤫',cat:'Действие'},
+  {id:'p26',text:'Самый быстрый способ добиться успеха — начать сейчас и разобраться по ходу дела',icon:'🚀',cat:'Действие'},
+  {id:'p27',text:'Кичинекей кадамдардан баштоо — туруктуулукка жол ачат',icon:'👣',cat:'Дисциплина'},
+  {id:'p28',text:'Магия которую вы ищете кроется в работе которую вы избегаете',icon:'✨',cat:'Действие'},
+  {id:'p29',text:'Өзүмдү аябашым керек — ийгиликке жетүү үчүн башымды ооруп кеткичекти иштетишим керек',icon:'🏋️',cat:'Дисциплина'},
+  {id:'p30',text:'Намазды өз убагында окуу — бул жалган жашоо, акыретти ойлонушум керек',icon:'🕌',cat:'Духовность'},
+  {id:'p31',text:'Сказал — сделал',icon:'✅',cat:'Дисциплина'},
+  {id:'p32',text:'Лучше сделать и пожалеть чем не сделать и пожалеть',icon:'⚡',cat:'Действие'},
+  {id:'p33',text:'Я не верю в то что забирает у меня силы',icon:'🛡️',cat:'Мышление'},
+  {id:'p34',text:'Вы становитесь похожим на тех людей среди которых вращаетесь',icon:'👥',cat:'Отношения'},
+  {id:'p35',text:'Разницу между хорошим и превосходным образует небольшое дополнительное усилие',icon:'⭐',cat:'Дисциплина'},
+  {id:'p36',text:'Объём денег прямо пропорционален объёму проблем и ответственности',icon:'💎',cat:'Финансы'},
+  {id:'p37',text:'Самое сложное — это сделать просто. Простота и быстрота — ключ к результату',icon:'🎯',cat:'Мышление'},
+  {id:'p38',text:'Выбери одно — доводи до конца. Даже не начинай если не закончишь',icon:'🏁',cat:'Дисциплина'},
+  {id:'p39',text:'Отказ — это начало переговоров. Не надо отступать при первом отказе',icon:'🥊',cat:'Действие'},
+  {id:'p40',text:'Все преграды только в голове',icon:'🧠',cat:'Мышление'},
+];
+
+function princD(){
+  if(!G.principles){G.principles=PRINCIPLES_SEED.map(p=>({...p}));}
+  return G.principles;
+}
 let _princEditId=null;
+let _princActiveCat=null;
+
 function princRenderList(){
   const el=document.getElementById('princList');if(!el)return;
-  const list=princD();
+  const all=princD();
+  // Update count
+  const countEl=document.getElementById('princCount');
+  if(countEl)countEl.textContent=all.length;
+
+  // Category chips
+  const catFilterEl=document.getElementById('princCatFilter');
+  if(catFilterEl){
+    const cats=[...new Set(all.map(p=>p.cat||'Общие'))].sort();
+    catFilterEl.innerHTML=`<span class="princCatChip${!_princActiveCat?' on':''}" onclick="_princActiveCat=null;princRenderList()">Все (${all.length})</span>`
+      +cats.map(c=>{
+        const cnt=all.filter(p=>(p.cat||'Общие')===c).length;
+        return `<span class="princCatChip${_princActiveCat===c?' on':''}" onclick="_princActiveCat='${esc(c)}';princRenderList()">${esc(c)} <span style="opacity:.6">${cnt}</span></span>`;
+      }).join('');
+  }
+
+  const search=(document.getElementById('princSearch')?.value||'').toLowerCase();
+  let list=all;
+  if(_princActiveCat)list=list.filter(p=>(p.cat||'Общие')===_princActiveCat);
+  if(search)list=list.filter(p=>p.text.toLowerCase().includes(search)||(p.cat||'').toLowerCase().includes(search));
+
   if(!list.length){
     el.innerHTML=`<div style="text-align:center;padding:40px;color:var(--muted)">
       <div style="font-size:36px;margin-bottom:12px">⚡</div>
-      <div style="font-weight:600;margin-bottom:6px">Нет принципов</div>
-      <div style="font-size:12px;margin-bottom:16px">Добавь жизненные правила которым следуешь</div>
-      <button class="btn btnO" onclick="princOpenModal(null)">+ Первый принцип</button>
+      <div style="font-weight:600;margin-bottom:6px">${search?'Ничего не найдено':'Нет принципов'}</div>
+      ${!search?`<button class="btn btnO" style="margin-top:8px" onclick="princOpenModal(null)">+ Первый принцип</button>`:''}
     </div>`;
     return;
   }
-  // Group by category
-  const cats={};
-  list.forEach(p=>{
-    const c=p.cat||'Общие';
-    if(!cats[c])cats[c]=[];
-    cats[c].push(p);
-  });
-  let html='';
-  Object.entries(cats).forEach(([cat,items])=>{
-    html+=`<div class="secLbl" style="margin-top:4px">${esc(cat)}</div>`;
-    items.forEach((p,i)=>{
-      html+=`<div class="princCard" onclick="princOpenModal('${p.id}')">
-        <div class="princIcon">${esc(p.icon||'⚡')}</div>
-        <div style="flex:1">
-          <div class="princText">${esc(p.text)}</div>
-          <div class="princCat">${esc(p.cat||'')}</div>
-        </div>
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--border3)" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-      </div>`;
-    });
-  });
+
+  // Numbered cards in a responsive grid
+  const html=`<div class="princGrid">${list.map((p,i)=>{
+    const globalIdx=all.indexOf(p)+1;
+    const catColor={'Дисциплина':'var(--blue)','Мышление':'var(--purple)','Действие':'var(--gold)','Финансы':'var(--green)','Отношения':'var(--pink)','Честь':'var(--cyan)','Духовность':'var(--orange)'}[p.cat]||'var(--muted)';
+    return `<div class="princCard" onclick="princOpenModal('${p.id}')" style="border-left:3px solid ${catColor}22;padding-left:14px">
+      <div class="princNum">№${globalIdx}</div>
+      <div class="princIcon">${esc(p.icon||'⚡')}</div>
+      <div class="princText">${esc(p.text)}</div>
+      ${p.cat?`<div class="princCat" style="background:${catColor}18;color:${catColor}">${esc(p.cat)}</div>`:''}
+    </div>`;
+  }).join('')}</div>`;
   el.innerHTML=html;
 }
+
 function princOpenModal(id){
   _princEditId=id||null;
   const p=id?princD().find(x=>x.id===id):null;
   document.getElementById('princModalTitle').textContent=p?'Редактировать принцип':'Новый принцип';
   document.getElementById('princ-id').value=id||'';
   document.getElementById('princ-text').value=p?p.text:'';
-  document.getElementById('princ-icon').value=p?p.icon:'⚡';
-  document.getElementById('princ-cat').value=p?p.cat:'';
+  document.getElementById('princ-icon').value=p?p.icon||'⚡':'⚡';
+  document.getElementById('princ-cat').value=p?p.cat||'':'';
   document.getElementById('princ-del-btn').style.display=p?'':'none';
   document.getElementById('princOverlay').style.display='flex';
+  setTimeout(()=>document.getElementById('princ-text').focus(),60);
 }
 function closePrincModal(){document.getElementById('princOverlay').style.display='none';}
 function princSave(){
   const text=document.getElementById('princ-text').value.trim();if(!text)return;
-  const data={text,icon:document.getElementById('princ-icon').value||'⚡',cat:document.getElementById('princ-cat').value.trim()};
+  const data={text,icon:document.getElementById('princ-icon').value||'⚡',cat:document.getElementById('princ-cat').value.trim()||'Общие'};
   if(_princEditId){
     const idx=princD().findIndex(x=>x.id===_princEditId);
     if(idx>=0)princD()[idx]={...princD()[idx],...data};
