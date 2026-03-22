@@ -1356,6 +1356,21 @@ select.inp option{background:var(--card2);color:var(--text)}
 .finCatBudTrack{height:6px;background:var(--border2);border-radius:4px;overflow:hidden}
 .finCatBudFill{height:100%;border-radius:4px;transition:.4s}
 
+/* ── Kanban drag-drop ── */
+.kbDragOver{background:rgba(139,122,240,.08)!important;border:1.5px dashed var(--p)!important;border-radius:var(--r);}
+.kbCard{cursor:default;user-select:none;transition:opacity .15s,transform .15s,box-shadow .15s}
+.kbCard:hover{box-shadow:0 4px 20px rgba(0,0,0,.5);border-color:var(--border3)}
+.kbCard[draggable="true"]:hover{cursor:grab}
+.kbCard[draggable="true"]:active{cursor:grabbing}
+.kbCardDone{opacity:.55}
+.kbCardDone .kbCardTitle{text-decoration:line-through}
+.kbCol{border-top:3px solid transparent;transition:border-color .2s}
+.kbColCnt{border-radius:20px;padding:2px 8px;font-size:10px;font-weight:700}
+
+/* ── Kanban done badge visual ── */
+.kbMarkDoneBtn{background:var(--greendim);color:var(--green);border:1px solid rgba(18,232,172,.3);border-radius:6px;padding:2px 8px;font-size:10px;font-weight:700;cursor:pointer;transition:.15s}
+.kbMarkDoneBtn:hover{background:var(--green);color:#000}
+
 /* ── tTimeInp visibility fix ── */
 .tTimeInp{
   border:1px solid var(--border2);border-radius:7px;
@@ -4075,114 +4090,106 @@ function calNav(d){plCalNav(d);}
    5. KANBAN (MULTI-BOARD)
 ═══════════════════════════════════ */
 /* ── Smart Kanban — date-driven auto columns ── */
+/* ══════════════════════════════════════════════════
+   KANBAN — Smart date-driven board with drag & drop
+══════════════════════════════════════════════════ */
 const SMART_BOARD_ID='smart';
 const SMART_COLS=[
-  {id:'focus',   title:'🎯 Фокус / Цели',    color:'var(--purple)', isDone:false, isAuto:false},
-  {id:'planned', title:'📋 Регулярные',       color:'var(--blue)',   isDone:false, isAuto:false},
-  {id:'next',    title:'📅 Следующая неделя', color:'var(--cyan)',   isDone:false, isAuto:true, autoKey:'next'},
-  {id:'week',    title:'🗓 Текущая неделя',   color:'var(--gold)',   isDone:false, isAuto:true, autoKey:'week'},
-  {id:'tomorrow',title:'⏰ Завтра',           color:'var(--orange)', isDone:false, isAuto:true, autoKey:'tomorrow'},
-  {id:'today',   title:'🔥 Сегодня',          color:'var(--red)',    isDone:false, isAuto:true, autoKey:'today'},
-  {id:'done',    title:'✅ Готово',            color:'var(--green)',  isDone:true,  isAuto:true, autoKey:'done'},
+  {id:'focus',   title:'🎯 Фокус / Цель',       color:'#a882f8', isDone:false, isAuto:false, hint:'Важные цели и фокус'},
+  {id:'new',     title:'📥 Новый',               color:'#6b9fff', isDone:false, isAuto:false, hint:'Новые задачи'},
+  {id:'planned', title:'📋 Планированное',        color:'#34d5f0', isDone:false, isAuto:false, hint:'Регулярные задачи'},
+  {id:'next',    title:'📅 Следующая неделя',     color:'#12e8ac', isDone:false, isAuto:true},
+  {id:'week',    title:'🗓 Текущая неделя',       color:'#f5b53f', isDone:false, isAuto:true},
+  {id:'tomorrow',title:'⏰ Завтра',              color:'#ff8f3c', isDone:false, isAuto:true},
+  {id:'today',   title:'🔥 Сегодня',             color:'#ff5c7a', isDone:false, isAuto:true},
+  {id:'done',    title:'✅ Готово',               color:'#12e8ac', isDone:true,  isAuto:true},
 ];
 
+// ── Compute correct column for a task based on today's date ──
 function kbSmartColForTask(t){
-  // Auto-assigns a task to the correct column based on deadline & done status
-  if(t.done)return'done';
-  if(!t.deadline)return null; // no deadline → don't auto-assign
-  const today=dk(t0());
-  const tomorrow=dk(new Date(t0().getTime()+86400000));
-  const wkStart=dk(getMon(t0()));
-  const wkEnd=dk(new Date(getMon(t0()).getTime()+6*86400000));
-  const nextWkStart=dk(new Date(getMon(t0()).getTime()+7*86400000));
-  const nextWkEnd=dk(new Date(getMon(t0()).getTime()+13*86400000));
-  if(t.deadline<today)return'today'; // overdue → today
-  if(t.deadline===today)return'today';
-  if(t.deadline===tomorrow)return'tomorrow';
-  if(t.deadline>=wkStart&&t.deadline<=wkEnd)return'week';
-  if(t.deadline>=nextWkStart&&t.deadline<=nextWkEnd)return'next';
-  return null; // far future → don't auto-assign
+  if(t.done)return 'done';
+  if(t.repeat)return 'planned';
+  if(!t.deadline)return 'new';
+  const tod=dk(t0());
+  const tom=dk(new Date(t0().getTime()+86400000));
+  const wMon=getMon(t0());
+  const wSun=new Date(wMon);wSun.setDate(wSun.getDate()+6);
+  const nMon=new Date(wMon);nMon.setDate(nMon.getDate()+7);
+  const nSun=new Date(nMon);nSun.setDate(nSun.getDate()+6);
+  if(t.deadline<tod)return 'today';      // overdue
+  if(t.deadline===tod)return 'today';
+  if(t.deadline===tom)return 'tomorrow';
+  if(t.deadline>=dk(wMon)&&t.deadline<=dk(wSun))return 'week';
+  if(t.deadline>=dk(nMon)&&t.deadline<=dk(nSun))return 'next';
+  return 'new'; // far future → new
 }
 
+// ── Ensure board structure is correct ──
 function kbBoardsD(){
-  // Always ensure smart board exists as first board
   if(!G.kbBoards||!G.kbBoards.length){
-    G.kbBoards=[{id:SMART_BOARD_ID,title:'Задачи',cols:JSON.parse(JSON.stringify(SMART_COLS))}];
+    G.kbBoards=[{id:SMART_BOARD_ID,title:'Задачи',cols:SMART_COLS.map(c=>({...c}))}];
   }
-  // Migrate: ensure smart board has all required cols
   const sb=G.kbBoards.find(b=>b.id===SMART_BOARD_ID);
   if(sb){
+    // Ensure all columns exist, maintain order
+    const orderedCols=[];
     SMART_COLS.forEach(sc=>{
-      if(!sb.cols.find(c=>c.id===sc.id))sb.cols.push({...sc});
+      const existing=sb.cols.find(c=>c.id===sc.id);
+      orderedCols.push(existing?{...sc,...existing,id:sc.id}:{...sc});
     });
+    sb.cols=orderedCols;
   }
   return G.kbBoards;
 }
 function kbD(){if(!G.kanban||!Array.isArray(G.kanban))G.kanban=[];return G.kanban}
 let kbEditId=null,kbSelPri=2,kbAddCol=null,kbActiveBoardId=null;
 
+// ── Auto-migrate + auto-move cards daily ──
+let _kbLastMigrateDay='';
 function kbMigrate(){
   const boards=kbBoardsD();
-  const today=dk(t0());
-  // Migrate old cards without boardId
-  kbD().forEach(c=>{
-    if(!c.boardId)c.boardId=boards[0].id;
-    if(!c.id)c.id=uid();
-  });
-  // AUTO-MOVE cards on smart board based on deadline & done
+  kbD().forEach(c=>{if(!c.boardId)c.boardId=boards[0].id;if(!c.id)c.id=uid();});
   const sb=boards.find(b=>b.id===SMART_BOARD_ID);if(!sb)return;
   kbD().filter(c=>c.boardId===SMART_BOARD_ID).forEach(c=>{
-    // Find linked task
     const task=c.taskId?tpD().find(t=>t.id===c.taskId):null;
     if(!task)return;
-    // Sync title/deadline
-    c.title=task.text||c.title;
+    // Sync title/deadline from task
+    if(task.text)c.title=task.text;
     c.deadline=task.deadline||'';
     c.done=task.done||false;
-    const autoCol=kbSmartColForTask(task);
-    if(autoCol){
-      // Only auto-move if card is in an auto-managed column (not focus/planned/done pinned)
-      const currentCol=sb.cols.find(col=>col.id===c.col);
-      const isDoneCol=c.col==='done';
-      if(!isDoneCol||(isDoneCol&&!task.done)){
-        // move to correct auto col if it differs
-        if(c.col!==autoCol&&c.col!=='focus'&&c.col!=='planned'){
-          c.col=autoCol;
-        }
-      }
-      if(task.done&&c.col!=='done')c.col='done';
-    }
+    // If task is done → always move to done col
+    if(task.done){c.col='done';return;}
+    // Don't auto-move cards manually pinned to focus or planned (unless done)
+    if(c.col==='focus')return;
+    if(c.col==='planned'&&task.repeat)return;
+    // Auto-move based on deadline
+    const correct=kbSmartColForTask(task);
+    c.col=correct;
   });
 }
 
+// ── Sync all tasks into kanban ──
 function kbAutoSyncFromTasks(){
-  // Sync all tasks into smart board — add missing, update existing
   const sb=kbBoardsD().find(b=>b.id===SMART_BOARD_ID);if(!sb)return;
   const cards=kbD();
-  const today=dk(t0());
-
   tpD().forEach(t=>{
     const existing=cards.find(c=>c.boardId===SMART_BOARD_ID&&c.taskId===t.id);
     if(existing){
-      // Update title/deadline from task
       existing.title=t.text||existing.title;
       existing.deadline=t.deadline||'';
       existing.done=t.done||false;
+      if(t.done)existing.col='done';
       return;
     }
-    // New task — determine where to place it
-    if(t.repeat){
-      // Recurring tasks go to Регулярные column
-      cards.push({id:uid(),title:t.text,desc:t.notes||'',priority:t.priority||2,deadline:'',col:'planned',boardId:SMART_BOARD_ID,taskId:t.id,done:false,isRepeat:true,repeat:t.repeat});
-    } else {
-      const autoCol=kbSmartColForTask(t);
-      if(autoCol){
-        cards.push({id:uid(),title:t.text,desc:t.notes||'',priority:t.priority||2,deadline:t.deadline||'',col:autoCol,boardId:SMART_BOARD_ID,taskId:t.id,done:t.done||false});
-      }
-    }
+    const col=kbSmartColForTask(t);
+    cards.push({
+      id:uid(),title:t.text,desc:t.notes||'',
+      priority:t.priority||2,deadline:t.deadline||'',
+      col,boardId:SMART_BOARD_ID,taskId:t.id,
+      done:t.done||false,isRepeat:!!t.repeat
+    });
   });
-
-  // Remove kanban cards whose linked task was deleted
+  // Remove orphan cards
   const taskIds=new Set(tpD().map(t=>t.id));
   for(let i=cards.length-1;i>=0;i--){
     const c=cards[i];
@@ -4190,68 +4197,174 @@ function kbAutoSyncFromTasks(){
   }
 }
 
+// ── Drag state ──
+let _kbDragId=null,_kbDragOver=null;
+
+function kbDragStart(e,cardId){
+  _kbDragId=cardId;
+  e.dataTransfer.effectAllowed='move';
+  e.dataTransfer.setData('text/plain',cardId);
+  setTimeout(()=>{const el=document.getElementById('kbcard-'+cardId);if(el){el.style.opacity='0.4';el.style.transform='scale(0.97)';}},0);
+}
+function kbDragEnd(e){
+  const el=document.getElementById('kbcard-'+_kbDragId);
+  if(el){el.style.opacity='';el.style.transform='';}
+  document.querySelectorAll('.kbCards').forEach(z=>{z.classList.remove('kbDragOver');});
+  _kbDragId=null;_kbDragOver=null;
+}
+function kbDragOver(e,colId){
+  e.preventDefault();e.dataTransfer.dropEffect='move';
+  if(_kbDragOver===colId)return;
+  document.querySelectorAll('.kbCards').forEach(z=>z.classList.remove('kbDragOver'));
+  const el=document.getElementById('kb-'+colId);if(el)el.classList.add('kbDragOver');
+  _kbDragOver=colId;
+}
+function kbDrop(e,colId){
+  e.preventDefault();
+  if(!_kbDragId)return;
+  const cardId=_kbDragId;
+  document.querySelectorAll('.kbCards').forEach(z=>z.classList.remove('kbDragOver'));
+  const cards=kbD();
+  const idx=cards.findIndex(c=>c.id===cardId);if(idx<0)return;
+  const board=kbBoardsD().find(b=>b.id===cards[idx].boardId);if(!board)return;
+  const newColDef=board.cols.find(c=>c.id===colId);if(!newColDef)return;
+  // Don't move repeat tasks out of planned automatically
+  if(cards[idx].isRepeat&&colId!=='done'&&colId!=='planned')cards[idx].isRepeat=false;
+  cards[idx].col=colId;
+  // Sync linked task
+  const linkedTask=cards[idx].taskId?tpD().find(x=>x.id===cards[idx].taskId):null;
+  if(linkedTask){
+    if(newColDef.isDone){linkedTask.done=true;cards[idx].done=true;}
+    else{linkedTask.done=false;cards[idx].done=false;}
+    // Update deadline hint when moved to today/tomorrow/week
+    if(colId==='today'&&!linkedTask.deadline)linkedTask.deadline=dk(t0());
+    if(colId==='tomorrow'&&!linkedTask.deadline){
+      const tom=new Date(t0());tom.setDate(tom.getDate()+1);linkedTask.deadline=dk(tom);
+    }
+    cards[idx].deadline=linkedTask.deadline||'';
+  }
+  saveD();renderKanban();_kbDragId=null;
+}
+
+// ── Main render ──
 function renderKanban(){
   kbMigrate();
   kbAutoSyncFromTasks();
   const boards=kbBoardsD();
   if(!kbActiveBoardId||!boards.find(b=>b.id===kbActiveBoardId))kbActiveBoardId=boards[0].id;
-  // Board tabs (hide if only 1 board)
   const bar=document.getElementById('kbBoardBar');
-  bar.innerHTML='';
-  if(boards.length>1){
-    boards.forEach(b=>{
-      const btn=document.createElement('button');btn.className='kbBoardTab'+(b.id===kbActiveBoardId?' on':'');
-      btn.textContent=b.title;btn.onclick=()=>{kbActiveBoardId=b.id;renderKanban()};bar.appendChild(btn);
-    });
-  } else {
-    bar.innerHTML=`<span style="font-family:var(--font-display);font-size:20px;font-style:normal;font-weight:700;letter-spacing:-.4px;color:var(--purple)">🗂 Канбан</span>`;
+  if(bar){
+    bar.innerHTML='';
+    if(boards.length>1){
+      boards.forEach(b=>{
+        const btn=document.createElement('button');btn.className='kbBoardTab'+(b.id===kbActiveBoardId?' on':'');
+        btn.textContent=b.title;btn.onclick=()=>{kbActiveBoardId=b.id;renderKanban()};bar.appendChild(btn);
+      });
+    } else {
+      bar.innerHTML=`<span style="font-family:var(--font-display);font-size:20px;font-weight:700;letter-spacing:-.4px;color:var(--purple)">🗂 Канбан</span>`;
+    }
   }
   const board=boards.find(b=>b.id===kbActiveBoardId);if(!board)return;
-  const cards=kbD();const filter=document.getElementById('kbFilter').value;
-  const layout=document.getElementById('kbLayout');layout.innerHTML='';
+  const allCards=kbD();
+  const filter=document.getElementById('kbFilter')?.value||'';
+  const layout=document.getElementById('kbLayout');if(!layout)return;
+  layout.innerHTML='';
+
   board.cols.forEach((col,ci)=>{
-    const colCards=cards.filter(c=>c.boardId===kbActiveBoardId&&c.col===col.id&&(filter===''||String(c.priority)===filter));
-    const colEl=document.createElement('div');colEl.className='kbCol';
-    colEl.innerHTML=`<div class="kbColHead">
-      <div class="kbColTitle"><div class="kbColDot" style="background:${col.color}"></div>${col.title}</div>
-      <div class="kbColCnt">${colCards.length}</div>
-    </div><div class="kbCards" id="kb-${col.id}"></div>
-    ${col.id!=='done'?`<button class="kbAddBtn" onclick="openKbModal('${col.id}')">+ Добавить</button>`:''}`;
-    layout.appendChild(colEl);
-    const cardsEl=colEl.querySelector('.kbCards');
+    const colCards=allCards.filter(c=>
+      c.boardId===kbActiveBoardId&&c.col===col.id&&
+      (filter===''||String(c.priority)===filter)
+    );
+    const colEl=document.createElement('div');
+    colEl.className='kbCol';
+    colEl.style.borderTop=`3px solid ${col.color}`;
+
+    // Column header
+    const head=document.createElement('div');head.className='kbColHead';
+    head.innerHTML=`<div class="kbColTitle"><div class="kbColDot" style="background:${col.color}"></div>${col.title}</div>
+      <div class="kbColCnt" style="background:${col.color}22;color:${col.color}">${colCards.length}</div>`;
+    colEl.appendChild(head);
+
+    // Cards container — drop zone
+    const cardsEl=document.createElement('div');
+    cardsEl.className='kbCards';
+    cardsEl.id='kb-'+col.id;
+    cardsEl.addEventListener('dragover',e=>kbDragOver(e,col.id));
+    cardsEl.addEventListener('drop',e=>kbDrop(e,col.id));
+    colEl.appendChild(cardsEl);
+
+    // Render each card
     colCards.forEach(c=>{
-      const card=document.createElement('div');card.className='kbCard';
-      const priLbl=['','🔴','🟡','🟢'][c.priority]||'';
-      const priCls=['','kbP1','kbP2','kbP3'][c.priority]||'kbP2';
+      const card=document.createElement('div');
+      card.className='kbCard'+(c.done?' kbCardDone':'');
+      card.id='kbcard-'+c.id;
+      card.draggable=true;
+      card.addEventListener('dragstart',e=>kbDragStart(e,c.id));
+      card.addEventListener('dragend',kbDragEnd);
+
       const lbl=c.labelId?labelsD().find(l=>l.id===c.labelId):null;
-      const lblHtml=lbl?`<span style="display:inline-flex;align-items:center;gap:3px;font-size:9px;font-weight:700;color:${lbl.color};background:${hexA(lbl.color,.12)};padding:2px 7px;border-radius:20px;white-space:nowrap"><span style="width:6px;height:6px;border-radius:50%;background:${lbl.color};flex-shrink:0"></span>${esc(lbl.name)}</span>`:'';
-      const timeHtml=c.time?`<span style="font-family:var(--font-mono);font-size:9px;color:var(--p);font-weight:600">${c.time}${c.endTime?' – '+c.endTime:''}</span>`:'';
-      let dlHtml='';
-      if(c.deadline){const dl=new Date(c.deadline+'T00:00:00'),td=t0(),diff=Math.floor((dl-td)/86400000);dlHtml=`<span class="kbDl" style="color:${diff<0?'var(--red)':diff===0?'var(--gold)':'var(--muted)'}">📅 ${c.deadline}${diff<0?' ⚠️':diff===0?' (сегодня)':''}</span>`}
-      const moveLeft=ci>0?`<button class="kbMoveBtn" onclick="moveCard('${c.id}',-1)">◀</button>`:'';
-      const moveRight=ci<board.cols.length-1?`<button class="kbMoveBtn" onclick="moveCard('${c.id}',1)">▶</button>`:'';
-      const linked=c.taskId?'<span style="font-size:9px;color:var(--text2);margin-left:3px" title="Связано">🔗</span>':'';
       if(lbl)card.style.borderLeft=`3px solid ${lbl.color}`;
-      if(c.done)card.style.opacity='0.6';
-      card.innerHTML=`<button class="kbDelBtn" onclick="delCard('${c.id}')">×</button>
-        <div class="kbCardTitle" onclick="openKbModal('${col.id}','${c.id}')">${esc(c.title)}${linked}</div>
-        ${c.desc?`<div class="kbCardDesc">${esc(c.desc)}</div>`:''}
-        <div class="kbCardFoot">
-          <div style="display:flex;gap:4px;flex-wrap:wrap;align-items:center">${lblHtml}${timeHtml?`<span style="font-size:8px;color:var(--muted)">⏱</span>${timeHtml}`:''}</div>
-          <span class="kbPri ${priCls}">${priLbl}</span>
+
+      const lblHtml=lbl?`<span style="display:inline-flex;align-items:center;gap:3px;font-size:9px;font-weight:700;color:${lbl.color};background:${hexA(lbl.color,.12)};padding:2px 6px;border-radius:20px;white-space:nowrap"><span style="width:5px;height:5px;border-radius:50%;background:${lbl.color};flex-shrink:0"></span>${esc(lbl.name)}</span>`:'';
+      const repeatBadge=c.isRepeat?`<span style="font-size:8px;color:var(--cyan);background:var(--cyandim);padding:1px 5px;border-radius:4px;font-weight:700">↻</span>`:'';
+
+      let dlHtml='';
+      if(c.deadline){
+        const diff=Math.floor((new Date(c.deadline+'T00:00:00')-t0())/86400000);
+        const dlColor=diff<0?'var(--red)':diff===0?'var(--gold)':diff===1?'var(--orange)':'var(--muted)';
+        const dlLabel=diff<0?`${Math.abs(diff)}д просроч.`:diff===0?'сегодня':diff===1?'завтра':`через ${diff}д`;
+        dlHtml=`<span style="font-size:9px;color:${dlColor};font-weight:600;display:flex;align-items:center;gap:3px">📅 ${c.deadline} <span style="opacity:.7">(${dlLabel})</span></span>`;
+      }
+
+      const priColors={'1':'var(--red)','2':'var(--gold)','3':'var(--green)'};
+      const priDot=c.priority?`<span style="width:6px;height:6px;border-radius:50%;background:${priColors[c.priority]||'var(--border2)'};flex-shrink:0;display:inline-block"></span>`:'';
+
+      card.innerHTML=`
+        <button class="kbDelBtn" onclick="event.stopPropagation();delCard('${c.id}')">×</button>
+        <div style="display:flex;align-items:flex-start;gap:6px;cursor:pointer" onclick="openKbModal('${col.id}','${c.id}')">
+          <span style="cursor:grab;color:var(--border2);font-size:14px;padding-top:1px;flex-shrink:0;user-select:none">⠿</span>
+          <div style="flex:1;min-width:0">
+            <div class="kbCardTitle" style="${c.done?'text-decoration:line-through;opacity:.6':''}">${esc(c.title)}${c.taskId?'<span style="font-size:8px;color:var(--border3);margin-left:3px">🔗</span>':''}</div>
+            ${c.desc?`<div class="kbCardDesc">${esc(c.desc)}</div>`:''}
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:5px;flex-wrap:wrap;margin-top:7px">
+          ${priDot}${lblHtml}${repeatBadge}
         </div>
         ${dlHtml?`<div style="margin-top:5px">${dlHtml}</div>`:''}
-        <div class="kbMoveBtns" style="margin-top:6px">${moveLeft}${moveRight}</div>`;
+        <div style="display:flex;gap:4px;margin-top:8px;justify-content:flex-end">
+          ${ci>0?`<button class="kbMoveBtn" onclick="moveCard('${c.id}',-1)" title="Назад">◀</button>`:''}
+          ${!c.done&&col.id!=='done'?`<button class="kbMoveBtn" style="background:var(--greendim);color:var(--green);border-color:rgba(18,232,172,.3)" onclick="kbMarkDone('${c.id}')" title="Готово">✓</button>`:''}
+          ${ci<board.cols.length-1?`<button class="kbMoveBtn" onclick="moveCard('${c.id}',1)" title="Вперёд">▶</button>`:''}
+        </div>`;
       cardsEl.appendChild(card);
     });
+
+    // Add button
+    if(col.id!=='done'){
+      const addBtn=document.createElement('button');
+      addBtn.className='kbAddBtn';
+      addBtn.textContent='+ Добавить';
+      addBtn.onclick=()=>openKbModal(col.id);
+      colEl.appendChild(addBtn);
+    }
+    layout.appendChild(colEl);
   });
+}
+
+// ── Mark card as done (quick button) ──
+function kbMarkDone(cardId){
+  const c=kbD().find(x=>x.id===cardId);if(!c)return;
+  c.col='done';c.done=true;
+  const task=c.taskId?tpD().find(t=>t.id===c.taskId):null;
+  if(task){task.done=true;}
+  saveD();renderKanban();
 }
 
 let _kbLabelSel='';
 function openKbModal(colId,cardId){
   kbAddCol=colId;kbEditId=cardId||null;
   const c=cardId?kbD().find(x=>x.id===cardId):null;
-  // If card is linked to a task, get extra fields from task
   const linkedTask=c?.taskId?tpD().find(t=>t.id===c.taskId):null;
   document.getElementById('kbModalTitle').textContent=c?'Редактировать':'Новая карточка';
   document.getElementById('kbCardTitle').value=c?c.title:(linkedTask?linkedTask.text:'');
@@ -4261,12 +4374,10 @@ function openKbModal(colId,cardId){
   document.getElementById('kbCardEndTime').value=c?.endTime||(linkedTask?.endTime||'');
   _kbLabelSel=c?.labelId||(linkedTask?.labelId||'');
   selKbPri(c?c.priority:2);
-  // Render label selector
   _renderKbLabels();
-  // Populate col select
   const board=kbBoardsD().find(b=>b.id===kbActiveBoardId);
   const sel=document.getElementById('kbCardCol');sel.innerHTML='';
-  if(board)board.cols.forEach(col=>{const o=document.createElement('option');o.value=col.id;o.textContent=`${col.icon||''} ${col.title}`;if((c?c.col:colId)===col.id)o.selected=true;sel.appendChild(o)});
+  if(board)board.cols.forEach(col=>{const o=document.createElement('option');o.value=col.id;o.textContent=col.title;if((c?c.col:colId)===col.id)o.selected=true;sel.appendChild(o)});
   document.getElementById('kbOverlay').style.display='flex';
 }
 function _renderKbLabels(){
@@ -4298,14 +4409,12 @@ function saveKbCard(){
     const idx=kbD().findIndex(x=>x.id===kbEditId);
     if(idx>=0){
       kbD()[idx]={...kbD()[idx],...data};
-      // Sync back to linked task if exists
       const linkedTask=kbD()[idx].taskId?tpD().find(t=>t.id===kbD()[idx].taskId):null;
       if(linkedTask){Object.assign(linkedTask,{text:title,deadline,time,endTime,notes:desc,labelId:_kbLabelSel});saveD();_refreshAllTaskViews();return;}
     }
   } else {
     const newCard={...data,id:uid()};
     kbD().push(newCard);
-    // Also add to G.tasks for full sync (linked card)
     const taskId=uid();
     tpD().push({id:taskId,text:title,deadline,time,endTime,notes:desc,done:false,labelId:_kbLabelSel,priority:kbSelPri});
     newCard.taskId=taskId;
@@ -4322,7 +4431,7 @@ function moveCard(id,dir){
   const linkedTask=cards[idx].taskId?tpD().find(x=>x.id===cards[idx].taskId):null;
   if(linkedTask){
     if(newCol.isDone){linkedTask.done=true;cards[idx].done=true;}
-    else if(newCol.id!=='done'){linkedTask.done=false;cards[idx].done=false;}
+    else{linkedTask.done=false;cards[idx].done=false;}
   }
   saveD();renderKanban();
 }
@@ -6875,6 +6984,20 @@ self.addEventListener('fetch',e=>{e.respondWith(caches.match(e.request).then(r=>
 }
 
 setInterval(()=>{if(document.getElementById('tab-tasks')?.classList.contains('on'))renderTP()},60000);
+
+// ── Daily kanban auto-refresh: re-run kbMigrate at midnight so tasks shift columns ──
+(function scheduleDailyKbRefresh(){
+  const now=new Date();
+  const msToMidnight=(new Date(now.getFullYear(),now.getMonth(),now.getDate()+1)-now)+1000;
+  setTimeout(function tick(){
+    if(document.getElementById('tab-kanban')?.classList.contains('on'))renderKanban();
+    else kbMigrate(); // silent migrate so data is ready when user opens kanban
+    setInterval(()=>{
+      if(document.getElementById('tab-kanban')?.classList.contains('on'))renderKanban();
+      else kbMigrate();
+    },86400000);
+  },msToMidnight);
+})();
 window.addEventListener('resize',()=>{
   initMobileNav();
   if(document.getElementById('tab-habits')?.classList.contains('on')){const d=htD();drawHChart(d,dim(htY,htM))}
