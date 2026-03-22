@@ -25,6 +25,7 @@ const firebaseConfig = {
   appId: "1:68666541106:web:b9e78a5769222d5f67282b",
   measurementId: "G-8RQB3MR8Y0"
 };
+
 firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
@@ -1321,6 +1322,30 @@ select.inp option{background:var(--card2);color:var(--text)}
 /* Habit name wrapping fix */
 .htNameCell{overflow:visible!important}
 
+/* ── Principles ── */
+.princCard{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:14px 16px;margin-bottom:10px;display:flex;align-items:flex-start;gap:12px;transition:.15s;cursor:pointer}
+.princCard:hover{border-color:var(--border3);background:var(--card2)}
+.princNum{font-family:var(--font-display);font-size:20px;font-weight:800;color:var(--gold);min-width:32px;line-height:1}
+.princIcon{font-size:18px;flex-shrink:0;min-width:28px}
+.princText{font-size:13px;font-weight:500;color:var(--text);line-height:1.6;flex:1}
+.princCat{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);margin-top:4px}
+
+/* ── Finance Accounts ── */
+.finAcctCard{background:var(--card2);border:1px solid var(--border2);border-radius:var(--r);padding:12px 14px;min-width:140px;flex-shrink:0;cursor:pointer;transition:.15s}
+.finAcctCard:hover{border-color:var(--border3)}
+.finAcctCard.active{border-color:var(--p);background:var(--pdim)}
+.finAcctIcon{font-size:20px;margin-bottom:4px}
+.finAcctName{font-size:11px;font-weight:700;color:var(--text2)}
+.finAcctBal{font-family:var(--font-display);font-size:16px;font-weight:800;color:var(--cyan);margin-top:2px}
+
+/* ── Finance category budget bars ── */
+.finCatBudRow{display:flex;flex-direction:column;gap:4px;margin-bottom:10px}
+.finCatBudHead{display:flex;align-items:center;justify-content:space-between;font-size:11px}
+.finCatBudName{color:var(--text2);font-weight:600;display:flex;align-items:center;gap:6px}
+.finCatBudAmt{color:var(--muted);font-family:var(--font-mono);font-size:10px}
+.finCatBudTrack{height:6px;background:var(--border2);border-radius:4px;overflow:hidden}
+.finCatBudFill{height:100%;border-radius:4px;transition:.4s}
+
 /* ── tTimeInp visibility fix ── */
 .tTimeInp{
   border:1px solid var(--border2);border-radius:7px;
@@ -1403,7 +1428,7 @@ select.inp option{background:var(--card2);color:var(--text)}
 <!-- ══ APP LOADER ══ -->
 <div id="appLoader">
   <div class="loaderLogo">✦</div>
-  <div class="
+  <div class="loaderTitle">PlannerPro</div>
   <div class="loaderMsg" id="loaderMsg">Подключение...</div>
   <div class="loaderTrack"><div class="loaderFill" id="loaderFill"></div></div>
 </div>
@@ -1531,6 +1556,10 @@ select.inp option{background:var(--card2);color:var(--text)}
     <button class="mNavBtn" onclick="switchTabMob('habits',this)">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
       <span>Привычки</span>
+    </button>
+    <button class="mNavBtn" onclick="switchTabMob('finance',this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/><circle cx="7" cy="15" r="1" fill="currentColor"/><path d="M11 15h6"/></svg>
+      <span>Финансы</span>
     </button>
     <button class="mNavBtn" onclick="moreMenu()">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="5" r="1.5" fill="currentColor"/><circle cx="12" cy="12" r="1.5" fill="currentColor"/><circle cx="12" cy="19" r="1.5" fill="currentColor"/></svg>
@@ -1883,28 +1912,43 @@ select.inp option{background:var(--card2);color:var(--text)}
     <button class="btn btnG" onclick="finNav(-1)">◀</button>
     <div class="finMonName" id="finMonName"></div>
     <button class="btn btnG" onclick="finNav(1)">▶</button>
+    <button class="btn btnO" style="margin-left:auto;font-size:11px" onclick="openFinModal()">+ Транзакция</button>
+    <button class="btn btnG" style="font-size:11px" onclick="openAccountModal(null)">🏦 Счета</button>
   </div>
+  <!-- Summary cards -->
   <div class="finSummaryGrid">
-    <div class="finSumCard"><div class="finSumLbl">Доходы</div><div class="finSumVal finInc" id="finIncVal">0</div><div class="finSumSub">за месяц</div></div>
+    <div class="finSumCard"><div class="finSumLbl">Доходы</div><div class="finSumVal finInc" id="finIncVal">0</div><div class="finSumSub" id="finIncAcct">за месяц</div></div>
     <div class="finSumCard"><div class="finSumLbl">Расходы</div><div class="finSumVal finExp" id="finExpVal">0</div><div class="finSumSub">за месяц</div></div>
     <div class="finSumCard"><div class="finSumLbl">Баланс</div><div class="finSumVal finBal" id="finBalVal">0</div><div class="finSumSub">остаток</div></div>
   </div>
-  <div class="finBudgetWrap">
-    <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
-      <span class="cardTitle" style="flex:1">Бюджет</span>
-      <div style="display:flex;align-items:center;gap:6px">
-        <span style="font-size:11px;color:var(--muted)">Лимит расходов:</span>
-        <input type="number" class="inp" id="finBudgetInp" style="width:100px;font-size:11px" placeholder="0" oninput="saveBudget()">
+  <!-- Accounts row -->
+  <div id="finAccountsRow" style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px"></div>
+  <!-- Income/Expense Line Chart -->
+  <div class="card" style="padding:14px 16px;margin-bottom:12px">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+      <div class="secLbl" style="margin:0">Доходы и расходы (6 мес.)</div>
+      <div style="display:flex;gap:10px;font-size:10px;font-weight:700">
+        <span style="display:flex;align-items:center;gap:4px"><span style="display:inline-block;width:10px;height:3px;background:var(--green);border-radius:2px"></span>Доходы</span>
+        <span style="display:flex;align-items:center;gap:4px"><span style="display:inline-block;width:10px;height:3px;background:var(--red);border-radius:2px"></span>Расходы</span>
       </div>
-      <span style="font-size:14px;font-weight:800;color:var(--gold);font-family:var(--font-display)" id="finBudPct">0%</span>
     </div>
-    <div class="finBudTrack"><div class="finBudFill" id="finBudFill" style="width:0%"></div></div>
+    <canvas id="finLineChart" height="100" style="width:100%;display:block"></canvas>
+  </div>
+  <!-- Budget by categories -->
+  <div class="finBudgetWrap" style="margin-bottom:12px">
+    <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:10px">
+      <span class="cardTitle" style="flex:1">Бюджет по категориям</span>
+      <button class="btn btnG" style="font-size:10.5px;padding:5px 10px" onclick="openCatBudgetModal()">⚙ Лимиты</button>
+    </div>
+    <div id="finCatBudgetList" class="finCatList"></div>
   </div>
   <div class="finLayout2">
     <div>
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
         <div class="secLbl" style="margin:0">Транзакции</div>
-        <button class="btn btnO" onclick="openFinModal()">+ Добавить</button>
+        <select class="inp" id="finAcctFilter" onchange="renderFin()" style="width:auto;font-size:11px;padding:5px 8px">
+          <option value="">Все счета</option>
+        </select>
       </div>
       <div id="finTxList" class="finTxList"></div>
     </div>
@@ -1922,7 +1966,8 @@ select.inp option{background:var(--card2);color:var(--text)}
   <!-- Sub-tabs -->
   <div style="display:flex;gap:4px;border-bottom:1px solid var(--border);margin-bottom:16px;overflow-x:auto">
     <button class="rwSubTab on" onclick="goalSubTab('goals',this)">🌱 Цели</button>
-    <button class="rwSubTab" onclick="goalSubTab('kaizen',this)">🧠 Кайдзен</button>
+    <button class="rwSubTab" onclick="goalSubTab('principles',this)">⚡ Принципы</button>
+    <button class="rwSubTab" onclick="goalSubTab('kaizen',this)">🧠 Дневник роста</button>
     <button class="rwSubTab" onclick="goalSubTab('charts',this)">📊 Аналитика</button>
   </div>
 
@@ -1935,29 +1980,51 @@ select.inp option{background:var(--card2);color:var(--text)}
     <div id="goalsList"></div>
   </div>
 
-  <!-- KAIZEN tab -->
-  <div id="gst-kaizen" style="display:none">
+  <!-- PRINCIPLES tab -->
+  <div id="gst-principles" style="display:none">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px">
       <div>
-        <div style="font-family:var(--font-display);font-size:20px;font-weight:700;letter-spacing:-.4px;color:var(--p)">Кайдзен-дневник</div>
-        <div style="font-size:12px;color:var(--text2);margin-top:2px">1% улучшений каждый день</div>
+        <div style="font-family:var(--font-display);font-size:20px;font-weight:700;letter-spacing:-.4px;color:var(--gold)">⚡ Мои принципы</div>
+        <div style="font-size:12px;color:var(--text2);margin-top:2px">Правила жизни которыми я руководствуюсь</div>
       </div>
-      <div style="display:flex;gap:8px">
+      <button class="btn btnO" onclick="princOpenModal(null)">+ Добавить принцип</button>
+    </div>
+    <div id="princList"></div>
+  </div>
+
+  <!-- KAIZEN + GROWTH DIARY — combined tab -->
+  <div id="gst-kaizen" style="display:none">
+    <!-- Kaizen daily entries -->
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px">
+      <div>
+        <div style="font-family:var(--font-display);font-size:20px;font-weight:700;letter-spacing:-.4px;color:var(--p)">🧠 Кайдзен · Дневник роста</div>
+        <div style="font-size:12px;color:var(--text2);margin-top:2px">1% улучшений каждый день = 37× за год</div>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
         <button class="btn btnG" style="font-size:11px" onclick="kzOpenQuestions()">⚙ Вопросы</button>
-        <button class="btn btnB" onclick="kzOpenModal(null)">+ Запись</button>
+        <button class="btn btnP" onclick="openJournalModal()">+ Дневник</button>
+        <button class="btn btnB" onclick="kzOpenModal(null)">+ Кайдзен</button>
       </div>
     </div>
-    <div id="kzList"></div>
+    <!-- Unified sub-tabs inside kaizen -->
+    <div style="display:flex;gap:4px;margin-bottom:14px;overflow-x:auto">
+      <button class="rwSubTab on" id="kzInner-kz" onclick="kzInnerTab('kz',this)">📈 Кайдзен</button>
+      <button class="rwSubTab" id="kzInner-journal" onclick="kzInnerTab('journal',this)">📓 Дневник</button>
+    </div>
+    <div id="kzInner-kzPane">
+      <div id="kzList"></div>
+    </div>
+    <div id="kzInner-journalPane" style="display:none">
+      <div id="journalList"></div>
+    </div>
   </div>
 
   <!-- CHARTS tab -->
   <div id="gst-charts" style="display:none">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
-      <div style="font-family:var(--font-display);font-size:20px;font-weight:700;letter-spacing:-.4px;color:var(--purple)">Дневник роста</div>
-      <button class="btn btnP" onclick="openJournalModal()">+ Запись</button>
+      <div style="font-family:var(--font-display);font-size:20px;font-weight:700;letter-spacing:-.4px;color:var(--purple)">📊 Аналитика роста</div>
     </div>
-    <div id="journalList"></div>
-    <div class="growthChartsRow" style="margin-top:16px">
+    <div class="growthChartsRow" style="margin-top:4px">
       <div class="chartCard">
         <div class="secLbl" style="margin-bottom:10px">😊 Динамика настроения</div>
         <div class="moodTimeline" id="moodTimeline"></div>
@@ -2408,18 +2475,19 @@ select.inp option{background:var(--card2);color:var(--text)}
       <input class="inp" id="tm-text" placeholder="Что нужно сделать?" style="font-size:14px;font-weight:600;padding:10px 14px">
     </div>
 
-    <!-- Date + Times row -->
-    <div class="tmRow">
-      <div class="tmField">
-        <label class="tmLabel">Срок выполнения</label>
-        <input type="date" class="inp" id="tm-deadline" style="color-scheme:dark">
-      </div>
-      <div class="tmField">
-        <label class="tmLabel">Начало</label>
+    <!-- Date + Times row - all on one line -->
+    <div class="tmField">
+      <label class="tmLabel">Срок выполнения</label>
+      <input type="date" class="inp" id="tm-deadline" style="color-scheme:dark">
+    </div>
+    <div style="display:flex;gap:8px;margin-bottom:14px">
+      <div style="flex:1">
+        <label class="tmLabel" style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:1.2px;color:var(--muted);display:block;margin-bottom:5px">▶ Начало</label>
         <input type="time" class="inp" id="tm-time" style="color-scheme:dark;font-family:var(--font-mono)">
       </div>
-      <div class="tmField">
-        <label class="tmLabel">Конец</label>
+      <div style="display:flex;align-items:center;padding-top:20px;color:var(--border3);font-size:18px">—</div>
+      <div style="flex:1">
+        <label class="tmLabel" style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:1.2px;color:var(--muted);display:block;margin-bottom:5px">■ Конец</label>
         <input type="time" class="inp" id="tm-endTime" style="color-scheme:dark;font-family:var(--font-mono)">
       </div>
     </div>
@@ -2579,9 +2647,10 @@ select.inp option{background:var(--card2);color:var(--text)}
 <div class="overlay" id="finOverlay" style="display:none">
   <div class="modalBox">
     <div class="modalHead">
-      <span class="modalTitle">Добавить транзакцию</span>
+      <span class="modalTitle" id="finModalTitle">Добавить транзакцию</span>
       <button class="modalClose" onclick="closeFinModal()">✕</button>
     </div>
+    <input type="hidden" id="finEditId">
     <div class="fldGrp">
       <div class="fldLbl">Тип</div>
       <div style="display:flex;gap:8px">
@@ -2591,11 +2660,76 @@ select.inp option{background:var(--card2);color:var(--text)}
     </div>
     <div class="fldGrp"><div class="fldLbl">Сумма</div><input type="number" class="inp" id="finAmt" placeholder="0.00" min="0" step="0.01"></div>
     <div class="fldGrp"><div class="fldLbl">Категория</div><select class="inp" id="finCat"></select></div>
+    <div class="fldGrp"><div class="fldLbl">Счёт</div><select class="inp" id="finAcctSel"></select></div>
     <div class="fldGrp"><div class="fldLbl">Описание</div><input class="inp" id="finNote" placeholder="Примечание..."></div>
     <div class="fldGrp"><div class="fldLbl">Дата</div><input type="date" class="inp" id="finDate" style="color-scheme:dark"></div>
     <div style="display:flex;gap:8px">
+      <button class="btn btnR" id="finDeleteBtn" style="display:none" onclick="deleteFinTx()">🗑</button>
       <button class="btn btnG" style="flex:1;justify-content:center" onclick="closeFinModal()">Отмена</button>
-      <button class="btn btnO" style="flex:1;justify-content:center" onclick="addFinTx()">Добавить</button>
+      <button class="btn btnO" style="flex:1;justify-content:center" onclick="addFinTx()">Сохранить</button>
+    </div>
+  </div>
+</div>
+
+<!-- Account Modal -->
+<div class="overlay" id="acctOverlay" style="display:none">
+  <div class="modalBox" style="max-width:440px">
+    <div class="modalHead">
+      <span class="modalTitle">Счета и кошельки</span>
+      <button class="modalClose" onclick="closeAccountModal()">✕</button>
+    </div>
+    <div id="acctList" style="display:flex;flex-direction:column;gap:7px;margin-bottom:14px"></div>
+    <div style="border-top:1px solid var(--border);padding-top:14px">
+      <div style="font-size:11px;font-weight:700;color:var(--text2);margin-bottom:10px">Новый счёт</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <input class="inp" id="acctNameInp" placeholder="Название (Наличка, Карта...)" style="flex:2;min-width:120px">
+        <input class="inp" id="acctIconInp" placeholder="💳" style="width:56px;text-align:center" maxlength="4">
+        <input type="number" class="inp" id="acctBalInp" placeholder="Баланс" style="flex:1;min-width:90px">
+      </div>
+      <button class="btn btnB" style="margin-top:8px;width:100%;justify-content:center" onclick="addAccount()">+ Добавить счёт</button>
+    </div>
+  </div>
+</div>
+
+<!-- Category Budget Modal -->
+<div class="overlay" id="catBudgetOverlay" style="display:none">
+  <div class="modalBox" style="max-width:460px">
+    <div class="modalHead">
+      <span class="modalTitle">Лимиты по категориям</span>
+      <button class="modalClose" onclick="closeCatBudgetModal()">✕</button>
+    </div>
+    <div style="font-size:11px;color:var(--text2);margin-bottom:12px">Укажи лимит расходов на месяц по каждой категории</div>
+    <div id="catBudgetEditorList" style="display:flex;flex-direction:column;gap:8px"></div>
+    <button class="btn btnG" style="width:100%;justify-content:center;margin-top:12px" onclick="closeCatBudgetModal()">Готово</button>
+  </div>
+</div>
+
+<!-- Principles Modal -->
+<div class="overlay" id="princOverlay" style="display:none">
+  <div class="modalBox" style="max-width:500px">
+    <div class="modalHead">
+      <span class="modalTitle" id="princModalTitle">Новый принцип</span>
+      <button class="modalClose" onclick="closePrincModal()">✕</button>
+    </div>
+    <input type="hidden" id="princ-id">
+    <div class="fldGrp">
+      <div class="fldLbl">Принцип</div>
+      <textarea class="kbTxtarea" id="princ-text" placeholder="Мой жизненный принцип..." style="min-height:80px;resize:none"></textarea>
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <div class="fldGrp" style="flex:1;min-width:100px">
+        <div class="fldLbl">Иконка</div>
+        <input class="inp" id="princ-icon" placeholder="⚡" maxlength="4" style="width:70px">
+      </div>
+      <div class="fldGrp" style="flex:2;min-width:150px">
+        <div class="fldLbl">Категория</div>
+        <input class="inp" id="princ-cat" placeholder="Дисциплина, Отношения, Деньги...">
+      </div>
+    </div>
+    <div style="display:flex;gap:8px;margin-top:4px">
+      <button class="btn btnR" id="princ-del-btn" style="display:none" onclick="princDelete()">Удалить</button>
+      <button class="btn btnG" style="flex:1;justify-content:center" onclick="closePrincModal()">Отмена</button>
+      <button class="btn btnO" style="flex:1;justify-content:center" onclick="princSave()">Сохранить</button>
     </div>
   </div>
 </div>
@@ -2733,7 +2867,7 @@ function subscribeCloud(){
     try{localStorage.setItem(SKEY+'_cache',JSON.stringify(incoming));}catch{}
 
     // Was this snapshot triggered by OUR own recent write (within 4s)?
-    const isOwnEcho=Date.now()-_myLastWriteAt<4000;
+    const isOwnEcho=Date.now()-_myLastWriteAt<8000;
 
     // Always keep G up to date with server state
     G=incoming;
@@ -2743,10 +2877,9 @@ function subscribeCloud(){
       hideLoader();
       initApp();
     } else {
-      // Re-render so UI reflects latest data
-      reRenderCurrentTab();
-      // Show "synced from another device" only when it's not our own echo
+      // Only re-render and show toast for external changes (not our own writes)
       if(!isOwnEcho){
+        reRenderCurrentTab();
         showSaveStatus('saved','↓ Синхронизировано');
       }
     }
@@ -2775,6 +2908,7 @@ document.addEventListener('visibilitychange',()=>{
 // Uses set() WITHOUT merge so the server always has the EXACT current state.
 // merge:true caused phantom data: a device with partial G would NOT delete
 // keys it didn't know about, leading to zombie data staying in Firestore forever.
+let _isSaving=false;
 function saveD(){
   // Cache locally immediately for resilience
   try{localStorage.setItem(SKEY+'_cache',JSON.stringify(G))}catch{}
@@ -2783,6 +2917,8 @@ function saveD(){
   showSaveStatus('saving','⏳ Сохранение...');
   _saveTimer=setTimeout(async()=>{
     if(!currentUser){setSyncDot('error');showSaveStatus('error','✗ Нет сессии');return;}
+    if(_isSaving)return; // prevent concurrent saves
+    _isSaving=true;
     try{
       // Clean undefined fields — Firestore rejects them
       const payload=cleanForFirestore(G);
@@ -2796,6 +2932,7 @@ function saveD(){
       showSaveStatus('error','✗ Ошибка сохранения');
     }finally{
       _saveTimer=null;
+      _isSaving=false;
     }
   },1500);
 }
@@ -3466,6 +3603,7 @@ function plEvtsForDate(dstr){
     const lbl=labelsD().find(l=>l.id===t.labelId);
     // Use label color if set, otherwise a muted indigo for tasks
     const col=lbl?lbl.color:'#7C68EE';
+    // Tasks without a time go to all-day area; tasks WITH time go to time grid
     out.push({
       id:t.id,text:t.text,
       time:t.time||'',endTime:t.endTime||'',
@@ -4087,39 +4225,73 @@ function finNav(d){finM+=d;if(finM>11){finM=0;finY++}if(finM<0){finM=11;finY--}r
 function finKey(){return`fin_${finY}_${finM}`}
 function finTxD(){if(!G.finTx)G.finTx=[];return G.finTx}
 function finBudD(){if(!G.finBud)G.finBud={};if(!G.finBud[finKey()])G.finBud[finKey()]={budget:0,setInc:0};return G.finBud[finKey()]}
+function finAccountsD(){if(!G.finAccounts)G.finAccounts=[{id:'cash',name:'Наличка',icon:'💵',balance:0},{id:'card',name:'Карта',icon:'💳',balance:0}];return G.finAccounts}
+function finCatBudgetsD(){if(!G.finCatBudgets)G.finCatBudgets={};return G.finCatBudgets}
 
 function renderFin(){
   document.getElementById('finMonName').textContent=`${MN[finM]} ${finY}`;
-  const txs=finTxD().filter(t=>{const d=new Date(t.date);return d.getFullYear()===finY&&d.getMonth()===finM});
+  const acctFilter=document.getElementById('finAcctFilter')?.value||'';
+  const txs=finTxD().filter(t=>{const d=new Date(t.date);return d.getFullYear()===finY&&d.getMonth()===finM&&(!acctFilter||t.acctId===acctFilter)});
   const inc=txs.filter(t=>t.type==='in').reduce((a,t)=>a+Number(t.amount),0);
   const exp=txs.filter(t=>t.type==='out').reduce((a,t)=>a+Number(t.amount),0);
   const bal=inc-exp;
   document.getElementById('finIncVal').textContent=fmtMoney(inc);
   document.getElementById('finExpVal').textContent=fmtMoney(exp);
   document.getElementById('finBalVal').textContent=fmtMoney(bal);
-  // budget
-  const bud=finBudD();
-  document.getElementById('finBudgetInp').value=bud.budget||'';
-  const budPct=bud.budget?Math.min(200,Math.round(exp/bud.budget*100)):0;
-  document.getElementById('finBudPct').textContent=budPct+'%';
-  const fill=document.getElementById('finBudFill');
-  fill.style.width=Math.min(100,budPct)+'%';
-  fill.className='finBudFill'+(budPct>=100?' over':budPct>=75?' warn':'');
-  // transactions
+
+  // Accounts row
+  const acctsRow=document.getElementById('finAccountsRow');
+  const accts=finAccountsD();
+  // Update account balances from transactions
+  accts.forEach(a=>{
+    const aInc=finTxD().filter(t=>t.type==='in'&&t.acctId===a.id).reduce((s,t)=>s+Number(t.amount),0);
+    const aExp=finTxD().filter(t=>t.type==='out'&&t.acctId===a.id).reduce((s,t)=>s+Number(t.amount),0);
+    a.balance=aInc-aExp;
+  });
+  // Populate account filter dropdown
+  const acctFilterSel=document.getElementById('finAcctFilter');
+  if(acctFilterSel){
+    const cur=acctFilterSel.value;
+    acctFilterSel.innerHTML='<option value="">Все счета</option>';
+    accts.forEach(a=>{const o=document.createElement('option');o.value=a.id;o.textContent=`${a.icon} ${a.name}`;if(a.id===cur)o.selected=true;acctFilterSel.appendChild(o);});
+  }
+  acctsRow.innerHTML=accts.map(a=>`
+    <div class="finAcctCard${a.id===acctFilter?' active':''}" onclick="filterFinAcct('${a.id}')">
+      <div class="finAcctIcon">${esc(a.icon)}</div>
+      <div class="finAcctName">${esc(a.name)}</div>
+      <div class="finAcctBal">${fmtMoney(a.balance)}</div>
+    </div>`).join('')+
+    `<div class="finAcctCard" onclick="openAccountModal(null)" style="opacity:.6;border-style:dashed;display:flex;align-items:center;justify-content:center;min-height:74px">
+      <div style="font-size:20px;color:var(--muted)">＋</div>
+    </div>`;
+
+  // Line chart
+  drawFinLineChart();
+
+  // Category budget bars
+  renderCatBudgetBars(exp,txs);
+
+  // Transactions
   const list=document.getElementById('finTxList');list.innerHTML='';
-  if(!txs.length){list.innerHTML='<div style="text-align:center;padding:20px;color:var(--muted);font-size:12px">Транзакций нет. Добавьте первую!</div>'}
+  if(!txs.length){list.innerHTML='<div style="text-align:center;padding:20px;color:var(--muted);font-size:12px">Транзакций нет. Добавь первую!</div>'}
   else{
-    [...txs].reverse().forEach(tx=>{
+    [...txs].sort((a,b)=>b.date.localeCompare(a.date)).forEach(tx=>{
       const cat=FIN_CATS.find(c=>c.id===tx.category)||{icon:'📦',name:'Прочее',color:'#9ca3af'};
-      const item=document.createElement('div');item.className='finTxItem';
+      const acct=accts.find(a=>a.id===tx.acctId)||{name:'',icon:''};
+      const item=document.createElement('div');item.className='finTxItem';item.style.cursor='pointer';
       item.innerHTML=`<div class="finTxIcon" style="background:${cat.color}22">${cat.icon}</div>
-        <div class="finTxInfo"><div class="finTxName">${esc(tx.note||cat.name)}</div><div class="finTxMeta">${cat.name} · ${tx.date}</div></div>
+        <div class="finTxInfo">
+          <div class="finTxName">${esc(tx.note||cat.name)}</div>
+          <div class="finTxMeta">${cat.name}${acct.name?' · '+acct.icon+' '+acct.name:''} · ${tx.date}</div>
+        </div>
         <div class="finTxAmt" style="color:${tx.type==='in'?'var(--green)':'var(--red)'}">${tx.type==='in'?'+':'-'}${fmtMoney(tx.amount)}</div>
-        <button class="finTxDel" onclick="delFinTx('${tx.id}')">×</button>`;
+        <button class="finTxDel" onclick="event.stopPropagation();delFinTx('${tx.id}')">×</button>`;
+      item.onclick=()=>openFinModal(tx.id);
       list.appendChild(item);
     });
   }
-  // categories breakdown
+
+  // Category breakdown
   const catEl=document.getElementById('finCatList');catEl.innerHTML='';
   const outCats=FIN_CATS.filter(c=>c.type==='out');
   outCats.forEach(cat=>{
@@ -4135,15 +4307,118 @@ function renderFin(){
   if(!catEl.children.length)catEl.innerHTML='<div style="font-size:11px;color:var(--muted)">Нет расходов</div>';
 }
 
-function openFinModal(){
-  setFinType('out');
-  document.getElementById('finAmt').value='';
-  document.getElementById('finNote').value='';
-  document.getElementById('finDate').value=dk(t0());
-  updateFinCatSelect('out');
+function filterFinAcct(id){
+  const sel=document.getElementById('finAcctFilter');
+  if(sel)sel.value=(sel.value===id)?'':id;
+  renderFin();
+}
+
+function renderCatBudgetBars(totalExp, txs){
+  const el=document.getElementById('finCatBudgetList');if(!el)return;
+  const budgets=finCatBudgetsD();
+  const hasBudget=Object.keys(budgets).some(k=>budgets[k]>0);
+  if(!hasBudget){
+    el.innerHTML='<div style="font-size:11px;color:var(--muted);padding:8px 0">Установи лимиты по категориям кнопкой ⚙ Лимиты</div>';
+    return;
+  }
+  let html='';
+  FIN_CATS.filter(c=>c.type==='out').forEach(cat=>{
+    const limit=budgets[cat.id]||0;if(!limit)return;
+    const spent=txs.filter(t=>t.type==='out'&&t.category===cat.id).reduce((a,t)=>a+Number(t.amount),0);
+    const pct=Math.min(100,Math.round(spent/limit*100));
+    const over=spent>limit;
+    const col=over?'var(--red)':pct>=75?'var(--gold)':'var(--green)';
+    html+=`<div class="finCatBudRow">
+      <div class="finCatBudHead">
+        <span class="finCatBudName">${cat.icon} ${cat.name} ${over?'⚠️':''}</span>
+        <span class="finCatBudAmt">${fmtMoney(spent)} / ${fmtMoney(limit)}</span>
+      </div>
+      <div class="finCatBudTrack"><div class="finCatBudFill" style="width:${pct}%;background:${col}"></div></div>
+    </div>`;
+  });
+  el.innerHTML=html||'<div style="font-size:11px;color:var(--muted);padding:8px 0">Установи лимиты по категориям</div>';
+}
+
+function drawFinLineChart(){
+  const cv=document.getElementById('finLineChart');if(!cv)return;
+  cv.width=cv.offsetWidth||600;cv.height=100;
+  const ctx=cv.getContext('2d'),W=cv.width,H=cv.height;
+  ctx.clearRect(0,0,W,H);
+  const months=6;const incData=[],expData=[],labels=[];
+  const now=new Date();
+  for(let i=months-1;i>=0;i--){
+    let y=now.getFullYear(),m=now.getMonth()-i;
+    while(m<0){m+=12;y--}
+    const txs=finTxD().filter(t=>{const d=new Date(t.date);return d.getFullYear()===y&&d.getMonth()===m});
+    incData.push(txs.filter(t=>t.type==='in').reduce((a,t)=>a+Number(t.amount),0));
+    expData.push(txs.filter(t=>t.type==='out').reduce((a,t)=>a+Number(t.amount),0));
+    labels.push(MN[m].slice(0,3));
+  }
+  const maxV=Math.max(...incData,...expData,1);
+  const pad={l:6,r:6,t:10,b:18};
+  const chartW=W-pad.l-pad.r,chartH=H-pad.t-pad.b;
+  const xStep=chartW/(months-1);
+  const yToCanvas=v=>pad.t+chartH-(v/maxV)*chartH;
+  // Draw grid lines
+  [0,.25,.5,.75,1].forEach(f=>{
+    const y=pad.t+chartH*(1-f);
+    ctx.beginPath();ctx.strokeStyle='rgba(255,255,255,.05)';ctx.lineWidth=1;
+    ctx.moveTo(pad.l,y);ctx.lineTo(W-pad.r,y);ctx.stroke();
+  });
+  // Fill area under income
+  ctx.beginPath();
+  incData.forEach((v,i)=>{const x=pad.l+i*xStep,y=yToCanvas(v);i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);});
+  ctx.lineTo(pad.l+(months-1)*xStep,H-pad.b);ctx.lineTo(pad.l,H-pad.b);ctx.closePath();
+  ctx.fillStyle='rgba(18,232,172,.08)';ctx.fill();
+  // Draw income line
+  ctx.beginPath();ctx.strokeStyle='rgba(18,232,172,.8)';ctx.lineWidth=2;ctx.lineJoin='round';
+  incData.forEach((v,i)=>{const x=pad.l+i*xStep,y=yToCanvas(v);i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);});
+  ctx.stroke();
+  // Fill area under expense
+  ctx.beginPath();
+  expData.forEach((v,i)=>{const x=pad.l+i*xStep,y=yToCanvas(v);i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);});
+  ctx.lineTo(pad.l+(months-1)*xStep,H-pad.b);ctx.lineTo(pad.l,H-pad.b);ctx.closePath();
+  ctx.fillStyle='rgba(255,92,122,.06)';ctx.fill();
+  // Draw expense line
+  ctx.beginPath();ctx.strokeStyle='rgba(255,92,122,.8)';ctx.lineWidth=2;ctx.lineJoin='round';
+  expData.forEach((v,i)=>{const x=pad.l+i*xStep,y=yToCanvas(v);i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);});
+  ctx.stroke();
+  // Labels
+  labels.forEach((lbl,i)=>{
+    const x=pad.l+i*xStep;
+    ctx.fillStyle='rgba(90,97,130,.8)';ctx.font='8px Instrument Sans,sans-serif';ctx.textAlign='center';
+    ctx.fillText(lbl,x,H-3);
+  });
+  // Dots
+  incData.forEach((v,i)=>{const x=pad.l+i*xStep,y=yToCanvas(v);ctx.beginPath();ctx.arc(x,y,3,0,Math.PI*2);ctx.fillStyle='rgba(18,232,172,1)';ctx.fill();});
+  expData.forEach((v,i)=>{const x=pad.l+i*xStep,y=yToCanvas(v);ctx.beginPath();ctx.arc(x,y,3,0,Math.PI*2);ctx.fillStyle='rgba(255,92,122,1)';ctx.fill();});
+}
+
+let _finEditId=null;
+function openFinModal(editId){
+  _finEditId=editId||null;
+  const tx=editId?finTxD().find(t=>t.id===editId):null;
+  document.getElementById('finModalTitle').textContent=tx?'Редактировать транзакцию':'Добавить транзакцию';
+  document.getElementById('finEditId').value=editId||'';
+  document.getElementById('finDeleteBtn').style.display=tx?'':'none';
+  const type=tx?tx.type:'out';
+  setFinType(type);
+  document.getElementById('finAmt').value=tx?tx.amount:'';
+  document.getElementById('finNote').value=tx?tx.note||'':'';
+  document.getElementById('finDate').value=tx?tx.date:dk(t0());
+  // Populate account select
+  const acctSel=document.getElementById('finAcctSel');
+  acctSel.innerHTML='<option value="">Без счёта</option>';
+  finAccountsD().forEach(a=>{const o=document.createElement('option');o.value=a.id;o.textContent=`${a.icon} ${a.name}`;if(tx&&tx.acctId===a.id)o.selected=true;acctSel.appendChild(o);});
+  updateFinCatSelect(type);
+  if(tx)document.getElementById('finCat').value=tx.category||'';
   document.getElementById('finOverlay').style.display='flex';
 }
-function closeFinModal(){document.getElementById('finOverlay').style.display='none'}
+function closeFinModal(){document.getElementById('finOverlay').style.display='none';_finEditId=null;}
+function deleteFinTx(){
+  if(!_finEditId||!confirm('Удалить транзакцию?'))return;
+  delFinTx(_finEditId);closeFinModal();
+}
 function setFinType(type){
   finTypeVal=type;
   document.getElementById('finTypeIn').className='kbPriBtn'+(type==='in'?' sel':'');
@@ -4158,11 +4433,65 @@ function updateFinCatSelect(type){
 }
 function addFinTx(){
   const amt=parseFloat(document.getElementById('finAmt').value);if(!amt||amt<=0)return;
-  finTxD().push({id:uid(),date:document.getElementById('finDate').value||dk(t0()),amount:amt,type:finTypeVal,category:document.getElementById('finCat').value,note:document.getElementById('finNote').value});
+  const data={date:document.getElementById('finDate').value||dk(t0()),amount:amt,type:finTypeVal,category:document.getElementById('finCat').value,note:document.getElementById('finNote').value,acctId:document.getElementById('finAcctSel').value};
+  if(_finEditId){
+    const idx=finTxD().findIndex(t=>t.id===_finEditId);
+    if(idx>=0)finTxD()[idx]={...finTxD()[idx],...data};
+  } else {
+    finTxD().push({id:uid(),...data});
+  }
   saveD();closeFinModal();renderFin();
 }
 function delFinTx(id){const i=finTxD().findIndex(t=>t.id===id);if(i>=0){finTxD().splice(i,1);saveD();renderFin()}}
-function saveBudget(){const v=parseFloat(document.getElementById('finBudgetInp').value)||0;finBudD().budget=v;saveD();renderFin()}
+function saveBudget(){const v=parseFloat(document.getElementById('finBudgetInp')?.value)||0;finBudD().budget=v;saveD();renderFin()}
+
+// Accounts
+function openAccountModal(){
+  renderAccountList();
+  document.getElementById('acctOverlay').style.display='flex';
+}
+function closeAccountModal(){document.getElementById('acctOverlay').style.display='none';}
+function renderAccountList(){
+  const el=document.getElementById('acctList');if(!el)return;
+  const accts=finAccountsD();
+  el.innerHTML=accts.map((a,i)=>`
+    <div style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--border)">
+      <input class="inp" value="${esc(a.icon)}" style="width:52px;text-align:center;font-size:16px" maxlength="4" oninput="finAccountsD()[${i}].icon=this.value;saveD()">
+      <input class="inp" value="${esc(a.name)}" style="flex:1" oninput="finAccountsD()[${i}].name=this.value;saveD()">
+      <button class="btn btnR" style="font-size:10px;padding:4px 8px" onclick="deleteAccount('${a.id}')">×</button>
+    </div>`).join('');
+}
+function addAccount(){
+  const name=document.getElementById('acctNameInp').value.trim();if(!name)return;
+  const icon=document.getElementById('acctIconInp').value||'💰';
+  const balance=parseFloat(document.getElementById('acctBalInp').value)||0;
+  finAccountsD().push({id:uid(),name,icon,balance});
+  saveD();renderAccountList();renderFin();
+  document.getElementById('acctNameInp').value='';document.getElementById('acctIconInp').value='';document.getElementById('acctBalInp').value='';
+}
+function deleteAccount(id){
+  if(!confirm('Удалить счёт? Транзакции останутся'))return;
+  G.finAccounts=finAccountsD().filter(a=>a.id!==id);
+  saveD();renderAccountList();renderFin();
+}
+
+// Category budgets
+function openCatBudgetModal(){
+  renderCatBudgetEditor();
+  document.getElementById('catBudgetOverlay').style.display='flex';
+}
+function closeCatBudgetModal(){document.getElementById('catBudgetOverlay').style.display='none';renderFin();}
+function renderCatBudgetEditor(){
+  const el=document.getElementById('catBudgetEditorList');if(!el)return;
+  const budgets=finCatBudgetsD();
+  el.innerHTML=FIN_CATS.filter(c=>c.type==='out').map(cat=>`
+    <div style="display:flex;align-items:center;gap:10px">
+      <span style="font-size:14px;min-width:24px">${cat.icon}</span>
+      <span style="flex:1;font-size:12px;font-weight:600;color:var(--text2)">${cat.name}</span>
+      <input type="number" class="inp" value="${budgets[cat.id]||''}" style="width:120px;font-size:12px" placeholder="Лимит..."
+        oninput="finCatBudgetsD()['${cat.id}']=Number(this.value)||0;saveD()">
+    </div>`).join('');
+}
 
 /* ═══════════════════════════════════
    7. GOALS & GROWTH
@@ -4174,7 +4503,6 @@ function goalsD(){if(!G.goals)G.goals=[];return G.goals}
 function journalD(){if(!G.journal)G.journal=[];return G.journal}
 let goalEditId=null,jMoodSel='😊';
 
-function renderGrowth(){renderGoals();renderJournal();renderMoodTimeline();renderTaskWeekChart();renderStreakHeatmap()}
 
 function renderGoals(){
   const list=document.getElementById('goalsList');list.innerHTML='';
@@ -5817,20 +6145,101 @@ document.addEventListener('keydown',e=>{
    GOAL SUB-TABS
 ═══════════════════════════════════ */
 function goalSubTab(name,btn){
-  document.querySelectorAll('.rwSubTab').forEach(b=>b.classList.remove('on'));
+  // Only target top-level sub-tabs in the goals section
+  const tabs=document.querySelectorAll('#tab-goals > div:first-child .rwSubTab');
+  tabs.forEach(b=>b.classList.remove('on'));
   if(btn)btn.classList.add('on');
-  ['goals','kaizen','charts'].forEach(n=>{
+  ['goals','principles','kaizen','charts'].forEach(n=>{
     const el=document.getElementById('gst-'+n);
     if(el)el.style.display=n===name?'block':'none';
   });
-  if(name==='kaizen')kzRenderList();
-  if(name==='charts'){renderMoodTimeline();renderTaskWeekChart();renderStreakHeatmap();renderJournal();}
+  if(name==='kaizen'){kzRenderList();renderJournal();}
+  if(name==='charts'){renderMoodTimeline();renderTaskWeekChart();renderStreakHeatmap();}
   if(name==='goals')renderGoals();
+  if(name==='principles')princRenderList();
+}
+
+function kzInnerTab(name,btn){
+  document.querySelectorAll('#gst-kaizen .rwSubTab').forEach(b=>b.classList.remove('on'));
+  if(btn)btn.classList.add('on');
+  document.getElementById('kzInner-kzPane').style.display=name==='kz'?'block':'none';
+  document.getElementById('kzInner-journalPane').style.display=name==='journal'?'block':'none';
+  if(name==='kz')kzRenderList();
+  if(name==='journal')renderJournal();
 }
 
 function renderGrowth(){
-  goalSubTab('goals',document.querySelector('#tab-goals .rwSubTab'));
+  const firstBtn=document.querySelector('#tab-goals > div:first-child .rwSubTab');
+  goalSubTab('goals',firstBtn);
   renderGoals();
+}
+
+/* ── PRINCIPLES ── */
+function princD(){if(!G.principles)G.principles=[];return G.principles}
+let _princEditId=null;
+function princRenderList(){
+  const el=document.getElementById('princList');if(!el)return;
+  const list=princD();
+  if(!list.length){
+    el.innerHTML=`<div style="text-align:center;padding:40px;color:var(--muted)">
+      <div style="font-size:36px;margin-bottom:12px">⚡</div>
+      <div style="font-weight:600;margin-bottom:6px">Нет принципов</div>
+      <div style="font-size:12px;margin-bottom:16px">Добавь жизненные правила которым следуешь</div>
+      <button class="btn btnO" onclick="princOpenModal(null)">+ Первый принцип</button>
+    </div>`;
+    return;
+  }
+  // Group by category
+  const cats={};
+  list.forEach(p=>{
+    const c=p.cat||'Общие';
+    if(!cats[c])cats[c]=[];
+    cats[c].push(p);
+  });
+  let html='';
+  Object.entries(cats).forEach(([cat,items])=>{
+    html+=`<div class="secLbl" style="margin-top:4px">${esc(cat)}</div>`;
+    items.forEach((p,i)=>{
+      html+=`<div class="princCard" onclick="princOpenModal('${p.id}')">
+        <div class="princIcon">${esc(p.icon||'⚡')}</div>
+        <div style="flex:1">
+          <div class="princText">${esc(p.text)}</div>
+          <div class="princCat">${esc(p.cat||'')}</div>
+        </div>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--border3)" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+      </div>`;
+    });
+  });
+  el.innerHTML=html;
+}
+function princOpenModal(id){
+  _princEditId=id||null;
+  const p=id?princD().find(x=>x.id===id):null;
+  document.getElementById('princModalTitle').textContent=p?'Редактировать принцип':'Новый принцип';
+  document.getElementById('princ-id').value=id||'';
+  document.getElementById('princ-text').value=p?p.text:'';
+  document.getElementById('princ-icon').value=p?p.icon:'⚡';
+  document.getElementById('princ-cat').value=p?p.cat:'';
+  document.getElementById('princ-del-btn').style.display=p?'':'none';
+  document.getElementById('princOverlay').style.display='flex';
+}
+function closePrincModal(){document.getElementById('princOverlay').style.display='none';}
+function princSave(){
+  const text=document.getElementById('princ-text').value.trim();if(!text)return;
+  const data={text,icon:document.getElementById('princ-icon').value||'⚡',cat:document.getElementById('princ-cat').value.trim()};
+  if(_princEditId){
+    const idx=princD().findIndex(x=>x.id===_princEditId);
+    if(idx>=0)princD()[idx]={...princD()[idx],...data};
+  } else {
+    princD().push({...data,id:uid()});
+  }
+  saveD();closePrincModal();princRenderList();
+}
+function princDelete(){
+  if(!_princEditId||!confirm('Удалить принцип?'))return;
+  const idx=princD().findIndex(x=>x.id===_princEditId);
+  if(idx>=0){princD().splice(idx,1);saveD();}
+  closePrincModal();princRenderList();
 }
 
 /* ═══════════════════════════════════
