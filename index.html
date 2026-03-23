@@ -3744,7 +3744,15 @@ function onNewTask(e){
 }
 
 /* ── Unified Task Modal ── */
-let _taskModalIdx=-1; // -1 = new task
+let _taskModalIdx=-1;
+let _tmRepeatVal=''; // tracks selected repeat option
+
+function tmSelRepeat(v){
+  _tmRepeatVal=v;
+  document.querySelectorAll('.tm-repeat-opt').forEach(el=>{
+    el.classList.toggle('sel',el.dataset.v===v);
+  });
+}
 
 function openTaskModal(idx,prefillDate){
   _taskModalIdx=idx;
