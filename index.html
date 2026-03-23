@@ -460,9 +460,9 @@ select.inp option{background:var(--card2);color:var(--text)}
 ══════════════════════════════ */
 .wNav{display:flex;align-items:center;justify-content:center;gap:12px;margin-bottom:20px;flex-wrap:wrap}
 .wNavLbl{font-family:var(--font-display);font-size:18px;font-weight:700;letter-spacing:-.4px;min-width:280px;text-align:center;color:var(--text)}
-.wGrid{display:grid;grid-template-columns:repeat(7,1fr);gap:10px;align-items:stretch}
-@media(max-width:1200px){.wGrid{grid-template-columns:repeat(4,1fr)}}
-@media(max-width:700px){.wGrid{grid-template-columns:repeat(2,1fr)}}
+.wGrid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:10px;align-items:stretch}
+@media(max-width:1200px){.wGrid{grid-template-columns:repeat(4,minmax(0,1fr))}}
+@media(max-width:700px){.wGrid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:380px){.wGrid{grid-template-columns:1fr}}
 
 .dCard[data-d="0"]{--CC:var(--blue);--CL:var(--bluedim)}
@@ -476,6 +476,7 @@ select.inp option{background:var(--card2);color:var(--text)}
 .dCard{
   background:var(--card);border-radius:var(--r);border:1px solid var(--border);
   padding:14px 12px;display:flex;flex-direction:column;gap:10px;height:100%;
+  min-width:0;overflow:hidden;
   transition:border-color var(--dur) var(--ease),box-shadow var(--dur) var(--ease);
 }
 .dCard:hover{border-color:rgba(var(--CC),.3);box-shadow:0 0 0 1px var(--CC),0 10px 40px rgba(0,0,0,.5)}
