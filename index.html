@@ -3571,7 +3571,7 @@ function renderTP(){
   document.getElementById('tpPct').textContent=pct+'%';
   document.getElementById('tpFill').style.width=pct+'%';
   renderLabelsFilterBar();
-  const byLabel=activeLabel?tasks.filter(t=>t.labelId===activeLabel):tasks;
+  const byLabel=activeLabel?tasks.filter(t=>(t.labelIds&&t.labelIds.includes(activeLabel))||(t.labelId===activeLabel)):tasks;
   const filtered=tpSortTasks(byLabel,td);
   // Sync toggle button text on re-render
   const toggleBtn=document.getElementById('tpToggleDone');
@@ -3607,11 +3607,12 @@ function renderTP(){
       }
       let dlLabel='';
       if(t.deadline){const dl=new Date(t.deadline+'T00:00:00');dlLabel=`${dws[dl.getDay()]}, ${dl.getDate()} ${mons[dl.getMonth()]}.`}
-      const label=labelsD().find(l=>l.id===t.labelId);
-      const labelHtml=label
-        ?`<span class="labelPill" style="background:${hexA(label.color,0.15)};color:${label.color};cursor:pointer;border:1px solid ${hexA(label.color,0.35)}" onclick="openLabelPicker(${realIdx},this);event.stopPropagation()"><span class="labelDot" style="background:${label.color}"></span>${esc(label.name)}</span>`
-        :`<span style="color:var(--muted);cursor:pointer;font-size:10px;padding:2px 8px;border:1px dashed var(--border2);border-radius:20px;white-space:nowrap" onclick="openLabelPicker(${realIdx},this);event.stopPropagation()">＋</span>`;
-      const barColor=label?label.color:'transparent';
+      const taskLabelsDesk=getTaskLabels(t);
+      const labelHtml=`<div style="display:flex;flex-wrap:wrap;gap:3px;align-items:center">
+        ${taskLabelsDesk.map(l=>`<span class="labelPill" style="background:${hexA(l.color,0.15)};color:${l.color};cursor:pointer;border:1px solid ${hexA(l.color,0.35)}" onclick="openLabelPicker(${realIdx},this);event.stopPropagation()"><span class="labelDot" style="background:${l.color}"></span>${esc(l.name)}</span>`).join('')}
+        <span style="color:var(--muted);cursor:pointer;font-size:11px;width:20px;height:20px;border-radius:50%;border:1px dashed var(--border2);display:inline-flex;align-items:center;justify-content:center;flex-shrink:0" onclick="openLabelPicker(${realIdx},this);event.stopPropagation()">＋</span>
+      </div>`;
+      const barColor=taskLabelsDesk.length?taskLabelsDesk[0].color:'transparent';
       tr.style.borderLeft=`3px solid ${barColor}`;
       const repeatBadge=t.repeat?`<span class="mTaskRepeatBadge" style="font-size:8px;margin-left:4px">↻</span>`:'';
       const timeDisplay=t.time?`<span style="font-family:var(--font-mono);font-size:10.5px;color:var(--p);font-weight:600">${t.time}${t.endTime?' – '+t.endTime:''}</span>`:'<span style="color:var(--border3)">—</span>';
@@ -3729,8 +3730,7 @@ function openTaskModal(idx,prefillDate){
   _renderTaskModalLabels(initIds);
   _tmRepeatVal=t?.repeat||'';
   tmSelRepeat(_tmRepeatVal);
-  const firstLbl=initIds.length?labelsD().find(l=>l.id===initIds[0]):null;
-  document.getElementById('taskModalLabelDot').style.background=firstLbl?firstLbl.color:'var(--border2)';
+  _updateModalLabelDots(initIds);
   document.getElementById('taskModal').classList.add('open');
   setTimeout(()=>document.getElementById('tm-text').focus(),60);
 }
@@ -3782,6 +3782,14 @@ function _renderTaskModalLabels(selectedIds){
   });
   el.innerHTML=html;
 }
+function _updateModalLabelDots(ids){
+  const el=document.getElementById('taskModalLabelDot');
+  if(!el)return;
+  const lbls=ids.map(id=>labelsD().find(l=>l.id===id)).filter(Boolean);
+  if(!lbls.length){el.innerHTML='';el.style.cssText='width:10px;height:10px;border-radius:50%;background:var(--border2);flex-shrink:0';return;}
+  el.style.cssText='display:flex;gap:3px;align-items:center;flex-shrink:0;flex-wrap:wrap;max-width:100px;';
+  el.innerHTML=lbls.map(l=>`<span style="width:9px;height:9px;border-radius:50%;background:${l.color};flex-shrink:0;display:inline-block"></span>`).join('');
+}
 function taskModalToggleLabel(id){
   const tm=document.getElementById('taskModal');
   let ids=[];try{ids=JSON.parse(tm.dataset.labelIds||'[]');}catch{ids=[];}
@@ -3789,14 +3797,13 @@ function taskModalToggleLabel(id){
   tm.dataset.labelIds=JSON.stringify(ids);
   tm.dataset.labelId=ids[0]||'';
   _renderTaskModalLabels(ids);
-  const firstLbl=ids.length?labelsD().find(l=>l.id===ids[0]):null;
-  document.getElementById('taskModalLabelDot').style.background=firstLbl?firstLbl.color:'var(--border2)';
+  _updateModalLabelDots(ids);
 }
 function taskModalClearLabels(){
   const tm=document.getElementById('taskModal');
   tm.dataset.labelIds='[]';tm.dataset.labelId='';
   _renderTaskModalLabels([]);
-  document.getElementById('taskModalLabelDot').style.background='var(--border2)';
+  _updateModalLabelDots([]);
 }
 function taskModalSelectLabel(id){taskModalToggleLabel(id);}
 function taskModalDelete(){
@@ -5219,39 +5226,75 @@ function closeAllLabelPickers(){
 
 function openLabelPicker(taskIdx, anchorEl){
   closeAllLabelPickers();
+  const task=tpD()[taskIdx];
   const groups=labelGroupsD();
+  // Get current selected ids (support both old labelId and new labelIds)
+  let selIds=[];
+  if(task){
+    if(task.labelIds&&Array.isArray(task.labelIds)&&task.labelIds.length) selIds=[...task.labelIds];
+    else if(task.labelId) selIds=[task.labelId];
+  }
   const drop=document.createElement('div');
   drop.className='labelPickerDrop';
-  drop.style.cssText=`position:fixed;z-index:1200;background:var(--card);border:1px solid var(--border2);border-radius:12px;padding:8px;box-shadow:var(--shadow2);min-width:180px;max-width:220px;`;
+  drop.style.cssText='position:fixed;z-index:1200;background:var(--card2);border:1px solid var(--border2);border-radius:14px;padding:10px 8px;box-shadow:var(--shadow2);min-width:200px;max-width:240px;';
   const rect=anchorEl.getBoundingClientRect();
-  let top=rect.bottom+4, left=rect.left;
-  if(top+320>window.innerHeight) top=rect.top-320;
-  if(left+220>window.innerWidth) left=window.innerWidth-225;
+  let top=rect.bottom+6, left=rect.left;
+  if(top+360>window.innerHeight) top=rect.top-360;
+  if(left+240>window.innerWidth) left=window.innerWidth-245;
   drop.style.top=top+'px';
   drop.style.left=left+'px';
-  // None option
-  const none=document.createElement('div');
-  none.style.cssText='padding:5px 8px;cursor:pointer;border-radius:6px;font-size:11px;color:var(--muted);display:flex;align-items:center;gap:7px;margin-bottom:6px;';
-  none.textContent='— Без метки';
-  none.onmouseenter=()=>none.style.background='rgba(255,255,255,.07)';
-  none.onmouseleave=()=>none.style.background='';
-  none.onclick=()=>{updT(taskIdx,'labelId','');saveD();closeAllLabelPickers();renderTP()};
-  drop.appendChild(none);
-  groups.forEach(g=>{
-    const grpHdr=document.createElement('div');
-    grpHdr.style.cssText=`font-size:8.5px;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:${g.color};padding:3px 8px 2px;opacity:.8;`;
-    grpHdr.textContent=g.name;
-    drop.appendChild(grpHdr);
-    g.labels.forEach(l=>{
-      const row=document.createElement('div');
-      row.style.cssText='padding:5px 8px;cursor:pointer;border-radius:6px;font-size:11px;display:flex;align-items:center;gap:7px;';
-      row.innerHTML=`<span style="width:10px;height:10px;border-radius:50%;background:${l.color};flex-shrink:0;display:inline-block"></span><span style="color:${l.color};font-weight:600">${esc(l.name)}</span>`;
-      row.onmouseenter=()=>row.style.background='rgba(255,255,255,.07)';
-      row.onmouseleave=()=>row.style.background='';
-      row.onclick=()=>{updT(taskIdx,'labelId',l.id);saveD();closeAllLabelPickers();renderTP()};
-      drop.appendChild(row);
+
+  // Header
+  const hdr=document.createElement('div');
+  hdr.style.cssText='font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:var(--muted);padding:0 6px 8px;border-bottom:1px solid var(--border);margin-bottom:6px;display:flex;align-items:center;justify-content:space-between;';
+  hdr.innerHTML='<span>Метки задачи</span><span style="color:var(--p);font-size:8.5px">✓ = несколько</span>';
+  drop.appendChild(hdr);
+
+  function rebuildRows(){
+    rowsWrap.innerHTML='';
+    // Clear all option
+    const none=document.createElement('div');
+    none.style.cssText='padding:5px 8px;cursor:pointer;border-radius:6px;font-size:11px;color:var(--muted);display:flex;align-items:center;gap:7px;margin-bottom:4px;';
+    none.innerHTML='<span style="width:14px;height:14px;border-radius:4px;border:1.5px solid var(--border3);display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;font-size:9px">'+(selIds.length===0?'✓':'')+'</span><span>Без метки</span>';
+    none.onmouseenter=()=>none.style.background='rgba(255,255,255,.07)';
+    none.onmouseleave=()=>none.style.background='';
+    none.onclick=(e)=>{e.stopPropagation();selIds=[];applyAndRefresh();};
+    rowsWrap.appendChild(none);
+
+    groups.forEach(g=>{
+      const grpHdr=document.createElement('div');
+      grpHdr.style.cssText=`font-size:8.5px;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:${g.color};padding:4px 8px 2px;opacity:.8;`;
+      grpHdr.textContent=g.name;
+      rowsWrap.appendChild(grpHdr);
+      g.labels.forEach(l=>{
+        const sel=selIds.includes(l.id);
+        const row=document.createElement('div');
+        row.style.cssText=`padding:5px 8px;cursor:pointer;border-radius:6px;font-size:11px;display:flex;align-items:center;gap:7px;background:${sel?hexA(l.color,0.12):'transparent'};`;
+        row.innerHTML=`<span style="width:14px;height:14px;border-radius:4px;border:1.5px solid ${l.color};background:${sel?l.color:'transparent'};display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;font-size:9px;color:#000;font-weight:900">${sel?'✓':''}</span><span style="width:8px;height:8px;border-radius:50%;background:${l.color};flex-shrink:0"></span><span style="color:${l.color};font-weight:600">${esc(l.name)}</span>`;
+        row.onmouseenter=()=>{if(!selIds.includes(l.id))row.style.background='rgba(255,255,255,.06)';}
+        row.onmouseleave=()=>{row.style.background=selIds.includes(l.id)?hexA(l.color,0.12):'transparent';}
+        row.onclick=(e)=>{
+          e.stopPropagation();
+          if(selIds.includes(l.id)) selIds=selIds.filter(x=>x!==l.id);
+          else selIds.push(l.id);
+          applyAndRefresh();
+          rebuildRows();
+        };
+        rowsWrap.appendChild(row);
+      });
     });
-  });
+  }
+
+  function applyAndRefresh(){
+    const t=tpD()[taskIdx];if(!t)return;
+    t.labelIds=selIds;
+    t.labelId=selIds[0]||'';
+    saveD();renderTP();
+  }
+
+  const rowsWrap=document.createElement('div');
+  rebuildRows();
+  drop.appendChild(rowsWrap);
   document.body.appendChild(drop);
   setTimeout(()=>document.addEventListener('click',closeAllLabelPickers,{once:true}),10);
 }
