@@ -3608,8 +3608,9 @@ function renderTP(){
   const isMob=window.innerWidth<=700;
 
   if(!isMob){
-    // ── Desktop table — use data-idx for delegation, no inline onclick ──
-    const tbody=document.getElementById('tBody');tbody.innerHTML='';
+    const tbody=document.getElementById('tBody');
+    if(!tbody)return;
+    tbody.innerHTML='';
     filtered.forEach((t,i)=>{
       const realIdx=tasks.indexOf(t);
       const tr=document.createElement('tr');
@@ -3636,43 +3637,41 @@ function renderTP(){
       const barColor=taskLbls.length?taskLbls[0].color:'transparent';
       tr.style.borderLeft=`3px solid ${barColor}`;
       const repeatBadge=t.repeat?`<span style="font-size:8px;margin-left:4px;color:var(--p)">↻</span>`:'';
-      const timeStr=t.time?`<span style="font-family:var(--font-mono);font-size:10.5px;color:var(--p);font-weight:600">${t.time}${t.endTime?' – '+t.endTime:''}</span>`:`<span style="color:var(--border3);font-size:11px">—</span>`;
+      const timeStr=t.time
+        ?`<span style="font-family:var(--font-mono);font-size:10.5px;color:var(--p);font-weight:600">${t.time}${t.endTime?' – '+t.endTime:''}</span>`
+        :`<span style="color:var(--border3);font-size:11px">—</span>`;
       const labelCells=taskLbls.length
-        ?taskLbls.map(l=>`<span class="labelPill" data-labelpick="${realIdx}" style="background:${hexA(l.color,0.15)};color:${l.color};cursor:pointer;border:1px solid ${hexA(l.color,0.35)};margin-right:3px"><span class="labelDot" style="background:${l.color}"></span>${esc(l.name)}</span>`).join('')
-        :`<span data-labelpick="${realIdx}" style="color:var(--muted);cursor:pointer;font-size:10px;padding:2px 8px;border:1px dashed var(--border2);border-radius:20px;white-space:nowrap">＋</span>`;
+        ?taskLbls.map(l=>`<span class="labelPill tLblPick" data-labelpick="${realIdx}" style="background:${hexA(l.color,0.15)};color:${l.color};cursor:pointer;border:1px solid ${hexA(l.color,0.35)};margin-right:3px"><span class="labelDot" style="background:${l.color}"></span>${esc(l.name)}</span>`).join('')
+        :`<span class="tLblPick" data-labelpick="${realIdx}" style="color:var(--muted);cursor:pointer;font-size:10px;padding:2px 8px;border:1px dashed var(--border2);border-radius:20px;white-space:nowrap">＋</span>`;
       tr.innerHTML=`
         <td style="color:var(--muted);font-size:10px;padding-left:10px">${i+1}</td>
-        <td><input type="checkbox" class="tCb" data-cb="${realIdx}" ${t.done?'checked':''}></td>
+        <td><input type="checkbox" class="tCb tChk" data-cb="${realIdx}" ${t.done?'checked':''}></td>
         <td class="tNameCell" data-open="${realIdx}" style="cursor:pointer">
           <span style="font-size:12px;font-weight:600;color:${t.done?'var(--muted)':'var(--text)'};${t.done?'text-decoration:line-through':''}">${esc(t.text)||'<em style="color:var(--muted);font-style:italic">Без названия</em>'}</span>${repeatBadge}
         </td>
         <td class="tLabelCell">${labelCells}</td>
-        <td><input type="date" class="tDateInp" data-date="${realIdx}" value="${t.deadline||''}" title="${dlLabel}" style="color-scheme:dark;font-size:11px"></td>
+        <td><input type="date" class="tDateInp tDateChg" data-date="${realIdx}" value="${t.deadline||''}" title="${dlLabel}" style="color-scheme:dark;font-size:11px"></td>
         <td class="tTimeCell" data-open="${realIdx}" style="cursor:pointer">${timeStr}</td>
         <td style="text-align:center;font-weight:700;font-size:11px">${dlHtml}</td>
-        <td><button class="tDelBtn" data-del="${realIdx}">×</button></td>`;
+        <td><button class="tDelBtn tDelClick" data-del="${realIdx}">×</button></td>`;
       tbody.appendChild(tr);
     });
-    // ── Event delegation on tbody — remove old and re-add every render ──
-    const newTbody=document.createElement('tbody');
-    newTbody.id='tBody';
-    while(tbody.firstChild)newTbody.appendChild(tbody.firstChild);
-    tbody.parentNode.replaceChild(newTbody,tbody);
-    newTbody.addEventListener('click',e=>{
-      const openEl=e.target.closest('[data-open]');
-      const delEl=e.target.closest('[data-del]');
-      const labelEl=e.target.closest('[data-labelpick]');
-      const dateEl=e.target.closest('input[type=date]');
-      if(delEl){e.stopPropagation();delT(parseInt(delEl.dataset.del));return;}
-      if(labelEl){e.stopPropagation();openLabelPicker(parseInt(labelEl.dataset.labelpick),labelEl);return;}
-      if(dateEl)return;
-      if(e.target.type==='checkbox')return;
-      if(openEl){e.stopPropagation();openTaskModal(parseInt(openEl.dataset.open));return;}
-    });
-    newTbody.addEventListener('change',e=>{
-      if(e.target.type==='checkbox'){const cbEl=e.target.closest('[data-cb]');if(cbEl)toggleT(parseInt(cbEl.dataset.cb),e.target.checked);}
-      if(e.target.type==='date'){const dateEl=e.target.closest('[data-date]');if(dateEl)updTField(parseInt(dateEl.dataset.date),'deadline',e.target.value);}
-    });
+    // Attach delegation to the TABLE (persists across renders)
+    const tbl=tbody.closest('table');
+    if(tbl&&!tbl._evtBound){
+      tbl._evtBound=true;
+      tbl.addEventListener('click',e=>{
+        if(e.target.classList.contains('tChk'))return;
+        const delEl=e.target.closest('.tDelClick');if(delEl){e.stopPropagation();delT(parseInt(delEl.dataset.del));return;}
+        const lblEl=e.target.closest('.tLblPick');if(lblEl){e.stopPropagation();openLabelPicker(parseInt(lblEl.dataset.labelpick),lblEl);return;}
+        if(e.target.closest('input[type=date]'))return;
+        const openEl=e.target.closest('[data-open]');if(openEl){e.stopPropagation();openTaskModal(parseInt(openEl.dataset.open));return;}
+      });
+      tbl.addEventListener('change',e=>{
+        if(e.target.classList.contains('tChk')){const idx=e.target.dataset.cb;if(idx!=null)toggleT(parseInt(idx),e.target.checked);}
+        if(e.target.classList.contains('tDateChg')){const idx=e.target.dataset.date;if(idx!=null)updTField(parseInt(idx),'deadline',e.target.value);}
+      });
+    }
   } else {
     // ── Mobile card view ──
     const mob=document.getElementById('tBodyMobile');mob.innerHTML='';
