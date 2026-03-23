@@ -4171,7 +4171,7 @@ function _plSetupGridInteraction(main,dates,totalH){
       e.preventDefault();
       if(!_plDragEvtId)return;
       const rect=col.getBoundingClientRect();
-      const relY=e.clientY-rect.top+(col.closest('.plGrid-scroll')?.scrollTop||0);
+      const relY=e.clientY-rect.top;
       const mins=Math.round((relY/HOUR_H)*60/15)*15; // snap to 15min
       const newTime=plMinToTime(Math.max(0,Math.min(1410,mins)));
       _plMoveCalEvt(_plDragEvtId,_plDragEvtSrc,_plDragEvtOrigDate,dstr,newTime);
@@ -4189,8 +4189,7 @@ function _plSetupGridInteraction(main,dates,totalH){
         col.appendChild(_hintEl);
       }
       const rect=col.getBoundingClientRect();
-      const scrollTop=col.closest('.plGrid-scroll')?.scrollTop||0;
-      const relY=ev.clientY-rect.top+scrollTop;
+      const relY=ev.clientY-rect.top;
       const mins=Math.round((relY/HOUR_H)*60/15)*15;
       _hintEl.style.top=(mins/60*HOUR_H)+'px';
     });
@@ -4198,8 +4197,7 @@ function _plSetupGridInteraction(main,dates,totalH){
     col.addEventListener('click',e=>{
       if(e.target!==col&&!e.target.classList.contains('plGrid-hline'))return; // only click on background
       const rect=col.getBoundingClientRect();
-      const scrollTop=col.closest('.plGrid-scroll')?.scrollTop||0;
-      const relY=e.clientY-rect.top+scrollTop;
+      const relY=e.clientY-rect.top;
       const mins=Math.round((relY/HOUR_H)*60/15)*15;
       const startMin=Math.max(0,Math.min(23*60,mins));
       plCalGridOpenTask(dstr,startMin);
@@ -4212,8 +4210,7 @@ function _plSetupGridInteraction(main,dates,totalH){
       _plRightDrag=true;
       _plRightDragDstr=dstr;
       const rect=col.getBoundingClientRect();
-      const scrollTop=col.closest('.plGrid-scroll')?.scrollTop||0;
-      const relY=e.clientY-rect.top+scrollTop;
+      const relY=e.clientY-rect.top;
       const mins=Math.round((relY/HOUR_H)*60/15)*15;
       _plRightDragStart=Math.max(0,Math.min(1410,mins));
       // Preview element
@@ -4227,8 +4224,7 @@ function _plSetupGridInteraction(main,dates,totalH){
     col.addEventListener('mousemove',e=>{
       if(!_plRightDrag||_plRightDragDstr!==dstr)return;
       const rect=col.getBoundingClientRect();
-      const scrollTop=col.closest('.plGrid-scroll')?.scrollTop||0;
-      const relY=e.clientY-rect.top+scrollTop;
+      const relY=e.clientY-rect.top;
       const curMin=Math.round((relY/HOUR_H)*60/15)*15;
       const endMin=Math.max(_plRightDragStart+15,Math.min(1440,curMin));
       if(_plRightDragPreview){
@@ -4243,8 +4239,7 @@ function _plSetupGridInteraction(main,dates,totalH){
     col.addEventListener('mouseup',e=>{
       if(!_plRightDrag||e.button!==2)return;
       const rect=col.getBoundingClientRect();
-      const scrollTop=col.closest('.plGrid-scroll')?.scrollTop||0;
-      const relY=e.clientY-rect.top+scrollTop;
+      const relY=e.clientY-rect.top;
       const endMin=Math.max(_plRightDragStart+15,Math.round((relY/HOUR_H)*60/15)*15);
       if(_plRightDragPreview){_plRightDragPreview.remove();_plRightDragPreview=null;}
       _plRightDrag=false;
@@ -4305,9 +4300,7 @@ function _plMoveCalEvt(evtId,src,origDate,newDate,newTime){
 function plCalGridClick(ev,dstr){
   const col=ev.currentTarget;
   const rect=col.getBoundingClientRect();
-  const scroll=document.getElementById('plGrid-scroll');
-  const scrollTop=scroll?scroll.scrollTop:0;
-  const relY=ev.clientY-rect.top+scrollTop;
+  const relY=ev.clientY-rect.top;
   const totalMin=Math.round((relY/HOUR_H)*60/15)*15;
   const startMin=Math.max(0,Math.min(totalMin,23*60));
   plCalGridOpenTask(dstr,startMin);
