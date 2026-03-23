@@ -3046,19 +3046,22 @@ function subscribeCloud(){
     // Update local cache
     try{localStorage.setItem(SKEY+'_cache',JSON.stringify(incoming));}catch{}
 
-    // Was this snapshot triggered by OUR own recent write (within 4s)?
+    // Was this snapshot triggered by OUR own recent write (within 8s)?
     const isOwnEcho=Date.now()-_myLastWriteAt<8000;
 
-    // Always keep G up to date with server state
-    G=incoming;
+    // CRITICAL: Only overwrite G with server data if it's NOT our own echo
+    // If it IS our echo, G already has the latest local state — don't overwrite it
+    if(!isOwnEcho){
+      G=incoming;
+    }
 
     if(!_appReady){
+      G=incoming; // Always load on first boot
       _appReady=true;
       clearTimeout(_connectTimeout);
       hideLoader();
       initApp();
     } else {
-      // Only re-render and show toast for external changes (not our own writes)
       if(!isOwnEcho){
         reRenderCurrentTab();
         showSaveStatus('saved','↓ Синхронизировано');
@@ -3100,17 +3103,17 @@ function saveD(){
   showSaveStatus('saving','⏳ Сохранение...');
   _saveTimer=setTimeout(async()=>{
     if(!currentUser){setSyncDot('error');showSaveStatus('error','✗ Нет сессии');return;}
-    if(_isSaving)return; // prevent concurrent saves
+    if(_isSaving)return;
     _isSaving=true;
+    _myLastWriteAt=Date.now(); // mark BEFORE save so echo is detected correctly
     try{
-      // Clean undefined fields — Firestore rejects them
       const payload=cleanForFirestore(G);
       await db.collection('users').doc(currentUser.uid).set(payload);
-      _myLastWriteAt=Date.now(); // mark so we can recognise our own echo
       setSyncDot('ok');
       showSaveStatus('saved','✓ Сохранено');
     }catch(e){
       console.warn('Save error',e);
+      _myLastWriteAt=0; // reset on error so next snapshot is treated as external
       setSyncDot('error');
       showSaveStatus('error','✗ Ошибка сохранения');
     }finally{
