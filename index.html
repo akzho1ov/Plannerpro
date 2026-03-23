@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-title" content="PlannerPro">
 <title>PlannerPro — Центр управления</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,300;12..96,400;12..96,500;12..96,600;12..96,700;12..96,800&family=Instrument+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;500;700&family=Syne:wght@600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,300;12..96,400;12..96,500;12..96,600;12..96,700;12..96,800&family=Instrument+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
 <!-- Firebase -->
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
@@ -104,7 +104,7 @@ let currentUser = null;
   --orangedim:rgba(255,128,48,.12);
 
   /* ── Typography ── */
-  --font-display:'Syne','Bricolage Grotesque',system-ui,sans-serif;
+  --font-display:'Bricolage Grotesque',system-ui,sans-serif;
   --font-body:'Instrument Sans',system-ui,sans-serif;
   --font-mono:'JetBrains Mono',monospace;
 
@@ -1723,16 +1723,16 @@ select.inp option{background:var(--card2);color:var(--text)}
       <div class="hSep"></div>
       <div class="hTabsWrap">
         <div class="hTabs" id="hTabs">
-          <button class="hTab on" onclick="switchTab('dash',this)" title="Alt+D">Дашборд</button>
-          <button class="hTab" onclick="switchTab('weekly',this)" title="Alt+W">Неделя</button>
-          <button class="hTab" onclick="switchTab('habits',this)" title="Alt+H">Привычки</button>
-          <button class="hTab" onclick="switchTab('tasks',this)" title="Alt+T">Задачи</button>
-          <button class="hTab" onclick="switchTab('calendar',this)" title="Alt+C">Календарь</button>
-          <button class="hTab" onclick="switchTab('kanban',this)" title="Alt+K">Канбан</button>
-          <button class="hTab" onclick="switchTab('finance',this)" title="Alt+F">Финансы</button>
-          <button class="hTab" onclick="switchTab('goals',this)" title="Alt+G">Цели</button>
-          <button class="hTab" onclick="switchTab('rewards',this)">Награды</button>
-          <button class="hTab" onclick="switchTab('gym',this)">Тренировки</button>
+          <button class="hTab on" onclick="switchTab('dash',this)" title="Клавиша 1">Дашборд</button>
+          <button class="hTab" onclick="switchTab('weekly',this)" title="Клавиша 2">Неделя</button>
+          <button class="hTab" onclick="switchTab('habits',this)" title="Клавиша 3">Привычки</button>
+          <button class="hTab" onclick="switchTab('tasks',this)" title="Клавиша 4">Задачи</button>
+          <button class="hTab" onclick="switchTab('calendar',this)" title="Клавиша 5">Календарь</button>
+          <button class="hTab" onclick="switchTab('kanban',this)" title="Клавиша 6">Канбан</button>
+          <button class="hTab" onclick="switchTab('finance',this)" title="Клавиша 7">Финансы</button>
+          <button class="hTab" onclick="switchTab('goals',this)" title="Клавиша 8">Цели</button>
+          <button class="hTab" onclick="switchTab('rewards',this)" title="Клавиша 9">Награды</button>
+          <button class="hTab" onclick="switchTab('gym',this)" title="Клавиша 0">Тренировки</button>
         </div>
       </div>
       <!-- Right controls -->
@@ -7480,31 +7480,45 @@ setInterval(()=>{if(document.getElementById('tab-tasks')?.classList.contains('on
 
 /* ══════════════════════════════════════════
    KEYBOARD SHORTCUTS SYSTEM
+   Цифры 1-9 для навигации (без модификаторов)
+   Не конфликтует с Chrome
 ══════════════════════════════════════════ */
-const KB_SHORTCUTS = {
-  'KeyD': 'dash',
-  'KeyW': 'weekly',
-  'KeyH': 'habits',
-  'KeyT': 'tasks',
-  'KeyC': 'calendar',
-  'KeyK': 'kanban',
-  'KeyF': 'finance',
-  'KeyG': 'goals',
+const KB_TAB_ORDER = ['dash','weekly','habits','tasks','calendar','kanban','finance','goals','rewards','gym'];
+const KB_TAB_NAMES = {
+  'dash':'Дашборд','weekly':'Неделя','habits':'Привычки','tasks':'Задачи',
+  'calendar':'Календарь','kanban':'Канбан','finance':'Финансы','goals':'Цели',
+  'rewards':'Награды','gym':'Тренировки'
 };
 
 document.addEventListener('keydown', e => {
-  // Ignore when typing in inputs/textareas
+  // Ignore when typing in inputs/textareas/modal open
   if(e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.isContentEditable) return;
-  if(e.metaKey || e.ctrlKey) {
-    if(e.key === 'k') { e.preventDefault(); openCmdPalette && openCmdPalette(); return; }
-    if(e.key === 'n') { e.preventDefault(); openTaskModal && openTaskModal(-1); return; }
+  if(e.metaKey || e.ctrlKey || e.altKey || e.shiftKey) return;
+
+  // Digit keys 1-9 → switch tab
+  if(e.code.startsWith('Digit')) {
+    const idx = parseInt(e.key) - 1;
+    if(idx >= 0 && idx < KB_TAB_ORDER.length) {
+      e.preventDefault();
+      const tab = KB_TAB_ORDER[idx];
+      const btn = [...document.querySelectorAll('.hTab')].find(b => b.getAttribute('onclick')?.includes("'"+tab+"'"));
+      switchTab(tab, btn);
+      showKbHint(e.key + ' → ' + (KB_TAB_NAMES[tab] || tab));
+    }
   }
-  if(e.altKey && KB_SHORTCUTS[e.code]) {
+
+  // N = новая задача (когда не в инпуте)
+  if(e.code === 'KeyN') {
+    const modal = document.getElementById('taskModal');
+    if(modal && modal.classList.contains('open')) return;
     e.preventDefault();
-    const tab = KB_SHORTCUTS[e.code];
-    const btn = [...document.querySelectorAll('.hTab')].find(b => b.getAttribute('onclick')?.includes("'"+tab+"'"));
-    switchTab(tab, btn);
-    showKbHint('Alt+'+e.key.toUpperCase()+' → '+tab);
+    openTaskModal && openTaskModal(-1);
+    showKbHint('N → Новая задача');
+  }
+
+  // ? = показать подсказку по шорткатам
+  if(e.key === '?') {
+    showKbHint('1-9: вкладки  •  N: новая задача');
   }
 });
 
