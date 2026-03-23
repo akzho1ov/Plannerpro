@@ -1445,6 +1445,46 @@ select.inp option{background:var(--card2);color:var(--text)}
 .wtStatCard{background:var(--card);border:1px solid var(--border);border-radius:var(--r2);padding:12px 10px;text-align:center}
 .wtStatV{font-family:var(--font-display);font-size:20px;font-weight:800;line-height:1}
 .wtStatL{font-size:9px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);margin-top:4px;font-weight:700}
+
+/* ══════════════════════════════
+   GLOBAL MOBILE RESPONSIVE FIXES
+══════════════════════════════ */
+@media(max-width:700px){
+  /* Task modal - full height on mobile */
+  #taskModalBox{max-height:calc(100vh - 90px);overflow-y:auto;border-radius:16px;padding:16px}
+  /* Finance responsive */
+  .finSummaryGrid{grid-template-columns:1fr 1fr!important}
+  .finLayout2{grid-template-columns:1fr!important}
+  .finMonNav{flex-wrap:wrap;gap:6px}
+  /* Gym responsive */
+  .gymStatRow{grid-template-columns:repeat(2,1fr)}
+  .gymSetTbl th,.gymSetTbl td{padding:4px 4px;font-size:10px}
+  .gymSetInp{width:46px;font-size:11px}
+  /* Dashboard responsive */
+  .dashGrid{grid-template-columns:1fr!important}
+  .dashGrid2,.dashGrid3{grid-template-columns:1fr!important}
+  .dashStatsStrip{grid-template-columns:repeat(2,1fr)!important}
+  /* Stats row */
+  #tab-tasks .card:first-child{overflow-x:auto}
+  /* Reward subtabs overflow */
+  .rwSubTabs{-webkit-overflow-scrolling:touch}
+  .gymSubTabs{-webkit-overflow-scrolling:touch}
+  /* Calendar sidebar hidden on mobile by default */
+  .plCal-sidebar{display:none}
+  .plCal-body{grid-template-columns:1fr!important}
+  /* Habit table scrollable */
+  .htTableWrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+  /* Kanban scroll */
+  .kbWrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+  /* Goals grid */
+  .growthGrid{grid-template-columns:1fr!important}
+  .growthChartsRow{grid-template-columns:1fr!important}
+  /* Modal full width */
+  .modalBox{max-width:100%!important;margin:0;border-radius:16px}
+  .overlay{padding:8px}
+  /* Routine items flex wrap */
+  .rbCard{border-radius:12px}
+}
 </style>
 </head>
 <body>
@@ -1814,9 +1854,13 @@ select.inp option{background:var(--card2);color:var(--text)}
       <div class="tpBar" style="flex:1"><div class="tpBarFill" id="tpFill" style="width:0%"></div></div>
       <span style="font-size:13px;font-weight:800;color:var(--green);font-family:var(--font-display);flex-shrink:0" id="tpPct">0%</span>
     </div>
-    <!-- Labels + add button -->
+    <!-- Labels + add button + done toggle -->
     <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
       <div class="labelsFilterBar" id="labelsFilterBar" style="margin:0;flex:1"></div>
+      <label style="display:flex;align-items:center;gap:5px;font-size:11px;font-weight:600;color:var(--text2);cursor:pointer;flex-shrink:0;white-space:nowrap">
+        <input type="checkbox" id="tpShowDone" checked onchange="renderTP()" style="accent-color:var(--green);width:14px;height:14px">
+        Выполненные
+      </label>
       <button class="btn btnG" style="font-size:10.5px;padding:5px 10px;flex-shrink:0" onclick="openLabelsModal()">⚙ Метки</button>
     </div>
   </div>
@@ -1914,6 +1958,10 @@ select.inp option{background:var(--card2);color:var(--text)}
         <div class="plMini-days" id="plMini-days"></div>
       </div>
       <button class="plCal-addBtn" onclick="plCalOpenModal(null,null)">＋ Добавить событие</button>
+      <div style="font-size:9px;color:var(--muted);text-align:center;padding:0 12px 6px;line-height:1.5">
+        <span style="opacity:.7">Левый клик на сетке — добавить задачу</span><br>
+        <span style="opacity:.7">Правая кнопка + тянуть вниз — выбрать время</span>
+      </div>
       <div class="plCal-upSec">
         <div class="plCal-upTitle">Ближайшее</div>
         <div id="plCal-upcoming"></div>
@@ -2539,9 +2587,9 @@ select.inp option{background:var(--card2);color:var(--text)}
       </div>
     </div>
 
-    <!-- Label -->
+    <!-- Label - multi select -->
     <div class="tmField">
-      <label class="tmLabel">Метка</label>
+      <label class="tmLabel">Метки <span style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--muted);font-size:9px">(можно выбрать несколько из разных групп)</span></label>
       <div style="display:flex;gap:6px;flex-wrap:wrap" id="tm-labels-list"></div>
     </div>
 
@@ -3509,7 +3557,35 @@ function renderTP(){
   document.getElementById('tpPct').textContent=pct+'%';
   document.getElementById('tpFill').style.width=pct+'%';
   renderLabelsFilterBar();
-  const filtered=activeLabel?tasks.filter(t=>t.labelId===activeLabel):tasks;
+
+  // ── Sort: active first by date (overdue → today → soon → no date), done last ──
+  const showDone=document.getElementById('tpShowDone')?.checked!==false;
+  let filtered=activeLabel?tasks.filter(t=>{
+    const lblIds=t.labelIds&&t.labelIds.length?t.labelIds:[t.labelId].filter(Boolean);
+    return lblIds.includes(activeLabel);
+  }):tasks.slice();
+
+  // Sort active tasks by urgency, done tasks after
+  filtered.sort((a,b)=>{
+    if(a.done!==b.done)return a.done?1:-1; // done go last
+    if(a.done&&b.done)return 0;
+    // Both active: sort by date
+    const getScore=t=>{
+      if(!t.deadline)return 9999;
+      const dl=new Date(t.deadline+'T00:00:00');dl.setHours(0,0,0,0);
+      const diff=Math.floor((dl-td)/86400000);
+      return diff; // negative = overdue, 0 = today, positive = future
+    };
+    const sa=getScore(a),sb=getScore(b);
+    if(sa!==sb)return sa-sb;
+    // Same date: sort by time
+    if(a.time&&b.time)return a.time.localeCompare(b.time);
+    if(a.time)return -1;if(b.time)return 1;
+    return 0;
+  });
+
+  if(!showDone)filtered=filtered.filter(t=>!t.done);
+
   const isMob=window.innerWidth<=700;
 
   if(!isMob){
@@ -3536,14 +3612,15 @@ function renderTP(){
       }
       let dlLabel='';
       if(t.deadline){const dl=new Date(t.deadline+'T00:00:00');dlLabel=`${dws[dl.getDay()]}, ${dl.getDate()} ${mons[dl.getMonth()]}.`}
-      const label=labelsD().find(l=>l.id===t.labelId);
-      const labelHtml=label
-        ?`<span class="labelPill" style="background:${hexA(label.color,0.15)};color:${label.color};cursor:pointer;border:1px solid ${hexA(label.color,0.35)}" onclick="openLabelPicker(${realIdx},this);event.stopPropagation()"><span class="labelDot" style="background:${label.color}"></span>${esc(label.name)}</span>`
+      // Multi-label support
+      const taskLbls=getTaskLabels(t);
+      const labelHtml=taskLbls.length
+        ?taskLbls.map(label=>`<span class="labelPill" style="background:${hexA(label.color,0.15)};color:${label.color};cursor:pointer;border:1px solid ${hexA(label.color,0.35)};margin-right:3px" onclick="openLabelPicker(${realIdx},this);event.stopPropagation()"><span class="labelDot" style="background:${label.color}"></span>${esc(label.name)}</span>`).join('')
         :`<span style="color:var(--muted);cursor:pointer;font-size:10px;padding:2px 8px;border:1px dashed var(--border2);border-radius:20px;white-space:nowrap" onclick="openLabelPicker(${realIdx},this);event.stopPropagation()">＋</span>`;
-      const barColor=label?label.color:'transparent';
+      const barColor=taskLbls.length?taskLbls[0].color:'transparent';
       tr.style.borderLeft=`3px solid ${barColor}`;
       const repeatBadge=t.repeat?`<span class="mTaskRepeatBadge" style="font-size:8px;margin-left:4px">↻</span>`:'';
-      const timeDisplay=t.time?`<span style="font-family:var(--font-mono);font-size:10.5px;color:var(--p);font-weight:600">${t.time}${t.endTime?' – '+t.endTime:''}</span>`:'<span style="color:var(--border3)">—</span>';
+      const timeDisplay=t.time?`<span style="font-family:var(--font-mono);font-size:10.5px;color:var(--p);font-weight:600;cursor:pointer" onclick="openTaskModal(${realIdx})">${t.time}${t.endTime?' – '+t.endTime:''}</span>`:'<span style="color:var(--border3);cursor:pointer" onclick="openTaskModal(${realIdx})">＋ время</span>';
       tr.innerHTML=`
         <td style="color:var(--muted);font-size:10px;padding-left:10px">${i+1}</td>
         <td><input type="checkbox" class="tCb" ${t.done?'checked':''} onchange="toggleT(${realIdx},this.checked)"></td>
@@ -3575,7 +3652,6 @@ function renderTP(){
       const div=document.createElement('div');
       div.className=cls;
       div.style.borderLeft=`3px solid ${col||'var(--border)'}`;
-      // date display
       let dateStr='';
       if(t.deadline){
         const dl=new Date(t.deadline+'T00:00:00');
@@ -3600,12 +3676,10 @@ function renderTP(){
       div.addEventListener('click',e=>{if(e.target.classList.contains('mTaskCb')||e.target.tagName==='BUTTON')return;openTaskModal(realIdx);});
       mob.appendChild(div);
     });
-    // Add task button on mobile
     const addDiv=document.createElement('div');
     addDiv.innerHTML=`<button class="dAddTask" style="width:100%;padding:12px;font-size:13px;border-radius:10px" onclick="openTaskModal(-1)">＋ Добавить задачу</button>`;
     mob.appendChild(addDiv);
   }
-  // Always render routine grid below
   if(document.getElementById('rb-grid'))renderRoutine();
 }
 
@@ -4055,6 +4129,7 @@ function _plSetupGridInteraction(main,dates,totalH){
 
   // ── Drag-to-MOVE existing events ──
   colsWrap.querySelectorAll('.plEvt[data-evtid]').forEach(evtEl=>{
+    evtEl.setAttribute('draggable','true');
     evtEl.addEventListener('dragstart',e=>{
       _plDragEvtId=evtEl.dataset.evtid;
       _plDragEvtSrc=evtEl.dataset.src;
@@ -4066,80 +4141,109 @@ function _plSetupGridInteraction(main,dates,totalH){
     evtEl.addEventListener('dragend',()=>{evtEl.style.opacity='';_plDragEvtId=null;});
   });
 
-  // ── Drop zones: each day column ──
+  // Helper: get Y relative to column top (accounts for scroll correctly)
+  const getRelY=(e,col)=>{
+    const rect=col.getBoundingClientRect();
+    // getBoundingClientRect().top already reflects scroll offset
+    return e.clientY-rect.top;
+  };
+
+  // ── Drop zones + click + right-drag: each day column ──
   colsWrap.querySelectorAll('.plGrid-col').forEach(col=>{
     const dstr=col.dataset.dstr;
+
+    // Drop from drag-move
     col.addEventListener('dragover',e=>{e.preventDefault();e.dataTransfer.dropEffect='move';});
     col.addEventListener('drop',e=>{
       e.preventDefault();
       if(!_plDragEvtId)return;
-      const rect=col.getBoundingClientRect();
-      const relY=e.clientY-rect.top+(col.closest('.plGrid-scroll')?.scrollTop||0);
-      const mins=Math.round((relY/HOUR_H)*60/15)*15; // snap to 15min
+      const relY=getRelY(e,col);
+      const mins=Math.round((relY/HOUR_H)*60/15)*15;
       const newTime=plMinToTime(Math.max(0,Math.min(1410,mins)));
       _plMoveCalEvt(_plDragEvtId,_plDragEvtSrc,_plDragEvtOrigDate,dstr,newTime);
       _plDragEvtId=null;
     });
 
-    // ── Right mouse drag to CREATE event at specific time range ──
+    // ── LEFT click → open task modal at clicked time ──
+    col.addEventListener('click',e=>{
+      if(e.target!==col&&!e.target.classList.contains('plGrid-hline'))return;
+      if(_plDragEvtId)return; // ignore during drag
+      const relY=getRelY(e,col);
+      const mins=Math.round((relY/HOUR_H)*60/15)*15;
+      const startMin=Math.max(0,Math.min(23*60,mins));
+      _taskModalIdx=-1;
+      openTaskModal(-1,dstr);
+      setTimeout(()=>{
+        document.getElementById('tm-time').value=plMinToTime(startMin);
+        document.getElementById('tm-endTime').value=plMinToTime(Math.min(1440,startMin+60));
+        document.getElementById('tm-deadline').value=dstr;
+      },80);
+    });
+
+    // ── Right mouse drag → CREATE event with custom time range ──
     col.addEventListener('mousedown',e=>{
-      if(e.button!==2)return; // only right mouse
+      if(e.button!==2)return;
       e.preventDefault();
       _plRightDrag=true;
       _plRightDragDstr=dstr;
-      const rect=col.getBoundingClientRect();
-      const scrollTop=col.closest('.plGrid-scroll')?.scrollTop||0;
-      const relY=e.clientY-rect.top+scrollTop;
+      const relY=getRelY(e,col);
       const mins=Math.round((relY/HOUR_H)*60/15)*15;
       _plRightDragStart=Math.max(0,Math.min(1410,mins));
-      // Preview element
       if(_plRightDragPreview)_plRightDragPreview.remove();
       _plRightDragPreview=document.createElement('div');
-      _plRightDragPreview.style.cssText=`position:absolute;left:2px;right:6px;background:rgba(139,122,240,.35);border:1.5px solid var(--p);border-radius:5px;z-index:20;pointer-events:none;border-left:3px solid var(--p);`;
+      Object.assign(_plRightDragPreview.style,{
+        position:'absolute',left:'2px',right:'6px',
+        background:'rgba(139,122,240,.3)',
+        border:'1.5px solid var(--p)',
+        borderLeft:'3px solid var(--p)',
+        borderRadius:'6px',
+        zIndex:'20',pointerEvents:'none',
+        color:'var(--p)',fontSize:'9px',fontWeight:'700',padding:'2px 5px',
+        overflow:'hidden',whiteSpace:'nowrap'
+      });
       _plRightDragPreview.style.top=(_plRightDragStart/60*HOUR_H)+'px';
       _plRightDragPreview.style.height='4px';
+      _plRightDragPreview.textContent=plMinToTime(_plRightDragStart);
       col.appendChild(_plRightDragPreview);
     });
+
     col.addEventListener('mousemove',e=>{
       if(!_plRightDrag||_plRightDragDstr!==dstr)return;
-      const rect=col.getBoundingClientRect();
-      const scrollTop=col.closest('.plGrid-scroll')?.scrollTop||0;
-      const relY=e.clientY-rect.top+scrollTop;
+      const relY=getRelY(e,col);
       const curMin=Math.round((relY/HOUR_H)*60/15)*15;
       const endMin=Math.max(_plRightDragStart+15,Math.min(1440,curMin));
       if(_plRightDragPreview){
-        const t=_plRightDragStart/60*HOUR_H;
-        const h=(endMin-_plRightDragStart)/60*HOUR_H;
-        _plRightDragPreview.style.top=t+'px';
-        _plRightDragPreview.style.height=h+'px';
+        _plRightDragPreview.style.top=(_plRightDragStart/60*HOUR_H)+'px';
+        _plRightDragPreview.style.height=((endMin-_plRightDragStart)/60*HOUR_H)+'px';
         _plRightDragPreview.textContent=plMinToTime(_plRightDragStart)+' – '+plMinToTime(endMin);
-        _plRightDragPreview.style.cssText+=';color:var(--p);font-size:9px;font-weight:700;padding:2px 4px;';
       }
     });
+
     col.addEventListener('mouseup',e=>{
       if(!_plRightDrag||e.button!==2)return;
-      const rect=col.getBoundingClientRect();
-      const scrollTop=col.closest('.plGrid-scroll')?.scrollTop||0;
-      const relY=e.clientY-rect.top+scrollTop;
+      const relY=getRelY(e,col);
       const endMin=Math.max(_plRightDragStart+15,Math.round((relY/HOUR_H)*60/15)*15);
       if(_plRightDragPreview){_plRightDragPreview.remove();_plRightDragPreview=null;}
       _plRightDrag=false;
-      // Open new task modal with pre-filled time
       _taskModalIdx=-1;
       openTaskModal(-1,dstr);
       setTimeout(()=>{
         document.getElementById('tm-time').value=plMinToTime(_plRightDragStart);
         document.getElementById('tm-endTime').value=plMinToTime(Math.min(1440,endMin));
         document.getElementById('tm-deadline').value=dstr;
-      },60);
+      },80);
     });
-    // Prevent right-click context menu on the grid
+
     col.addEventListener('contextmenu',e=>e.preventDefault());
   });
 
-  // Global mouseup to cancel right drag if mouse leaves column
-  const cancelDrag=()=>{if(_plRightDragPreview){_plRightDragPreview.remove();_plRightDragPreview=null;}_plRightDrag=false;};
-  colsWrap.addEventListener('mouseleave',cancelDrag,{once:false});
+  // Cancel right drag on mouse leave
+  const cancelDrag=()=>{
+    if(_plRightDragPreview){_plRightDragPreview.remove();_plRightDragPreview=null;}
+    _plRightDrag=false;
+  };
+  colsWrap.addEventListener('mouseleave',cancelDrag);
+  document.addEventListener('mouseup',e=>{if(e.button===2&&_plRightDrag)cancelDrag();},{once:false});
 }
 
 /* ── Move a calendar event/task to new date+time ── */
@@ -4181,9 +4285,7 @@ function _plMoveCalEvt(evtId,src,origDate,newDate,newTime){
 function plCalGridClick(ev,dstr){
   const col=ev.currentTarget;
   const rect=col.getBoundingClientRect();
-  const scroll=document.getElementById('plGrid-scroll');
-  const scrollTop=scroll?scroll.scrollTop:0;
-  const relY=ev.clientY-rect.top+scrollTop;
+  const relY=ev.clientY-rect.top;
   const totalMin=Math.round((relY/HOUR_H)*60/15)*15;
   const startMin=Math.max(0,Math.min(totalMin,23*60));
   plCalGridOpenTask(dstr,startMin);
