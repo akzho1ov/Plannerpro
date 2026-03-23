@@ -3468,9 +3468,9 @@ function renderWP(){
     const timeStr=t.time?`<span style="font-size:9px;color:var(--p);font-family:var(--font-mono);flex-shrink:0">${t.time}</span>`:'';
     const labelDots=lbls.length?`<span style="display:inline-flex;gap:2px;align-items:center;flex-shrink:0">${lbls.map(l=>`<span style="width:6px;height:6px;border-radius:50%;background:${l.color};flex-shrink:0;display:inline-block" title="${esc(l.name)}"></span>`).join('')}</span>`:'';
     const label0=lbls[0];
-    return`<div class="dTask" style="border-left:2px solid ${col};padding-left:5px;border-radius:2px;--CC:${col};filter:${t.done?'brightness(0.45)':''}" onclick="openTaskModal(${idx})">
+    return`<div class="dTask" style="border-left:2px solid ${col};padding-left:5px;border-radius:2px;--CC:${col}" onclick="openTaskModal(${idx})">
       <input type="checkbox" ${t.done?'checked':''} onchange="wTaskToggle(${idx},this.checked);event.stopPropagation()" style="accent-color:${col};flex-shrink:0">
-      <span class="dTaskInp${t.done?' done':''}" style="cursor:pointer;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:11px;color:var(--text)">${esc(t.text)||'Без названия'}</span>
+      <span class="dTaskInp" style="cursor:pointer;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:11px;color:var(--text);${t.done?'text-decoration:line-through;text-decoration-color:rgba(255,255,255,.5);opacity:.7':''}">${esc(t.text)||'Без названия'}</span>
       ${labelDots}
       ${timeStr}
       <button class="dTaskDel" onclick="wTaskDel(${idx});event.stopPropagation()">×</button>
