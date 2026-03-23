@@ -502,6 +502,45 @@ select.inp option{background:var(--card2);color:var(--text)}
 .dTask input[type=checkbox]{width:13px;height:13px;flex-shrink:0;accent-color:var(--CC);cursor:pointer}
 .dTaskInp{flex:1;min-width:0;width:0;border:none;background:transparent;font-family:var(--font-body);font-size:11px;color:var(--text);outline:none;padding:1px 0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .dTaskInp.done{text-decoration:line-through;color:var(--muted)}
+
+/* ── Task tooltip ── */
+.dTask{position:relative}
+.dTaskTooltip{
+  position:absolute;
+  left:0;bottom:calc(100% + 6px);
+  background:rgba(15,16,40,.97);
+  border:1px solid var(--border2);
+  border-radius:8px;
+  padding:7px 10px;
+  font-size:11px;font-weight:600;
+  color:var(--text);
+  white-space:normal;word-break:break-word;
+  max-width:220px;min-width:120px;
+  box-shadow:0 8px 28px rgba(0,0,0,.6),0 0 0 1px var(--CC,var(--border3));
+  z-index:200;
+  pointer-events:none;
+  opacity:0;
+  transform:translateY(4px);
+  transition:opacity .15s var(--ease),transform .15s var(--ease);
+  line-height:1.5;
+}
+.dTaskTooltip::after{
+  content:'';
+  position:absolute;top:100%;left:14px;
+  border:5px solid transparent;
+  border-top-color:var(--border2);
+}
+.dTaskTooltip::before{
+  content:'';
+  position:absolute;top:100%;left:15px;
+  border:4px solid transparent;
+  border-top-color:rgba(15,16,40,.97);
+  z-index:1;
+}
+.dTask:hover .dTaskTooltip{
+  opacity:1;
+  transform:translateY(0);
+}
 .dTaskDel{border:none;background:none;cursor:pointer;color:var(--border2);font-size:14px;padding:0 2px;opacity:0;transition:.15s}
 .dTask:hover .dTaskDel{opacity:1}.dTask:hover .dTaskDel:hover{color:var(--red)}
 .dAddTask{border:1.5px dashed var(--border2);border-radius:7px;background:none;width:100%;max-width:100%;box-sizing:border-box;padding:3px;font-family:var(--font-body);font-size:10px;font-weight:600;color:var(--muted);cursor:pointer;margin-top:3px;transition:all var(--dur) var(--ease);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -3276,12 +3315,19 @@ function renderWP(){
     const col=lbls.length?lbls[0].color:'var(--border3)';
     const timeStr=t.time?`<span style="font-size:9px;color:var(--p);font-family:var(--font-mono);flex-shrink:0">${t.time}</span>`:'';
     const labelDots=lbls.length?`<span style="display:inline-flex;gap:2px;align-items:center;flex-shrink:0">${lbls.map(l=>`<span style="width:6px;height:6px;border-radius:50%;background:${l.color};flex-shrink:0;display:inline-block" title="${esc(l.name)}"></span>`).join('')}</span>`:'';
-    return`<div class="dTask" style="border-left:2px solid ${col};padding-left:5px;border-radius:2px" onclick="openTaskModal(${idx})">
-      <input type="checkbox" ${t.done?'checked':''} onchange="wTaskToggle(${idx},this.checked);event.stopPropagation()" style="accent-color:var(--CC);flex-shrink:0">
+    const label0=lbls[0];
+    return`<div class="dTask" style="border-left:2px solid ${col};padding-left:5px;border-radius:2px;--CC:${col}" onclick="openTaskModal(${idx})">
+      <input type="checkbox" ${t.done?'checked':''} onchange="wTaskToggle(${idx},this.checked);event.stopPropagation()" style="accent-color:${col};flex-shrink:0">
       <span class="dTaskInp${t.done?' done':''}" style="cursor:pointer;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:11px;color:${t.done?'var(--muted)':'var(--text)'}">${esc(t.text)||'Без названия'}</span>
       ${labelDots}
       ${timeStr}
       <button class="dTaskDel" onclick="wTaskDel(${idx});event.stopPropagation()">×</button>
+      <div class="dTaskTooltip">
+        <div style="font-weight:700;margin-bottom:4px;color:${col}">${esc(t.text)||'Без названия'}</div>
+        ${t.time?`<div style="font-size:10px;color:var(--p);font-family:var(--font-mono)">⏱ ${t.time}${t.endTime?' – '+t.endTime:''}</div>`:''}
+        ${lbls.length?`<div style="display:flex;flex-wrap:wrap;gap:3px;margin-top:4px">${lbls.map(l=>`<span style="font-size:9px;font-weight:700;padding:1px 6px;border-radius:10px;background:${l.color}22;color:${l.color};border:1px solid ${l.color}44">${esc(l.name)}</span>`).join('')}</div>`:''}
+        ${t.done?`<div style="font-size:9px;color:var(--green);margin-top:4px;font-weight:700">✓ Выполнено</div>`:''}
+      </div>
     </div>`;
   }).join('')}</div>
   <button class="dAddTask" onclick="wTaskAdd('${key}')">+ добавить задачу</button>
