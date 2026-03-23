@@ -558,8 +558,8 @@ select.inp option{background:var(--card2);color:var(--text)}
 .dName{font-size:9.5px;font-weight:800;text-transform:uppercase;letter-spacing:1.5px;color:var(--CC);font-family:var(--font-display);text-shadow:0 0 16px var(--CC)}
 .dDate{font-size:10px;color:var(--text2);margin-top:2px;font-weight:500;letter-spacing:.01em}
 .dTodayBadge{display:inline-block;background:var(--CC);color:#000;font-size:7.5px;font-weight:900;border-radius:6px;padding:2px 7px;letter-spacing:.6px;margin-top:3px;text-transform:uppercase;box-shadow:0 0 10px var(--CC),0 2px 4px rgba(0,0,0,.3)}
-.dRing{position:relative;width:68px;height:68px;margin:0 auto;overflow:visible}
-.dRing svg{transform:rotate(-90deg);filter:drop-shadow(0 0 6px var(--CC));pointer-events:none;display:block}
+.dRing{position:relative;width:68px;height:68px;margin:0 auto}
+.dRing svg{transform:rotate(-90deg);filter:drop-shadow(0 0 6px var(--CC))}
 .rTrack{fill:none;stroke:rgba(255,255,255,.06);stroke-width:4.5}
 .rFill{fill:none;stroke-width:4.5;stroke-linecap:round;stroke:var(--CC);transition:.8s var(--ease);filter:url(#ringGlow)}
 .dPct{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;color:var(--CC);font-family:var(--font-display);text-shadow:0 0 12px var(--CC)}
@@ -1116,17 +1116,10 @@ select.inp option{background:var(--card2);color:var(--text)}
 .dashCardLbl::after{content:'';flex:1;height:1px;background:var(--border)}
 .dashBigNum{font-family:var(--font-display);font-size:30px;font-weight:800;letter-spacing:-1px}
 .dashSmNum{font-family:var(--font-display);font-size:22px;font-weight:800;letter-spacing:-.5px}
-.scoreRing{
-  position:relative;display:inline-flex;align-items:center;justify-content:center;
-  flex-shrink:0;
-}
-.scoreRingInner{position:absolute;text-align:center;pointer-events:none}
-.scoreRingVal{
-  font-family:var(--font-display);font-size:20px;font-weight:800;line-height:1;letter-spacing:-.5px
-}
-.scoreRingLbl{
-  font-size:7.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;font-weight:700;margin-top:1px
-}
+.scoreRing{position:relative;display:inline-flex;align-items:center;justify-content:center}
+.scoreRingInner{position:absolute;text-align:center}
+.scoreRingVal{font-family:var(--font-display);font-size:22px;font-weight:800;line-height:1;letter-spacing:-.5px}
+.scoreRingLbl{font-size:8px;color:var(--muted);text-transform:uppercase;letter-spacing:.7px;font-weight:700}
 .dashMiniBarWrap{display:flex;align-items:flex-end;gap:2px;height:44px}
 .dashMiniBar{flex:1;border-radius:3px 3px 0 0;min-height:2px;transition:.4s var(--ease)}
 .dashPipeRow{display:flex;align-items:center;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--border);font-size:11.5px;font-weight:600;color:var(--text)}
@@ -1878,12 +1871,12 @@ select.inp option{background:var(--card2);color:var(--text)}
   <!-- Stat cards row -->
   <div class="dashGrid">
     <!-- Score ring -->
-    <div class="dashCard" style="display:flex;align-items:center;gap:14px;padding:14px 16px;background:linear-gradient(145deg,rgba(14,15,30,.98),rgba(9,10,20,.99));border:1px solid rgba(255,255,255,.07)">
+    <div class="dashCard" style="display:flex;align-items:center;gap:16px">
       <div class="scoreRing" id="dashRingWrap">
-        <svg width="80" height="80" id="dashRingSvg" style="transform:rotate(-90deg);pointer-events:none;display:block"></svg>
+        <svg width="96" height="96" id="dashRingSvg" style="transform:rotate(-90deg)"></svg>
         <div class="scoreRingInner"><div class="scoreRingVal" id="dashScoreVal">0%</div><div class="scoreRingLbl">балл дня</div></div>
       </div>
-      <div style="flex:1;display:flex;flex-direction:column;gap:5px" id="dashScoreBreak"></div>
+      <div style="flex:1;display:flex;flex-direction:column;gap:6px;font-size:10.5px;color:var(--muted)" id="dashScoreBreak"></div>
     </div>
     <!-- Tasks -->
     <div class="dashCard">
@@ -4235,7 +4228,7 @@ function plRenderMonth(main){
       const timeStr=e.time?`<span style="font-size:8px;opacity:.7;margin-right:2px">${plFmtTime(e.time)}</span>`:'';
       const icon=e.src==='task'?'📋':' ';
       const clickFn=e.src==='task'?`plCalOpenTask('${e.id}','${dstr}')`:`plCalOpenModal('${e.id}','${dstr}')`;
-      html+=`<div class="plMonth-pill calTaskRow" style="background:${bg};color:${col};border-left:2px solid ${col};${e.done?'text-decoration:line-through;':''}" title="${esc(e.text)}" onclick="event.stopPropagation();${clickFn}">${timeStr}${esc(e.text)}</div>`;
+      html+=`<div class="plMonth-pill calTaskRow" style="background:${e.done?'rgba(255,255,255,.04)':bg};color:${e.done?'var(--muted)':col};border-left:2px solid ${e.done?'rgba(255,255,255,.15)':col};${e.done?'text-decoration:line-through;':''}opacity:${e.done?0.6:1}" title="${esc(e.text)}" onclick="event.stopPropagation();${clickFn}">${timeStr}${esc(e.text)}</div>`;
     });
     if(evts.length>maxShow)html+=`<div class="plMonth-more">+${evts.length-maxShow} ещё</div>`;
     html+=`</div>`;
@@ -4272,8 +4265,8 @@ function plRenderGrid(main){
       const bg=e.color+'28',col=e.color;
       const icon=e.src==='task'?(e.isRepeat?'↻ ':''):'📅 ';
       const clickFn=e.src==='task'?`plCalOpenTask('${e.id}','${dstr}')`:`plCalOpenModal('${e.id}','${dstr}')`;
-      adHtml+=`<div class="plEvt-allday calTaskRow" style="background:${bg};color:${col};border-left-color:${col};cursor:pointer;${e.done?'text-decoration:line-through;':''}" title="${esc(e.text)}" onclick="event.stopPropagation();${clickFn}">
-        <span style="width:7px;height:7px;border-radius:50%;background:${col};display:inline-block;flex-shrink:0;margin-right:4px"></span>${icon}${esc(e.text)}
+      adHtml+=`<div class="plEvt-allday calTaskRow" style="background:${e.done?'rgba(255,255,255,.04)':bg};color:${e.done?'var(--muted)':col};border-left-color:${e.done?'rgba(255,255,255,.15)':col};opacity:${e.done?0.6:1};cursor:pointer;${e.done?'text-decoration:line-through;':''}" title="${esc(e.text)}" onclick="event.stopPropagation();${clickFn}">
+        <span style="width:7px;height:7px;border-radius:50%;background:${e.done?'var(--muted)':col};display:inline-block;flex-shrink:0;margin-right:4px"></span>${icon}${esc(e.text)}
       </div>`;
     });
     adHtml+=`</div>`;
@@ -4315,10 +4308,10 @@ function plRenderGrid(main){
       const tStr=plFmtTime(e.time)+(e.endTime?' – '+plFmtTime(e.endTime):'');
       const icon=e.src==='task'?(e.isRepeat?'↻ ':''):'';
       const evtSrc=e.src;const evtId=e.id;
-      const doneStyle=`background:${bg};color:${col};border-left-color:${col};`;
-      colsHtml+=`<div class="plEvt calTaskRow" data-evtid="${e.id}" data-dstr="${dstr}" data-src="${e.src}" draggable="true" style="top:${top}px;height:${height}px;left:calc(${left}% + 2px);width:calc(${width}% - 4px);${doneStyle}overflow:hidden;cursor:pointer;z-index:2;position:absolute" title="${esc(e.text)}">
-        <div class="plEvt-title" style="${e.done?'text-decoration:line-through':''}">${e.done?'<span style="font-size:8px;margin-right:2px;opacity:.7">✓</span>':''}${icon}${esc(e.text)}</div>
-        ${height>30?`<div class="plEvt-time">${tStr}</div>`:''}
+      const doneStyle=e.done?`background:rgba(255,255,255,.04);color:rgba(255,255,255,.35);border-left-color:rgba(255,255,255,.15);`:`background:${bg};color:${col};border-left-color:${col};`;
+      colsHtml+=`<div class="plEvt calTaskRow" data-evtid="${e.id}" data-dstr="${dstr}" data-src="${e.src}" draggable="true" style="top:${top}px;height:${height}px;left:calc(${left}% + 2px);width:calc(${width}% - 4px);${doneStyle}overflow:hidden;cursor:pointer" title="${esc(e.text)}">
+        <div class="plEvt-title" style="${e.done?'text-decoration:line-through;opacity:.7':''}">${e.done?'<span style="font-size:8px;margin-right:2px;opacity:.7">✓</span>':''}${icon}${esc(e.text)}</div>
+        ${height>30?`<div class="plEvt-time" style="${e.done?'opacity:.5':''}">${tStr}</div>`:''}
       </div>`;
     });
     colsHtml+=`</div>`;
@@ -4401,7 +4394,7 @@ function _plSetupGridInteraction(main,dates,totalH){
       }
       if(!_hintEl){
         _hintEl=document.createElement('div');
-        _hintEl.style.cssText='position:absolute;left:2px;right:2px;height:24px;background:rgba(155,143,245,.12);border:1px dashed rgba(155,143,245,.35);border-radius:6px;z-index:1;pointer-events:none;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;color:var(--p);opacity:0;transition:opacity .12s,top .04s';
+        _hintEl.style.cssText='position:absolute;left:2px;right:2px;height:24px;background:rgba(155,143,245,.12);border:1px dashed rgba(155,143,245,.35);border-radius:6px;z-index:2;pointer-events:none;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;color:var(--p);opacity:0;transition:opacity .12s,top .04s';
         _hintEl.textContent='＋ Добавить задачу';
         col.appendChild(_hintEl);
       }
@@ -5752,15 +5745,7 @@ function renderDash(){
   const scEl=document.getElementById('dashScoreVal');if(scEl)scEl.textContent=score+'%';
   drawDashRing(score);
   const sbEl=document.getElementById('dashScoreBreak');
-  if(sbEl)sbEl.innerHTML=`
-    <div style="display:flex;align-items:center;justify-content:space-between;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.05)">
-      <span style="font-size:11px;color:var(--text2);font-weight:500">Задачи</span>
-      <span style="font-size:12px;font-weight:800;font-family:var(--font-display);color:var(--green)">${taskScore}%</span>
-    </div>
-    <div style="display:flex;align-items:center;justify-content:space-between;padding:6px 0">
-      <span style="font-size:11px;color:var(--text2);font-weight:500">Привычки</span>
-      <span style="font-size:12px;font-weight:800;font-family:var(--font-display);color:var(--pink)">${habPct}%</span>
-    </div>`;
+  if(sbEl)sbEl.innerHTML=`<div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid var(--border);font-size:11.5px"><span style="color:var(--text2)">Задачи</span><span style="color:var(--green);font-weight:700;font-family:var(--font-display)">${taskScore}%</span></div><div style="display:flex;justify-content:space-between;padding:4px 0;font-size:11.5px"><span style="color:var(--text2)">Привычки</span><span style="color:var(--pink);font-weight:700;font-family:var(--font-display)">${habPct}%</span></div>`;
 
   // Kanban pipeline
   kbMigrate();
@@ -5787,16 +5772,13 @@ function renderDash(){
 
 function drawDashRing(score){
   const svg=document.getElementById('dashRingSvg');if(!svg)return;
-  const r=33,cx=40,cy=40,circ=2*Math.PI*r;
+  const r=40,cx=48,cy=48,circ=2*Math.PI*r;
   const dash=circ*(score/100),gap=circ-dash;
   const color=score>=80?'var(--green)':score>=50?'var(--gold)':'var(--red)';
-  svg.setAttribute('viewBox','0 0 80 80');
-  svg.innerHTML=`<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="rgba(255,255,255,.06)" stroke-width="6"/>
-    <circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${color}" stroke-width="6"
-      stroke-dasharray="${dash.toFixed(1)} ${gap.toFixed(1)}" stroke-linecap="round" style="transition:.6s;filter:drop-shadow(0 0 4px ${color})"/>`;
-  // Update color of value text
-  const valEl=document.getElementById('dashScoreVal');
-  if(valEl)valEl.style.color=color;
+  svg.setAttribute('viewBox','0 0 96 96');
+  svg.innerHTML=`<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="var(--border2)" stroke-width="7"/>
+    <circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${color}" stroke-width="7"
+      stroke-dasharray="${dash.toFixed(1)} ${gap.toFixed(1)}" stroke-linecap="round" style="transition:.6s"/>`;
 }
 
 function drawDashHabChart(){
@@ -7544,32 +7526,17 @@ function _initWeekTooltips(){
       tip.innerHTML=html;
       tip.classList.add('show');
 
-      // Position near task — measure after making visible
-      requestAnimationFrame(()=>{
-        const rect=task.getBoundingClientRect();
-        const tw=tip.offsetWidth||210;
-        const th=tip.offsetHeight||140;
-        const vw=window.innerWidth;
-        const vh=window.innerHeight;
-        const GAP=10;
-
-        // Prefer: above task, aligned to task left
-        let left=rect.left;
-        let top=rect.top - th - GAP;
-
-        // If not enough space above → show below
-        if(top < GAP) top=rect.bottom + GAP;
-        // If still off bottom → clamp
-        if(top + th > vh - GAP) top=vh - th - GAP;
-        if(top < GAP) top=GAP;
-
-        // Horizontal: keep within viewport
-        if(left + tw > vw - GAP) left=vw - tw - GAP;
-        if(left < GAP) left=GAP;
-
-        tip.style.left=left+'px';
-        tip.style.top=top+'px';
-      });
+      // Position near task
+      const rect=task.getBoundingClientRect();
+      const tw=tip.offsetWidth||210;
+      const th=tip.offsetHeight||130;
+      let left=rect.left + 4;
+      let top=rect.top - th - 8;
+      if(top < 8) top=rect.bottom+8;
+      if(left+tw > window.innerWidth-8) left=window.innerWidth-tw-8;
+      if(left < 8) left=8;
+      tip.style.left=left+'px';
+      tip.style.top=top+'px';
     });
 
     task.addEventListener('mouseleave',function(){
