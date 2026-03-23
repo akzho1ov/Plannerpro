@@ -3305,18 +3305,7 @@ function renderWP(){
 </div>
 <div>
   <div class="dSecLbl" style="margin-bottom:6px">Задачи</div>
-  <div class="dTasks" id="dtl-${key}">${dayTasks.map((t)=>{
-    const idx=tpD().indexOf(t);
-    const lbl=labelsD().find(l=>l.id===t.labelId);
-    const col=lbl?lbl.color:'var(--border3)';
-    const timeStr=t.time?`<span style="font-size:9px;color:var(--p);font-family:var(--font-mono)">${t.time}</span>`:'';
-    return`<div class="dTask" style="border-left:2px solid ${col};padding-left:5px;border-radius:2px">
-      <input type="checkbox" ${t.done?'checked':''} onchange="wTaskToggle(${idx},this.checked)" style="accent-color:var(--CC)">
-      <span class="dTaskInp${t.done?' done':''}" onclick="openTaskModal(${idx})" style="cursor:pointer;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:11px;color:${t.done?'var(--muted)':'var(--text)'}">${esc(t.text)||'Без названия'}</span>
-      ${timeStr}
-      <button class="dTaskDel" onclick="wTaskDel(${idx})">×</button>
-    </div>`;
-  }).join('')}</div>
+  <div class="dTasks" id="dtl-${key}"></div>
   <button class="dAddTask" onclick="wTaskAdd('${key}')">+ добавить задачу</button>
 </div>
 <div>
@@ -3332,26 +3321,56 @@ function renderWP(){
 </div>`;
     g.appendChild(card);
   }
+  // ── After rendering all cards, fill task lists using DOM (not innerHTML) ──
+  for(let i=0;i<7;i++){
+    const d=new Date(curMon);d.setDate(d.getDate()+i);
+    const key=dk(d);
+    const dayTasks=tpD().filter(t=>t.deadline===key);
+    const container=document.getElementById('dtl-'+key);
+    if(!container)continue;
+    container.innerHTML='';
+    dayTasks.forEach(t=>{
+      const idx=tpD().indexOf(t);
+      const lbl=labelsD().find(l=>l.id===t.labelId);
+      const col=lbl?lbl.color:'var(--border3)';
+      const row=document.createElement('div');
+      row.className='dTask';
+      row.style.cssText=`border-left:2px solid ${col};padding-left:5px;border-radius:2px`;
+      const cb=document.createElement('input');
+      cb.type='checkbox';cb.checked=!!t.done;cb.style.cssText='accent-color:var(--CC)';
+      cb.addEventListener('change',()=>wTaskToggle(idx,cb.checked));
+      const nameSpan=document.createElement('span');
+      nameSpan.className='dTaskInp'+(t.done?' done':'');
+      nameSpan.style.cssText=`cursor:pointer;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:11px;color:${t.done?'var(--muted)':'var(--text)'}`;
+      nameSpan.textContent=t.text||'Без названия';
+      nameSpan.addEventListener('click',()=>openTaskModal(idx));
+      const delBtn=document.createElement('button');
+      delBtn.className='dTaskDel';delBtn.textContent='×';
+      delBtn.addEventListener('click',e=>{e.stopPropagation();wTaskDel(idx);});
+      row.appendChild(cb);
+      row.appendChild(nameSpan);
+      if(t.time){
+        const timeSpan=document.createElement('span');
+        timeSpan.style.cssText='font-size:9px;color:var(--p);font-family:var(--font-mono)';
+        timeSpan.textContent=t.time;
+        row.appendChild(timeSpan);
+      }
+      row.appendChild(delBtn);
+      container.appendChild(row);
+    });
+  }
 }
 
 // Weekly planner task actions — use G.tasks (unified)
 function wTaskToggle(idx,c){const t=tpD()[idx];if(!t)return;t.done=c;saveD();_refreshAllTaskViews();}
-function wTaskDel(idx){delT(idx);} // delT already calls _refreshAllTaskViews
+function wTaskDel(idx){delT(idx);}
 function wTaskAdd(dateKey){
-  const id=uid();
-  tpD().push({id,text:'',deadline:dateKey,time:'',endTime:'',notes:'',done:false,labelId:'',priority:2});
-  syncNewTaskToKanban(id);
-  saveD();
-  renderWP();
-  // Focus last task in that day column
-  setTimeout(()=>{
-    const c=document.getElementById('dtl-'+dateKey);
-    if(c){const spans=c.querySelectorAll('.dTaskInp');if(spans.length){
-      // Click to open modal for the new empty task
-      const newIdx=tpD().findIndex(t=>t.id===id);
-      if(newIdx>=0)openTaskModal(newIdx);
-    }}
-  },50);
+  // Open task modal pre-filled with the date — cleaner than creating a blank task
+  _taskModalIdx=-1;
+  openTaskModal(-1,dateKey);
+}
+function wTaskEdit(idx){
+  openTaskModal(idx);
 }
 
 function updD(k,f,v){dayD(k)[f]=v;saveD()}
@@ -3589,7 +3608,7 @@ function renderTP(){
   const isMob=window.innerWidth<=700;
 
   if(!isMob){
-    // ── Desktop table ──
+    // ── Desktop table ── (use DOM methods to avoid inline onclick issues)
     const tbody=document.getElementById('tBody');tbody.innerHTML='';
     filtered.forEach((t,i)=>{
       const realIdx=tasks.indexOf(t);
@@ -3612,26 +3631,73 @@ function renderTP(){
       }
       let dlLabel='';
       if(t.deadline){const dl=new Date(t.deadline+'T00:00:00');dlLabel=`${dws[dl.getDay()]}, ${dl.getDate()} ${mons[dl.getMonth()]}.`}
-      // Multi-label support
       const taskLbls=getTaskLabels(t);
-      const labelHtml=taskLbls.length
-        ?taskLbls.map(label=>`<span class="labelPill" style="background:${hexA(label.color,0.15)};color:${label.color};cursor:pointer;border:1px solid ${hexA(label.color,0.35)};margin-right:3px" onclick="openLabelPicker(${realIdx},this);event.stopPropagation()"><span class="labelDot" style="background:${label.color}"></span>${esc(label.name)}</span>`).join('')
-        :`<span style="color:var(--muted);cursor:pointer;font-size:10px;padding:2px 8px;border:1px dashed var(--border2);border-radius:20px;white-space:nowrap" onclick="openLabelPicker(${realIdx},this);event.stopPropagation()">＋</span>`;
       const barColor=taskLbls.length?taskLbls[0].color:'transparent';
       tr.style.borderLeft=`3px solid ${barColor}`;
-      const repeatBadge=t.repeat?`<span class="mTaskRepeatBadge" style="font-size:8px;margin-left:4px">↻</span>`:'';
-      const timeDisplay=t.time?`<span style="font-family:var(--font-mono);font-size:10.5px;color:var(--p);font-weight:600;cursor:pointer" onclick="openTaskModal(${realIdx})">${t.time}${t.endTime?' – '+t.endTime:''}</span>`:'<span style="color:var(--border3);cursor:pointer" onclick="openTaskModal(${realIdx})">＋ время</span>';
-      tr.innerHTML=`
-        <td style="color:var(--muted);font-size:10px;padding-left:10px">${i+1}</td>
-        <td><input type="checkbox" class="tCb" ${t.done?'checked':''} onchange="toggleT(${realIdx},this.checked)"></td>
-        <td style="cursor:pointer" onclick="openTaskModal(${realIdx})">
-          <span style="font-size:12px;font-weight:600;color:${t.done?'var(--muted)':'var(--text)'};${t.done?'text-decoration:line-through':''}">${esc(t.text)||'<em style="color:var(--muted)">Нет названия</em>'}</span>${repeatBadge}
-        </td>
-        <td>${labelHtml}</td>
-        <td><input type="date" class="tDateInp" value="${t.deadline||''}" onchange="updTField(${realIdx},'deadline',this.value)" title="${dlLabel}" style="color-scheme:dark;font-size:11px"></td>
-        <td>${timeDisplay}</td>
-        <td style="text-align:center;font-weight:700;font-size:11px">${dlHtml}</td>
-        <td><button class="tDelBtn" onclick="delT(${realIdx})">×</button></td>`;
+      const repeatBadge=t.repeat?`<span style="font-size:8px;margin-left:4px;color:var(--p)">↻</span>`:'';
+      const timeStr=t.time?`${t.time}${t.endTime?' – '+t.endTime:''}`:'＋ время';
+      const timeColor=t.time?'var(--p)':'var(--border3)';
+
+      // Build cells
+      const tdIdx=document.createElement('td');
+      tdIdx.style.cssText='color:var(--muted);font-size:10px;padding-left:10px';
+      tdIdx.textContent=String(i+1);
+
+      const tdCb=document.createElement('td');
+      const cb=document.createElement('input');
+      cb.type='checkbox';cb.className='tCb';cb.checked=!!t.done;
+      cb.addEventListener('change',()=>{toggleT(realIdx,cb.checked);});
+      tdCb.appendChild(cb);
+
+      const tdName=document.createElement('td');
+      tdName.style.cursor='pointer';
+      tdName.innerHTML=`<span style="font-size:12px;font-weight:600;color:${t.done?'var(--muted)':'var(--text)'};${t.done?'text-decoration:line-through':''}">${esc(t.text)||'<em style="color:var(--muted);font-style:italic">Без названия</em>'}</span>${repeatBadge}`;
+      tdName.addEventListener('click',e=>{e.stopPropagation();openTaskModal(realIdx);});
+
+      // Label cell — multiple labels, each opens picker
+      const tdLabel=document.createElement('td');
+      if(taskLbls.length){
+        taskLbls.forEach(label=>{
+          const pill=document.createElement('span');
+          pill.className='labelPill';
+          pill.style.cssText=`background:${hexA(label.color,0.15)};color:${label.color};cursor:pointer;border:1px solid ${hexA(label.color,0.35)};margin-right:3px`;
+          pill.innerHTML=`<span class="labelDot" style="background:${label.color}"></span>${esc(label.name)}`;
+          pill.addEventListener('click',e=>{e.stopPropagation();openLabelPicker(realIdx,pill);});
+          tdLabel.appendChild(pill);
+        });
+      } else {
+        const addLbl=document.createElement('span');
+        addLbl.style.cssText='color:var(--muted);cursor:pointer;font-size:10px;padding:2px 8px;border:1px dashed var(--border2);border-radius:20px;white-space:nowrap';
+        addLbl.textContent='＋';
+        addLbl.addEventListener('click',e=>{e.stopPropagation();openLabelPicker(realIdx,addLbl);});
+        tdLabel.appendChild(addLbl);
+      }
+
+      const tdDate=document.createElement('td');
+      const dateInp=document.createElement('input');
+      dateInp.type='date';dateInp.className='tDateInp';dateInp.value=t.deadline||'';
+      dateInp.title=dlLabel;dateInp.style.cssText='color-scheme:dark;font-size:11px';
+      dateInp.addEventListener('change',()=>{updTField(realIdx,'deadline',dateInp.value);});
+      tdDate.appendChild(dateInp);
+
+      const tdTime=document.createElement('td');
+      const timeSpan=document.createElement('span');
+      timeSpan.style.cssText=`font-family:var(--font-mono);font-size:10.5px;color:${timeColor};font-weight:600;cursor:pointer`;
+      timeSpan.textContent=timeStr;
+      timeSpan.addEventListener('click',e=>{e.stopPropagation();openTaskModal(realIdx);});
+      tdTime.appendChild(timeSpan);
+
+      const tdDays=document.createElement('td');
+      tdDays.style.cssText='text-align:center;font-weight:700;font-size:11px';
+      tdDays.innerHTML=dlHtml;
+
+      const tdDel=document.createElement('td');
+      const delBtn=document.createElement('button');
+      delBtn.className='tDelBtn';delBtn.textContent='×';
+      delBtn.addEventListener('click',e=>{e.stopPropagation();delT(realIdx);});
+      tdDel.appendChild(delBtn);
+
+      [tdIdx,tdCb,tdName,tdLabel,tdDate,tdTime,tdDays,tdDel].forEach(td=>tr.appendChild(td));
       tbody.appendChild(tr);
     });
   } else {
@@ -4047,8 +4113,7 @@ function plRenderGrid(main){
     allDayEvts.forEach(e=>{
       const bg=e.color+'28',col=e.color;
       const icon=e.src==='task'?(e.isRepeat?'↻ ':'📋 '):'📅 ';
-      const clickFn=e.src==='task'?`plCalOpenTask('${e.id}','${dstr}')`:`plCalOpenModal('${e.id}','${dstr}')`;
-      adHtml+=`<div class="plEvt-allday calTaskRow" style="background:${bg};color:${col};border-left-color:${col};opacity:${e.done?0.5:1}" title="${esc(e.text)}" onclick="event.stopPropagation();${clickFn}">${icon}${esc(e.text)}</div>`;
+      adHtml+=`<div class="plEvt-allday calTaskRow" data-evtid="${e.id}" data-src="${e.src}" data-dstr="${dstr}" style="background:${bg};color:${col};border-left-color:${col};opacity:${e.done?0.5:1};cursor:pointer" title="${esc(e.text)}">${icon}${esc(e.text)}</div>`;
     });
     adHtml+=`</div>`;
   });
@@ -4127,6 +4192,30 @@ let _plRightDrag=false,_plRightDragStart=null,_plRightDragDstr=null,_plRightDrag
 function _plSetupGridInteraction(main,dates,totalH){
   const colsWrap=main.querySelector('#plGridCols');if(!colsWrap)return;
 
+  // ── CLICK handlers for existing events ──
+  colsWrap.querySelectorAll('.plEvt[data-evtid]').forEach(evtEl=>{
+    const src=evtEl.dataset.src;
+    const evtId=evtEl.dataset.evtid;
+    const dstr=evtEl.dataset.dstr;
+    evtEl.addEventListener('click',e=>{
+      e.stopPropagation();
+      if(src==='task'){plCalOpenTask(evtId,dstr);}
+      else{plCalOpenModal(evtId,dstr);}
+    });
+  });
+
+  // ── All-day event row clicks ──
+  main.querySelectorAll('.plEvt-allday[data-evtid]').forEach(evtEl=>{
+    const src=evtEl.dataset.src;
+    const evtId=evtEl.dataset.evtid;
+    const dstr=evtEl.dataset.dstr;
+    evtEl.addEventListener('click',e=>{
+      e.stopPropagation();
+      if(src==='task'){plCalOpenTask(evtId,dstr);}
+      else{plCalOpenModal(evtId,dstr);}
+    });
+  });
+
   // ── Drag-to-MOVE existing events ──
   colsWrap.querySelectorAll('.plEvt[data-evtid]').forEach(evtEl=>{
     evtEl.setAttribute('draggable','true');
@@ -4141,10 +4230,9 @@ function _plSetupGridInteraction(main,dates,totalH){
     evtEl.addEventListener('dragend',()=>{evtEl.style.opacity='';_plDragEvtId=null;});
   });
 
-  // Helper: get Y relative to column top (accounts for scroll correctly)
+  // Helper: get Y relative to column top
   const getRelY=(e,col)=>{
     const rect=col.getBoundingClientRect();
-    // getBoundingClientRect().top already reflects scroll offset
     return e.clientY-rect.top;
   };
 
@@ -4152,7 +4240,6 @@ function _plSetupGridInteraction(main,dates,totalH){
   colsWrap.querySelectorAll('.plGrid-col').forEach(col=>{
     const dstr=col.dataset.dstr;
 
-    // Drop from drag-move
     col.addEventListener('dragover',e=>{e.preventDefault();e.dataTransfer.dropEffect='move';});
     col.addEventListener('drop',e=>{
       e.preventDefault();
@@ -4164,10 +4251,11 @@ function _plSetupGridInteraction(main,dates,totalH){
       _plDragEvtId=null;
     });
 
-    // ── LEFT click → open task modal at clicked time ──
+    // ── LEFT click on empty area → open new task modal ──
     col.addEventListener('click',e=>{
+      // Only fire if click is directly on the column or grid lines (not on an event)
       if(e.target!==col&&!e.target.classList.contains('plGrid-hline'))return;
-      if(_plDragEvtId)return; // ignore during drag
+      if(_plDragEvtId)return;
       const relY=getRelY(e,col);
       const mins=Math.round((relY/HOUR_H)*60/15)*15;
       const startMin=Math.max(0,Math.min(23*60,mins));
@@ -4180,7 +4268,7 @@ function _plSetupGridInteraction(main,dates,totalH){
       },80);
     });
 
-    // ── Right mouse drag → CREATE event with custom time range ──
+    // ── Right mouse drag → CREATE with time range ──
     col.addEventListener('mousedown',e=>{
       if(e.button!==2)return;
       e.preventDefault();
@@ -4196,8 +4284,7 @@ function _plSetupGridInteraction(main,dates,totalH){
         background:'rgba(139,122,240,.3)',
         border:'1.5px solid var(--p)',
         borderLeft:'3px solid var(--p)',
-        borderRadius:'6px',
-        zIndex:'20',pointerEvents:'none',
+        borderRadius:'6px',zIndex:'20',pointerEvents:'none',
         color:'var(--p)',fontSize:'9px',fontWeight:'700',padding:'2px 5px',
         overflow:'hidden',whiteSpace:'nowrap'
       });
@@ -4237,7 +4324,6 @@ function _plSetupGridInteraction(main,dates,totalH){
     col.addEventListener('contextmenu',e=>e.preventDefault());
   });
 
-  // Cancel right drag on mouse leave
   const cancelDrag=()=>{
     if(_plRightDragPreview){_plRightDragPreview.remove();_plRightDragPreview=null;}
     _plRightDrag=false;
