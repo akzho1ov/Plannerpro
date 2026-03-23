@@ -460,7 +460,7 @@ select.inp option{background:var(--card2);color:var(--text)}
 ══════════════════════════════ */
 .wNav{display:flex;align-items:center;justify-content:center;gap:12px;margin-bottom:20px;flex-wrap:wrap}
 .wNavLbl{font-family:var(--font-display);font-size:18px;font-weight:700;letter-spacing:-.4px;min-width:280px;text-align:center;color:var(--text)}
-.wGrid{display:grid;grid-template-columns:repeat(7,1fr);gap:10px;align-items:stretch}
+.wGrid{display:grid;grid-template-columns:repeat(7,1fr);gap:10px}
 @media(max-width:1200px){.wGrid{grid-template-columns:repeat(4,1fr)}}
 @media(max-width:700px){.wGrid{grid-template-columns:repeat(2,1fr)}}
 @media(max-width:380px){.wGrid{grid-template-columns:1fr}}
@@ -475,7 +475,7 @@ select.inp option{background:var(--card2);color:var(--text)}
 
 .dCard{
   background:var(--card);border-radius:var(--r);border:1px solid var(--border);
-  padding:14px 12px;display:flex;flex-direction:column;gap:10px;height:100%;
+  padding:14px 12px;display:flex;flex-direction:column;gap:10px;
   transition:border-color var(--dur) var(--ease),box-shadow var(--dur) var(--ease);
 }
 .dCard:hover{border-color:rgba(var(--CC),.3);box-shadow:0 0 0 1px var(--CC),0 10px 40px rgba(0,0,0,.5)}
@@ -491,9 +491,9 @@ select.inp option{background:var(--card2);color:var(--text)}
 .dPct{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;color:var(--CC);font-family:var(--font-display)}
 .dFocusInp{width:100%;border:1px solid var(--border);border-radius:8px;padding:5px 8px;font-family:var(--font-body);font-size:11px;resize:none;min-height:34px;outline:none;background:var(--card2);color:var(--text);transition:border-color var(--dur) var(--ease)}
 .dFocusInp::placeholder{color:var(--muted)}.dFocusInp:focus{border-color:var(--CC)}
-.dStats{display:flex;justify-content:space-around;text-align:center;border-top:1px solid var(--border);padding:6px 0;gap:4px}
-.dStat .sl{font-size:7px;font-weight:700;text-transform:uppercase;color:var(--muted);letter-spacing:.3px;white-space:nowrap}
-.dStat .sv{font-size:13px;font-weight:800;color:var(--text);font-family:var(--font-display)}
+.dStats{display:grid;grid-template-columns:1fr 1fr 1fr;text-align:center;border-top:1px solid var(--border);padding:6px 0}
+.dStat .sl{font-size:8px;font-weight:700;text-transform:uppercase;color:var(--muted);letter-spacing:.5px}
+.dStat .sv{font-size:14px;font-weight:800;color:var(--text);font-family:var(--font-display)}
 .dSecLbl{font-size:8.5px;font-weight:700;text-transform:uppercase;color:var(--muted);letter-spacing:.7px}
 .dTasks{display:flex;flex-direction:column;gap:3px;margin-top:4px}
 .dTask{display:flex;align-items:center;gap:5px}
@@ -1445,46 +1445,6 @@ select.inp option{background:var(--card2);color:var(--text)}
 .wtStatCard{background:var(--card);border:1px solid var(--border);border-radius:var(--r2);padding:12px 10px;text-align:center}
 .wtStatV{font-family:var(--font-display);font-size:20px;font-weight:800;line-height:1}
 .wtStatL{font-size:9px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);margin-top:4px;font-weight:700}
-
-/* ══════════════════════════════
-   GLOBAL MOBILE RESPONSIVE FIXES
-══════════════════════════════ */
-@media(max-width:700px){
-  /* Task modal - full height on mobile */
-  #taskModalBox{max-height:calc(100vh - 90px);overflow-y:auto;border-radius:16px;padding:16px}
-  /* Finance responsive */
-  .finSummaryGrid{grid-template-columns:1fr 1fr!important}
-  .finLayout2{grid-template-columns:1fr!important}
-  .finMonNav{flex-wrap:wrap;gap:6px}
-  /* Gym responsive */
-  .gymStatRow{grid-template-columns:repeat(2,1fr)}
-  .gymSetTbl th,.gymSetTbl td{padding:4px 4px;font-size:10px}
-  .gymSetInp{width:46px;font-size:11px}
-  /* Dashboard responsive */
-  .dashGrid{grid-template-columns:1fr!important}
-  .dashGrid2,.dashGrid3{grid-template-columns:1fr!important}
-  .dashStatsStrip{grid-template-columns:repeat(2,1fr)!important}
-  /* Stats row */
-  #tab-tasks .card:first-child{overflow-x:auto}
-  /* Reward subtabs overflow */
-  .rwSubTabs{-webkit-overflow-scrolling:touch}
-  .gymSubTabs{-webkit-overflow-scrolling:touch}
-  /* Calendar sidebar hidden on mobile by default */
-  .plCal-sidebar{display:none}
-  .plCal-body{grid-template-columns:1fr!important}
-  /* Habit table scrollable */
-  .htTableWrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
-  /* Kanban scroll */
-  .kbWrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
-  /* Goals grid */
-  .growthGrid{grid-template-columns:1fr!important}
-  .growthChartsRow{grid-template-columns:1fr!important}
-  /* Modal full width */
-  .modalBox{max-width:100%!important;margin:0;border-radius:16px}
-  .overlay{padding:8px}
-  /* Routine items flex wrap */
-  .rbCard{border-radius:12px}
-}
 </style>
 </head>
 <body>
@@ -1854,13 +1814,9 @@ select.inp option{background:var(--card2);color:var(--text)}
       <div class="tpBar" style="flex:1"><div class="tpBarFill" id="tpFill" style="width:0%"></div></div>
       <span style="font-size:13px;font-weight:800;color:var(--green);font-family:var(--font-display);flex-shrink:0" id="tpPct">0%</span>
     </div>
-    <!-- Labels + add button + done toggle -->
+    <!-- Labels + add button -->
     <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
       <div class="labelsFilterBar" id="labelsFilterBar" style="margin:0;flex:1"></div>
-      <label style="display:flex;align-items:center;gap:5px;font-size:11px;font-weight:600;color:var(--text2);cursor:pointer;flex-shrink:0;white-space:nowrap">
-        <input type="checkbox" id="tpShowDone" checked onchange="renderTP()" style="accent-color:var(--green);width:14px;height:14px">
-        Выполненные
-      </label>
       <button class="btn btnG" style="font-size:10.5px;padding:5px 10px;flex-shrink:0" onclick="openLabelsModal()">⚙ Метки</button>
     </div>
   </div>
@@ -1958,10 +1914,6 @@ select.inp option{background:var(--card2);color:var(--text)}
         <div class="plMini-days" id="plMini-days"></div>
       </div>
       <button class="plCal-addBtn" onclick="plCalOpenModal(null,null)">＋ Добавить событие</button>
-      <div style="font-size:9px;color:var(--muted);text-align:center;padding:0 12px 6px;line-height:1.5">
-        <span style="opacity:.7">Левый клик на сетке — добавить задачу</span><br>
-        <span style="opacity:.7">Правая кнопка + тянуть вниз — выбрать время</span>
-      </div>
       <div class="plCal-upSec">
         <div class="plCal-upTitle">Ближайшее</div>
         <div id="plCal-upcoming"></div>
@@ -2587,9 +2539,9 @@ select.inp option{background:var(--card2);color:var(--text)}
       </div>
     </div>
 
-    <!-- Label - multi select -->
+    <!-- Label -->
     <div class="tmField">
-      <label class="tmLabel">Метки <span style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--muted);font-size:9px">(можно выбрать несколько из разных групп)</span></label>
+      <label class="tmLabel">Метка</label>
       <div style="display:flex;gap:6px;flex-wrap:wrap" id="tm-labels-list"></div>
     </div>
 
@@ -3046,22 +2998,19 @@ function subscribeCloud(){
     // Update local cache
     try{localStorage.setItem(SKEY+'_cache',JSON.stringify(incoming));}catch{}
 
-    // Was this snapshot triggered by OUR own recent write (within 8s)?
+    // Was this snapshot triggered by OUR own recent write (within 4s)?
     const isOwnEcho=Date.now()-_myLastWriteAt<8000;
 
-    // CRITICAL: Only overwrite G with server data if it's NOT our own echo
-    // If it IS our echo, G already has the latest local state — don't overwrite it
-    if(!isOwnEcho){
-      G=incoming;
-    }
+    // Always keep G up to date with server state
+    G=incoming;
 
     if(!_appReady){
-      G=incoming; // Always load on first boot
       _appReady=true;
       clearTimeout(_connectTimeout);
       hideLoader();
       initApp();
     } else {
+      // Only re-render and show toast for external changes (not our own writes)
       if(!isOwnEcho){
         reRenderCurrentTab();
         showSaveStatus('saved','↓ Синхронизировано');
@@ -3103,17 +3052,17 @@ function saveD(){
   showSaveStatus('saving','⏳ Сохранение...');
   _saveTimer=setTimeout(async()=>{
     if(!currentUser){setSyncDot('error');showSaveStatus('error','✗ Нет сессии');return;}
-    if(_isSaving)return;
+    if(_isSaving)return; // prevent concurrent saves
     _isSaving=true;
-    _myLastWriteAt=Date.now(); // mark BEFORE save so echo is detected correctly
     try{
+      // Clean undefined fields — Firestore rejects them
       const payload=cleanForFirestore(G);
       await db.collection('users').doc(currentUser.uid).set(payload);
+      _myLastWriteAt=Date.now(); // mark so we can recognise our own echo
       setSyncDot('ok');
       showSaveStatus('saved','✓ Сохранено');
     }catch(e){
       console.warn('Save error',e);
-      _myLastWriteAt=0; // reset on error so next snapshot is treated as external
       setSyncDot('error');
       showSaveStatus('error','✗ Ошибка сохранения');
     }finally{
@@ -3308,7 +3257,18 @@ function renderWP(){
 </div>
 <div>
   <div class="dSecLbl" style="margin-bottom:6px">Задачи</div>
-  <div class="dTasks" id="dtl-${key}"></div>
+  <div class="dTasks" id="dtl-${key}">${dayTasks.map((t)=>{
+    const idx=tpD().indexOf(t);
+    const lbl=labelsD().find(l=>l.id===t.labelId);
+    const col=lbl?lbl.color:'var(--border3)';
+    const timeStr=t.time?`<span style="font-size:9px;color:var(--p);font-family:var(--font-mono)">${t.time}</span>`:'';
+    return`<div class="dTask" style="border-left:2px solid ${col};padding-left:5px;border-radius:2px">
+      <input type="checkbox" ${t.done?'checked':''} onchange="wTaskToggle(${idx},this.checked)" style="accent-color:var(--CC)">
+      <span class="dTaskInp${t.done?' done':''}" onclick="openTaskModal(${idx})" style="cursor:pointer;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:11px;color:${t.done?'var(--muted)':'var(--text)'}">${esc(t.text)||'Без названия'}</span>
+      ${timeStr}
+      <button class="dTaskDel" onclick="wTaskDel(${idx})">×</button>
+    </div>`;
+  }).join('')}</div>
   <button class="dAddTask" onclick="wTaskAdd('${key}')">+ добавить задачу</button>
 </div>
 <div>
@@ -3324,56 +3284,26 @@ function renderWP(){
 </div>`;
     g.appendChild(card);
   }
-  // ── After rendering all cards, fill task lists using DOM (not innerHTML) ──
-  for(let i=0;i<7;i++){
-    const d=new Date(curMon);d.setDate(d.getDate()+i);
-    const key=dk(d);
-    const dayTasks=tpD().filter(t=>t.deadline===key);
-    const container=document.getElementById('dtl-'+key);
-    if(!container)continue;
-    container.innerHTML='';
-    dayTasks.forEach(t=>{
-      const idx=tpD().indexOf(t);
-      const lbl=labelsD().find(l=>l.id===t.labelId);
-      const col=lbl?lbl.color:'var(--border3)';
-      const row=document.createElement('div');
-      row.className='dTask';
-      row.style.cssText=`border-left:2px solid ${col};padding-left:5px;border-radius:2px`;
-      const cb=document.createElement('input');
-      cb.type='checkbox';cb.checked=!!t.done;cb.style.cssText='accent-color:var(--CC)';
-      cb.addEventListener('change',()=>wTaskToggle(idx,cb.checked));
-      const nameSpan=document.createElement('span');
-      nameSpan.className='dTaskInp'+(t.done?' done':'');
-      nameSpan.style.cssText=`cursor:pointer;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:11px;color:${t.done?'var(--muted)':'var(--text)'}`;
-      nameSpan.textContent=t.text||'Без названия';
-      nameSpan.addEventListener('click',()=>openTaskModal(idx));
-      const delBtn=document.createElement('button');
-      delBtn.className='dTaskDel';delBtn.textContent='×';
-      delBtn.addEventListener('click',e=>{e.stopPropagation();wTaskDel(idx);});
-      row.appendChild(cb);
-      row.appendChild(nameSpan);
-      if(t.time){
-        const timeSpan=document.createElement('span');
-        timeSpan.style.cssText='font-size:9px;color:var(--p);font-family:var(--font-mono)';
-        timeSpan.textContent=t.time;
-        row.appendChild(timeSpan);
-      }
-      row.appendChild(delBtn);
-      container.appendChild(row);
-    });
-  }
 }
 
 // Weekly planner task actions — use G.tasks (unified)
 function wTaskToggle(idx,c){const t=tpD()[idx];if(!t)return;t.done=c;saveD();_refreshAllTaskViews();}
-function wTaskDel(idx){delT(idx);}
+function wTaskDel(idx){delT(idx);} // delT already calls _refreshAllTaskViews
 function wTaskAdd(dateKey){
-  // Open task modal pre-filled with the date — cleaner than creating a blank task
-  _taskModalIdx=-1;
-  openTaskModal(-1,dateKey);
-}
-function wTaskEdit(idx){
-  openTaskModal(idx);
+  const id=uid();
+  tpD().push({id,text:'',deadline:dateKey,time:'',endTime:'',notes:'',done:false,labelId:'',priority:2});
+  syncNewTaskToKanban(id);
+  saveD();
+  renderWP();
+  // Focus last task in that day column
+  setTimeout(()=>{
+    const c=document.getElementById('dtl-'+dateKey);
+    if(c){const spans=c.querySelectorAll('.dTaskInp');if(spans.length){
+      // Click to open modal for the new empty task
+      const newIdx=tpD().findIndex(t=>t.id===id);
+      if(newIdx>=0)openTaskModal(newIdx);
+    }}
+  },50);
 }
 
 function updD(k,f,v){dayD(k)[f]=v;saveD()}
@@ -3579,45 +3509,15 @@ function renderTP(){
   document.getElementById('tpPct').textContent=pct+'%';
   document.getElementById('tpFill').style.width=pct+'%';
   renderLabelsFilterBar();
-
-  // ── Sort: active first by date (overdue → today → soon → no date), done last ──
-  const showDone=document.getElementById('tpShowDone')?.checked!==false;
-  let filtered=activeLabel?tasks.filter(t=>{
-    const lblIds=t.labelIds&&t.labelIds.length?t.labelIds:[t.labelId].filter(Boolean);
-    return lblIds.includes(activeLabel);
-  }):tasks.slice();
-
-  // Sort active tasks by urgency, done tasks after
-  filtered.sort((a,b)=>{
-    if(a.done!==b.done)return a.done?1:-1; // done go last
-    if(a.done&&b.done)return 0;
-    // Both active: sort by date
-    const getScore=t=>{
-      if(!t.deadline)return 9999;
-      const dl=new Date(t.deadline+'T00:00:00');dl.setHours(0,0,0,0);
-      const diff=Math.floor((dl-td)/86400000);
-      return diff; // negative = overdue, 0 = today, positive = future
-    };
-    const sa=getScore(a),sb=getScore(b);
-    if(sa!==sb)return sa-sb;
-    // Same date: sort by time
-    if(a.time&&b.time)return a.time.localeCompare(b.time);
-    if(a.time)return -1;if(b.time)return 1;
-    return 0;
-  });
-
-  if(!showDone)filtered=filtered.filter(t=>!t.done);
-
+  const filtered=activeLabel?tasks.filter(t=>t.labelId===activeLabel):tasks;
   const isMob=window.innerWidth<=700;
 
   if(!isMob){
-    const tbody=document.getElementById('tBody');
-    if(!tbody)return;
-    tbody.innerHTML='';
+    // ── Desktop table ──
+    const tbody=document.getElementById('tBody');tbody.innerHTML='';
     filtered.forEach((t,i)=>{
       const realIdx=tasks.indexOf(t);
       const tr=document.createElement('tr');
-      tr.dataset.idx=realIdx;
       let rc='';
       if(t.done)rc='trDn';
       else if(t.deadline){
@@ -3636,45 +3536,27 @@ function renderTP(){
       }
       let dlLabel='';
       if(t.deadline){const dl=new Date(t.deadline+'T00:00:00');dlLabel=`${dws[dl.getDay()]}, ${dl.getDate()} ${mons[dl.getMonth()]}.`}
-      const taskLbls=getTaskLabels(t);
-      const barColor=taskLbls.length?taskLbls[0].color:'transparent';
+      const label=labelsD().find(l=>l.id===t.labelId);
+      const labelHtml=label
+        ?`<span class="labelPill" style="background:${hexA(label.color,0.15)};color:${label.color};cursor:pointer;border:1px solid ${hexA(label.color,0.35)}" onclick="openLabelPicker(${realIdx},this);event.stopPropagation()"><span class="labelDot" style="background:${label.color}"></span>${esc(label.name)}</span>`
+        :`<span style="color:var(--muted);cursor:pointer;font-size:10px;padding:2px 8px;border:1px dashed var(--border2);border-radius:20px;white-space:nowrap" onclick="openLabelPicker(${realIdx},this);event.stopPropagation()">＋</span>`;
+      const barColor=label?label.color:'transparent';
       tr.style.borderLeft=`3px solid ${barColor}`;
-      const repeatBadge=t.repeat?`<span style="font-size:8px;margin-left:4px;color:var(--p)">↻</span>`:'';
-      const timeStr=t.time
-        ?`<span style="font-family:var(--font-mono);font-size:10.5px;color:var(--p);font-weight:600">${t.time}${t.endTime?' – '+t.endTime:''}</span>`
-        :`<span style="color:var(--border3);font-size:11px">—</span>`;
-      const labelCells=taskLbls.length
-        ?taskLbls.map(l=>`<span class="labelPill tLblPick" data-labelpick="${realIdx}" style="background:${hexA(l.color,0.15)};color:${l.color};cursor:pointer;border:1px solid ${hexA(l.color,0.35)};margin-right:3px"><span class="labelDot" style="background:${l.color}"></span>${esc(l.name)}</span>`).join('')
-        :`<span class="tLblPick" data-labelpick="${realIdx}" style="color:var(--muted);cursor:pointer;font-size:10px;padding:2px 8px;border:1px dashed var(--border2);border-radius:20px;white-space:nowrap">＋</span>`;
+      const repeatBadge=t.repeat?`<span class="mTaskRepeatBadge" style="font-size:8px;margin-left:4px">↻</span>`:'';
+      const timeDisplay=t.time?`<span style="font-family:var(--font-mono);font-size:10.5px;color:var(--p);font-weight:600">${t.time}${t.endTime?' – '+t.endTime:''}</span>`:'<span style="color:var(--border3)">—</span>';
       tr.innerHTML=`
         <td style="color:var(--muted);font-size:10px;padding-left:10px">${i+1}</td>
-        <td><input type="checkbox" class="tCb tChk" data-cb="${realIdx}" ${t.done?'checked':''}></td>
-        <td class="tNameCell" data-open="${realIdx}" style="cursor:pointer">
-          <span style="font-size:12px;font-weight:600;color:${t.done?'var(--muted)':'var(--text)'};${t.done?'text-decoration:line-through':''}">${esc(t.text)||'<em style="color:var(--muted);font-style:italic">Без названия</em>'}</span>${repeatBadge}
+        <td><input type="checkbox" class="tCb" ${t.done?'checked':''} onchange="toggleT(${realIdx},this.checked)"></td>
+        <td style="cursor:pointer" onclick="openTaskModal(${realIdx})">
+          <span style="font-size:12px;font-weight:600;color:${t.done?'var(--muted)':'var(--text)'};${t.done?'text-decoration:line-through':''}">${esc(t.text)||'<em style="color:var(--muted)">Нет названия</em>'}</span>${repeatBadge}
         </td>
-        <td class="tLabelCell">${labelCells}</td>
-        <td><input type="date" class="tDateInp tDateChg" data-date="${realIdx}" value="${t.deadline||''}" title="${dlLabel}" style="color-scheme:dark;font-size:11px"></td>
-        <td class="tTimeCell" data-open="${realIdx}" style="cursor:pointer">${timeStr}</td>
+        <td>${labelHtml}</td>
+        <td><input type="date" class="tDateInp" value="${t.deadline||''}" onchange="updTField(${realIdx},'deadline',this.value)" title="${dlLabel}" style="color-scheme:dark;font-size:11px"></td>
+        <td>${timeDisplay}</td>
         <td style="text-align:center;font-weight:700;font-size:11px">${dlHtml}</td>
-        <td><button class="tDelBtn tDelClick" data-del="${realIdx}">×</button></td>`;
+        <td><button class="tDelBtn" onclick="delT(${realIdx})">×</button></td>`;
       tbody.appendChild(tr);
     });
-    // Attach delegation to the TABLE (persists across renders)
-    const tbl=tbody.closest('table');
-    if(tbl&&!tbl._evtBound){
-      tbl._evtBound=true;
-      tbl.addEventListener('click',e=>{
-        if(e.target.classList.contains('tChk'))return;
-        const delEl=e.target.closest('.tDelClick');if(delEl){e.stopPropagation();delT(parseInt(delEl.dataset.del));return;}
-        const lblEl=e.target.closest('.tLblPick');if(lblEl){e.stopPropagation();openLabelPicker(parseInt(lblEl.dataset.labelpick),lblEl);return;}
-        if(e.target.closest('input[type=date]'))return;
-        const openEl=e.target.closest('[data-open]');if(openEl){e.stopPropagation();openTaskModal(parseInt(openEl.dataset.open));return;}
-      });
-      tbl.addEventListener('change',e=>{
-        if(e.target.classList.contains('tChk')){const idx=e.target.dataset.cb;if(idx!=null)toggleT(parseInt(idx),e.target.checked);}
-        if(e.target.classList.contains('tDateChg')){const idx=e.target.dataset.date;if(idx!=null)updTField(parseInt(idx),'deadline',e.target.value);}
-      });
-    }
   } else {
     // ── Mobile card view ──
     const mob=document.getElementById('tBodyMobile');mob.innerHTML='';
@@ -3693,6 +3575,7 @@ function renderTP(){
       const div=document.createElement('div');
       div.className=cls;
       div.style.borderLeft=`3px solid ${col||'var(--border)'}`;
+      // date display
       let dateStr='';
       if(t.deadline){
         const dl=new Date(t.deadline+'T00:00:00');
@@ -3717,10 +3600,12 @@ function renderTP(){
       div.addEventListener('click',e=>{if(e.target.classList.contains('mTaskCb')||e.target.tagName==='BUTTON')return;openTaskModal(realIdx);});
       mob.appendChild(div);
     });
+    // Add task button on mobile
     const addDiv=document.createElement('div');
     addDiv.innerHTML=`<button class="dAddTask" style="width:100%;padding:12px;font-size:13px;border-radius:10px" onclick="openTaskModal(-1)">＋ Добавить задачу</button>`;
     mob.appendChild(addDiv);
   }
+  // Always render routine grid below
   if(document.getElementById('rb-grid'))renderRoutine();
 }
 
@@ -3744,15 +3629,7 @@ function onNewTask(e){
 }
 
 /* ── Unified Task Modal ── */
-let _taskModalIdx=-1;
-let _tmRepeatVal=''; // tracks selected repeat option
-
-function tmSelRepeat(v){
-  _tmRepeatVal=v;
-  document.querySelectorAll('.tm-repeat-opt').forEach(el=>{
-    el.classList.toggle('sel',el.dataset.v===v);
-  });
-}
+let _taskModalIdx=-1; // -1 = new task
 
 function openTaskModal(idx,prefillDate){
   _taskModalIdx=idx;
@@ -3782,22 +3659,16 @@ function openTaskModal(idx,prefillDate){
 }
 
 function taskModalSave(){
-  const textEl=document.getElementById('tm-text');
-  const text=textEl?textEl.value.trim():'';
-  if(!text){
-    // Highlight empty field
-    if(textEl){textEl.style.borderColor='var(--red)';textEl.focus();setTimeout(()=>{textEl.style.borderColor='';},2000);}
-    return;
-  }
+  const text=document.getElementById('tm-text').value.trim();
+  if(!text)return;
   const tm=document.getElementById('taskModal');
   let labelIds=[];try{labelIds=JSON.parse(tm.dataset.labelIds||'[]');}catch{labelIds=[];}
   const labelId=labelIds[0]||'';
   const timeVal=document.getElementById('tm-time').value||'';
   const endTimeVal=document.getElementById('tm-endTime').value||'';
-  const deadline=document.getElementById('tm-deadline').value||'';
   const data={
     text,
-    deadline,
+    deadline:document.getElementById('tm-deadline').value||'',
     time:timeVal,
     endTime:endTimeVal,
     notes:document.getElementById('tm-notes').value||'',
@@ -3950,16 +3821,11 @@ function plCalOpenTask(taskId,dstr){
 function plCalGridOpenTask(dstr,startMin){
   _taskModalIdx=-1;
   openTaskModal(-1,dstr);
-  // openTaskModal already sets deadline via prefillDate, but also set time
   if(startMin!==undefined){
     setTimeout(()=>{
-      const tEl=document.getElementById('tm-time');
-      const eEl=document.getElementById('tm-endTime');
-      const dEl=document.getElementById('tm-deadline');
-      if(tEl)tEl.value=plMinToTime(startMin);
-      if(eEl)eEl.value=plMinToTime(Math.min(startMin+60,1439));
-      if(dEl&&dstr)dEl.value=dstr;
-    },80);
+      document.getElementById('tm-time').value=plMinToTime(startMin);
+      document.getElementById('tm-endTime').value=plMinToTime(Math.min(startMin+60,1439));
+    },60);
   }
 }
 
@@ -4063,30 +3929,21 @@ function plRenderMonth(main){
     let cls='plMonth-cell'+(isWe?' we':'')+(isT?' todayM':'')+(isSel?' selM':'');
     const evts=plEvtsForDate(dstr);
     const maxShow=3;
-    html+=`<div class="${cls}" data-dstr="${dstr}">`;
+    html+=`<div class="${cls}" onclick="plMiniClickDay('${dstr}')">`;
     html+=`<div class="plMonth-dn">${day}</div>`;
     evts.slice(0,maxShow).forEach(e=>{
+      const alpha=e.done?'0.4':'0.85';
       const bg=e.color+'22',col=e.color;
       const timeStr=e.time?`<span style="font-size:8px;opacity:.7;margin-right:2px">${plFmtTime(e.time)}</span>`:'';
-      html+=`<div class="plMonth-pill calTaskRow" data-evtid="${e.id}" data-src="${e.src}" data-dstr="${dstr}" style="background:${bg};color:${col};border-left:2px solid ${col};opacity:${e.done?0.5:1};cursor:pointer" title="${esc(e.text)}">${timeStr}${esc(e.text)}</div>`;
+      const icon=e.src==='task'?'📋':' ';
+      const clickFn=e.src==='task'?`plCalOpenTask('${e.id}','${dstr}')`:`plCalOpenModal('${e.id}','${dstr}')`;
+      html+=`<div class="plMonth-pill calTaskRow" style="background:${bg};color:${col};border-left:2px solid ${col};opacity:${e.done?0.5:1}" title="${esc(e.text)}" onclick="event.stopPropagation();${clickFn}">${timeStr}${esc(e.text)}</div>`;
     });
     if(evts.length>maxShow)html+=`<div class="plMonth-more">+${evts.length-maxShow} ещё</div>`;
     html+=`</div>`;
   }
   html+=`</div></div>`;
   main.innerHTML=html;
-  // Wire click events after render
-  main.addEventListener('click',e=>{
-    const evtEl=e.target.closest('[data-evtid]');
-    const cellEl=e.target.closest('[data-dstr]');
-    if(evtEl){
-      e.stopPropagation();
-      const src=evtEl.dataset.src,id=evtEl.dataset.evtid,dstr=evtEl.dataset.dstr;
-      if(src==='task')plCalOpenTask(id,dstr);else plCalOpenModal(id,dstr);
-      return;
-    }
-    if(cellEl&&cellEl.dataset.dstr){plMiniClickDay(cellEl.dataset.dstr);}
-  });
 }
 
 // ── Time grid (day/3day/week) ──
@@ -4116,7 +3973,8 @@ function plRenderGrid(main){
     allDayEvts.forEach(e=>{
       const bg=e.color+'28',col=e.color;
       const icon=e.src==='task'?(e.isRepeat?'↻ ':'📋 '):'📅 ';
-      adHtml+=`<div class="plEvt-allday calTaskRow" data-evtid="${e.id}" data-src="${e.src}" data-dstr="${dstr}" style="background:${bg};color:${col};border-left-color:${col};opacity:${e.done?0.5:1};cursor:pointer" title="${esc(e.text)}">${icon}${esc(e.text)}</div>`;
+      const clickFn=e.src==='task'?`plCalOpenTask('${e.id}','${dstr}')`:`plCalOpenModal('${e.id}','${dstr}')`;
+      adHtml+=`<div class="plEvt-allday calTaskRow" style="background:${bg};color:${col};border-left-color:${col};opacity:${e.done?0.5:1}" title="${esc(e.text)}" onclick="event.stopPropagation();${clickFn}">${icon}${esc(e.text)}</div>`;
     });
     adHtml+=`</div>`;
   });
@@ -4195,33 +4053,8 @@ let _plRightDrag=false,_plRightDragStart=null,_plRightDragDstr=null,_plRightDrag
 function _plSetupGridInteraction(main,dates,totalH){
   const colsWrap=main.querySelector('#plGridCols');if(!colsWrap)return;
 
-  // ── CLICK handlers for existing events ──
-  colsWrap.querySelectorAll('.plEvt[data-evtid]').forEach(evtEl=>{
-    const src=evtEl.dataset.src;
-    const evtId=evtEl.dataset.evtid;
-    const dstr=evtEl.dataset.dstr;
-    evtEl.addEventListener('click',e=>{
-      e.stopPropagation();
-      if(src==='task'){plCalOpenTask(evtId,dstr);}
-      else{plCalOpenModal(evtId,dstr);}
-    });
-  });
-
-  // ── All-day event row clicks ──
-  main.querySelectorAll('.plEvt-allday[data-evtid]').forEach(evtEl=>{
-    const src=evtEl.dataset.src;
-    const evtId=evtEl.dataset.evtid;
-    const dstr=evtEl.dataset.dstr;
-    evtEl.addEventListener('click',e=>{
-      e.stopPropagation();
-      if(src==='task'){plCalOpenTask(evtId,dstr);}
-      else{plCalOpenModal(evtId,dstr);}
-    });
-  });
-
   // ── Drag-to-MOVE existing events ──
   colsWrap.querySelectorAll('.plEvt[data-evtid]').forEach(evtEl=>{
-    evtEl.setAttribute('draggable','true');
     evtEl.addEventListener('dragstart',e=>{
       _plDragEvtId=evtEl.dataset.evtid;
       _plDragEvtSrc=evtEl.dataset.src;
@@ -4233,106 +4066,80 @@ function _plSetupGridInteraction(main,dates,totalH){
     evtEl.addEventListener('dragend',()=>{evtEl.style.opacity='';_plDragEvtId=null;});
   });
 
-  // Helper: get Y relative to column top
-  const getRelY=(e,col)=>{
-    const rect=col.getBoundingClientRect();
-    return e.clientY-rect.top;
-  };
-
-  // ── Drop zones + click + right-drag: each day column ──
+  // ── Drop zones: each day column ──
   colsWrap.querySelectorAll('.plGrid-col').forEach(col=>{
     const dstr=col.dataset.dstr;
-
     col.addEventListener('dragover',e=>{e.preventDefault();e.dataTransfer.dropEffect='move';});
     col.addEventListener('drop',e=>{
       e.preventDefault();
       if(!_plDragEvtId)return;
-      const relY=getRelY(e,col);
-      const mins=Math.round((relY/HOUR_H)*60/15)*15;
+      const rect=col.getBoundingClientRect();
+      const relY=e.clientY-rect.top+(col.closest('.plGrid-scroll')?.scrollTop||0);
+      const mins=Math.round((relY/HOUR_H)*60/15)*15; // snap to 15min
       const newTime=plMinToTime(Math.max(0,Math.min(1410,mins)));
       _plMoveCalEvt(_plDragEvtId,_plDragEvtSrc,_plDragEvtOrigDate,dstr,newTime);
       _plDragEvtId=null;
     });
 
-    // ── LEFT click on empty area → open new task modal ──
-    col.addEventListener('click',e=>{
-      // Only fire if click is directly on the column or grid lines (not on an event)
-      if(e.target!==col&&!e.target.classList.contains('plGrid-hline'))return;
-      if(_plDragEvtId)return;
-      const relY=getRelY(e,col);
-      const mins=Math.round((relY/HOUR_H)*60/15)*15;
-      const startMin=Math.max(0,Math.min(23*60,mins));
-      _taskModalIdx=-1;
-      openTaskModal(-1,dstr);
-      setTimeout(()=>{
-        document.getElementById('tm-time').value=plMinToTime(startMin);
-        document.getElementById('tm-endTime').value=plMinToTime(Math.min(1440,startMin+60));
-        document.getElementById('tm-deadline').value=dstr;
-      },80);
-    });
-
-    // ── Right mouse drag → CREATE with time range ──
+    // ── Right mouse drag to CREATE event at specific time range ──
     col.addEventListener('mousedown',e=>{
-      if(e.button!==2)return;
+      if(e.button!==2)return; // only right mouse
       e.preventDefault();
       _plRightDrag=true;
       _plRightDragDstr=dstr;
-      const relY=getRelY(e,col);
+      const rect=col.getBoundingClientRect();
+      const scrollTop=col.closest('.plGrid-scroll')?.scrollTop||0;
+      const relY=e.clientY-rect.top+scrollTop;
       const mins=Math.round((relY/HOUR_H)*60/15)*15;
       _plRightDragStart=Math.max(0,Math.min(1410,mins));
+      // Preview element
       if(_plRightDragPreview)_plRightDragPreview.remove();
       _plRightDragPreview=document.createElement('div');
-      Object.assign(_plRightDragPreview.style,{
-        position:'absolute',left:'2px',right:'6px',
-        background:'rgba(139,122,240,.3)',
-        border:'1.5px solid var(--p)',
-        borderLeft:'3px solid var(--p)',
-        borderRadius:'6px',zIndex:'20',pointerEvents:'none',
-        color:'var(--p)',fontSize:'9px',fontWeight:'700',padding:'2px 5px',
-        overflow:'hidden',whiteSpace:'nowrap'
-      });
+      _plRightDragPreview.style.cssText=`position:absolute;left:2px;right:6px;background:rgba(139,122,240,.35);border:1.5px solid var(--p);border-radius:5px;z-index:20;pointer-events:none;border-left:3px solid var(--p);`;
       _plRightDragPreview.style.top=(_plRightDragStart/60*HOUR_H)+'px';
       _plRightDragPreview.style.height='4px';
-      _plRightDragPreview.textContent=plMinToTime(_plRightDragStart);
       col.appendChild(_plRightDragPreview);
     });
-
     col.addEventListener('mousemove',e=>{
       if(!_plRightDrag||_plRightDragDstr!==dstr)return;
-      const relY=getRelY(e,col);
+      const rect=col.getBoundingClientRect();
+      const scrollTop=col.closest('.plGrid-scroll')?.scrollTop||0;
+      const relY=e.clientY-rect.top+scrollTop;
       const curMin=Math.round((relY/HOUR_H)*60/15)*15;
       const endMin=Math.max(_plRightDragStart+15,Math.min(1440,curMin));
       if(_plRightDragPreview){
-        _plRightDragPreview.style.top=(_plRightDragStart/60*HOUR_H)+'px';
-        _plRightDragPreview.style.height=((endMin-_plRightDragStart)/60*HOUR_H)+'px';
+        const t=_plRightDragStart/60*HOUR_H;
+        const h=(endMin-_plRightDragStart)/60*HOUR_H;
+        _plRightDragPreview.style.top=t+'px';
+        _plRightDragPreview.style.height=h+'px';
         _plRightDragPreview.textContent=plMinToTime(_plRightDragStart)+' – '+plMinToTime(endMin);
+        _plRightDragPreview.style.cssText+=';color:var(--p);font-size:9px;font-weight:700;padding:2px 4px;';
       }
     });
-
     col.addEventListener('mouseup',e=>{
       if(!_plRightDrag||e.button!==2)return;
-      const relY=getRelY(e,col);
+      const rect=col.getBoundingClientRect();
+      const scrollTop=col.closest('.plGrid-scroll')?.scrollTop||0;
+      const relY=e.clientY-rect.top+scrollTop;
       const endMin=Math.max(_plRightDragStart+15,Math.round((relY/HOUR_H)*60/15)*15);
       if(_plRightDragPreview){_plRightDragPreview.remove();_plRightDragPreview=null;}
       _plRightDrag=false;
+      // Open new task modal with pre-filled time
       _taskModalIdx=-1;
       openTaskModal(-1,dstr);
       setTimeout(()=>{
         document.getElementById('tm-time').value=plMinToTime(_plRightDragStart);
         document.getElementById('tm-endTime').value=plMinToTime(Math.min(1440,endMin));
         document.getElementById('tm-deadline').value=dstr;
-      },80);
+      },60);
     });
-
+    // Prevent right-click context menu on the grid
     col.addEventListener('contextmenu',e=>e.preventDefault());
   });
 
-  const cancelDrag=()=>{
-    if(_plRightDragPreview){_plRightDragPreview.remove();_plRightDragPreview=null;}
-    _plRightDrag=false;
-  };
-  colsWrap.addEventListener('mouseleave',cancelDrag);
-  document.addEventListener('mouseup',e=>{if(e.button===2&&_plRightDrag)cancelDrag();},{once:false});
+  // Global mouseup to cancel right drag if mouse leaves column
+  const cancelDrag=()=>{if(_plRightDragPreview){_plRightDragPreview.remove();_plRightDragPreview=null;}_plRightDrag=false;};
+  colsWrap.addEventListener('mouseleave',cancelDrag,{once:false});
 }
 
 /* ── Move a calendar event/task to new date+time ── */
@@ -4374,7 +4181,9 @@ function _plMoveCalEvt(evtId,src,origDate,newDate,newTime){
 function plCalGridClick(ev,dstr){
   const col=ev.currentTarget;
   const rect=col.getBoundingClientRect();
-  const relY=ev.clientY-rect.top;
+  const scroll=document.getElementById('plGrid-scroll');
+  const scrollTop=scroll?scroll.scrollTop:0;
+  const relY=ev.clientY-rect.top+scrollTop;
   const totalMin=Math.round((relY/HOUR_H)*60/15)*15;
   const startMin=Math.max(0,Math.min(totalMin,23*60));
   plCalGridOpenTask(dstr,startMin);
@@ -5334,32 +5143,22 @@ function closeAllLabelPickers(){
 function openLabelPicker(taskIdx, anchorEl){
   closeAllLabelPickers();
   const groups=labelGroupsD();
-  const t=tpD()[taskIdx];
-  const curIds=t?(t.labelIds&&t.labelIds.length?t.labelIds:[t.labelId].filter(Boolean)):[];
   const drop=document.createElement('div');
   drop.className='labelPickerDrop';
-  drop.style.cssText=`position:fixed;z-index:1200;background:var(--card);border:1px solid var(--border2);border-radius:12px;padding:8px;box-shadow:var(--shadow2);min-width:190px;max-width:240px;`;
+  drop.style.cssText=`position:fixed;z-index:1200;background:var(--card);border:1px solid var(--border2);border-radius:12px;padding:8px;box-shadow:var(--shadow2);min-width:180px;max-width:220px;`;
   const rect=anchorEl.getBoundingClientRect();
-  let top=rect.bottom+4,left=rect.left;
-  if(top+360>window.innerHeight)top=rect.top-360;
-  if(left+240>window.innerWidth)left=window.innerWidth-245;
-  drop.style.top=top+'px';drop.style.left=left+'px';
-  // Header
-  const hdr=document.createElement('div');
-  hdr.style.cssText='font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--muted);padding:2px 8px 6px;border-bottom:1px solid var(--border);margin-bottom:6px';
-  hdr.textContent='Выбери метки (можно несколько)';
-  drop.appendChild(hdr);
-  // None
+  let top=rect.bottom+4, left=rect.left;
+  if(top+320>window.innerHeight) top=rect.top-320;
+  if(left+220>window.innerWidth) left=window.innerWidth-225;
+  drop.style.top=top+'px';
+  drop.style.left=left+'px';
+  // None option
   const none=document.createElement('div');
-  none.style.cssText='padding:5px 8px;cursor:pointer;border-radius:6px;font-size:11px;color:var(--muted);display:flex;align-items:center;gap:7px;margin-bottom:4px;';
-  none.textContent='— Убрать все метки';
+  none.style.cssText='padding:5px 8px;cursor:pointer;border-radius:6px;font-size:11px;color:var(--muted);display:flex;align-items:center;gap:7px;margin-bottom:6px;';
+  none.textContent='— Без метки';
   none.onmouseenter=()=>none.style.background='rgba(255,255,255,.07)';
   none.onmouseleave=()=>none.style.background='';
-  none.onclick=()=>{
-    const task=tpD()[taskIdx];if(!task)return;
-    task.labelId='';task.labelIds=[];
-    saveD();closeAllLabelPickers();_refreshAllTaskViews();
-  };
+  none.onclick=()=>{updT(taskIdx,'labelId','');saveD();closeAllLabelPickers();renderTP()};
   drop.appendChild(none);
   groups.forEach(g=>{
     const grpHdr=document.createElement('div');
@@ -5368,19 +5167,11 @@ function openLabelPicker(taskIdx, anchorEl){
     drop.appendChild(grpHdr);
     g.labels.forEach(l=>{
       const row=document.createElement('div');
-      const isSelected=curIds.includes(l.id);
-      row.style.cssText=`padding:5px 8px;cursor:pointer;border-radius:6px;font-size:11px;display:flex;align-items:center;gap:7px;background:${isSelected?hexA(l.color,.15):'transparent'};`;
-      row.innerHTML=`<span style="width:10px;height:10px;border-radius:50%;background:${l.color};flex-shrink:0;display:inline-block;${isSelected?'box-shadow:0 0 0 2px '+l.color:''}"></span><span style="color:${l.color};font-weight:600;flex:1">${esc(l.name)}</span>${isSelected?`<span style="color:${l.color};font-size:10px">✓</span>`:''}`;
-      row.onmouseenter=()=>row.style.background=isSelected?hexA(l.color,.2):'rgba(255,255,255,.07)';
-      row.onmouseleave=()=>row.style.background=isSelected?hexA(l.color,.15):'transparent';
-      row.onclick=e=>{
-        e.stopPropagation();
-        const task=tpD()[taskIdx];if(!task)return;
-        let ids=[...(task.labelIds&&task.labelIds.length?task.labelIds:[task.labelId].filter(Boolean))];
-        if(ids.includes(l.id)){ids=ids.filter(x=>x!==l.id);}else{ids.push(l.id);}
-        task.labelIds=ids;task.labelId=ids[0]||'';
-        saveD();closeAllLabelPickers();_refreshAllTaskViews();
-      };
+      row.style.cssText='padding:5px 8px;cursor:pointer;border-radius:6px;font-size:11px;display:flex;align-items:center;gap:7px;';
+      row.innerHTML=`<span style="width:10px;height:10px;border-radius:50%;background:${l.color};flex-shrink:0;display:inline-block"></span><span style="color:${l.color};font-weight:600">${esc(l.name)}</span>`;
+      row.onmouseenter=()=>row.style.background='rgba(255,255,255,.07)';
+      row.onmouseleave=()=>row.style.background='';
+      row.onclick=()=>{updT(taskIdx,'labelId',l.id);saveD();closeAllLabelPickers();renderTP()};
       drop.appendChild(row);
     });
   });
