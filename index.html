@@ -56,8 +56,8 @@ let currentUser = null;
 
   /* ── Typography ── */
   --text:#EEEFFE;
-  --text2:#8B95BE;
-  --muted:#454E70;
+  --text2:#A0AACB;
+  --muted:#5E6888;
 
   /* ── Shadows ── */
   --shadow:0 1px 2px rgba(0,0,0,.7),0 6px 24px rgba(0,0,0,.5);
@@ -335,7 +335,7 @@ body::before{
 .secLbl{
   font-size:9px;font-weight:800;
   text-transform:uppercase;letter-spacing:1.8px;
-  color:var(--muted);
+  color:var(--text2);
   margin-bottom:12px;
   display:flex;align-items:center;gap:10px;
 }
@@ -564,54 +564,48 @@ select.inp option{background:var(--card2);color:var(--text)}
 .rFill{fill:none;stroke-width:4.5;stroke-linecap:round;stroke:var(--CC);transition:.8s var(--ease);filter:url(#ringGlow)}
 .dPct{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;color:var(--CC);font-family:var(--font-display);text-shadow:0 0 12px var(--CC)}
 .dFocusInp{width:100%;max-width:100%;box-sizing:border-box;border:1px solid var(--border);border-radius:8px;padding:5px 8px;font-family:var(--font-body);font-size:11px;resize:none;min-height:34px;outline:none;background:var(--card2);color:var(--text);transition:border-color var(--dur) var(--ease)}
-.dFocusInp::placeholder{color:var(--muted)}.dFocusInp:focus{border-color:var(--CC)}
+.dFocusInp::placeholder{color:var(--text2);opacity:.5}.dFocusInp:focus{border-color:var(--CC)}
 .dStats{display:grid;grid-template-columns:1fr 1fr 1fr;text-align:center;border-top:1px solid var(--border);padding:6px 0;overflow:hidden}
-.dStat .sl{font-size:7px;font-weight:700;text-transform:uppercase;color:var(--muted);letter-spacing:.3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dStat .sl{font-size:7px;font-weight:800;text-transform:uppercase;color:var(--text2);letter-spacing:.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .dStat .sv{font-size:13px;font-weight:800;color:var(--text);font-family:var(--font-display)}
-.dSecLbl{font-size:8px;font-weight:800;text-transform:uppercase;color:var(--muted);letter-spacing:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dSecLbl{font-size:8px;font-weight:800;text-transform:uppercase;color:var(--text2);letter-spacing:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .dTasks{display:flex;flex-direction:column;gap:3px;margin-top:4px;overflow:hidden}
-.dTask{display:flex;align-items:center;gap:5px;min-width:0;overflow:hidden;max-width:100%}
+.dTask{display:flex;align-items:center;gap:5px;min-width:0;overflow:hidden;max-width:100%;border-radius:4px;transition:background .1s,padding-left .1s}.dTask:hover{background:rgba(255,255,255,.05);padding-left:2px}
 .dTask input[type=checkbox]{width:13px;height:13px;flex-shrink:0;accent-color:var(--CC);cursor:pointer}
 .dTaskInp{flex:1;min-width:0;width:0;border:none;background:transparent;font-family:var(--font-body);font-size:11px;color:var(--text);outline:none;padding:1px 0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .dTaskInp.done{text-decoration:line-through;color:var(--muted)}
 
 /* ── Task tooltip ── */
 .dTask{position:relative}
+.dTask{cursor:pointer}
 .dTaskTooltip{
-  position:absolute;
-  left:0;bottom:calc(100% + 6px);
-  background:rgba(15,16,40,.97);
-  border:1px solid var(--border2);
-  border-radius:8px;
-  padding:7px 10px;
-  font-size:11px;font-weight:600;
+  position:fixed;
+  left:0;top:0;
+  background:linear-gradient(160deg,rgba(18,19,44,.98) 0%,rgba(12,13,28,.99) 100%);
+  border:1px solid rgba(var(--CC-r,155),var(--CC-g,143),var(--CC-b,245),.3);
+  border-radius:14px;
+  padding:12px 14px 10px;
+  font-size:11.5px;font-weight:500;
   color:var(--text);
   white-space:normal;word-break:break-word;
-  max-width:220px;min-width:120px;
-  box-shadow:0 8px 28px rgba(0,0,0,.6),0 0 0 1px var(--CC,var(--border3));
-  z-index:200;
+  width:220px;
+  box-shadow:0 16px 48px rgba(0,0,0,.7),0 0 0 1px rgba(255,255,255,.06),0 0 24px var(--CC,rgba(155,143,245,.1));
+  z-index:9990;
   pointer-events:none;
   opacity:0;
-  transform:translateY(4px);
-  transition:opacity .15s var(--ease),transform .15s var(--ease);
+  transform:translateY(4px) scale(.97);
+  transition:opacity .18s var(--ease),transform .18s var(--ease);
   line-height:1.5;
-}
-.dTaskTooltip::after{
-  content:'';
-  position:absolute;top:100%;left:14px;
-  border:5px solid transparent;
-  border-top-color:var(--border2);
+  backdrop-filter:blur(12px);
 }
 .dTaskTooltip::before{
-  content:'';
-  position:absolute;top:100%;left:15px;
-  border:4px solid transparent;
-  border-top-color:rgba(15,16,40,.97);
-  z-index:1;
+  content:'';position:absolute;inset:0;border-radius:14px;
+  background:linear-gradient(135deg,rgba(155,143,245,.05) 0%,transparent 60%);
+  pointer-events:none;
 }
 .dTask:hover .dTaskTooltip{
   opacity:1;
-  transform:translateY(0);
+  transform:translateY(0) scale(1);
 }
 .dTaskDel{border:none;background:none;cursor:pointer;color:var(--red);font-size:14px;padding:0 2px;opacity:0;transition:opacity .15s,transform .1s;flex-shrink:0}
 .dTask:hover .dTaskDel{opacity:.7}.dTask:hover .dTaskDel:hover{opacity:1;transform:scale(1.2)}
@@ -619,7 +613,7 @@ select.inp option{background:var(--card2);color:var(--text)}
 .dAddTask:hover{border-color:var(--CC);color:var(--CC);background:var(--CL);transform:translateY(-1px);box-shadow:0 2px 8px rgba(0,0,0,.3)}
 .dNotesArea{width:100%;max-width:100%;box-sizing:border-box;border:1px solid var(--border);border-radius:8px;padding:5px 8px;font-family:var(--font-body);font-size:10px;resize:none;min-height:46px;outline:none;background:var(--card2);color:var(--text)}
 .dNotesArea:focus{border-color:var(--CC)}
-.dImprInp{width:100%;max-width:100%;box-sizing:border-box;border:none;background:transparent;font-family:var(--font-body);font-size:10px;color:var(--text2);outline:none;padding:1px 3px;border-bottom:1px solid transparent;transition:.15s;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.dImprInp{width:100%;max-width:100%;box-sizing:border-box;border:none;background:transparent;font-family:var(--font-body);font-size:10px;color:var(--text);outline:none;padding:1px 3px;border-bottom:1px solid transparent;transition:.15s;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;opacity:.8}
 .dImprInp:focus{border-bottom-color:var(--CC)}
 
 /* ══════════════════════════════
@@ -632,7 +626,7 @@ select.inp option{background:var(--card2);color:var(--text)}
 .htMonthName{font-family:var(--font-display);font-size:26px;font-weight:700;letter-spacing:-.5px;color:var(--pink);min-width:200px}
 .htSummary{display:flex;gap:20px;align-items:center;flex-wrap:wrap}
 .htStat{text-align:center}
-.htStatL{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.7px;color:var(--muted)}
+.htStatL{font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.7px;color:var(--text2)}
 .htStatV{font-size:22px;font-weight:800;color:var(--text);font-family:var(--font-display);letter-spacing:-.5px}
 .htProgWrap{display:flex;flex-direction:column;gap:5px;min-width:130px}
 .htProgBar{height:6px;background:var(--border2);border-radius:4px;overflow:hidden}
@@ -691,7 +685,7 @@ select.inp option{background:var(--card2);color:var(--text)}
 .tTbl tbody tr:hover{background:rgba(155,143,245,.05);transition:background .1s}
 .trOv td{background:rgba(248,113,113,.05)!important}.trTd td{background:rgba(251,146,60,.05)!important}.trSo td{background:rgba(245,158,11,.04)!important}.trDn td{background:rgba(45,212,166,.04)!important}
 .tCb{width:15px;height:15px;cursor:pointer;accent-color:var(--green);transition:transform .1s}.tCb:hover{transform:scale(1.15)}
-.tNameInp{border:none;background:transparent;font-family:var(--font-body);font-size:12px;font-weight:600;color:var(--text);outline:none;width:100%}
+.tNameInp{border:none;background:transparent;font-family:var(--font-body);font-size:12px;font-weight:700;color:var(--text);outline:none;width:100%}
 .tDateInp{border:1px solid var(--border2);border-radius:7px;padding:4px 7px;font-family:var(--font-mono);font-size:11px;outline:none;background:var(--card2);color:var(--text);color-scheme:dark;transition:border-color var(--dur) var(--ease)}
 .tDateInp:hover,.tDateInp:focus{border-color:var(--p)}
 .dlNeg{color:var(--red);font-weight:700}.dlZero{color:var(--orange);font-weight:700}.dlSoon{color:var(--gold);font-weight:600}.dlOk{color:var(--green)}
@@ -699,7 +693,7 @@ select.inp option{background:var(--card2);color:var(--text)}
 .tTbl tbody tr:hover .tDelBtn{opacity:1}.tTbl tbody tr:hover .tDelBtn:hover{color:var(--red)}
 .tAddInp{width:100%;border:2px dashed var(--border2);border-radius:9px;padding:10px 14px;font-family:var(--font-body);font-size:13px;font-weight:600;outline:none;background:transparent;color:var(--text2);transition:.15s}
 .tAddInp:focus{border-color:var(--p);background:var(--card2);color:var(--text)}
-.tAddInp::placeholder{color:var(--muted)}
+.tAddInp::placeholder{color:var(--text2);opacity:.6}
 
 /* Mobile task card view */
 .mTaskCard{
@@ -804,8 +798,8 @@ select.inp option{background:var(--card2);color:var(--text)}
 .plCal-upItem{display:flex;align-items:flex-start;gap:6px;font-size:10px;color:var(--text2);padding:5px 7px;border-radius:7px;border:1px solid var(--border);background:var(--card);cursor:pointer;margin-bottom:5px;transition:.15s}
 .plCal-upItem:hover{border-color:var(--border3)}
 .plCal-upDot{width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-top:2px}
-.plCal-upName{font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;min-width:0}
-.plCal-upDate{font-size:8.5px;color:var(--muted);flex-shrink:0}
+.plCal-upName{font-weight:700;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;min-width:0}
+.plCal-upDate{font-size:8.5px;color:var(--text2);flex-shrink:0}
 
 /* ── MONTH VIEW ── */
 .plMonth{display:flex;flex-direction:column;height:100%;overflow:hidden}
@@ -902,7 +896,7 @@ select.inp option{background:var(--card2);color:var(--text)}
 }
 .kbCard:active{transform:translateY(0) scale(.99)}
 .kbCardTitle{font-size:12px;font-weight:700;color:var(--text);margin-bottom:4px}
-.kbCardDesc{font-size:11px;color:var(--muted);margin-bottom:8px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;line-height:1.5}
+.kbCardDesc{font-size:11px;color:var(--text2);margin-bottom:8px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;line-height:1.5}
 .kbCardFoot{display:flex;align-items:center;gap:5px;flex-wrap:wrap}
 .kbPri{font-size:9px;font-weight:800;padding:2px 7px;border-radius:5px;text-transform:uppercase;letter-spacing:.3px}
 .kbP1{background:var(--reddim);color:var(--red)}.kbP2{background:var(--golddim);color:var(--gold)}.kbP3{background:var(--greendim);color:var(--green)}
@@ -948,7 +942,7 @@ select.inp option{background:var(--card2);color:var(--text)}
 .modalClose{border:none;background:none;cursor:pointer;color:var(--text2);font-size:18px;padding:0;line-height:1;transition:color var(--dur) var(--ease);width:28px;height:28px;display:flex;align-items:center;justify-content:center;border-radius:6px}
 .modalClose:hover{color:var(--text);background:var(--card2)}
 .fldGrp{display:flex;flex-direction:column;gap:6px}
-.fldLbl{font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--muted)}
+.fldLbl{font-size:9.5px;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:var(--text2)}
 .kbTxtarea{background:var(--card2);border:1px solid var(--border2);border-radius:var(--r2);padding:9px 12px;font-family:var(--font-body);font-size:12px;color:var(--text);outline:none;resize:vertical;min-height:70px;width:100%;transition:border-color var(--dur) var(--ease)}
 .kbTxtarea:focus{border-color:var(--p)}.kbTxtarea::placeholder{color:var(--muted)}
 .kbPriRow{display:flex;gap:7px}
@@ -1137,7 +1131,7 @@ select.inp option{background:var(--card2);color:var(--text)}
 .scoreRingLbl{font-size:8px;color:var(--muted);text-transform:uppercase;letter-spacing:.7px;font-weight:700}
 .dashMiniBarWrap{display:flex;align-items:flex-end;gap:2px;height:44px}
 .dashMiniBar{flex:1;border-radius:3px 3px 0 0;min-height:2px;transition:.4s var(--ease)}
-.dashPipeRow{display:flex;align-items:center;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--border);font-size:11.5px}
+.dashPipeRow{display:flex;align-items:center;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--border);font-size:11.5px;font-weight:600;color:var(--text)}
 .dashPipeRow:last-child{border-bottom:none}
 .dashGoalRow{margin-bottom:10px}
 .dashGoalRowBar{height:5px;background:rgba(255,255,255,.05);border-radius:4px;overflow:hidden;margin-top:4px}
@@ -1169,7 +1163,7 @@ select.inp option{background:var(--card2);color:var(--text)}
 .dashFocusLabel{font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:var(--p);margin-bottom:10px;display:flex;align-items:center;gap:6px}
 .dashFocusLabel::before{content:'';width:6px;height:6px;border-radius:50%;background:var(--p);flex-shrink:0;box-shadow:0 0 8px var(--p)}
 .dashFocusTitle{font-family:var(--font-display);font-size:30px;font-weight:800;letter-spacing:-.8px;color:var(--text);margin-bottom:8px;line-height:1.1;position:relative;z-index:1}
-.dashFocusSub{font-size:13px;color:var(--text2);letter-spacing:-.01em}
+.dashFocusSub{font-size:13.5px;color:var(--text);letter-spacing:-.01em;font-weight:500;opacity:.85}
 .dashFocusActions{display:flex;gap:8px;margin-top:16px;flex-wrap:wrap}
 
 /* Quick stats strip */
@@ -1185,8 +1179,8 @@ select.inp option{background:var(--card2);color:var(--text)}
 }
 .dashStatPill:hover{border-color:var(--border2);transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.05)}
 .dashStatPillIcon{width:38px;height:38px;border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0;box-shadow:inset 0 1px 0 rgba(255,255,255,.1)}
-.dashStatPillVal{font-family:var(--font-display);font-size:20px;font-weight:800;letter-spacing:-.5px;color:var(--text);line-height:1}
-.dashStatPillLbl{font-size:10px;color:var(--text2);margin-top:2px;font-weight:500;letter-spacing:-.01em}
+.dashStatPillVal{font-family:var(--font-display);font-size:22px;font-weight:800;letter-spacing:-.5px;color:var(--text);line-height:1}
+.dashStatPillLbl{font-size:10px;color:var(--text);margin-top:2px;font-weight:600;letter-spacing:-.01em}
 
 /* ══════════════════════════════
    LABELS
@@ -3486,11 +3480,15 @@ function renderWP(){
       ${labelDots}
       ${timeStr}
       <button class="dTaskDel" onclick="wTaskDel(${idx});event.stopPropagation()">×</button>
-      <div class="dTaskTooltip">
-        <div style="font-weight:700;margin-bottom:4px;color:${col}">${esc(t.text)||'Без названия'}</div>
-        ${t.time?`<div style="font-size:10px;color:var(--p);font-family:var(--font-mono)">⏱ ${t.time}${t.endTime?' – '+t.endTime:''}</div>`:''}
-        ${lbls.length?`<div style="display:flex;flex-wrap:wrap;gap:3px;margin-top:4px">${lbls.map(l=>`<span style="font-size:9px;font-weight:700;padding:1px 6px;border-radius:10px;background:${l.color}22;color:${l.color};border:1px solid ${l.color}44">${esc(l.name)}</span>`).join('')}</div>`:''}
-        ${t.done?`<div style="font-size:9px;color:var(--green);margin-top:4px;font-weight:700">✓ Выполнено</div>`:''}
+      <div class="dTaskTooltip" id="tt-${idx}">
+        <div style="font-size:12px;font-weight:800;color:${col};margin-bottom:6px;line-height:1.3;letter-spacing:-.2px">${esc(t.text)||'Без названия'}</div>
+        ${t.time?`<div style="display:flex;align-items:center;gap:5px;font-size:10px;color:rgba(255,255,255,.75);font-family:var(--font-mono);font-weight:600;margin-bottom:4px"><span style="width:6px;height:6px;border-radius:50%;background:var(--p);flex-shrink:0"></span>${t.time}${t.endTime?' – '+t.endTime:''}</div>`:''}
+        ${lbls.length?`<div style="display:flex;flex-wrap:wrap;gap:3px;margin-top:4px">${lbls.map(l=>`<span style="font-size:9px;font-weight:700;padding:2px 7px;border-radius:20px;background:${l.color}20;color:${l.color};border:1px solid ${l.color}35;letter-spacing:.01em">${esc(l.name)}</span>`).join('')}</div>`:''}
+        ${t.notes?`<div style="font-size:10px;color:rgba(255,255,255,.55);margin-top:6px;padding-top:6px;border-top:1px solid rgba(255,255,255,.07);line-height:1.4;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical">${esc(t.notes)}</div>`:''}
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-top:7px;padding-top:6px;border-top:1px solid rgba(255,255,255,.06)">
+          <span style="font-size:9px;color:rgba(255,255,255,.35);font-weight:600">${t.done?'✓ Выполнено':'В процессе'}</span>
+          <span style="font-size:9px;color:rgba(255,255,255,.35)">нажми для редактирования</span>
+        </div>
       </div>
     </div>`;
   }).join('')}</div>
@@ -3892,6 +3890,7 @@ function renderTP(){
   }
   // Always render routine grid below
   if(document.getElementById('rb-grid'))renderRoutine();
+  requestAnimationFrame(_initWeekTooltips);
 }
 
 function toggleT(i,checked,evtTarget){
@@ -4401,13 +4400,19 @@ function _plSetupGridInteraction(main,dates,totalH){
     // ── Left click on empty space → create new task ──
     let _hintEl=null;
     col.addEventListener('mousemove',ev=>{
-      if(ev.target!==col&&!ev.target.classList.contains('plGrid-hline'))return;
+      // Only show hint on bare column background, not on events
+      const onBg = ev.target===col || ev.target.classList.contains('plGrid-hline');
+      if(!onBg){
+        if(_hintEl){_hintEl.style.opacity='0';}
+        return;
+      }
       if(!_hintEl){
         _hintEl=document.createElement('div');
-        _hintEl.style.cssText='position:absolute;left:2px;right:2px;height:22px;background:rgba(139,122,240,.15);border:1px dashed rgba(139,122,240,.4);border-radius:5px;z-index:2;pointer-events:none;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;color:var(--p);transition:top .05s';
-        _hintEl.textContent='+ Добавить задачу';
+        _hintEl.style.cssText='position:absolute;left:2px;right:2px;height:24px;background:rgba(155,143,245,.12);border:1px dashed rgba(155,143,245,.35);border-radius:6px;z-index:2;pointer-events:none;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;color:var(--p);opacity:0;transition:opacity .12s,top .04s';
+        _hintEl.textContent='＋ Добавить задачу';
         col.appendChild(_hintEl);
       }
+      _hintEl.style.opacity='1';
       const rect=col.getBoundingClientRect();
       const relY=ev.clientY-rect.top;
       const mins=Math.round((relY/HOUR_H)*60/15)*15;
@@ -7478,6 +7483,37 @@ self.addEventListener('fetch',e=>{e.respondWith(caches.match(e.request).then(r=>
 
 setInterval(()=>{if(document.getElementById('tab-tasks')?.classList.contains('on'))renderTP()},60000);
 
+
+/* ── Weekly planner task tooltip positioning ── */
+function _initWeekTooltips(){
+  document.querySelectorAll('.dTask').forEach(task=>{
+    const tip=task.querySelector('.dTaskTooltip');
+    if(!tip||tip._init)return;
+    tip._init=true;
+    task.addEventListener('mouseenter',e=>{
+      const x=e.clientX, y=e.clientY;
+      const w=220, h=tip.offsetHeight||120;
+      let left = x + 12;
+      let top = y - 20;
+      if(left + w > window.innerWidth - 10) left = x - w - 12;
+      if(top + h > window.innerHeight - 10) top = window.innerHeight - h - 10;
+      if(top < 10) top = 10;
+      tip.style.left = left + 'px';
+      tip.style.top = top + 'px';
+    });
+    task.addEventListener('mousemove',e=>{
+      if(tip.style.opacity==='0'||tip.style.opacity==='') return;
+      const w=220, h=tip.offsetHeight||120;
+      let left = e.clientX + 12;
+      let top = e.clientY - 20;
+      if(left + w > window.innerWidth - 10) left = e.clientX - w - 12;
+      if(top + h > window.innerHeight - 10) top = window.innerHeight - h - 10;
+      if(top < 10) top = 10;
+      tip.style.left = left + 'px';
+      tip.style.top = top + 'px';
+    });
+  });
+}
 /* ══════════════════════════════════════════
    KEYBOARD SHORTCUTS SYSTEM
    Цифры 1-9 для навигации (без модификаторов)
