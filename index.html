@@ -705,7 +705,7 @@ select.inp option{background:var(--card2);color:var(--text)}
 .plMonth-cell.we .plMonth-dn{color:var(--pink)}
 .plMonth-dn{font-size:12px;font-weight:700;color:var(--muted);width:24px;height:24px;display:flex;align-items:center;justify-content:center;border-radius:50%;margin-bottom:2px;flex-shrink:0}
 .plMonth-cell.todayM .plMonth-dn{background:var(--cyan);color:#000;font-weight:800}
-.plMonth-pill{font-size:9px;font-weight:600;padding:1px 5px;border-radius:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.6;margin-top:1px;cursor:pointer;transition:.1s}
+.plMonth-pill{font-size:9px;font-weight:600;padding:2px 6px;border-radius:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.6;margin-top:1px;cursor:pointer;transition:all .12s}.plMonth-pill:hover{filter:brightness(1.2);transform:translateX(1px)}
 .plMonth-pill:hover{filter:brightness(1.15)}
 .plMonth-more{font-size:9px;color:var(--muted);padding:1px 3px;margin-top:1px;cursor:pointer}
 .plMonth-more:hover{color:var(--text2)}
@@ -733,7 +733,7 @@ select.inp option{background:var(--card2);color:var(--text)}
 .plGrid-timeGut{width:52px;flex-shrink:0;position:relative;border-right:1px solid var(--border)}
 .plGrid-hrLbl{position:absolute;right:6px;font-size:8.5px;color:var(--muted);font-weight:600;transform:translateY(-50%);white-space:nowrap;line-height:1}
 .plGrid-cols{flex:1;display:flex;position:relative}
-.plGrid-col{flex:1;border-right:1px solid rgba(255,255,255,.04);position:relative;cursor:crosshair}
+.plGrid-col{flex:1;border-right:1px solid rgba(255,255,255,.04);position:relative;cursor:crosshair;transition:background .1s}.plGrid-col:hover{background:rgba(255,255,255,.012)!important}
 .plGrid-col:last-child{border-right:none}
 .plGrid-hline{position:absolute;left:0;right:0;border-top:1px solid rgba(255,255,255,.04);pointer-events:none}
 .plGrid-hline.half{border-top:1px dashed rgba(255,255,255,.025)}
@@ -743,7 +743,7 @@ select.inp option{background:var(--card2);color:var(--text)}
 .plGrid-nowBar{flex:1;height:2px;background:var(--red)}
 /* Event blocks */
 .plEvt{position:absolute;border-radius:5px;padding:2px 5px;cursor:pointer;overflow:hidden;z-index:3;border-left:3px solid rgba(255,255,255,.4);transition:.08s;box-sizing:border-box}
-.plEvt:hover{filter:brightness(1.12);z-index:10;box-shadow:0 3px 14px rgba(0,0,0,.5)}
+.plEvt:hover{filter:brightness(1.18);z-index:10;box-shadow:0 4px 18px rgba(0,0,0,.6);transform:translateY(-1px) scale(1.01)}.plEvt:active{transform:scale(.98)}
 .plEvt-title{font-size:9.5px;font-weight:700;line-height:1.3;overflow:hidden;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;color:inherit}
 .plEvt-time{font-size:8px;opacity:.75;white-space:nowrap;overflow:hidden;color:inherit;margin-top:1px}
 .plEvt-allday{border-radius:4px;padding:1px 5px;font-size:9px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer;transition:.1s;margin-bottom:1px;display:block;border-left:3px solid rgba(255,255,255,.4)}
@@ -4058,9 +4058,11 @@ function plRenderGrid(main){
     adHtml+=`<div class="plGrid-adCol" onclick="plCalGridOpenTask('${dstr}')">`;
     allDayEvts.forEach(e=>{
       const bg=e.color+'28',col=e.color;
-      const icon=e.src==='task'?(e.isRepeat?'↻ ':'📋 '):'📅 ';
+      const icon=e.src==='task'?(e.isRepeat?'↻ ':''):'📅 ';
       const clickFn=e.src==='task'?`plCalOpenTask('${e.id}','${dstr}')`:`plCalOpenModal('${e.id}','${dstr}')`;
-      adHtml+=`<div class="plEvt-allday calTaskRow" style="background:${bg};color:${col};border-left-color:${col};opacity:${e.done?0.5:1}" title="${esc(e.text)}" onclick="event.stopPropagation();${clickFn}">${icon}${esc(e.text)}</div>`;
+      adHtml+=`<div class="plEvt-allday calTaskRow" style="background:${bg};color:${col};border-left-color:${col};opacity:${e.done?0.5:1};cursor:pointer" title="${esc(e.text)}" onclick="event.stopPropagation();${clickFn}">
+        <span style="width:7px;height:7px;border-radius:50%;background:${col};display:inline-block;flex-shrink:0;margin-right:4px"></span>${icon}${esc(e.text)}
+      </div>`;
     });
     adHtml+=`</div>`;
   });
@@ -4139,8 +4141,16 @@ let _plRightDrag=false,_plRightDragStart=null,_plRightDragDstr=null,_plRightDrag
 function _plSetupGridInteraction(main,dates,totalH){
   const colsWrap=main.querySelector('#plGridCols');if(!colsWrap)return;
 
-  // ── Drag-to-MOVE existing events ──
+  // ── Click to OPEN existing events ──
   colsWrap.querySelectorAll('.plEvt[data-evtid]').forEach(evtEl=>{
+    evtEl.addEventListener('click',e=>{
+      e.stopPropagation();
+      const src=evtEl.dataset.src,id=evtEl.dataset.evtid,dstr=evtEl.dataset.dstr;
+      if(src==='task') plCalOpenTask(id,dstr);
+      else plCalOpenModal(id,dstr);
+    });
+    evtEl.style.cursor='pointer';
+    // ── Drag-to-MOVE existing events ──
     evtEl.addEventListener('dragstart',e=>{
       _plDragEvtId=evtEl.dataset.evtid;
       _plDragEvtSrc=evtEl.dataset.src;
@@ -4165,6 +4175,33 @@ function _plSetupGridInteraction(main,dates,totalH){
       const newTime=plMinToTime(Math.max(0,Math.min(1410,mins)));
       _plMoveCalEvt(_plDragEvtId,_plDragEvtSrc,_plDragEvtOrigDate,dstr,newTime);
       _plDragEvtId=null;
+    });
+
+    // ── Left click on empty space → create new task ──
+    let _hintEl=null;
+    col.addEventListener('mousemove',ev=>{
+      if(ev.target!==col&&!ev.target.classList.contains('plGrid-hline'))return;
+      if(!_hintEl){
+        _hintEl=document.createElement('div');
+        _hintEl.style.cssText='position:absolute;left:2px;right:2px;height:22px;background:rgba(139,122,240,.15);border:1px dashed rgba(139,122,240,.4);border-radius:5px;z-index:2;pointer-events:none;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;color:var(--p);transition:top .05s';
+        _hintEl.textContent='+ Добавить задачу';
+        col.appendChild(_hintEl);
+      }
+      const rect=col.getBoundingClientRect();
+      const scrollTop=col.closest('.plGrid-scroll')?.scrollTop||0;
+      const relY=ev.clientY-rect.top+scrollTop;
+      const mins=Math.round((relY/HOUR_H)*60/15)*15;
+      _hintEl.style.top=(mins/60*HOUR_H)+'px';
+    });
+    col.addEventListener('mouseleave',()=>{if(_hintEl){_hintEl.remove();_hintEl=null;}});
+    col.addEventListener('click',e=>{
+      if(e.target!==col&&!e.target.classList.contains('plGrid-hline'))return; // only click on background
+      const rect=col.getBoundingClientRect();
+      const scrollTop=col.closest('.plGrid-scroll')?.scrollTop||0;
+      const relY=e.clientY-rect.top+scrollTop;
+      const mins=Math.round((relY/HOUR_H)*60/15)*15;
+      const startMin=Math.max(0,Math.min(23*60,mins));
+      plCalGridOpenTask(dstr,startMin);
     });
 
     // ── Right mouse drag to CREATE event at specific time range ──
