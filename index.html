@@ -460,7 +460,7 @@ select.inp option{background:var(--card2);color:var(--text)}
 ══════════════════════════════ */
 .wNav{display:flex;align-items:center;justify-content:center;gap:12px;margin-bottom:20px;flex-wrap:wrap}
 .wNavLbl{font-family:var(--font-display);font-size:18px;font-weight:700;letter-spacing:-.4px;min-width:280px;text-align:center;color:var(--text)}
-.wGrid{display:grid;grid-template-columns:repeat(7,1fr);gap:10px}
+.wGrid{display:grid;grid-template-columns:repeat(7,1fr);gap:10px;align-items:stretch}
 @media(max-width:1200px){.wGrid{grid-template-columns:repeat(4,1fr)}}
 @media(max-width:700px){.wGrid{grid-template-columns:repeat(2,1fr)}}
 @media(max-width:380px){.wGrid{grid-template-columns:1fr}}
@@ -475,7 +475,7 @@ select.inp option{background:var(--card2);color:var(--text)}
 
 .dCard{
   background:var(--card);border-radius:var(--r);border:1px solid var(--border);
-  padding:14px 12px;display:flex;flex-direction:column;gap:10px;
+  padding:14px 12px;display:flex;flex-direction:column;gap:10px;height:100%;
   transition:border-color var(--dur) var(--ease),box-shadow var(--dur) var(--ease);
 }
 .dCard:hover{border-color:rgba(var(--CC),.3);box-shadow:0 0 0 1px var(--CC),0 10px 40px rgba(0,0,0,.5)}
@@ -2998,23 +2998,24 @@ function subscribeCloud(){
     // Update local cache
     try{localStorage.setItem(SKEY+'_cache',JSON.stringify(incoming));}catch{}
 
-    // Was this snapshot triggered by OUR own recent write (within 4s)?
-    const isOwnEcho=Date.now()-_myLastWriteAt<8000;
+    // Was this snapshot triggered by OUR own recent write?
+    const isOwnEcho=Date.now()-_myLastWriteAt<10000;
 
-    // Always keep G up to date with server state
-    G=incoming;
+    // ← FIX: Only update G from server if this is NOT our own echo.
+    // Before this fix: G=incoming always ran, wiping local changes before saveD() fired.
+    if(!isOwnEcho){
+      G=incoming;
+    }
 
     if(!_appReady){
+      G=incoming; // always load on first boot
       _appReady=true;
       clearTimeout(_connectTimeout);
       hideLoader();
       initApp();
-    } else {
-      // Only re-render and show toast for external changes (not our own writes)
-      if(!isOwnEcho){
-        reRenderCurrentTab();
-        showSaveStatus('saved','↓ Синхронизировано');
-      }
+    } else if(!isOwnEcho){
+      reRenderCurrentTab();
+      showSaveStatus('saved','↓ Синхронизировано');
     }
 
   }, err=>{
@@ -3054,11 +3055,11 @@ function saveD(){
     if(!currentUser){setSyncDot('error');showSaveStatus('error','✗ Нет сессии');return;}
     if(_isSaving)return; // prevent concurrent saves
     _isSaving=true;
+    _myLastWriteAt=Date.now(); // ← FIX: mark BEFORE save so echo window is active immediately
     try{
       // Clean undefined fields — Firestore rejects them
       const payload=cleanForFirestore(G);
       await db.collection('users').doc(currentUser.uid).set(payload);
-      _myLastWriteAt=Date.now(); // mark so we can recognise our own echo
       setSyncDot('ok');
       showSaveStatus('saved','✓ Сохранено');
     }catch(e){
@@ -3630,6 +3631,12 @@ function onNewTask(e){
 
 /* ── Unified Task Modal ── */
 let _taskModalIdx=-1; // -1 = new task
+let _tmRepeatVal='';  // ← FIX: was missing, caused ReferenceError in strict mode
+
+function tmSelRepeat(v){
+  _tmRepeatVal=v;
+  document.querySelectorAll('.tm-repeat-opt').forEach(el=>el.classList.toggle('sel',el.dataset.v===v));
+}
 
 function openTaskModal(idx,prefillDate){
   _taskModalIdx=idx;
