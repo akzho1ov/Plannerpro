@@ -524,7 +524,7 @@ select.inp option{background:var(--card2);color:var(--text)}
 ══════════════════════════════ */
 .wNav{display:flex;align-items:center;justify-content:center;gap:12px;margin-bottom:20px;flex-wrap:wrap;position:relative;z-index:1}
 .wNavLbl{font-family:var(--font-display);font-size:18px;font-weight:800;letter-spacing:-.5px;min-width:280px;text-align:center;color:var(--text)}
-.wGrid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:10px;align-items:stretch}
+.wGrid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:10px;align-items:stretch;overflow:visible}
 @media(max-width:1200px){.wGrid{grid-template-columns:repeat(4,1fr)}}
 @media(max-width:700px){.wGrid{grid-template-columns:repeat(2,1fr)}}
 @media(max-width:380px){.wGrid{grid-template-columns:1fr}}
@@ -541,7 +541,7 @@ select.inp option{background:var(--card2);color:var(--text)}
   background:linear-gradient(170deg,var(--card) 0%,rgba(10,11,22,.97) 100%);
   border-radius:var(--r);border:1px solid var(--border);
   padding:14px 12px;display:flex;flex-direction:column;gap:8px;
-  min-width:0;width:100%;overflow:hidden;
+  min-width:0;width:100%;overflow:visible;
   transition:border-color var(--dur2) var(--ease),box-shadow var(--dur2) var(--ease),transform var(--dur) var(--ease);
   box-shadow:var(--shadow),inset 0 1px 0 rgba(255,255,255,.03);
   position:relative;
@@ -569,7 +569,7 @@ select.inp option{background:var(--card2);color:var(--text)}
 .dStat .sl{font-size:7px;font-weight:800;text-transform:uppercase;color:var(--text2);letter-spacing:.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .dStat .sv{font-size:13px;font-weight:800;color:var(--text);font-family:var(--font-display)}
 .dSecLbl{font-size:8px;font-weight:800;text-transform:uppercase;color:var(--text2);letter-spacing:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.dTasks{display:flex;flex-direction:column;gap:3px;margin-top:4px;overflow:hidden}
+.dTasks{display:flex;flex-direction:column;gap:3px;margin-top:4px;overflow:visible}
 .dTask{display:flex;align-items:center;gap:5px;min-width:0;overflow:hidden;max-width:100%;border-radius:4px;transition:background .1s,padding-left .1s}.dTask:hover{background:rgba(255,255,255,.05);padding-left:2px}
 .dTask input[type=checkbox]{width:13px;height:13px;flex-shrink:0;accent-color:var(--CC);cursor:pointer}
 .dTaskInp{flex:1;min-width:0;width:0;border:none;background:transparent;font-family:var(--font-body);font-size:11px;color:var(--text);outline:none;padding:1px 0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -579,34 +579,32 @@ select.inp option{background:var(--card2);color:var(--text)}
 .dTask{position:relative}
 .dTask{cursor:pointer}
 .dTaskTooltip{
-  position:fixed;
-  left:0;top:0;
+  position:absolute;
+  left:0;
+  bottom:calc(100% + 8px);
   background:linear-gradient(160deg,rgba(18,19,44,.98) 0%,rgba(12,13,28,.99) 100%);
-  border:1px solid rgba(var(--CC-r,155),var(--CC-g,143),var(--CC-b,245),.3);
+  border:1px solid rgba(155,143,245,.25);
   border-radius:14px;
   padding:12px 14px 10px;
   font-size:11.5px;font-weight:500;
   color:var(--text);
   white-space:normal;word-break:break-word;
-  width:220px;
-  box-shadow:0 16px 48px rgba(0,0,0,.7),0 0 0 1px rgba(255,255,255,.06),0 0 24px var(--CC,rgba(155,143,245,.1));
+  width:200px;min-width:160px;
+  box-shadow:0 12px 36px rgba(0,0,0,.7),0 0 0 1px rgba(255,255,255,.05);
   z-index:9990;
   pointer-events:none;
   opacity:0;
-  transform:translateY(4px) scale(.97);
-  transition:opacity .18s var(--ease),transform .18s var(--ease);
+  transform:translateY(6px) scale(.96);
+  transition:opacity .16s var(--ease),transform .16s var(--ease);
   line-height:1.5;
-  backdrop-filter:blur(12px);
+  backdrop-filter:blur(16px);
 }
 .dTaskTooltip::before{
   content:'';position:absolute;inset:0;border-radius:14px;
   background:linear-gradient(135deg,rgba(155,143,245,.05) 0%,transparent 60%);
   pointer-events:none;
 }
-.dTask:hover .dTaskTooltip{
-  opacity:1;
-  transform:translateY(0) scale(1);
-}
+/* tooltip shown via JS only */
 .dTaskDel{border:none;background:none;cursor:pointer;color:var(--red);font-size:14px;padding:0 2px;opacity:0;transition:opacity .15s,transform .1s;flex-shrink:0}
 .dTask:hover .dTaskDel{opacity:.7}.dTask:hover .dTaskDel:hover{opacity:1;transform:scale(1.2)}
 .dAddTask{border:1.5px dashed var(--border2);border-radius:7px;background:none;width:100%;max-width:100%;box-sizing:border-box;padding:3px;font-family:var(--font-body);font-size:10px;font-weight:600;color:var(--muted);cursor:pointer;margin-top:3px;transition:all var(--dur) var(--ease);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -3476,13 +3474,13 @@ function renderWP(){
     const timeStr=t.time?`<span style="font-size:9px;color:var(--p);font-family:var(--font-mono);flex-shrink:0">${t.time}</span>`:'';
     const labelDots=lbls.length?`<span style="display:inline-flex;gap:2px;align-items:center;flex-shrink:0">${lbls.map(l=>`<span style="width:6px;height:6px;border-radius:50%;background:${l.color};flex-shrink:0;display:inline-block" title="${esc(l.name)}"></span>`).join('')}</span>`:'';
     const label0=lbls[0];
-    return`<div class="dTask" style="border-left:2px solid ${col};padding-left:5px;border-radius:2px;--CC:${col};opacity:${t.done?'.5':'1'};filter:${t.done?'saturate(.4)':''}" onclick="openTaskModal(${idx})">
+    return`<div class="dTask" style="border-left:2px solid ${col};padding-left:5px;border-radius:2px;--CC:${col};opacity:${t.done?'.45':'1'}" onclick="openTaskModal(${idx})">
       <input type="checkbox" ${t.done?'checked':''} onchange="wTaskToggle(${idx},this.checked);event.stopPropagation()" style="accent-color:${col};flex-shrink:0">
       <span class="dTaskInp${t.done?' done':''}" style="cursor:pointer;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:11px;color:var(--text)">${esc(t.text)||'Без названия'}</span>
       ${labelDots}
       ${timeStr}
       <button class="dTaskDel" onclick="wTaskDel(${idx});event.stopPropagation()">×</button>
-      <div class="dTaskTooltip" id="tt-${idx}" style="opacity:0">
+      <div class="dTaskTooltip" id="tt-${idx}">
         <div style="font-size:12px;font-weight:800;color:${col};margin-bottom:6px;line-height:1.3;letter-spacing:-.2px">${esc(t.text)||'Без названия'}</div>
         ${t.time?`<div style="display:flex;align-items:center;gap:5px;font-size:10px;color:rgba(255,255,255,.75);font-family:var(--font-mono);font-weight:600;margin-bottom:4px"><span style="width:6px;height:6px;border-radius:50%;background:var(--p);flex-shrink:0"></span>${t.time}${t.endTime?' – '+t.endTime:''}</div>`:''}
         ${lbls.length?`<div style="display:flex;flex-wrap:wrap;gap:3px;margin-top:4px">${lbls.map(l=>`<span style="font-size:9px;font-weight:700;padding:2px 7px;border-radius:20px;background:${l.color}20;color:${l.color};border:1px solid ${l.color}35;letter-spacing:.01em">${esc(l.name)}</span>`).join('')}</div>`:''}
@@ -7491,29 +7489,26 @@ setInterval(()=>{if(document.getElementById('tab-tasks')?.classList.contains('on
 function _initWeekTooltips(){
   document.querySelectorAll('.dTask').forEach(task=>{
     const tip=task.querySelector('.dTaskTooltip');
-    if(!tip||tip._init)return;
-    tip._init=true;
-    task.addEventListener('mouseenter',e=>{
-      const x=e.clientX, y=e.clientY;
-      const w=220, h=tip.offsetHeight||120;
-      let left = x + 12;
-      let top = y - 20;
-      if(left + w > window.innerWidth - 10) left = x - w - 12;
-      if(top + h > window.innerHeight - 10) top = window.innerHeight - h - 10;
-      if(top < 10) top = 10;
-      tip.style.left = left + 'px';
-      tip.style.top = top + 'px';
+    if(!tip||tip._tipInit)return;
+    tip._tipInit=true;
+
+    task.addEventListener('mouseenter',()=>{
+      // Adjust horizontal if tooltip would overflow right edge of card
+      tip.style.left='0';
+      tip.style.right='auto';
+      requestAnimationFrame(()=>{
+        const tRect=tip.getBoundingClientRect();
+        if(tRect.right > window.innerWidth - 8){
+          tip.style.left='auto';
+          tip.style.right='0';
+        }
+      });
+      tip.style.opacity='1';
+      tip.style.transform='translateY(0) scale(1)';
     });
-    task.addEventListener('mousemove',e=>{
-      if(tip.style.opacity==='0'||tip.style.opacity==='') return;
-      const w=220, h=tip.offsetHeight||120;
-      let left = e.clientX + 12;
-      let top = e.clientY - 20;
-      if(left + w > window.innerWidth - 10) left = e.clientX - w - 12;
-      if(top + h > window.innerHeight - 10) top = window.innerHeight - h - 10;
-      if(top < 10) top = 10;
-      tip.style.left = left + 'px';
-      tip.style.top = top + 'px';
+    task.addEventListener('mouseleave',()=>{
+      tip.style.opacity='0';
+      tip.style.transform='translateY(6px) scale(.96)';
     });
   });
 }
