@@ -461,7 +461,7 @@ select.inp option{background:var(--card2);color:var(--text)}
 ══════════════════════════════ */
 .wNav{display:flex;align-items:center;justify-content:center;gap:12px;margin-bottom:20px;flex-wrap:wrap}
 .wNavLbl{font-family:var(--font-display);font-size:18px;font-weight:700;letter-spacing:-.4px;min-width:280px;text-align:center;color:var(--text)}
-.wGrid{display:grid;grid-template-columns:repeat(7,1fr);gap:10px;align-items:stretch}
+.wGrid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:10px;align-items:stretch}
 @media(max-width:1200px){.wGrid{grid-template-columns:repeat(4,1fr)}}
 @media(max-width:700px){.wGrid{grid-template-columns:repeat(2,1fr)}}
 @media(max-width:380px){.wGrid{grid-template-columns:1fr}}
@@ -476,7 +476,8 @@ select.inp option{background:var(--card2);color:var(--text)}
 
 .dCard{
   background:var(--card);border-radius:var(--r);border:1px solid var(--border);
-  padding:14px 12px;display:flex;flex-direction:column;gap:10px;height:100%;
+  padding:14px 12px;display:flex;flex-direction:column;gap:8px;
+  min-width:0;width:100%;overflow:hidden;
   transition:border-color var(--dur) var(--ease),box-shadow var(--dur) var(--ease);
 }
 .dCard:hover{border-color:rgba(var(--CC),.3);box-shadow:0 0 0 1px var(--CC),0 10px 40px rgba(0,0,0,.5)}
@@ -490,24 +491,24 @@ select.inp option{background:var(--card2);color:var(--text)}
 .rTrack{fill:none;stroke:var(--border2);stroke-width:5}
 .rFill{fill:none;stroke-width:5;stroke-linecap:round;stroke:var(--CC);transition:.6s var(--ease)}
 .dPct{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;color:var(--CC);font-family:var(--font-display)}
-.dFocusInp{width:100%;border:1px solid var(--border);border-radius:8px;padding:5px 8px;font-family:var(--font-body);font-size:11px;resize:none;min-height:34px;outline:none;background:var(--card2);color:var(--text);transition:border-color var(--dur) var(--ease)}
+.dFocusInp{width:100%;max-width:100%;box-sizing:border-box;border:1px solid var(--border);border-radius:8px;padding:5px 8px;font-family:var(--font-body);font-size:11px;resize:none;min-height:34px;outline:none;background:var(--card2);color:var(--text);transition:border-color var(--dur) var(--ease)}
 .dFocusInp::placeholder{color:var(--muted)}.dFocusInp:focus{border-color:var(--CC)}
-.dStats{display:grid;grid-template-columns:1fr 1fr 1fr;text-align:center;border-top:1px solid var(--border);padding:6px 0}
-.dStat .sl{font-size:8px;font-weight:700;text-transform:uppercase;color:var(--muted);letter-spacing:.5px}
-.dStat .sv{font-size:14px;font-weight:800;color:var(--text);font-family:var(--font-display)}
-.dSecLbl{font-size:8.5px;font-weight:700;text-transform:uppercase;color:var(--muted);letter-spacing:.7px}
-.dTasks{display:flex;flex-direction:column;gap:3px;margin-top:4px}
-.dTask{display:flex;align-items:center;gap:5px}
+.dStats{display:grid;grid-template-columns:1fr 1fr 1fr;text-align:center;border-top:1px solid var(--border);padding:6px 0;overflow:hidden}
+.dStat .sl{font-size:7px;font-weight:700;text-transform:uppercase;color:var(--muted);letter-spacing:.3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dStat .sv{font-size:13px;font-weight:800;color:var(--text);font-family:var(--font-display)}
+.dSecLbl{font-size:8.5px;font-weight:700;text-transform:uppercase;color:var(--muted);letter-spacing:.7px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dTasks{display:flex;flex-direction:column;gap:3px;margin-top:4px;overflow:hidden}
+.dTask{display:flex;align-items:center;gap:5px;min-width:0;overflow:hidden;max-width:100%}
 .dTask input[type=checkbox]{width:13px;height:13px;flex-shrink:0;accent-color:var(--CC);cursor:pointer}
-.dTaskInp{flex:1;min-width:0;border:none;background:transparent;font-family:var(--font-body);font-size:11px;color:var(--text);outline:none;padding:1px 0}
+.dTaskInp{flex:1;min-width:0;width:0;border:none;background:transparent;font-family:var(--font-body);font-size:11px;color:var(--text);outline:none;padding:1px 0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .dTaskInp.done{text-decoration:line-through;color:var(--muted)}
 .dTaskDel{border:none;background:none;cursor:pointer;color:var(--border2);font-size:14px;padding:0 2px;opacity:0;transition:.15s}
 .dTask:hover .dTaskDel{opacity:1}.dTask:hover .dTaskDel:hover{color:var(--red)}
-.dAddTask{border:1.5px dashed var(--border2);border-radius:7px;background:none;width:100%;padding:3px;font-family:var(--font-body);font-size:10px;font-weight:600;color:var(--muted);cursor:pointer;margin-top:3px;transition:all var(--dur) var(--ease)}
+.dAddTask{border:1.5px dashed var(--border2);border-radius:7px;background:none;width:100%;max-width:100%;box-sizing:border-box;padding:3px;font-family:var(--font-body);font-size:10px;font-weight:600;color:var(--muted);cursor:pointer;margin-top:3px;transition:all var(--dur) var(--ease);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .dAddTask:hover{border-color:var(--CC);color:var(--CC);background:var(--CL)}
-.dNotesArea{width:100%;border:1px solid var(--border);border-radius:8px;padding:5px 8px;font-family:var(--font-body);font-size:10px;resize:none;min-height:46px;outline:none;background:var(--card2);color:var(--text)}
+.dNotesArea{width:100%;max-width:100%;box-sizing:border-box;border:1px solid var(--border);border-radius:8px;padding:5px 8px;font-family:var(--font-body);font-size:10px;resize:none;min-height:46px;outline:none;background:var(--card2);color:var(--text)}
 .dNotesArea:focus{border-color:var(--CC)}
-.dImprInp{width:100%;border:none;background:transparent;font-family:var(--font-body);font-size:10px;color:var(--text2);outline:none;padding:1px 3px;border-bottom:1px solid transparent;transition:.15s}
+.dImprInp{width:100%;max-width:100%;box-sizing:border-box;border:none;background:transparent;font-family:var(--font-body);font-size:10px;color:var(--text2);outline:none;padding:1px 3px;border-bottom:1px solid transparent;transition:.15s;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .dImprInp:focus{border-bottom-color:var(--CC)}
 
 /* ══════════════════════════════
