@@ -570,10 +570,10 @@ select.inp option{background:var(--card2);color:var(--text)}
 .dStat .sv{font-size:13px;font-weight:800;color:var(--text);font-family:var(--font-display)}
 .dSecLbl{font-size:8px;font-weight:800;text-transform:uppercase;color:var(--text2);letter-spacing:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .dTasks{display:flex;flex-direction:column;gap:3px;margin-top:4px;overflow:visible}
-.dTask{display:flex;align-items:center;gap:5px;min-width:0;overflow:hidden;max-width:100%;border-radius:4px;transition:background .1s,padding-left .1s}.dTask:hover{background:rgba(255,255,255,.05);padding-left:2px}
+.dTask{display:flex;align-items:center;gap:5px;min-width:0;overflow:visible;max-width:100%;border-radius:4px;transition:background .1s,padding-left .1s}.dTask:hover{background:rgba(255,255,255,.05);padding-left:2px}
 .dTask input[type=checkbox]{width:13px;height:13px;flex-shrink:0;accent-color:var(--CC);cursor:pointer}
 .dTaskInp{flex:1;min-width:0;width:0;border:none;background:transparent;font-family:var(--font-body);font-size:11px;color:var(--text);outline:none;padding:1px 0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.dTaskInp.done{text-decoration:line-through;text-decoration-color:rgba(255,255,255,.4)}
+.dTaskInp.done{text-decoration:line-through;text-decoration-color:rgba(255,255,255,.5);text-decoration-thickness:1.5px}
 
 /* ── Task tooltip ── */
 .dTask{position:relative}
@@ -3474,7 +3474,7 @@ function renderWP(){
     const timeStr=t.time?`<span style="font-size:9px;color:var(--p);font-family:var(--font-mono);flex-shrink:0">${t.time}</span>`:'';
     const labelDots=lbls.length?`<span style="display:inline-flex;gap:2px;align-items:center;flex-shrink:0">${lbls.map(l=>`<span style="width:6px;height:6px;border-radius:50%;background:${l.color};flex-shrink:0;display:inline-block" title="${esc(l.name)}"></span>`).join('')}</span>`:'';
     const label0=lbls[0];
-    return`<div class="dTask" style="border-left:2px solid ${col};padding-left:5px;border-radius:2px;--CC:${col};opacity:${t.done?'.45':'1'}" onclick="openTaskModal(${idx})">
+    return`<div class="dTask" style="border-left:2px solid ${col};padding-left:5px;border-radius:2px;--CC:${col}" onclick="openTaskModal(${idx})">
       <input type="checkbox" ${t.done?'checked':''} onchange="wTaskToggle(${idx},this.checked);event.stopPropagation()" style="accent-color:${col};flex-shrink:0">
       <span class="dTaskInp${t.done?' done':''}" style="cursor:pointer;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:11px;color:var(--text)">${esc(t.text)||'Без названия'}</span>
       ${labelDots}
@@ -7488,28 +7488,25 @@ setInterval(()=>{if(document.getElementById('tab-tasks')?.classList.contains('on
 /* ── Weekly planner task tooltip positioning ── */
 function _initWeekTooltips(){
   document.querySelectorAll('.dTask').forEach(task=>{
+    // Remove old listeners by cloning (fresh start every render)
     const tip=task.querySelector('.dTaskTooltip');
-    if(!tip||tip._tipInit)return;
-    tip._tipInit=true;
+    if(!tip)return;
 
-    task.addEventListener('mouseenter',()=>{
-      // Adjust horizontal if tooltip would overflow right edge of card
+    task.onmouseenter=function(){
       tip.style.left='0';
       tip.style.right='auto';
-      requestAnimationFrame(()=>{
-        const tRect=tip.getBoundingClientRect();
-        if(tRect.right > window.innerWidth - 8){
-          tip.style.left='auto';
-          tip.style.right='0';
-        }
-      });
       tip.style.opacity='1';
       tip.style.transform='translateY(0) scale(1)';
-    });
-    task.addEventListener('mouseleave',()=>{
+      // Flip if goes off right edge
+      requestAnimationFrame(()=>{
+        const r=tip.getBoundingClientRect();
+        if(r.right>window.innerWidth-8){tip.style.left='auto';tip.style.right='0';}
+      });
+    };
+    task.onmouseleave=function(){
       tip.style.opacity='0';
       tip.style.transform='translateY(6px) scale(.96)';
-    });
+    };
   });
 }
 /* ══════════════════════════════════════════
