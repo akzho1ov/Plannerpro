@@ -460,7 +460,7 @@ select.inp option{background:var(--card2);color:var(--text)}
 ══════════════════════════════ */
 .wNav{display:flex;align-items:center;justify-content:center;gap:12px;margin-bottom:20px;flex-wrap:wrap}
 .wNavLbl{font-family:var(--font-display);font-size:18px;font-weight:700;letter-spacing:-.4px;min-width:280px;text-align:center;color:var(--text)}
-.wGrid{display:grid;grid-template-columns:repeat(7,1fr);gap:10px}
+.wGrid{display:grid;grid-template-columns:repeat(7,1fr);gap:10px;align-items:stretch}
 @media(max-width:1200px){.wGrid{grid-template-columns:repeat(4,1fr)}}
 @media(max-width:700px){.wGrid{grid-template-columns:repeat(2,1fr)}}
 @media(max-width:380px){.wGrid{grid-template-columns:1fr}}
@@ -475,7 +475,7 @@ select.inp option{background:var(--card2);color:var(--text)}
 
 .dCard{
   background:var(--card);border-radius:var(--r);border:1px solid var(--border);
-  padding:14px 12px;display:flex;flex-direction:column;gap:10px;
+  padding:14px 12px;display:flex;flex-direction:column;gap:10px;height:100%;
   transition:border-color var(--dur) var(--ease),box-shadow var(--dur) var(--ease);
 }
 .dCard:hover{border-color:rgba(var(--CC),.3);box-shadow:0 0 0 1px var(--CC),0 10px 40px rgba(0,0,0,.5)}
@@ -491,9 +491,9 @@ select.inp option{background:var(--card2);color:var(--text)}
 .dPct{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;color:var(--CC);font-family:var(--font-display)}
 .dFocusInp{width:100%;border:1px solid var(--border);border-radius:8px;padding:5px 8px;font-family:var(--font-body);font-size:11px;resize:none;min-height:34px;outline:none;background:var(--card2);color:var(--text);transition:border-color var(--dur) var(--ease)}
 .dFocusInp::placeholder{color:var(--muted)}.dFocusInp:focus{border-color:var(--CC)}
-.dStats{display:grid;grid-template-columns:1fr 1fr 1fr;text-align:center;border-top:1px solid var(--border);padding:6px 0}
-.dStat .sl{font-size:8px;font-weight:700;text-transform:uppercase;color:var(--muted);letter-spacing:.5px}
-.dStat .sv{font-size:14px;font-weight:800;color:var(--text);font-family:var(--font-display)}
+.dStats{display:flex;justify-content:space-around;text-align:center;border-top:1px solid var(--border);padding:6px 0;gap:4px}
+.dStat .sl{font-size:7px;font-weight:700;text-transform:uppercase;color:var(--muted);letter-spacing:.3px;white-space:nowrap}
+.dStat .sv{font-size:13px;font-weight:800;color:var(--text);font-family:var(--font-display)}
 .dSecLbl{font-size:8.5px;font-weight:700;text-transform:uppercase;color:var(--muted);letter-spacing:.7px}
 .dTasks{display:flex;flex-direction:column;gap:3px;margin-top:4px}
 .dTask{display:flex;align-items:center;gap:5px}
@@ -3608,11 +3608,12 @@ function renderTP(){
   const isMob=window.innerWidth<=700;
 
   if(!isMob){
-    // ── Desktop table ── (use DOM methods to avoid inline onclick issues)
+    // ── Desktop table — use data-idx for delegation, no inline onclick ──
     const tbody=document.getElementById('tBody');tbody.innerHTML='';
     filtered.forEach((t,i)=>{
       const realIdx=tasks.indexOf(t);
       const tr=document.createElement('tr');
+      tr.dataset.idx=realIdx;
       let rc='';
       if(t.done)rc='trDn';
       else if(t.deadline){
@@ -3635,70 +3636,42 @@ function renderTP(){
       const barColor=taskLbls.length?taskLbls[0].color:'transparent';
       tr.style.borderLeft=`3px solid ${barColor}`;
       const repeatBadge=t.repeat?`<span style="font-size:8px;margin-left:4px;color:var(--p)">↻</span>`:'';
-      const timeStr=t.time?`${t.time}${t.endTime?' – '+t.endTime:''}`:'＋ время';
-      const timeColor=t.time?'var(--p)':'var(--border3)';
-
-      // Build cells
-      const tdIdx=document.createElement('td');
-      tdIdx.style.cssText='color:var(--muted);font-size:10px;padding-left:10px';
-      tdIdx.textContent=String(i+1);
-
-      const tdCb=document.createElement('td');
-      const cb=document.createElement('input');
-      cb.type='checkbox';cb.className='tCb';cb.checked=!!t.done;
-      cb.addEventListener('change',()=>{toggleT(realIdx,cb.checked);});
-      tdCb.appendChild(cb);
-
-      const tdName=document.createElement('td');
-      tdName.style.cursor='pointer';
-      tdName.innerHTML=`<span style="font-size:12px;font-weight:600;color:${t.done?'var(--muted)':'var(--text)'};${t.done?'text-decoration:line-through':''}">${esc(t.text)||'<em style="color:var(--muted);font-style:italic">Без названия</em>'}</span>${repeatBadge}`;
-      tdName.addEventListener('click',e=>{e.stopPropagation();openTaskModal(realIdx);});
-
-      // Label cell — multiple labels, each opens picker
-      const tdLabel=document.createElement('td');
-      if(taskLbls.length){
-        taskLbls.forEach(label=>{
-          const pill=document.createElement('span');
-          pill.className='labelPill';
-          pill.style.cssText=`background:${hexA(label.color,0.15)};color:${label.color};cursor:pointer;border:1px solid ${hexA(label.color,0.35)};margin-right:3px`;
-          pill.innerHTML=`<span class="labelDot" style="background:${label.color}"></span>${esc(label.name)}`;
-          pill.addEventListener('click',e=>{e.stopPropagation();openLabelPicker(realIdx,pill);});
-          tdLabel.appendChild(pill);
-        });
-      } else {
-        const addLbl=document.createElement('span');
-        addLbl.style.cssText='color:var(--muted);cursor:pointer;font-size:10px;padding:2px 8px;border:1px dashed var(--border2);border-radius:20px;white-space:nowrap';
-        addLbl.textContent='＋';
-        addLbl.addEventListener('click',e=>{e.stopPropagation();openLabelPicker(realIdx,addLbl);});
-        tdLabel.appendChild(addLbl);
-      }
-
-      const tdDate=document.createElement('td');
-      const dateInp=document.createElement('input');
-      dateInp.type='date';dateInp.className='tDateInp';dateInp.value=t.deadline||'';
-      dateInp.title=dlLabel;dateInp.style.cssText='color-scheme:dark;font-size:11px';
-      dateInp.addEventListener('change',()=>{updTField(realIdx,'deadline',dateInp.value);});
-      tdDate.appendChild(dateInp);
-
-      const tdTime=document.createElement('td');
-      const timeSpan=document.createElement('span');
-      timeSpan.style.cssText=`font-family:var(--font-mono);font-size:10.5px;color:${timeColor};font-weight:600;cursor:pointer`;
-      timeSpan.textContent=timeStr;
-      timeSpan.addEventListener('click',e=>{e.stopPropagation();openTaskModal(realIdx);});
-      tdTime.appendChild(timeSpan);
-
-      const tdDays=document.createElement('td');
-      tdDays.style.cssText='text-align:center;font-weight:700;font-size:11px';
-      tdDays.innerHTML=dlHtml;
-
-      const tdDel=document.createElement('td');
-      const delBtn=document.createElement('button');
-      delBtn.className='tDelBtn';delBtn.textContent='×';
-      delBtn.addEventListener('click',e=>{e.stopPropagation();delT(realIdx);});
-      tdDel.appendChild(delBtn);
-
-      [tdIdx,tdCb,tdName,tdLabel,tdDate,tdTime,tdDays,tdDel].forEach(td=>tr.appendChild(td));
+      const timeStr=t.time?`<span style="font-family:var(--font-mono);font-size:10.5px;color:var(--p);font-weight:600">${t.time}${t.endTime?' – '+t.endTime:''}</span>`:`<span style="color:var(--border3);font-size:11px">—</span>`;
+      const labelCells=taskLbls.length
+        ?taskLbls.map(l=>`<span class="labelPill" data-labelpick="${realIdx}" style="background:${hexA(l.color,0.15)};color:${l.color};cursor:pointer;border:1px solid ${hexA(l.color,0.35)};margin-right:3px"><span class="labelDot" style="background:${l.color}"></span>${esc(l.name)}</span>`).join('')
+        :`<span data-labelpick="${realIdx}" style="color:var(--muted);cursor:pointer;font-size:10px;padding:2px 8px;border:1px dashed var(--border2);border-radius:20px;white-space:nowrap">＋</span>`;
+      tr.innerHTML=`
+        <td style="color:var(--muted);font-size:10px;padding-left:10px">${i+1}</td>
+        <td><input type="checkbox" class="tCb" data-cb="${realIdx}" ${t.done?'checked':''}></td>
+        <td class="tNameCell" data-open="${realIdx}" style="cursor:pointer">
+          <span style="font-size:12px;font-weight:600;color:${t.done?'var(--muted)':'var(--text)'};${t.done?'text-decoration:line-through':''}">${esc(t.text)||'<em style="color:var(--muted);font-style:italic">Без названия</em>'}</span>${repeatBadge}
+        </td>
+        <td class="tLabelCell">${labelCells}</td>
+        <td><input type="date" class="tDateInp" data-date="${realIdx}" value="${t.deadline||''}" title="${dlLabel}" style="color-scheme:dark;font-size:11px"></td>
+        <td class="tTimeCell" data-open="${realIdx}" style="cursor:pointer">${timeStr}</td>
+        <td style="text-align:center;font-weight:700;font-size:11px">${dlHtml}</td>
+        <td><button class="tDelBtn" data-del="${realIdx}">×</button></td>`;
       tbody.appendChild(tr);
+    });
+    // ── Event delegation on tbody — remove old and re-add every render ──
+    const newTbody=document.createElement('tbody');
+    newTbody.id='tBody';
+    while(tbody.firstChild)newTbody.appendChild(tbody.firstChild);
+    tbody.parentNode.replaceChild(newTbody,tbody);
+    newTbody.addEventListener('click',e=>{
+      const openEl=e.target.closest('[data-open]');
+      const delEl=e.target.closest('[data-del]');
+      const labelEl=e.target.closest('[data-labelpick]');
+      const dateEl=e.target.closest('input[type=date]');
+      if(delEl){e.stopPropagation();delT(parseInt(delEl.dataset.del));return;}
+      if(labelEl){e.stopPropagation();openLabelPicker(parseInt(labelEl.dataset.labelpick),labelEl);return;}
+      if(dateEl)return;
+      if(e.target.type==='checkbox')return;
+      if(openEl){e.stopPropagation();openTaskModal(parseInt(openEl.dataset.open));return;}
+    });
+    newTbody.addEventListener('change',e=>{
+      if(e.target.type==='checkbox'){const cbEl=e.target.closest('[data-cb]');if(cbEl)toggleT(parseInt(cbEl.dataset.cb),e.target.checked);}
+      if(e.target.type==='date'){const dateEl=e.target.closest('[data-date]');if(dateEl)updTField(parseInt(dateEl.dataset.date),'deadline',e.target.value);}
     });
   } else {
     // ── Mobile card view ──
@@ -3799,16 +3772,22 @@ function openTaskModal(idx,prefillDate){
 }
 
 function taskModalSave(){
-  const text=document.getElementById('tm-text').value.trim();
-  if(!text)return;
+  const textEl=document.getElementById('tm-text');
+  const text=textEl?textEl.value.trim():'';
+  if(!text){
+    // Highlight empty field
+    if(textEl){textEl.style.borderColor='var(--red)';textEl.focus();setTimeout(()=>{textEl.style.borderColor='';},2000);}
+    return;
+  }
   const tm=document.getElementById('taskModal');
   let labelIds=[];try{labelIds=JSON.parse(tm.dataset.labelIds||'[]');}catch{labelIds=[];}
   const labelId=labelIds[0]||'';
   const timeVal=document.getElementById('tm-time').value||'';
   const endTimeVal=document.getElementById('tm-endTime').value||'';
+  const deadline=document.getElementById('tm-deadline').value||'';
   const data={
     text,
-    deadline:document.getElementById('tm-deadline').value||'',
+    deadline,
     time:timeVal,
     endTime:endTimeVal,
     notes:document.getElementById('tm-notes').value||'',
@@ -3961,11 +3940,16 @@ function plCalOpenTask(taskId,dstr){
 function plCalGridOpenTask(dstr,startMin){
   _taskModalIdx=-1;
   openTaskModal(-1,dstr);
+  // openTaskModal already sets deadline via prefillDate, but also set time
   if(startMin!==undefined){
     setTimeout(()=>{
-      document.getElementById('tm-time').value=plMinToTime(startMin);
-      document.getElementById('tm-endTime').value=plMinToTime(Math.min(startMin+60,1439));
-    },60);
+      const tEl=document.getElementById('tm-time');
+      const eEl=document.getElementById('tm-endTime');
+      const dEl=document.getElementById('tm-deadline');
+      if(tEl)tEl.value=plMinToTime(startMin);
+      if(eEl)eEl.value=plMinToTime(Math.min(startMin+60,1439));
+      if(dEl&&dstr)dEl.value=dstr;
+    },80);
   }
 }
 
@@ -4069,21 +4053,30 @@ function plRenderMonth(main){
     let cls='plMonth-cell'+(isWe?' we':'')+(isT?' todayM':'')+(isSel?' selM':'');
     const evts=plEvtsForDate(dstr);
     const maxShow=3;
-    html+=`<div class="${cls}" onclick="plMiniClickDay('${dstr}')">`;
+    html+=`<div class="${cls}" data-dstr="${dstr}">`;
     html+=`<div class="plMonth-dn">${day}</div>`;
     evts.slice(0,maxShow).forEach(e=>{
-      const alpha=e.done?'0.4':'0.85';
       const bg=e.color+'22',col=e.color;
       const timeStr=e.time?`<span style="font-size:8px;opacity:.7;margin-right:2px">${plFmtTime(e.time)}</span>`:'';
-      const icon=e.src==='task'?'📋':' ';
-      const clickFn=e.src==='task'?`plCalOpenTask('${e.id}','${dstr}')`:`plCalOpenModal('${e.id}','${dstr}')`;
-      html+=`<div class="plMonth-pill calTaskRow" style="background:${bg};color:${col};border-left:2px solid ${col};opacity:${e.done?0.5:1}" title="${esc(e.text)}" onclick="event.stopPropagation();${clickFn}">${timeStr}${esc(e.text)}</div>`;
+      html+=`<div class="plMonth-pill calTaskRow" data-evtid="${e.id}" data-src="${e.src}" data-dstr="${dstr}" style="background:${bg};color:${col};border-left:2px solid ${col};opacity:${e.done?0.5:1};cursor:pointer" title="${esc(e.text)}">${timeStr}${esc(e.text)}</div>`;
     });
     if(evts.length>maxShow)html+=`<div class="plMonth-more">+${evts.length-maxShow} ещё</div>`;
     html+=`</div>`;
   }
   html+=`</div></div>`;
   main.innerHTML=html;
+  // Wire click events after render
+  main.addEventListener('click',e=>{
+    const evtEl=e.target.closest('[data-evtid]');
+    const cellEl=e.target.closest('[data-dstr]');
+    if(evtEl){
+      e.stopPropagation();
+      const src=evtEl.dataset.src,id=evtEl.dataset.evtid,dstr=evtEl.dataset.dstr;
+      if(src==='task')plCalOpenTask(id,dstr);else plCalOpenModal(id,dstr);
+      return;
+    }
+    if(cellEl&&cellEl.dataset.dstr){plMiniClickDay(cellEl.dataset.dstr);}
+  });
 }
 
 // ── Time grid (day/3day/week) ──
@@ -5331,22 +5324,32 @@ function closeAllLabelPickers(){
 function openLabelPicker(taskIdx, anchorEl){
   closeAllLabelPickers();
   const groups=labelGroupsD();
+  const t=tpD()[taskIdx];
+  const curIds=t?(t.labelIds&&t.labelIds.length?t.labelIds:[t.labelId].filter(Boolean)):[];
   const drop=document.createElement('div');
   drop.className='labelPickerDrop';
-  drop.style.cssText=`position:fixed;z-index:1200;background:var(--card);border:1px solid var(--border2);border-radius:12px;padding:8px;box-shadow:var(--shadow2);min-width:180px;max-width:220px;`;
+  drop.style.cssText=`position:fixed;z-index:1200;background:var(--card);border:1px solid var(--border2);border-radius:12px;padding:8px;box-shadow:var(--shadow2);min-width:190px;max-width:240px;`;
   const rect=anchorEl.getBoundingClientRect();
-  let top=rect.bottom+4, left=rect.left;
-  if(top+320>window.innerHeight) top=rect.top-320;
-  if(left+220>window.innerWidth) left=window.innerWidth-225;
-  drop.style.top=top+'px';
-  drop.style.left=left+'px';
-  // None option
+  let top=rect.bottom+4,left=rect.left;
+  if(top+360>window.innerHeight)top=rect.top-360;
+  if(left+240>window.innerWidth)left=window.innerWidth-245;
+  drop.style.top=top+'px';drop.style.left=left+'px';
+  // Header
+  const hdr=document.createElement('div');
+  hdr.style.cssText='font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--muted);padding:2px 8px 6px;border-bottom:1px solid var(--border);margin-bottom:6px';
+  hdr.textContent='Выбери метки (можно несколько)';
+  drop.appendChild(hdr);
+  // None
   const none=document.createElement('div');
-  none.style.cssText='padding:5px 8px;cursor:pointer;border-radius:6px;font-size:11px;color:var(--muted);display:flex;align-items:center;gap:7px;margin-bottom:6px;';
-  none.textContent='— Без метки';
+  none.style.cssText='padding:5px 8px;cursor:pointer;border-radius:6px;font-size:11px;color:var(--muted);display:flex;align-items:center;gap:7px;margin-bottom:4px;';
+  none.textContent='— Убрать все метки';
   none.onmouseenter=()=>none.style.background='rgba(255,255,255,.07)';
   none.onmouseleave=()=>none.style.background='';
-  none.onclick=()=>{updT(taskIdx,'labelId','');saveD();closeAllLabelPickers();renderTP()};
+  none.onclick=()=>{
+    const task=tpD()[taskIdx];if(!task)return;
+    task.labelId='';task.labelIds=[];
+    saveD();closeAllLabelPickers();_refreshAllTaskViews();
+  };
   drop.appendChild(none);
   groups.forEach(g=>{
     const grpHdr=document.createElement('div');
@@ -5355,11 +5358,19 @@ function openLabelPicker(taskIdx, anchorEl){
     drop.appendChild(grpHdr);
     g.labels.forEach(l=>{
       const row=document.createElement('div');
-      row.style.cssText='padding:5px 8px;cursor:pointer;border-radius:6px;font-size:11px;display:flex;align-items:center;gap:7px;';
-      row.innerHTML=`<span style="width:10px;height:10px;border-radius:50%;background:${l.color};flex-shrink:0;display:inline-block"></span><span style="color:${l.color};font-weight:600">${esc(l.name)}</span>`;
-      row.onmouseenter=()=>row.style.background='rgba(255,255,255,.07)';
-      row.onmouseleave=()=>row.style.background='';
-      row.onclick=()=>{updT(taskIdx,'labelId',l.id);saveD();closeAllLabelPickers();renderTP()};
+      const isSelected=curIds.includes(l.id);
+      row.style.cssText=`padding:5px 8px;cursor:pointer;border-radius:6px;font-size:11px;display:flex;align-items:center;gap:7px;background:${isSelected?hexA(l.color,.15):'transparent'};`;
+      row.innerHTML=`<span style="width:10px;height:10px;border-radius:50%;background:${l.color};flex-shrink:0;display:inline-block;${isSelected?'box-shadow:0 0 0 2px '+l.color:''}"></span><span style="color:${l.color};font-weight:600;flex:1">${esc(l.name)}</span>${isSelected?`<span style="color:${l.color};font-size:10px">✓</span>`:''}`;
+      row.onmouseenter=()=>row.style.background=isSelected?hexA(l.color,.2):'rgba(255,255,255,.07)';
+      row.onmouseleave=()=>row.style.background=isSelected?hexA(l.color,.15):'transparent';
+      row.onclick=e=>{
+        e.stopPropagation();
+        const task=tpD()[taskIdx];if(!task)return;
+        let ids=[...(task.labelIds&&task.labelIds.length?task.labelIds:[task.labelId].filter(Boolean))];
+        if(ids.includes(l.id)){ids=ids.filter(x=>x!==l.id);}else{ids.push(l.id);}
+        task.labelIds=ids;task.labelId=ids[0]||'';
+        saveD();closeAllLabelPickers();_refreshAllTaskViews();
+      };
       drop.appendChild(row);
     });
   });
