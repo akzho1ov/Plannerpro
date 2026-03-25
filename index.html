@@ -2025,15 +2025,6 @@ select.inp option{background:var(--card2);color:var(--text)}
       <div class="tpBar" style="flex:1"><div class="tpBarFill" id="tpFill" style="width:0%"></div></div>
       <span style="font-size:13px;font-weight:800;color:var(--green);font-family:var(--font-display);flex-shrink:0" id="tpPct">0%</span>
     </div>
-    <!-- Labels + add button -->
-    <!-- Labels + add button -->
-    <div style="margin-bottom:8px">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:5px">
-        <span style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.8px;color:var(--muted)">Фильтр по меткам</span>
-        <button class="btn btnG" style="font-size:10px;padding:3px 9px" onclick="openLabelsModal()">⚙ Метки</button>
-      </div>
-      <div class="labelsFilterBar" id="labelsFilterBar" style="margin:0"></div>
-    </div>
     <!-- Sort + hide done controls -->
     <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
       <span style="font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--muted)">Сорт:</span>
@@ -2042,7 +2033,8 @@ select.inp option{background:var(--card2);color:var(--text)}
       <div style="width:1px;height:18px;background:var(--border);flex-shrink:0;margin:0 2px"></div>
       <button id="tpGroupBal" class="btn tpGroupBtn btnG" style="font-size:10px;padding:3px 10px" onclick="tpSetGroupFilter('lg1')" onmouseenter="tpShowGroupTooltip(this,'lg1')" onmouseleave="tpHideGroupTooltip()">⚖️ Баланс</button>
       <button id="tpGroupAtt" class="btn tpGroupBtn btnG" style="font-size:10px;padding:3px 10px" onclick="tpSetGroupFilter('lg2')" onmouseenter="tpShowGroupTooltip(this,'lg2')" onmouseleave="tpHideGroupTooltip()">🔥 Внимание</button>
-      <div style="margin-left:auto">
+      <div style="margin-left:auto;display:flex;gap:6px;align-items:center">
+        <button class="btn btnG" style="font-size:10px;padding:3px 9px" onclick="openLabelsModal()">⚙ Метки</button>
         <button id="tpToggleDone" class="btn btnG" style="font-size:10px;padding:3px 10px" onclick="tpToggleDone()">🙈 Скрыть готовые</button>
       </div>
     </div>
@@ -3826,7 +3818,6 @@ function renderTP(){
   const pct=tot?Math.round(done/tot*100):0;
   document.getElementById('tpPct').textContent=pct+'%';
   document.getElementById('tpFill').style.width=pct+'%';
-  renderLabelsFilterBar();
   // Group filter (Баланс / Внимание)
   let byGroup=tasks;
   if(_tpGroupFilter){
