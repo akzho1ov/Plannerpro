@@ -1644,85 +1644,165 @@ select.inp option{background:var(--card2);color:var(--text)}
 }
 
 /* ═══════════════════════════════════
-   ANALYTICS — Filter bar & cards
+   ANALYTICS v3 — Redesigned
 ═══════════════════════════════════ */
+.anHeader{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:12px}
+.anHeaderLeft{}
+.anHeaderTitle{font-family:var(--font-display);font-size:24px;font-weight:800;letter-spacing:-.5px;color:var(--text);line-height:1}
+.anHeaderSub{font-size:12px;color:var(--text2);margin-top:3px}
+
+/* Filter bar */
 .anFilterBar{
-  display:flex;align-items:center;gap:8px;flex-wrap:wrap;
-  padding:12px 14px;
-  background:var(--card2);border:1px solid var(--border);border-radius:var(--r);
-  margin-bottom:16px;
+  display:flex;align-items:center;gap:6px;flex-wrap:wrap;
+  padding:10px 14px;
+  background:linear-gradient(135deg,var(--card) 0%,var(--card2) 100%);
+  border:1px solid var(--border);border-radius:14px;
+  margin-bottom:18px;
+  box-shadow:0 2px 12px rgba(0,0,0,.25);
 }
-.anFilterLabel{font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);flex-shrink:0;padding-right:4px}
-.anRangeBtns,.anStatusBtns{display:flex;background:var(--card3);border-radius:8px;border:1px solid var(--border);overflow:hidden;flex-shrink:0}
+.anFilterLabel{font-size:8.5px;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:var(--muted);flex-shrink:0;padding-right:2px}
+.anRangeBtns,.anStatusBtns{display:flex;background:rgba(255,255,255,.04);border-radius:9px;border:1px solid var(--border);overflow:hidden;flex-shrink:0}
 .anRangeBtn,.anStatusBtn{
-  padding:5px 11px;border:none;background:none;
+  padding:5px 12px;border:none;background:none;
   color:var(--text2);font-size:10.5px;font-weight:600;
-  cursor:pointer;font-family:var(--font-body);transition:.15s;
-  white-space:nowrap;border-right:1px solid var(--border)
+  cursor:pointer;font-family:var(--font-body);
+  transition:all .15s;white-space:nowrap;
+  border-right:1px solid var(--border);position:relative;
 }
 .anRangeBtn:last-child,.anStatusBtn:last-child{border-right:none}
-.anRangeBtn.on{background:var(--p);color:#fff}
-.anRangeBtn:hover:not(.on){background:rgba(255,255,255,.06);color:var(--text)}
+.anRangeBtn.on{background:linear-gradient(135deg,var(--p),var(--p2));color:#fff;box-shadow:0 0 12px var(--pglow2)}
+.anRangeBtn:hover:not(.on){background:rgba(255,255,255,.07);color:var(--text)}
 .anStatusBtn.on{background:var(--green);color:#000;font-weight:700}
-.anStatusBtn:hover:not(.on){background:rgba(255,255,255,.06);color:var(--text)}
+.anStatusBtn:hover:not(.on){background:rgba(255,255,255,.07);color:var(--text)}
 .anGroupBtns{display:flex;gap:5px;flex-wrap:wrap;flex:1}
 .anGroupBtn{
-  padding:4px 12px;border-radius:20px;font-size:10.5px;font-weight:700;
+  padding:5px 13px;border-radius:20px;font-size:10.5px;font-weight:700;
   cursor:pointer;border:1px solid var(--border2);
   background:var(--card2);color:var(--text2);
-  transition:.15s;white-space:nowrap;font-family:var(--font-body)
+  transition:all .15s;white-space:nowrap;font-family:var(--font-body);
 }
-.anGroupBtn.on{box-shadow:0 0 12px var(--pglow2)}
-.anGroupBtn:hover:not(.on){border-color:var(--border3);color:var(--text)}
-.anSep{width:1px;height:24px;background:var(--border);flex-shrink:0;margin:0 2px}
-.anKpi{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;margin-bottom:16px}
-.anKpiCard{background:var(--card2);border:1px solid var(--border);border-radius:12px;padding:12px 14px;transition:border-color .2s}
-.anKpiCard:hover{border-color:var(--border2)}
-.anKpiLabel{font-size:10px;color:var(--text2);margin-bottom:5px;display:flex;align-items:center;gap:5px}
-.anKpiVal{font-size:22px;font-weight:800;font-family:var(--font-display);line-height:1}
-.anKpiSub{font-size:10px;color:var(--muted);margin-top:3px}
-.anRow2{display:grid;grid-template-columns:300px 1fr;gap:12px;margin-bottom:16px;align-items:start}
-.anCard{background:var(--card2);border:1px solid var(--border);border-radius:12px;padding:16px}
-.anCardTitle{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);margin-bottom:14px;display:flex;align-items:center;gap:6px}
-.an14Bar{display:flex;align-items:flex-end;gap:3px;height:90px;margin-bottom:6px}
-.an14BarItem{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;min-width:0}
-.an14BarOuter{width:100%;background:var(--card3);border-radius:3px 3px 0 0;position:relative;overflow:hidden;min-height:3px}
-.an14BarDone{position:absolute;bottom:0;left:0;right:0;border-radius:2px 2px 0 0}
-.an14Label{font-size:7.5px;color:var(--text2);white-space:nowrap;overflow:hidden;text-overflow:clip;max-width:100%;text-align:center;line-height:1}
-.an14Today .an14Label{color:var(--green);font-weight:800}
-.anWeekBars{display:flex;gap:6px}
-.anWeekBarCol{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px}
-.anWeekBarOuter{width:100%;background:var(--card3);border-radius:4px;overflow:hidden;position:relative}
-.anWeekBarFill{width:100%;border-radius:4px;transition:height .4s var(--ease)}
-.anWeekBarLabel{font-size:9px;font-weight:600;color:var(--text2)}
-.anWeekBarCount{font-size:8px;color:var(--muted)}
-.anLabelRow{display:flex;flex-direction:column;gap:7px}
-.anLabelItem{cursor:default}
-.anLabelHead{display:flex;align-items:center;justify-content:space-between;margin-bottom:3px;gap:8px}
-.anLabelInfo{display:flex;align-items:center;gap:7px;min-width:0;flex:1}
-.anLabelMeta{display:flex;gap:8px;font-size:10px;flex-shrink:0}
-.anLabelBar{height:6px;background:var(--card3);border-radius:3px;overflow:hidden}
-.anLabelBarFill{height:100%;border-radius:3px;position:relative;overflow:hidden}
-.anLabelBarDone{position:absolute;top:0;left:0;bottom:0;background:rgba(255,255,255,.35)}
+.anGroupBtn.on{box-shadow:0 0 14px var(--pglow2)}
+.anGroupBtn:hover:not(.on){border-color:var(--border3);color:var(--text);transform:translateY(-1px)}
+.anSep{width:1px;height:22px;background:var(--border);flex-shrink:0;margin:0 4px}
+
+/* KPI Cards */
+.anKpi{display:grid;grid-template-columns:repeat(auto-fill,minmax(155px,1fr));gap:10px;margin-bottom:18px}
+.anKpiCard{
+  background:linear-gradient(145deg,var(--card) 0%,rgba(12,13,30,.9) 100%);
+  border:1px solid var(--border);border-radius:14px;padding:14px 16px;
+  transition:all .2s var(--ease);cursor:default;position:relative;overflow:hidden;
+  box-shadow:0 2px 8px rgba(0,0,0,.2),inset 0 1px 0 rgba(255,255,255,.03);
+}
+.anKpiCard::before{content:'';position:absolute;top:-30px;right:-30px;width:80px;height:80px;border-radius:50%;opacity:.06;pointer-events:none;transition:opacity .2s}
+.anKpiCard:hover{border-color:var(--border2);transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,0,0,.35)}
+.anKpiIcon{font-size:18px;margin-bottom:8px;line-height:1}
+.anKpiLabel{font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--text2);margin-bottom:6px}
+.anKpiVal{font-size:26px;font-weight:800;font-family:var(--font-display);line-height:1;letter-spacing:-1px}
+.anKpiSub{font-size:9.5px;color:var(--muted);margin-top:5px;line-height:1.4}
+.anKpiBar{height:3px;background:rgba(255,255,255,.08);border-radius:2px;margin-top:8px;overflow:hidden}
+.anKpiBarFill{height:100%;border-radius:2px;transition:width .6s var(--ease)}
+
+/* Rings row */
+.anRingsRow{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:18px}
+.anRingCard{
+  background:linear-gradient(145deg,var(--card) 0%,var(--card2) 100%);
+  border:1px solid var(--border);border-radius:14px;padding:16px;
+  display:flex;align-items:center;gap:16px;
+  box-shadow:0 2px 8px rgba(0,0,0,.2);
+  transition:border-color .2s,transform .2s;
+}
+.anRingCard:hover{border-color:var(--border2);transform:translateY(-1px)}
+.anRingSvg{flex-shrink:0;filter:drop-shadow(0 0 6px rgba(0,0,0,.4))}
+.anRingInfo{flex:1;min-width:0}
+.anRingTitle{font-size:11px;font-weight:800;color:var(--text);margin-bottom:4px;letter-spacing:-.2px}
+.anRingSub{font-size:10px;color:var(--text2);margin-bottom:8px;line-height:1.4}
+.anRingMeta{display:flex;flex-direction:column;gap:4px}
+.anRingMetaRow{display:flex;justify-content:space-between;font-size:9.5px}
+
+/* Charts area */
+.anCharts{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:18px}
+.anCard{
+  background:linear-gradient(145deg,var(--card) 0%,var(--card2) 100%);
+  border:1px solid var(--border);border-radius:14px;padding:16px;
+  box-shadow:0 2px 8px rgba(0,0,0,.2);
+  transition:border-color .2s;
+}
+.anCard:hover{border-color:var(--border2)}
+.anCard-full{grid-column:1/-1}
+.anCardTitle{font-size:9.5px;font-weight:800;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);margin-bottom:14px;display:flex;align-items:center;gap:6px}
+.anCardTitleMain{font-size:13px;font-weight:800;color:var(--text);letter-spacing:-.2px;text-transform:none;letter-spacing:0}
+
+/* 14-day chart */
+.an14Wrap{height:100px;display:flex;align-items:flex-end;gap:3px;padding-bottom:1px}
+.an14BarItem{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:2px;min-width:0;height:100%}
+.an14BarOuter{width:100%;border-radius:4px 4px 0 0;position:relative;overflow:visible;min-height:2px;transition:height .4s var(--ease)}
+.an14BarTrack{position:absolute;bottom:0;left:0;right:0;background:var(--card3);border-radius:4px 4px 0 0;height:100%}
+.an14BarActive{position:absolute;bottom:0;left:0;right:0;background:rgba(255,255,255,.1);border-radius:4px 4px 0 0}
+.an14BarDone{position:absolute;bottom:0;left:0;right:0;border-radius:4px 4px 0 0;transition:height .5s var(--ease)}
+.an14Label{font-size:7px;color:var(--muted);white-space:nowrap;text-align:center;line-height:1}
+.an14Today .an14Label{color:var(--p);font-weight:800}
+.an14Today .an14BarOuter{filter:drop-shadow(0 0 4px rgba(155,143,245,.3))}
+
+/* Weekly bars */
+.anWeekWrap{height:68px;display:flex;align-items:flex-end;gap:4px;margin-bottom:4px}
+.anWeekBarCol{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:2px}
+.anWeekBar{width:100%;border-radius:4px 4px 0 0;position:relative;overflow:hidden;min-height:2px;transition:height .4s var(--ease)}
+.anWeekBarLabel{font-size:8px;color:var(--muted);text-align:center;white-space:nowrap}
+.anWeekBarCount{font-size:8px;color:var(--muted);text-align:center}
+.anWeekCurr .anWeekBarLabel{color:var(--p);font-weight:700}
+
+/* Labels breakdown */
+.anLabelRow{display:flex;flex-direction:column;gap:8px}
+.anLabelItem{cursor:default;padding:10px 12px;border-radius:10px;background:var(--card3);border:1px solid transparent;transition:border-color .15s}
+.anLabelItem:hover{border-color:var(--border2)}
+.anLabelHead{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;gap:8px}
+.anLabelInfo{display:flex;align-items:center;gap:8px;min-width:0;flex:1}
+.anLabelMeta{display:flex;gap:10px;font-size:10px;flex-shrink:0}
+.anLabelBar{height:7px;background:rgba(255,255,255,.06);border-radius:4px;overflow:hidden;position:relative}
+.anLabelBarFill{height:100%;border-radius:4px;position:relative;overflow:hidden;transition:width .5s var(--ease)}
+.anLabelBarDone{position:absolute;top:0;left:0;bottom:0;background:rgba(255,255,255,.4);border-radius:4px}
+
+/* Priority */
 .anPrioGrid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
-.anPrioCard{border-radius:10px;padding:12px;border:1px solid transparent}
-.anDowGrid{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
+.anPrioCard{border-radius:12px;padding:14px;border:1px solid transparent;transition:transform .15s}
+.anPrioCard:hover{transform:translateY(-2px)}
+
+/* Day of week */
+.anDowGrid{display:grid;grid-template-columns:repeat(7,1fr);gap:5px}
 .anDowItem{text-align:center}
-.anDowBar{height:52px;border-radius:6px;margin-bottom:4px;position:relative;overflow:hidden;background:var(--card3)}
-.anDowBarFill{position:absolute;bottom:0;left:0;right:0;border-radius:5px}
-.anEmpty{text-align:center;padding:40px 16px;color:var(--muted);font-size:12px}
+.anDowBar{height:56px;border-radius:8px;margin-bottom:5px;position:relative;overflow:hidden;background:rgba(255,255,255,.04);border:1px solid var(--border)}
+.anDowBarFill{position:absolute;bottom:0;left:0;right:0;border-radius:7px 7px 0 0;transition:height .4s var(--ease)}
+
+/* Insight cards */
+.anInsights{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;margin-bottom:18px}
+.anInsightCard{border-radius:12px;padding:14px;border:1px solid;display:flex;gap:12px;align-items:flex-start;transition:transform .15s}
+.anInsightCard:hover{transform:translateY(-2px)}
+.anInsightIcon{font-size:20px;flex-shrink:0;line-height:1}
+.anInsightText{flex:1;min-width:0}
+.anInsightTitle{font-size:11px;font-weight:700;color:var(--text);margin-bottom:3px}
+.anInsightBody{font-size:10px;color:var(--text2);line-height:1.5}
+
+/* Groups mini-table */
+.anGroupTable{display:flex;flex-direction:column;gap:8px}
+.anGroupRow{display:flex;flex-direction:column;gap:4px;padding:10px;background:var(--card3);border-radius:10px;border:1px solid transparent;transition:border-color .15s}
+.anGroupRow:hover{border-color:var(--border2)}
+
+.anEmpty{text-align:center;padding:40px 16px;color:var(--muted);font-size:12px;line-height:1.6}
+
+/* Legend dots */
+.anLegend{display:flex;gap:14px;font-size:9.5px;color:var(--text2);margin-top:8px;flex-wrap:wrap}
+.anLegendDot{width:9px;height:9px;border-radius:3px;display:inline-block;flex-shrink:0}
 
 /* ── Mobile analytics ── */
 @media(max-width:700px){
-  .anRow2{grid-template-columns:1fr}
+  .anCharts{grid-template-columns:1fr!important}
+  .anRingsRow{grid-template-columns:1fr!important}
   .anKpi{grid-template-columns:repeat(2,1fr)}
   .anPrioGrid{grid-template-columns:repeat(3,1fr);gap:6px}
   .anFilterBar{gap:6px;padding:10px 12px}
   .anRangeBtn,.anStatusBtn{padding:5px 8px;font-size:10px}
-  .an14Bar{gap:2px}
-  .anDowGrid{gap:3px}
   .anGroupBtns{gap:4px}
-  /* Row 3 DoW + Priority: stack on mobile */
+  .anInsights{grid-template-columns:1fr!important}
   #analytics-content>[style*="grid-template-columns:1fr 1fr"]{grid-template-columns:1fr!important}
 }
 
@@ -2161,8 +2241,18 @@ select.inp option{background:var(--card2);color:var(--text)}
       <button id="tpSortDate" class="btn tpSortBtn tpSortOn" style="font-size:10px;padding:3px 10px" onclick="tpSetSort('date')">📅 По дате</button>
       <button id="tpSortAdd" class="btn tpSortBtn btnG" style="font-size:10px;padding:3px 10px" onclick="tpSetSort('added')">➕ По добавлению</button>
       <div style="width:1px;height:18px;background:var(--border);flex-shrink:0;margin:0 2px"></div>
-      <button id="tpGroupBal" class="btn tpGroupBtn btnG" style="font-size:10px;padding:3px 10px" onclick="tpSetGroupFilter('lg1')" onmouseenter="tpShowGroupTooltip(this,'lg1')" onmouseleave="tpHideGroupTooltip()">⚖️ Баланс</button>
-      <button id="tpGroupAtt" class="btn tpGroupBtn btnG" style="font-size:10px;padding:3px 10px" onclick="tpSetGroupFilter('lg2')" onmouseenter="tpShowGroupTooltip(this,'lg2')" onmouseleave="tpHideGroupTooltip()">🔥 Внимание</button>
+      <div id="tpGroupDropWrap" style="position:relative;display:inline-flex" onmouseenter="tpGroupDropShow()" onmouseleave="tpGroupDropHide()">
+        <button id="tpGroupDropBtn" class="btn btnG" style="font-size:10px;padding:3px 12px;display:flex;align-items:center;gap:5px">
+          <span id="tpGroupDropLbl">🗂 Группа</span>
+          <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M2 3.5L5 6.5L8 3.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        </button>
+        <div id="tpGroupDropMenu" style="position:absolute;top:calc(100% + 4px);left:0;min-width:180px;background:linear-gradient(160deg,rgba(14,15,36,.98),rgba(10,11,22,.99));border:1px solid rgba(155,143,245,.2);border-radius:12px;padding:6px;z-index:200;box-shadow:0 8px 32px rgba(0,0,0,.6);display:none;flex-direction:column;gap:2px">
+          <div id="tpGrpAll" class="tpGrpOpt" onclick="tpSetGroupFilter(null)" style="padding:7px 10px;border-radius:8px;cursor:pointer;font-size:11px;font-weight:600;display:flex;align-items:center;gap:7px;transition:background .12s">
+            <span style="width:8px;height:8px;border-radius:50%;background:var(--p);display:inline-block;flex-shrink:0"></span>Все группы
+          </div>
+          <div id="tpGrpLabelsList" style="margin-top:2px"></div>
+        </div>
+      </div>
       <div style="margin-left:auto;display:flex;gap:6px;align-items:center">
         <button class="btn btnG" style="font-size:10px;padding:3px 9px" onclick="openLabelsModal()">⚙ Метки</button>
         <button id="tpToggleDone" class="btn btnG" style="font-size:10px;padding:3px 10px" onclick="tpToggleDone()">🙈 Скрыть готовые</button>
@@ -3852,28 +3942,94 @@ let _tpSortBy='date'; // 'date' | 'status' | 'added'
 let _tpHideDone=true;
 
 let _tpGroupFilter=null; // null | group id
+let _tpLabelFilter=null; // null | label id within group
+
 function tpSetGroupFilter(gid){
-  _tpGroupFilter=_tpGroupFilter===gid?null:gid;
-  document.querySelectorAll('.tpGroupBtn').forEach(b=>b.classList.remove('tpGroupOn'));
-  if(_tpGroupFilter){
-    const map={'lg1':'tpGroupBal','lg2':'tpGroupAtt'};
-    const b=document.getElementById(map[gid]);if(b)b.classList.add('tpGroupOn');
-  }
+  if(_tpGroupFilter===gid){_tpGroupFilter=null;_tpLabelFilter=null;}
+  else{_tpGroupFilter=gid;_tpLabelFilter=null;}
+  _tpUpdateGroupDropUI();
+  // Close menu
+  const menu=document.getElementById('tpGroupDropMenu');
+  if(menu)menu.style.display='none';
   renderTP();
 }
-let _tpGroupTooltipEl=null;
-function tpShowGroupTooltip(btn,gid){
-  tpHideGroupTooltip();
-  const g=labelGroupsD().find(x=>x.id===gid);if(!g)return;
-  const el=document.createElement('div');el.className='tGroupTooltip';
-  el.innerHTML=`<div style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.8px;color:${g.color};margin-bottom:6px">${esc(g.name)}</div>`+
-    g.labels.map(l=>`<div style="display:flex;align-items:center;gap:6px;padding:2px 0"><span style="width:7px;height:7px;border-radius:50%;background:${l.color};flex-shrink:0"></span><span style="font-size:11px;color:var(--text)">${esc(l.name)}</span></div>`).join('');
-  document.body.appendChild(el);
-  const r=btn.getBoundingClientRect();
-  el.style.top=(r.bottom+6)+'px';el.style.left=r.left+'px';
-  _tpGroupTooltipEl=el;
+
+function tpSetLabelFilter(lid,gid){
+  _tpGroupFilter=gid;
+  _tpLabelFilter=(_tpLabelFilter===lid)?null:lid;
+  _tpUpdateGroupDropUI();
+  const menu=document.getElementById('tpGroupDropMenu');
+  if(menu)menu.style.display='none';
+  renderTP();
 }
-function tpHideGroupTooltip(){if(_tpGroupTooltipEl){_tpGroupTooltipEl.remove();_tpGroupTooltipEl=null;}}
+
+function _tpUpdateGroupDropUI(){
+  const groups=labelGroupsD();
+  const lbl=document.getElementById('tpGroupDropLbl');
+  const btn=document.getElementById('tpGroupDropBtn');
+  if(!lbl||!btn)return;
+  if(_tpLabelFilter){
+    const g=groups.find(g=>g.id===_tpGroupFilter);
+    const l=g?.labels.find(l=>l.id===_tpLabelFilter);
+    lbl.textContent=(l?l.name:'Метка');
+    btn.style.background=l?l.color+'22':'';
+    btn.style.borderColor=l?l.color:'';
+    btn.style.color=l?l.color:'';
+  } else if(_tpGroupFilter){
+    const g=groups.find(g=>g.id===_tpGroupFilter);
+    lbl.textContent=g?g.name:'Группа';
+    btn.style.background=g?g.color+'22':'';
+    btn.style.borderColor=g?g.color:'';
+    btn.style.color=g?g.color:'';
+  } else {
+    lbl.textContent='🗂 Группа';
+    btn.style.background='';btn.style.borderColor='';btn.style.color='';
+  }
+  // Rebuild labels list inside dropdown
+  const listEl=document.getElementById('tpGrpLabelsList');
+  if(!listEl)return;
+  let html='';
+  groups.forEach(g=>{
+    html+=`<div style="padding:4px 6px 2px;font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.7px;color:${g.color};margin-top:4px">${esc(g.name)}</div>`;
+    g.labels.forEach(l=>{
+      const isActive=_tpLabelFilter===l.id;
+      html+=`<div onclick="event.stopPropagation();tpSetLabelFilter('${l.id}','${g.id}')" style="padding:6px 10px;border-radius:8px;cursor:pointer;font-size:11px;font-weight:600;display:flex;align-items:center;gap:7px;background:${isActive?l.color+'22':'transparent'};color:${isActive?l.color:'var(--text2)'};transition:background .12s" onmouseenter="this.style.background='${l.color}15'" onmouseleave="this.style.background='${isActive?l.color+'22':'transparent'}'">
+        <span style="width:7px;height:7px;border-radius:50%;background:${l.color};flex-shrink:0"></span>${esc(l.name)}
+      </div>`;
+    });
+    // Group-level filter option
+    const gActive=_tpGroupFilter===g.id&&!_tpLabelFilter;
+    html+=`<div onclick="event.stopPropagation();tpSetGroupFilter('${g.id}')" style="padding:5px 10px;border-radius:8px;cursor:pointer;font-size:10px;font-weight:700;display:flex;align-items:center;gap:7px;background:${gActive?g.color+'22':'transparent'};color:${gActive?g.color:'var(--muted)'};transition:background .12s;margin-top:2px" onmouseenter="this.style.background='${g.color}15'" onmouseleave="this.style.background='${gActive?g.color+'22':'transparent'}'">
+      <span style="font-size:9px">✦</span>Все из группы
+    </div>`;
+  });
+  listEl.innerHTML=html;
+  // "All" option state
+  const allOpt=document.getElementById('tpGrpAll');
+  if(allOpt){
+    const noFilter=!_tpGroupFilter&&!_tpLabelFilter;
+    allOpt.style.background=noFilter?'var(--pdim)':'transparent';
+    allOpt.style.color=noFilter?'var(--p)':'var(--text2)';
+  }
+}
+
+let _tpGroupDropHideTimer=null;
+function tpGroupDropShow(){
+  clearTimeout(_tpGroupDropHideTimer);
+  _tpUpdateGroupDropUI();
+  const menu=document.getElementById('tpGroupDropMenu');
+  if(menu){menu.style.display='flex';}
+}
+function tpGroupDropHide(){
+  _tpGroupDropHideTimer=setTimeout(()=>{
+    const menu=document.getElementById('tpGroupDropMenu');
+    if(menu)menu.style.display='none';
+  },120);
+}
+
+let _tpGroupTooltipEl=null;
+function tpShowGroupTooltip(btn,gid){}
+function tpHideGroupTooltip(){}
 
 function tpSetSort(v){
   _tpSortBy=v;
@@ -3941,12 +4097,16 @@ function renderTP(){
   const pct=tot?Math.round(done/tot*100):0;
   document.getElementById('tpPct').textContent=pct+'%';
   document.getElementById('tpFill').style.width=pct+'%';
-  // Group filter (Баланс / Внимание)
+  // Group filter (Group + Label)
   let byGroup=tasks;
-  if(_tpGroupFilter){
+  if(_tpLabelFilter){
+    byGroup=tasks.filter(t=>(t.labelIds||[]).includes(_tpLabelFilter)||(t.labelId===_tpLabelFilter));
+  } else if(_tpGroupFilter){
     const gLabels=(labelGroupsD().find(g=>g.id===_tpGroupFilter)||{labels:[]}).labels.map(l=>l.id);
     byGroup=tasks.filter(t=>(t.labelIds||[]).some(id=>gLabels.includes(id))||(t.labelId&&gLabels.includes(t.labelId)));
   }
+  // Sync dropdown UI
+  _tpUpdateGroupDropUI();
   const byLabel=activeLabel?byGroup.filter(t=>(t.labelIds&&t.labelIds.includes(activeLabel))||(t.labelId===activeLabel)):byGroup;
   const filtered=tpSortTasks(byLabel,td);
   // Sync toggle button text on re-render
@@ -3957,9 +4117,6 @@ function renderTP(){
   const activeSortBtn=document.getElementById('tpSort'+_tpSortBy.charAt(0).toUpperCase()+_tpSortBy.slice(1));
   if(activeSortBtn)activeSortBtn.classList.add('tpSortOn');
   document.querySelectorAll('.tpSortBtn').forEach(b=>{if(!b.classList.contains('tpSortOn'))b.classList.add('btnG');});
-  // Sync group filter buttons
-  document.querySelectorAll('.tpGroupBtn').forEach(b=>b.classList.remove('tpGroupOn'));
-  if(_tpGroupFilter){const map={'lg1':'tpGroupBal','lg2':'tpGroupAtt'};const gb=document.getElementById(map[_tpGroupFilter]);if(gb)gb.classList.add('tpGroupOn');}
   const isMob=window.innerWidth<=700;
 
   if(!isMob){
@@ -4471,7 +4628,7 @@ function plRenderGrid(main){
       const icon=e.src==='task'?(e.isRepeat?'↻ ':''):'📅 ';
       const clickFn=e.src==='task'?`plCalOpenTask('${e.id}','${dstr}')`:`plCalOpenModal('${e.id}','${dstr}')`;
       const adCb=e.src==='task'?`<input type="checkbox" ${e.done?'checked':''} onclick="event.stopPropagation();toggleCalTaskDone('${e.id}','${dstr}',this.checked)" style="flex-shrink:0;margin-right:4px;accent-color:${col};cursor:pointer;width:11px;height:11px">`:''
-      adHtml+=`<div class="plEvt-allday calTaskRow" style="background:${bg};color:${col};border-left-color:${col};opacity:${e.done?0.6:1};cursor:pointer;${e.done?'text-decoration:line-through;':''};display:flex;align-items:center" title="${esc(e.text)}" onclick="event.stopPropagation();${clickFn}">
+      adHtml+=`<div class="plEvt-allday calTaskRow" style="background:${bg};color:#fff;border-left-color:${col};opacity:${e.done?0.6:1};cursor:pointer;${e.done?'text-decoration:line-through;':''};display:flex;align-items:center" title="${esc(e.text)}" onclick="event.stopPropagation();${clickFn}">
         ${adCb}<span style="width:7px;height:7px;border-radius:50%;background:${col};display:inline-block;flex-shrink:0;margin-right:4px"></span>${icon}${esc(e.text)}
       </div>`;
     });
@@ -4514,12 +4671,12 @@ function plRenderGrid(main){
       const tStr=plFmtTime(e.time)+(e.endTime?' – '+plFmtTime(e.endTime):'');
       const icon=e.src==='task'?(e.isRepeat?'↻ ':''):'';
       const evtSrc=e.src;const evtId=e.id;
-      const doneStyle=e.done?`background:${bg};color:${col};border-left-color:${col};opacity:.6;`:`background:${bg};color:${col};border-left-color:${col};`;
+      const doneStyle=e.done?`background:${bg};color:#fff;border-left-color:${col};opacity:.6;`:`background:${bg};color:#fff;border-left-color:${col};`;
       const cbHtml=e.src==='task'?`<input type="checkbox" class="calEvtCb" ${e.done?'checked':''} onclick="event.stopPropagation();toggleCalTaskDone('${e.id}','${dstr}',this.checked)" style="margin-right:3px;accent-color:${col}">`:''
       colsHtml+=`<div class="plEvt calTaskRow" data-evtid="${e.id}" data-dstr="${dstr}" data-src="${e.src}" draggable="true" style="top:${top}px;height:${height}px;left:calc(${left}% + 2px);width:calc(${width}% - 4px);${doneStyle}overflow:hidden;cursor:pointer;display:flex;align-items:flex-start;padding:3px 5px;gap:2px" title="${esc(e.text)}">
         ${cbHtml}<div style="flex:1;min-width:0;overflow:hidden">
-        <div class="plEvt-title" style="${e.done?'text-decoration:line-through;opacity:.7':''}">${icon}${esc(e.text)}</div>
-        ${height>30?`<div class="plEvt-time" style="${e.done?'opacity:.5':''}">${tStr}</div>`:''}
+        <div class="plEvt-title" style="color:#fff!important;${e.done?'text-decoration:line-through;opacity:.7':''}">${icon}${esc(e.text)}</div>
+        ${height>30?`<div class="plEvt-time" style="color:rgba(255,255,255,.75)!important;${e.done?'opacity:.5':''}">${tStr}</div>`:''}
         </div>
       </div>`;
     });
@@ -7237,6 +7394,19 @@ function _anDateRange(){
   return {from,to:now};
 }
 
+function _anDonutSvg(pct,color,size=64,stroke=7){
+  const r=(size-stroke)/2;const c=size/2;
+  const circ=2*Math.PI*r;
+  const dash=pct/100*circ;
+  return `<svg class="anRingSvg" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">
+    <circle cx="${c}" cy="${c}" r="${r}" fill="none" stroke="rgba(255,255,255,.07)" stroke-width="${stroke}"/>
+    <circle cx="${c}" cy="${c}" r="${r}" fill="none" stroke="${color}" stroke-width="${stroke}"
+      stroke-dasharray="${dash} ${circ}" stroke-dashoffset="${circ/4}"
+      stroke-linecap="round" style="filter:drop-shadow(0 0 5px ${color}88);transition:stroke-dasharray .6s cubic-bezier(.16,1,.3,1)"/>
+    <text x="${c}" y="${c+4}" text-anchor="middle" font-size="${size>56?13:10}" font-weight="800" fill="${color}" font-family="var(--font-display)">${pct}%</text>
+  </svg>`;
+}
+
 function renderAnalytics(){
   const el=document.getElementById('analytics-content');
   if(!el)return;
@@ -7360,13 +7530,32 @@ function renderAnalytics(){
   }
   const maxWeekTot=Math.max(...weekStats.map(w=>w.total),1);
 
-  // ── Range button labels ──
+  // ── Render ──
   const rangeLabels={day:'День',week:'Неделя',month:'Месяц',quarter:'Квартал',year:'Год',all:'Всё время'};
   const statusLabels={all:'Все',done:'✓ Выполнено',active:'В процессе'};
 
-  // ── Render ──
+  // ── Insights ──
+  const insights=[];
+  if(total>0){
+    if(pct===100) insights.push({icon:'🏆',title:'Всё выполнено!',body:`${total} задач закрыто за ${rangeLabels[_anRange].toLowerCase()}. Отличная работа.`,bg:'rgba(15,221,170,.08)',border:'rgba(15,221,170,.2)',color:'var(--green)'});
+    else if(pct>=80) insights.push({icon:'🔥',title:'Отличный темп',body:`${pct}% задач выполнено. Осталось совсем немного.`,bg:'rgba(240,171,48,.08)',border:'rgba(240,171,48,.2)',color:'var(--gold)'});
+    else if(pct<40&&total>3) insights.push({icon:'⚡',title:'Нужен разгон',body:`Выполнено лишь ${pct}% — попробуй сфокусироваться на приоритетных задачах.`,bg:'rgba(255,128,48,.08)',border:'rgba(255,128,48,.2)',color:'var(--orange)'});
+    if(overdue>0) insights.push({icon:'⚠️',title:`${overdue} просроченных задач`,body:'Срочно закрой или перенеси дедлайны.',bg:'rgba(255,79,114,.08)',border:'rgba(255,79,114,.2)',color:'var(--red)'});
+    const busiestName=['Пн','Вт','Ср','Чт','Пт','Сб','Вс'][([1,2,3,4,5,6,0].indexOf(busiestDow))];
+    if(busiestName&&Math.max(...dowCounts)>0) insights.push({icon:'📅',title:`Пик: ${busiestName}`,body:`Больше всего задач падает на ${busiestName}. Планируй нагрузку заранее.`,bg:'rgba(155,143,245,.08)',border:'rgba(155,143,245,.2)',color:'var(--p)'});
+    if(totalMin>0) insights.push({icon:'⏱',title:'Время',body:`Запланировано ${fmtMin(totalMin)}. Выполнено ${fmtMin(doneMin)} (${timePct}%).`,bg:'rgba(91,149,255,.08)',border:'rgba(91,149,255,.2)',color:'var(--blue)'});
+  }
+
   el.innerHTML=`
-  <!-- FILTER BAR -->
+  <!-- ── Header ── -->
+  <div class="anHeader">
+    <div class="anHeaderLeft">
+      <div class="anHeaderTitle">📊 Аналитика</div>
+      <div class="anHeaderSub">Полная статистика по задачам, времени и меткам</div>
+    </div>
+  </div>
+
+  <!-- ── Filter Bar ── -->
   <div class="anFilterBar">
     <span class="anFilterLabel">Период</span>
     <div class="anRangeBtns">
@@ -7382,116 +7571,170 @@ function renderAnalytics(){
     <div class="anGroupBtns">
       <button class="anGroupBtn${!_anGroup?' on':''}" onclick="anSetGroup(null)" style="${!_anGroup?'background:var(--pdim);border-color:var(--p);color:var(--p)':''}">Все</button>
       ${groups.map(g=>`<button class="anGroupBtn${_anGroup===g.id?' on':''}" onclick="anSetGroup('${g.id}')" style="${_anGroup===g.id?`background:${g.color}22;border-color:${g.color};color:${g.color}`:''}">
-        ${esc(g.name)}
+        <span style="width:6px;height:6px;border-radius:50%;background:${g.color};display:inline-block;margin-right:5px;vertical-align:middle"></span>${esc(g.name)}
       </button>`).join('')}
     </div>
   </div>
 
-  <!-- KPI Row -->
+  <!-- ── KPI Row ── -->
   <div class="anKpi">
     ${[
-      {label:'Всего задач',val:total,sub:rangeLabels[_anRange],color:'var(--p)',icon:'📋'},
-      {label:'Выполнено',val:done,sub:pct+'% от всех',color:'var(--green)',icon:'✅'},
-      {label:'В процессе',val:total-done,sub:overdue+' просрочено',color:'var(--gold)',icon:'⏳'},
-      {label:'Просрочено',val:overdue,sub:'без дедлайна безопасны',color:'var(--red)',icon:'⚠️'},
-      {label:'Общее время',val:fmtMin(totalMin),sub:'запланировано',color:'var(--blue)',icon:'⏱'},
-      {label:'Время выполнено',val:fmtMin(doneMin),sub:timePct+'% по времени',color:'var(--cyan)',icon:'⚡'},
-    ].map(k=>`<div class="anKpiCard">
-      <div class="anKpiLabel">${k.icon} ${k.label}</div>
+      {icon:'📋',label:'Всего задач',val:total,sub:rangeLabels[_anRange],color:'var(--p)',bg:'rgba(155,143,245,.1)',bar:null},
+      {icon:'✅',label:'Выполнено',val:done,sub:pct+'% от всех',color:'var(--green)',bg:'rgba(15,221,170,.1)',bar:{w:pct,c:'var(--green)'}},
+      {icon:'⏳',label:'В процессе',val:total-done,sub:overdue>0?overdue+' просрочено':'всё в срок',color:'var(--gold)',bg:'rgba(240,171,48,.1)',bar:null},
+      {icon:'⚠️',label:'Просрочено',val:overdue,sub:overdue?'требуют внимания':'чисто 🎉',color:overdue?'var(--red)':'var(--green)',bg:overdue?'rgba(255,79,114,.1)':'rgba(15,221,170,.1)',bar:null},
+      {icon:'⏱',label:'Общее время',val:fmtMin(totalMin),sub:'запланировано',color:'var(--blue)',bg:'rgba(91,149,255,.1)',bar:{w:timePct,c:'var(--blue)'}},
+      {icon:'⚡',label:'Время выполнено',val:fmtMin(doneMin),sub:timePct+'% по времени',color:'var(--cyan)',bg:'rgba(34,204,232,.1)',bar:{w:timePct,c:'var(--cyan)'}},
+    ].map(k=>`<div class="anKpiCard" style="border-color:${k.color}22">
+      <div class="anKpiIcon">${k.icon}</div>
+      <div class="anKpiLabel">${k.label}</div>
       <div class="anKpiVal" style="color:${k.color}">${k.val}</div>
       <div class="anKpiSub">${k.sub}</div>
+      ${k.bar?`<div class="anKpiBar"><div class="anKpiBarFill" style="width:${k.bar.w}%;background:${k.bar.c}"></div></div>`:''}
+      <div class="anKpiCard" style="position:absolute;top:0;right:0;width:60px;height:60px;border-radius:50%;background:${k.bg};filter:blur(20px);pointer-events:none;border:none;padding:0;box-shadow:none"></div>
     </div>`).join('')}
   </div>
 
-  <!-- Row 2: Groups + 14-day chart -->
-  <div class="anRow2">
-    <!-- Groups breakdown -->
-    <div class="anCard">
-      <div class="anCardTitle">🗂 Группы ${_anGroup?'<span style="color:var(--p);font-size:9px;text-transform:none;letter-spacing:0">— фильтр активен</span>':''}</div>
-      ${groupStatsArr.length?groupStatsArr.map(g=>{
-        const gPct=g.count?Math.round(g.done/g.count*100):0;
-        const donePct2=g.count?gPct:0;
-        return `<div style="margin-bottom:13px">
-          <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:5px">
-            <span style="font-size:12px;font-weight:700;color:${g.color};display:flex;align-items:center;gap:5px">
-              <span style="width:8px;height:8px;border-radius:50%;background:${g.color};display:inline-block;flex-shrink:0"></span>${esc(g.name)}
-            </span>
-            <span style="font-size:10px;color:var(--text2);font-family:var(--font-mono)">${g.done}/${g.count}</span>
-          </div>
-          <div style="height:8px;background:var(--card3);border-radius:4px;overflow:hidden;position:relative">
-            <div style="position:absolute;top:0;left:0;bottom:0;width:${gPct}%;background:${g.color};opacity:.35;border-radius:4px"></div>
-            <div style="position:absolute;top:0;left:0;bottom:0;width:${donePct2}%;background:${g.color};border-radius:4px;transition:width .5s var(--ease)"></div>
-          </div>
-          <div style="display:flex;justify-content:space-between;margin-top:3px;font-size:9px;color:var(--muted)">
-            <span>${gPct}% выполнено</span>
-            <span>${fmtMin(g.doneMin)} / ${fmtMin(g.minutes)}</span>
-          </div>
-        </div>`;
-      }).join(''):'<div class="anEmpty">Нет групп меток.<br>Настройте метки в разделе Задачи.</div>'}
-    </div>
-
-    <!-- 14-day load chart -->
-    <div class="anCard">
-      <div class="anCardTitle">📊 Нагрузка за 14 дней
-        <span style="margin-left:auto;font-size:9px;text-transform:none;letter-spacing:0;color:var(--text2);font-weight:500">серый = в процессе, цвет = выполнено</span>
+  <!-- ── Donut Rings ── -->
+  <div class="anRingsRow">
+    <div class="anRingCard">
+      ${_anDonutSvg(pct,'#0FDDAA',80,8)}
+      <div class="anRingInfo">
+        <div class="anRingTitle">Прогресс задач</div>
+        <div class="anRingSub">${done} из ${total} задач выполнено за ${rangeLabels[_anRange].toLowerCase()}</div>
+        <div class="anRingMeta">
+          <div class="anRingMetaRow"><span style="color:var(--muted)">Выполнено</span><span style="color:var(--green);font-weight:700">${done}</span></div>
+          <div class="anRingMetaRow"><span style="color:var(--muted)">В процессе</span><span style="color:var(--gold);font-weight:700">${total-done}</span></div>
+          ${overdue?`<div class="anRingMetaRow"><span style="color:var(--muted)">Просрочено</span><span style="color:var(--red);font-weight:700">${overdue}</span></div>`:''}
+        </div>
       </div>
-      <div class="an14Bar">
+    </div>
+    <div class="anRingCard">
+      ${_anDonutSvg(timePct,'#5B95FF',80,8)}
+      <div class="anRingInfo">
+        <div class="anRingTitle">Прогресс времени</div>
+        <div class="anRingSub">${fmtMin(doneMin)} из ${fmtMin(totalMin)} запланированного выполнено</div>
+        <div class="anRingMeta">
+          <div class="anRingMetaRow"><span style="color:var(--muted)">Выполнено</span><span style="color:var(--blue);font-weight:700">${fmtMin(doneMin)}</span></div>
+          <div class="anRingMetaRow"><span style="color:var(--muted)">Осталось</span><span style="color:var(--text2);font-weight:700">${fmtMin(totalMin-doneMin)}</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Insights ── -->
+  ${insights.length?`<div class="anInsights">
+    ${insights.map(ins=>`<div class="anInsightCard" style="background:${ins.bg};border-color:${ins.border}">
+      <div class="anInsightIcon">${ins.icon}</div>
+      <div class="anInsightText">
+        <div class="anInsightTitle" style="color:${ins.color}">${ins.title}</div>
+        <div class="anInsightBody">${ins.body}</div>
+      </div>
+    </div>`).join('')}
+  </div>`:''}
+
+  <!-- ── Charts: 14 days + Weekly load ── -->
+  <div class="anCharts" style="grid-template-columns:1fr 1fr;margin-bottom:16px">
+    <!-- 14-day -->
+    <div class="anCard">
+      <div class="anCardTitle">
+        <span>📊</span>
+        <span class="anCardTitleMain">Нагрузка за 14 дней</span>
+        <span style="margin-left:auto;font-size:9px;text-transform:none;letter-spacing:0;color:var(--muted);font-weight:400">задач/день</span>
+      </div>
+      <div class="an14Wrap">
         ${dayStats.map(d=>{
           const isToday=d.date===dk(today);
-          const hTot=Math.round((d.total/maxDayTot)*82);
-          const hDone=d.total?Math.round((d.done/d.total)*hTot):0;
+          const hTot=maxDayTot>0?Math.round((d.total/maxDayTot)*88):0;
+          const hDone=d.total>0?Math.round((d.done/d.total)*hTot):0;
           const hActive=hTot-hDone;
-          return `<div class="an14BarItem${isToday?' an14Today':''}" title="${d.date}: ${d.total} задач (${d.done} выполнено, ${d.active} в процессе)">
-            <div class="an14BarOuter" style="height:${Math.max(hTot,2)}px">
-              <div class="an14BarDone" style="height:${hDone}px;background:${isToday?'var(--green)':d.doneColor};opacity:.9"></div>
-              <div style="position:absolute;top:0;left:0;right:0;height:${hActive}px;background:var(--card3);opacity:.5;border-radius:2px 2px 0 0"></div>
+          return `<div class="an14BarItem${isToday?' an14Today':''}" title="${d.date}: ${d.total} задач (${d.done}✓ ${d.active} в процессе)">
+            <div class="an14BarOuter" style="height:${Math.max(hTot,2)}px;width:100%">
+              <div class="an14BarTrack" style="height:100%"></div>
+              <div class="an14BarActive" style="height:${hActive}px;background:rgba(255,255,255,.12)"></div>
+              <div class="an14BarDone" style="height:${hDone}px;background:${isToday?'var(--green)':d.doneColor};box-shadow:0 0 6px ${isToday?'rgba(15,221,170,.4)':'rgba(155,143,245,.3)'}"></div>
             </div>
             <span class="an14Label">${d.label}</span>
           </div>`;
         }).join('')}
       </div>
-      <div style="display:flex;gap:12px;margin-top:6px;font-size:9px;color:var(--text2)">
-        <span style="display:flex;align-items:center;gap:3px"><span style="width:8px;height:8px;border-radius:2px;background:var(--green);display:inline-block"></span>Выполнено</span>
-        <span style="display:flex;align-items:center;gap:3px"><span style="width:8px;height:8px;border-radius:2px;background:var(--card3);border:1px solid var(--border3);display:inline-block"></span>В процессе</span>
+      <div class="anLegend">
+        <span style="display:flex;align-items:center;gap:5px"><span class="anLegendDot" style="background:var(--green)"></span>Выполнено</span>
+        <span style="display:flex;align-items:center;gap:5px"><span class="anLegendDot" style="background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.15)"></span>В процессе</span>
       </div>
+    </div>
 
-      <!-- Weekly load bars -->
-      <div class="anCardTitle" style="margin-top:16px">📅 Нагрузка по неделям <span style="font-size:9px;text-transform:none;letter-spacing:0;font-weight:400;color:var(--muted)">(последние 8 нед.)</span></div>
-      <div class="anWeekBars">
+    <!-- Weekly -->
+    <div class="anCard">
+      <div class="anCardTitle">
+        <span>📅</span>
+        <span class="anCardTitleMain">По неделям</span>
+        <span style="margin-left:auto;font-size:9px;text-transform:none;letter-spacing:0;color:var(--muted);font-weight:400">последние 8 нед.</span>
+      </div>
+      <div class="anWeekWrap">
         ${weekStats.map((w,i)=>{
-          const hPct=maxWeekTot?Math.round((w.total/maxWeekTot)*60):0;
-          const dPct=w.total?Math.round((w.done/w.total)*100):0;
+          const hPct=maxWeekTot>0?Math.round((w.total/maxWeekTot)*60):0;
+          const dPct=w.total>0?Math.round((w.done/w.total)*100):0;
           const isCur=i===weekStats.length-1;
-          return `<div class="anWeekBarCol" title="Неделя от ${w.label}: ${w.total} задач, ${w.done} выполнено">
-            <div class="anWeekBarOuter" style="height:60px">
-              <div style="height:${hPct}px;background:var(--card3);border-radius:3px;overflow:hidden;position:relative;margin-top:${60-hPct}px">
-                <div style="position:absolute;bottom:0;left:0;right:0;height:${Math.round((w.done/Math.max(w.total,1))*hPct)}px;background:${isCur?'var(--p)':'var(--blue)'};opacity:.8;border-radius:2px"></div>
-              </div>
+          const doneH=Math.round((w.done/Math.max(w.total,1))*hPct);
+          return `<div class="anWeekBarCol${isCur?' anWeekCurr':''}" title="Неделя ${w.label}: ${w.total} задач, ${w.done} выполнено">
+            <div class="anWeekBar" style="height:${Math.max(hPct,2)}px;background:var(--card3);overflow:hidden;position:relative;border-radius:4px 4px 0 0">
+              <div style="position:absolute;bottom:0;left:0;right:0;height:${doneH}px;background:${isCur?'linear-gradient(180deg,var(--p),var(--p2))':'var(--blue)'};opacity:.85;border-radius:4px 4px 0 0"></div>
             </div>
-            <div class="anWeekBarLabel" style="color:${isCur?'var(--p)':'var(--text2)'};font-size:8px">${w.label}</div>
-            <div class="anWeekBarCount">${w.done}/${w.total}</div>
+            <div class="anWeekBarLabel" style="font-size:8px">${w.label}</div>
+            <div class="anWeekBarCount" style="font-size:8px;color:${isCur?'var(--p)':'var(--muted)'}">${w.done}/${w.total}</div>
           </div>`;
         }).join('')}
+      </div>
+      <div class="anLegend">
+        <span style="display:flex;align-items:center;gap:5px"><span class="anLegendDot" style="background:var(--blue)"></span>Выполнено</span>
+        <span style="display:flex;align-items:center;gap:5px"><span class="anLegendDot" style="background:var(--p)"></span>Текущая неделя</span>
       </div>
     </div>
   </div>
 
-  <!-- Time by Labels (filtered, sorted by done first) -->
-  <div class="anCard" style="margin-bottom:14px">
-    <div class="anCardTitle">⏱ Время по меткам
-      <span style="margin-left:auto;font-size:9px;text-transform:none;letter-spacing:0;color:var(--text2);font-weight:400">сортировка: выполнено ↓</span>
+  <!-- ── Groups Breakdown ── -->
+  ${groupStatsArr.some(g=>g.count>0)?`<div class="anCard" style="margin-bottom:16px">
+    <div class="anCardTitle"><span>🗂</span><span class="anCardTitleMain">По группам</span>${_anGroup?'<span style="margin-left:8px;font-size:9px;text-transform:none;color:var(--p);background:var(--pdim);padding:2px 8px;border-radius:10px;border:1px solid var(--p)">фильтр активен</span>':''}</div>
+    <div class="anGroupTable">
+      ${groupStatsArr.filter(g=>g.count>0).map(g=>{
+        const gPct=g.count?Math.round(g.done/g.count*100):0;
+        return `<div class="anGroupRow" style="${_anGroup===g.id?`border-color:${g.color}44;background:${g.color}08`:''}">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+            <span style="font-size:12px;font-weight:700;color:${g.color};display:flex;align-items:center;gap:7px">
+              <span style="width:9px;height:9px;border-radius:50%;background:${g.color};flex-shrink:0;box-shadow:0 0 8px ${g.color}66"></span>${esc(g.name)}
+            </span>
+            <div style="display:flex;gap:10px;align-items:center">
+              <span style="font-size:10px;color:var(--text2)">${fmtMin(g.doneMin)} / ${fmtMin(g.minutes)}</span>
+              <span style="font-size:11px;font-weight:800;color:${g.color};font-family:var(--font-mono)">${gPct}%</span>
+              <span style="font-size:10px;color:var(--muted)">${g.done}/${g.count}</span>
+            </div>
+          </div>
+          <div style="height:8px;background:rgba(255,255,255,.06);border-radius:4px;overflow:hidden;position:relative">
+            <div style="position:absolute;top:0;left:0;bottom:0;width:${gPct}%;background:linear-gradient(90deg,${g.color},${g.color}99);border-radius:4px;transition:width .5s var(--ease);box-shadow:0 0 8px ${g.color}44"></div>
+          </div>
+        </div>`;
+      }).join('')}
+    </div>
+  </div>`:''}
+
+  <!-- ── Time by Labels ── -->
+  <div class="anCard" style="margin-bottom:16px">
+    <div class="anCardTitle">
+      <span>⏱</span>
+      <span class="anCardTitleMain">Время по меткам</span>
+      <span style="margin-left:auto;font-size:9px;text-transform:none;letter-spacing:0;color:var(--muted);font-weight:400">сортировка: выполнено ↓</span>
     </div>
     ${labelArr.length?`<div class="anLabelRow">${labelArr.map(l=>{
-      const maxLblMin=labelArr.length?Math.max(...labelArr.map(x=>x.minutes),1):1;
+      const maxLblMin=Math.max(...labelArr.map(x=>x.minutes),1);
       const barW=Math.round((l.minutes/maxLblMin)*100);
-      const doneBarW=l.minutes?Math.round((l.doneMin/l.minutes)*barW):0;
       const donePct=l.count?Math.round(l.doneCount/l.count*100):0;
       return `<div class="anLabelItem">
         <div class="anLabelHead">
           <div class="anLabelInfo">
-            <span style="width:9px;height:9px;border-radius:50%;background:${l.color};flex-shrink:0;box-shadow:0 0 6px ${l.color}66"></span>
+            <span style="width:10px;height:10px;border-radius:50%;background:${l.color};flex-shrink:0;box-shadow:0 0 7px ${l.color}88"></span>
             <span style="font-size:12px;font-weight:700;color:var(--text)">${esc(l.name)}</span>
-            <span style="font-size:9px;color:var(--muted);background:var(--card3);padding:1px 6px;border-radius:4px">${esc(l.groupName)}</span>
+            <span style="font-size:9px;color:var(--muted);background:rgba(255,255,255,.06);padding:2px 7px;border-radius:6px;border:1px solid var(--border)">${esc(l.groupName||'')}</span>
           </div>
           <div class="anLabelMeta">
             <span style="color:var(--text2)">${l.count} зад.</span>
@@ -7500,11 +7743,11 @@ function renderAnalytics(){
           </div>
         </div>
         <div class="anLabelBar">
-          <div class="anLabelBarFill" style="width:${barW}%;background:linear-gradient(90deg,${l.color}bb,${l.color}55)">
+          <div class="anLabelBarFill" style="width:${barW}%;background:linear-gradient(90deg,${l.color},${l.color}66)">
             <div class="anLabelBarDone" style="width:${l.minutes?Math.round((l.doneMin/l.minutes)*100):0}%"></div>
           </div>
         </div>
-        <div style="display:flex;justify-content:space-between;font-size:9px;color:var(--muted);margin-top:2px">
+        <div style="display:flex;justify-content:space-between;font-size:9px;color:var(--muted);margin-top:3px">
           <span style="color:var(--green)">${fmtMin(l.doneMin)} выполнено</span>
           <span>${fmtMin(l.minutes-l.doneMin)} осталось</span>
         </div>
@@ -7513,47 +7756,51 @@ function renderAnalytics(){
     :'<div class="anEmpty">Нет задач с метками в выбранный период.<br>Добавьте метки к задачам чтобы видеть статистику.</div>'}
   </div>
 
-  <!-- Row 3: DoW heatmap + Priority breakdown -->
-  <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px">
-    <!-- Day of week -->
+  <!-- ── Day of week + Priority ── -->
+  <div class="anCharts" style="grid-template-columns:1fr 1fr;margin-bottom:16px">
     <div class="anCard">
-      <div class="anCardTitle">🗓 По дням недели</div>
+      <div class="anCardTitle"><span>🗓</span><span class="anCardTitleMain">По дням недели</span></div>
       <div class="anDowGrid">
         ${['Пн','Вт','Ср','Чт','Пт','Сб','Вс'].map((d,idx)=>{
-          // Remap: Mon=1,Tue=2...Sun=0 in JS
           const jsDay=[1,2,3,4,5,6,0][idx];
           const cnt=dowCounts[jsDay];
           const maxDow=Math.max(...dowCounts,1);
           const pctH=Math.round((cnt/maxDow)*100);
-          const isBusy=cnt===Math.max(...dowCounts)&&cnt>0;
+          const isBusy=jsDay===busiestDow&&cnt>0;
           const isWe=idx>=5;
+          const col=isWe?'var(--pink)':isBusy?'var(--p)':'var(--blue)';
           return `<div class="anDowItem">
-            <div class="anDowBar">
-              <div style="position:absolute;bottom:0;left:0;right:0;height:${pctH}%;background:${isWe?'var(--pink)':isBusy?'var(--p)':'var(--blue)'};opacity:${cnt?'.8':'.15'};border-radius:4px;transition:height .4s var(--ease)"></div>
+            <div class="anDowBar" style="${isBusy?`border-color:${col}33;box-shadow:0 0 8px rgba(155,143,245,.2)`:''}">
+              <div class="anDowBarFill" style="height:${pctH}%;background:${col};opacity:${cnt?'.85':'.1'}"></div>
             </div>
-            <div style="font-size:9px;font-weight:${isBusy?'800':'600'};color:${isBusy?'var(--p)':isWe?'var(--pink)':'var(--text2)'}">${d}</div>
+            <div style="font-size:9px;font-weight:${isBusy?'800':'600'};color:${isBusy?col:isWe?'var(--pink)':'var(--text2)'}">${d}</div>
             <div style="font-size:8px;color:var(--muted)">${cnt}</div>
           </div>`;
         }).join('')}
       </div>
-      <div style="font-size:10px;color:var(--muted);margin-top:10px">Самый загруженный: <b style="color:var(--p)">${['Пн','Вт','Ср','Чт','Пт','Сб','Вс'][([1,2,3,4,5,6,0].indexOf(busiestDow))]||'—'}</b></div>
+      <div style="font-size:10px;color:var(--muted);margin-top:10px;display:flex;align-items:center;gap:6px">
+        <span>Самый загруженный:</span>
+        <b style="color:var(--p);background:var(--pdim);padding:1px 8px;border-radius:6px">${['Пн','Вт','Ср','Чт','Пт','Сб','Вс'][([1,2,3,4,5,6,0].indexOf(busiestDow))]||'—'}</b>
+      </div>
     </div>
 
-    <!-- Priority -->
     <div class="anCard">
-      <div class="anCardTitle">🎯 По приоритету</div>
+      <div class="anCardTitle"><span>🎯</span><span class="anCardTitleMain">По приоритету</span></div>
       <div class="anPrioGrid">
-        ${[{label:'🔴 Высокий',val:1,color:'var(--red)'},{label:'🟡 Средний',val:2,color:'var(--gold)'},{label:'🟢 Низкий',val:3,color:'var(--green)'}].map(p=>{
+        ${[{label:'Высокий',emoji:'🔴',val:1,color:'var(--red)',bg:'rgba(255,79,114,.08)'},{label:'Средний',emoji:'🟡',val:2,color:'var(--gold)',bg:'rgba(240,171,48,.08)'},{label:'Низкий',emoji:'🟢',val:3,color:'var(--green)',bg:'rgba(15,221,170,.08)'}].map(p=>{
           const pts=tasks.filter(t=>t.priority===p.val);
           const pDone=pts.filter(t=>t.done).length;
           const pMin=pts.reduce((s,t)=>s+taskMinutes(t),0);
           const pPct=pts.length?Math.round(pDone/pts.length*100):0;
-          return `<div class="anPrioCard" style="background:var(--card3);border-color:${p.color}22">
+          return `<div class="anPrioCard" style="background:${p.bg};border-color:${p.color}22">
+            <div style="font-size:16px;margin-bottom:6px">${p.emoji}</div>
             <div style="font-size:9px;color:${p.color};font-weight:800;margin-bottom:6px;text-transform:uppercase;letter-spacing:.4px">${p.label}</div>
-            <div style="font-size:20px;font-weight:800;color:var(--text);font-family:var(--font-display);line-height:1">${pts.length}</div>
+            <div style="font-size:22px;font-weight:800;color:var(--text);font-family:var(--font-display);line-height:1">${pts.length}</div>
             <div style="font-size:9px;color:var(--text2);margin-top:4px">${pDone} ✓ (${pPct}%)</div>
-            <div style="height:4px;background:var(--card2);border-radius:2px;margin-top:6px;overflow:hidden"><div style="height:100%;width:${pPct}%;background:${p.color};border-radius:2px"></div></div>
-            <div style="font-size:9px;color:var(--blue);margin-top:4px">${fmtMin(pMin)}</div>
+            <div style="height:4px;background:rgba(255,255,255,.06);border-radius:2px;margin-top:8px;overflow:hidden">
+              <div style="height:100%;width:${pPct}%;background:${p.color};border-radius:2px;transition:width .5s var(--ease)"></div>
+            </div>
+            ${pMin?`<div style="font-size:9px;color:var(--blue);margin-top:5px;font-family:var(--font-mono)">${fmtMin(pMin)}</div>`:''}
           </div>`;
         }).join('')}
       </div>
