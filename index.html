@@ -1646,10 +1646,6 @@ select.inp option{background:var(--card2);color:var(--text)}
 /* ═══════════════════════════════════
    ANALYTICS v3 — Redesigned
 ═══════════════════════════════════ */
-.anHeader{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:12px}
-.anHeaderLeft{}
-.anHeaderTitle{font-family:var(--font-display);font-size:24px;font-weight:800;letter-spacing:-.5px;color:var(--text);line-height:1}
-.anHeaderSub{font-size:12px;color:var(--text2);margin-top:3px}
 
 /* Filter bar */
 .anFilterBar{
@@ -1703,7 +1699,7 @@ select.inp option{background:var(--card2);color:var(--text)}
 .anKpiBarFill{height:100%;border-radius:2px;transition:width .6s var(--ease)}
 
 /* Rings row */
-.anRingsRow{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:18px}
+.anRingsRow{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:18px}
 .anRingCard{
   background:linear-gradient(145deg,var(--card) 0%,var(--card2) 100%);
   border:1px solid var(--border);border-radius:14px;padding:16px;
@@ -1718,6 +1714,18 @@ select.inp option{background:var(--card2);color:var(--text)}
 .anRingSub{font-size:10px;color:var(--text2);margin-bottom:8px;line-height:1.4}
 .anRingMeta{display:flex;flex-direction:column;gap:4px}
 .anRingMetaRow{display:flex;justify-content:space-between;font-size:9.5px}
+
+/* Group tooltip */
+.anGroupBtnWrap{position:relative;display:inline-block}
+.anGroupTooltip{
+  display:none;position:absolute;top:calc(100% + 8px);left:50%;transform:translateX(-50%);
+  min-width:200px;max-width:280px;z-index:200;
+  background:var(--card2);border:1px solid var(--border2);border-radius:12px;
+  padding:12px;box-shadow:var(--shadow2);
+  pointer-events:none;
+}
+.anGroupTooltip::before{content:'';position:absolute;top:-5px;left:50%;transform:translateX(-50%);width:8px;height:8px;background:var(--card2);border-left:1px solid var(--border2);border-top:1px solid var(--border2);rotate:45deg}
+.anGroupBtnWrap:hover .anGroupTooltip{display:block;animation:paneIn .15s var(--ease) both}
 
 /* Charts area */
 .anCharts{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:18px}
@@ -1804,6 +1812,8 @@ select.inp option{background:var(--card2);color:var(--text)}
   .anGroupBtns{gap:4px}
   .anInsights{grid-template-columns:1fr!important}
   #analytics-content>[style*="grid-template-columns:1fr 1fr"]{grid-template-columns:1fr!important}
+  .anGroupTooltip{left:0;transform:none}
+  .anGroupTooltip::before{left:20px}
 }
 
 /* ── General mobile improvements ── */
@@ -2726,8 +2736,6 @@ select.inp option{background:var(--card2);color:var(--text)}
 
 <!-- ═══ 10. ANALYTICS ═══ -->
 <div id="tab-analytics" class="pane hInner">
-  <div style="font-family:var(--font-display);font-size:22px;font-weight:800;letter-spacing:-.4px;color:var(--text);margin-bottom:4px">📊 Аналитика</div>
-  <div style="font-size:12px;color:var(--text2);margin-bottom:20px">Полная статистика по задачам, времени и меткам</div>
   <div id="analytics-content"></div>
 </div>
 
@@ -7381,6 +7389,7 @@ let _anStatus='all';    // 'all'|'done'|'active'
 function anSetRange(r){_anRange=r;renderAnalytics();}
 function anSetGroup(gid){_anGroup=(_anGroup===gid?null:gid);renderAnalytics();}
 function anSetStatus(s){_anStatus=s;renderAnalytics();}
+function anToggleTaskList(){const el=document.getElementById('anDoneTaskList');if(el)el.style.display=el.style.display==='none'?'block':'none';}
 
 function _anDateRange(){
   const now=t0();
@@ -7547,14 +7556,6 @@ function renderAnalytics(){
   }
 
   el.innerHTML=`
-  <!-- ── Header ── -->
-  <div class="anHeader">
-    <div class="anHeaderLeft">
-      <div class="anHeaderTitle">📊 Аналитика</div>
-      <div class="anHeaderSub">Полная статистика по задачам, времени и меткам</div>
-    </div>
-  </div>
-
   <!-- ── Filter Bar ── -->
   <div class="anFilterBar">
     <span class="anFilterLabel">Период</span>
@@ -7562,17 +7563,23 @@ function renderAnalytics(){
       ${['day','week','month','quarter','year','all'].map(r=>`<button class="anRangeBtn${_anRange===r?' on':''}" onclick="anSetRange('${r}')">${rangeLabels[r]}</button>`).join('')}
     </div>
     <div class="anSep"></div>
-    <span class="anFilterLabel">Статус</span>
-    <div class="anStatusBtns">
-      ${['all','done','active'].map(s=>`<button class="anStatusBtn${_anStatus===s?' on':''}" onclick="anSetStatus('${s}')">${statusLabels[s]}</button>`).join('')}
-    </div>
-    <div class="anSep"></div>
     <span class="anFilterLabel">Группа</span>
     <div class="anGroupBtns">
       <button class="anGroupBtn${!_anGroup?' on':''}" onclick="anSetGroup(null)" style="${!_anGroup?'background:var(--pdim);border-color:var(--p);color:var(--p)':''}">Все</button>
-      ${groups.map(g=>`<button class="anGroupBtn${_anGroup===g.id?' on':''}" onclick="anSetGroup('${g.id}')" style="${_anGroup===g.id?`background:${g.color}22;border-color:${g.color};color:${g.color}`:''}">
-        <span style="width:6px;height:6px;border-radius:50%;background:${g.color};display:inline-block;margin-right:5px;vertical-align:middle"></span>${esc(g.name)}
-      </button>`).join('')}
+      ${groups.map(g=>{
+        const gLabels=(g.labels||[]);
+        const tooltipHtml=gLabels.length?gLabels.map(l=>`<span style="display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:600;padding:3px 8px;border-radius:10px;background:${l.color}22;color:${l.color};border:1px solid ${l.color}44"><span style="width:5px;height:5px;border-radius:50%;background:${l.color};flex-shrink:0"></span>${esc(l.name)}</span>`).join(''):'';
+        return `<div class="anGroupBtnWrap" style="position:relative;display:inline-block">
+          <button class="anGroupBtn${_anGroup===g.id?' on':''}" onclick="anSetGroup('${g.id}')" style="${_anGroup===g.id?`background:${g.color}22;border-color:${g.color};color:${g.color}`:''}">
+            <span style="width:7px;height:7px;border-radius:50%;background:${g.color};display:inline-block;margin-right:5px;vertical-align:middle;box-shadow:0 0 6px ${g.color}88"></span>${esc(g.name)}
+          </button>
+          ${tooltipHtml?`<div class="anGroupTooltip">
+            <div style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);margin-bottom:6px">Метки группы</div>
+            <div style="display:flex;flex-wrap:wrap;gap:4px">${tooltipHtml}</div>
+            <div style="margin-top:8px;font-size:9px;color:var(--muted)">Нажми чтобы отфильтровать</div>
+          </div>`:''}
+        </div>`;
+      }).join('')}
     </div>
   </div>
 
@@ -7591,7 +7598,7 @@ function renderAnalytics(){
       <div class="anKpiVal" style="color:${k.color}">${k.val}</div>
       <div class="anKpiSub">${k.sub}</div>
       ${k.bar?`<div class="anKpiBar"><div class="anKpiBarFill" style="width:${k.bar.w}%;background:${k.bar.c}"></div></div>`:''}
-      <div class="anKpiCard" style="position:absolute;top:0;right:0;width:60px;height:60px;border-radius:50%;background:${k.bg};filter:blur(20px);pointer-events:none;border:none;padding:0;box-shadow:none"></div>
+      <div style="position:absolute;top:0;right:0;width:60px;height:60px;border-radius:50%;background:${k.bg};filter:blur(20px);pointer-events:none"></div>
     </div>`).join('')}
   </div>
 
@@ -7617,6 +7624,17 @@ function renderAnalytics(){
         <div class="anRingMeta">
           <div class="anRingMetaRow"><span style="color:var(--muted)">Выполнено</span><span style="color:var(--blue);font-weight:700">${fmtMin(doneMin)}</span></div>
           <div class="anRingMetaRow"><span style="color:var(--muted)">Осталось</span><span style="color:var(--text2);font-weight:700">${fmtMin(totalMin-doneMin)}</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="anRingCard">
+      ${_anDonutSvg(overdue&&total?Math.round((1-overdue/total)*100):total>0?100:0,'#F0AB30',80,8)}
+      <div class="anRingInfo">
+        <div class="anRingTitle">Своевременность</div>
+        <div class="anRingSub">${overdue?overdue+' задач просрочено':'Все задачи в срок'}</div>
+        <div class="anRingMeta">
+          <div class="anRingMetaRow"><span style="color:var(--muted)">В срок</span><span style="color:var(--gold);font-weight:700">${done-Math.min(overdue,done)}</span></div>
+          <div class="anRingMetaRow"><span style="color:var(--muted)">Просрочено</span><span style="color:${overdue?'var(--red)':'var(--green)'};font-weight:700">${overdue}</span></div>
         </div>
       </div>
     </div>
@@ -7693,69 +7711,6 @@ function renderAnalytics(){
     </div>
   </div>
 
-  <!-- ── Groups Breakdown ── -->
-  ${groupStatsArr.some(g=>g.count>0)?`<div class="anCard" style="margin-bottom:16px">
-    <div class="anCardTitle"><span>🗂</span><span class="anCardTitleMain">По группам</span>${_anGroup?'<span style="margin-left:8px;font-size:9px;text-transform:none;color:var(--p);background:var(--pdim);padding:2px 8px;border-radius:10px;border:1px solid var(--p)">фильтр активен</span>':''}</div>
-    <div class="anGroupTable">
-      ${groupStatsArr.filter(g=>g.count>0).map(g=>{
-        const gPct=g.count?Math.round(g.done/g.count*100):0;
-        return `<div class="anGroupRow" style="${_anGroup===g.id?`border-color:${g.color}44;background:${g.color}08`:''}">
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
-            <span style="font-size:12px;font-weight:700;color:${g.color};display:flex;align-items:center;gap:7px">
-              <span style="width:9px;height:9px;border-radius:50%;background:${g.color};flex-shrink:0;box-shadow:0 0 8px ${g.color}66"></span>${esc(g.name)}
-            </span>
-            <div style="display:flex;gap:10px;align-items:center">
-              <span style="font-size:10px;color:var(--text2)">${fmtMin(g.doneMin)} / ${fmtMin(g.minutes)}</span>
-              <span style="font-size:11px;font-weight:800;color:${g.color};font-family:var(--font-mono)">${gPct}%</span>
-              <span style="font-size:10px;color:var(--muted)">${g.done}/${g.count}</span>
-            </div>
-          </div>
-          <div style="height:8px;background:rgba(255,255,255,.06);border-radius:4px;overflow:hidden;position:relative">
-            <div style="position:absolute;top:0;left:0;bottom:0;width:${gPct}%;background:linear-gradient(90deg,${g.color},${g.color}99);border-radius:4px;transition:width .5s var(--ease);box-shadow:0 0 8px ${g.color}44"></div>
-          </div>
-        </div>`;
-      }).join('')}
-    </div>
-  </div>`:''}
-
-  <!-- ── Time by Labels ── -->
-  <div class="anCard" style="margin-bottom:16px">
-    <div class="anCardTitle">
-      <span>⏱</span>
-      <span class="anCardTitleMain">Время по меткам</span>
-      <span style="margin-left:auto;font-size:9px;text-transform:none;letter-spacing:0;color:var(--muted);font-weight:400">сортировка: выполнено ↓</span>
-    </div>
-    ${labelArr.length?`<div class="anLabelRow">${labelArr.map(l=>{
-      const maxLblMin=Math.max(...labelArr.map(x=>x.minutes),1);
-      const barW=Math.round((l.minutes/maxLblMin)*100);
-      const donePct=l.count?Math.round(l.doneCount/l.count*100):0;
-      return `<div class="anLabelItem">
-        <div class="anLabelHead">
-          <div class="anLabelInfo">
-            <span style="width:10px;height:10px;border-radius:50%;background:${l.color};flex-shrink:0;box-shadow:0 0 7px ${l.color}88"></span>
-            <span style="font-size:12px;font-weight:700;color:var(--text)">${esc(l.name)}</span>
-            <span style="font-size:9px;color:var(--muted);background:rgba(255,255,255,.06);padding:2px 7px;border-radius:6px;border:1px solid var(--border)">${esc(l.groupName||'')}</span>
-          </div>
-          <div class="anLabelMeta">
-            <span style="color:var(--text2)">${l.count} зад.</span>
-            <span style="color:var(--green);font-weight:700">${donePct}% ✓</span>
-            <span style="color:var(--blue);font-weight:700;font-family:var(--font-mono)">${fmtMin(l.minutes)}</span>
-          </div>
-        </div>
-        <div class="anLabelBar">
-          <div class="anLabelBarFill" style="width:${barW}%;background:linear-gradient(90deg,${l.color},${l.color}66)">
-            <div class="anLabelBarDone" style="width:${l.minutes?Math.round((l.doneMin/l.minutes)*100):0}%"></div>
-          </div>
-        </div>
-        <div style="display:flex;justify-content:space-between;font-size:9px;color:var(--muted);margin-top:3px">
-          <span style="color:var(--green)">${fmtMin(l.doneMin)} выполнено</span>
-          <span>${fmtMin(l.minutes-l.doneMin)} осталось</span>
-        </div>
-      </div>`;
-    }).join('')}</div>`
-    :'<div class="anEmpty">Нет задач с метками в выбранный период.<br>Добавьте метки к задачам чтобы видеть статистику.</div>'}
-  </div>
-
   <!-- ── Day of week + Priority ── -->
   <div class="anCharts" style="grid-template-columns:1fr 1fr;margin-bottom:16px">
     <div class="anCard">
@@ -7805,7 +7760,78 @@ function renderAnalytics(){
         }).join('')}
       </div>
     </div>
-  </div>`;
+  </div>
+
+  <!-- ── Time by Labels ── -->
+  <div class="anCard" style="margin-bottom:16px">
+    <div class="anCardTitle">
+      <span>⏱</span>
+      <span class="anCardTitleMain">Время по меткам</span>
+      <span style="margin-left:auto;font-size:9px;text-transform:none;letter-spacing:0;color:var(--muted);font-weight:400">сортировка: выполнено ↓</span>
+    </div>
+    ${labelArr.length?`<div class="anLabelRow">${labelArr.map(l=>{
+      const maxLblMin=Math.max(...labelArr.map(x=>x.minutes),1);
+      const barW=Math.round((l.minutes/maxLblMin)*100);
+      const donePct=l.count?Math.round(l.doneCount/l.count*100):0;
+      return `<div class="anLabelItem">
+        <div class="anLabelHead">
+          <div class="anLabelInfo">
+            <span style="width:10px;height:10px;border-radius:50%;background:${l.color};flex-shrink:0;box-shadow:0 0 7px ${l.color}88"></span>
+            <span style="font-size:12px;font-weight:700;color:var(--text)">${esc(l.name)}</span>
+            ${l.groupName?`<span style="font-size:9px;color:var(--muted);background:rgba(255,255,255,.06);padding:2px 7px;border-radius:6px;border:1px solid var(--border)">${esc(l.groupName)}</span>`:''}
+          </div>
+          <div class="anLabelMeta">
+            <span style="color:var(--text2)">${l.count} зад.</span>
+            <span style="color:var(--green);font-weight:700">${donePct}% ✓</span>
+            <span style="color:var(--blue);font-weight:700;font-family:var(--font-mono)">${fmtMin(l.minutes)}</span>
+          </div>
+        </div>
+        <div class="anLabelBar">
+          <div class="anLabelBarFill" style="width:${barW}%;background:linear-gradient(90deg,${l.color},${l.color}66)">
+            <div class="anLabelBarDone" style="width:${l.minutes?Math.round((l.doneMin/l.minutes)*100):0}%"></div>
+          </div>
+        </div>
+        <div style="display:flex;justify-content:space-between;font-size:9px;color:var(--muted);margin-top:3px">
+          <span style="color:var(--green)">${fmtMin(l.doneMin)} выполнено</span>
+          <span>${fmtMin(l.minutes-l.doneMin)} осталось</span>
+        </div>
+      </div>`;
+    }).join('')}</div>`
+    :'<div class="anEmpty">Нет задач с метками в выбранный период.<br>Добавьте метки к задачам чтобы видеть статистику.</div>'}
+  </div>
+
+  <!-- ── Completed Tasks List ── -->
+  ${(()=>{
+    const doneTasks=rangedTasks.filter(t=>t.done).sort((a,b)=>(b.deadline||'').localeCompare(a.deadline||''));
+    if(!doneTasks.length) return '';
+    return `<div class="anCard" style="margin-bottom:16px">
+      <div class="anCardTitle" style="cursor:pointer" onclick="anToggleTaskList()">
+        <span>✅</span>
+        <span class="anCardTitleMain">Выполненные задачи</span>
+        <span style="margin-left:auto;display:flex;align-items:center;gap:8px">
+          <span style="font-size:10px;font-weight:700;color:var(--green);background:rgba(15,221,170,.12);padding:2px 10px;border-radius:10px;border:1px solid rgba(15,221,170,.2)">${doneTasks.length} задач</span>
+          <span style="font-size:10px;color:var(--muted)">▼</span>
+        </span>
+      </div>
+      <div id="anDoneTaskList">
+        <div style="display:flex;flex-direction:column;gap:6px">
+          ${doneTasks.slice(0,30).map(t=>{
+            const tLabels=getTaskLabelObjects(t);
+            const tMin=taskMinutes(t);
+            return `<div style="display:flex;align-items:center;gap:10px;padding:9px 12px;background:var(--card3);border-radius:10px;border:1px solid rgba(15,221,170,.08);transition:border-color .15s" onmouseover="this.style.borderColor='rgba(15,221,170,.2)'" onmouseout="this.style.borderColor='rgba(15,221,170,.08)'">
+              <span style="width:18px;height:18px;border-radius:50%;background:rgba(15,221,170,.15);border:1.5px solid var(--green);display:flex;align-items:center;justify-content:center;font-size:9px;flex-shrink:0;color:var(--green)">✓</span>
+              <span style="flex:1;font-size:12px;font-weight:600;color:var(--text);text-decoration:line-through;opacity:.7;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(t.text||'')}</span>
+              ${tLabels.length?`<div style="display:flex;gap:3px;flex-shrink:0">${tLabels.slice(0,3).map(l=>`<span style="width:6px;height:6px;border-radius:50%;background:${l.color};box-shadow:0 0 4px ${l.color}66" title="${esc(l.name)}"></span>`).join('')}</div>`:''}
+              ${tMin?`<span style="font-size:9px;color:var(--blue);font-family:var(--font-mono);flex-shrink:0">${fmtMin(tMin)}</span>`:''}
+              ${t.deadline?`<span style="font-size:9px;color:var(--muted);flex-shrink:0">${t.deadline}</span>`:''}
+            </div>`;
+          }).join('')}
+          ${doneTasks.length>30?`<div style="text-align:center;font-size:10px;color:var(--muted);padding:6px">...и ещё ${doneTasks.length-30} задач</div>`:''}
+        </div>
+      </div>
+    </div>`;
+  })()}
+`;
 }
 
 /* ═══════════════════════════════════
