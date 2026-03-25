@@ -693,11 +693,7 @@ select.inp option{background:var(--card2);color:var(--text)}
 .tLabelPills{display:flex;gap:4px;align-items:center;flex-wrap:wrap}
 .tLabelAddBtn{color:var(--muted);font-size:11px;width:18px;height:18px;border-radius:50%;border:1px dashed var(--border2);display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;margin-left:2px;cursor:pointer}
 .tGroupTooltip{position:fixed;z-index:999;background:var(--card2);border:1px solid var(--border2);border-radius:10px;padding:8px 10px;box-shadow:var(--shadow2);min-width:160px;pointer-events:none;animation:fadeIn .12s}
-.tpSortBtn{border-radius:6px;transition:all var(--dur) var(--ease);position:relative}
-.tpSortBtn:hover{border-color:var(--p)!important}
-.tpGroupBtn{border-radius:6px;transition:all var(--dur) var(--ease);position:relative;font-weight:600}
-.tpGroupBtn:hover{transform:translateY(-1px)}
-.tpGroupBtn.tpGroupOn{background:var(--pdim2)!important;color:var(--p)!important;border:1px solid var(--p)!important;box-shadow:0 0 12px var(--pglow2)!important;font-weight:700}
+.tpGroupBtn.tpGroupOn{background:var(--pdim2)!important;color:var(--p)!important;border:1px solid var(--p)!important;box-shadow:0 0 12px var(--pglow2)!important}
 .trOv td{background:rgba(248,113,113,.05)!important}.trTd td{background:rgba(251,146,60,.05)!important}.trSo td{background:rgba(245,158,11,.04)!important}.trDn td{background:rgba(45,212,166,.04)!important}
 .tCb{width:15px;height:15px;cursor:pointer;accent-color:var(--green);transition:transform .1s,opacity .15s;opacity:0}.tCb:hover{transform:scale(1.15)}.tTbl tbody tr:hover .tCb{opacity:1}.tCb:checked{opacity:1}
 .tNameInp{border:none;background:transparent;font-family:var(--font-body);font-size:12px;font-weight:700;color:var(--text);outline:none;width:100%}
@@ -942,16 +938,13 @@ select.inp option{background:var(--card2);color:var(--text)}
   background:linear-gradient(160deg,rgba(14,15,32,.98) 0%,rgba(10,11,22,.99) 100%);
   border-radius:20px;
   border:1px solid rgba(155,143,245,.15);
-  padding:24px;width:100%;max-width:520px;
+  padding:24px;width:100%;max-width:460px;
   box-shadow:var(--shadow3),0 0 80px rgba(0,0,0,.6);
   display:flex;flex-direction:column;gap:14px;
   max-height:90vh;overflow-y:auto;
   animation:slideModal .22s var(--ease-spring);
   position:relative;
 }
-#labelsEditorList{display:flex;flex-direction:column;gap:8px;max-height:58vh;overflow-y:auto;padding-right:8px}
-#labelsEditorList > div{background:linear-gradient(135deg,rgba(155,143,245,.06) 0%,rgba(15,221,170,.04) 100%);border:1px solid rgba(155,143,245,.15);border-radius:14px;padding:16px;transition:all var(--dur) var(--ease)}
-#labelsEditorList > div:hover{border-color:rgba(155,143,245,.25);box-shadow:0 0 20px rgba(155,143,245,.1)}
 .modalBox::before{content:'';position:absolute;inset:0;border-radius:20px;background:linear-gradient(135deg,rgba(155,143,245,.04) 0%,transparent 50%);pointer-events:none}
 @keyframes slideModal{from{opacity:0;transform:translateY(12px) scale(.96)}to{opacity:1;transform:translateY(0) scale(1)}}
 .modalBox::-webkit-scrollbar{width:3px}
@@ -1820,10 +1813,10 @@ select.inp option{background:var(--card2);color:var(--text)}
     <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">
       <button class="mMoreBtn" onclick="switchTabMob('weekly',null);closeMoreMenu()">📅<br>Неделя</button>
       <button class="mMoreBtn" onclick="switchTabMob('tasks',null);closeMoreMenu()">📋<br>Задачи</button>
-      <button class="mMoreBtn" onclick="switchTabMob('data',null);closeMoreMenu()">📊<br>Аналитика</button>
       <button class="mMoreBtn" onclick="switchTabMob('routine',null);closeMoreMenu()">🔄<br>Рутина</button>
       <button class="mMoreBtn" onclick="switchTabMob('calendar',null);closeMoreMenu()">📆<br>Календарь</button>
       <button class="mMoreBtn" onclick="switchTabMob('kanban',null);closeMoreMenu()">🎯<br>Канбан</button>
+      <button class="mMoreBtn" onclick="switchTabMob('finance',null);closeMoreMenu()">💰<br>Финансы</button>
       <button class="mMoreBtn" onclick="switchTabMob('goals',null);closeMoreMenu()">🌱<br>Цели</button>
     </div>
   </div>
@@ -2037,23 +2030,15 @@ select.inp option{background:var(--card2);color:var(--text)}
     </div>
     <!-- Sort + hide done controls -->
     <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
-      <!-- Sort group -->
-      <div style="display:flex;align-items:center;gap:6px;padding:6px 10px;background:var(--card3);border-radius:8px;border:1px solid var(--border)">
-        <span style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--muted)">Сорт:</span>
-        <button id="tpSortDate" class="btn tpSortBtn tpSortOn" style="font-size:10px;padding:3px 9px" onclick="tpSetSort('date')">📅 Дата</button>
-        <button id="tpSortAdd" class="btn tpSortBtn btnG" style="font-size:10px;padding:3px 9px" onclick="tpSetSort('added')">➕ Добавлены</button>
-      </div>
-      
-      <!-- Group filter -->
-      <div style="display:flex;align-items:center;gap:6px;padding:6px 10px;background:var(--card3);border-radius:8px;border:1px solid var(--border)">
-        <span style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--muted)">Группа:</span>
-        <button id="tpGroupBal" class="btn tpGroupBtn btnG" style="font-size:10px;padding:3px 9px" onclick="tpSetGroupFilter('lg1')" onmouseenter="tpShowGroupTooltip(this,'lg1')" onmouseleave="tpHideGroupTooltip()">⚖️ Баланс</button>
-        <button id="tpGroupAtt" class="btn tpGroupBtn btnG" style="font-size:10px;padding:3px 9px" onclick="tpSetGroupFilter('lg2')" onmouseenter="tpShowGroupTooltip(this,'lg2')" onmouseleave="tpHideGroupTooltip()">🔥 Внимание</button>
-      </div>
-      <!-- Actions right-aligned -->
+      <span style="font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--muted)">Сорт:</span>
+      <button id="tpSortDate" class="btn tpSortBtn tpSortOn" style="font-size:10px;padding:3px 10px" onclick="tpSetSort('date')">📅 По дате</button>
+      <button id="tpSortAdd" class="btn tpSortBtn btnG" style="font-size:10px;padding:3px 10px" onclick="tpSetSort('added')">➕ По добавлению</button>
+      <div style="width:1px;height:18px;background:var(--border);flex-shrink:0;margin:0 2px"></div>
+      <button id="tpGroupBal" class="btn tpGroupBtn btnG" style="font-size:10px;padding:3px 10px" onclick="tpSetGroupFilter('lg1')" onmouseenter="tpShowGroupTooltip(this,'lg1')" onmouseleave="tpHideGroupTooltip()">⚖️ Баланс</button>
+      <button id="tpGroupAtt" class="btn tpGroupBtn btnG" style="font-size:10px;padding:3px 10px" onclick="tpSetGroupFilter('lg2')" onmouseenter="tpShowGroupTooltip(this,'lg2')" onmouseleave="tpHideGroupTooltip()">🔥 Внимание</button>
       <div style="margin-left:auto;display:flex;gap:6px;align-items:center">
-        <button class="btn btnG" style="font-size:10px;padding:3px 9px" onclick="openLabelsModal()">⚙️ Метки</button>
-        <button id="tpToggleDone" class="btn btnG" style="font-size:10px;padding:3px 10px" onclick="tpToggleDone()">👁️ Готовые</button>� Готовые</button>
+        <button class="btn btnG" style="font-size:10px;padding:3px 9px" onclick="openLabelsModal()">⚙ Метки</button>
+        <button id="tpToggleDone" class="btn btnG" style="font-size:10px;padding:3px 10px" onclick="tpToggleDone()">🙈 Скрыть готовые</button>
       </div>
     </div>
   </div>
@@ -2177,7 +2162,6 @@ select.inp option{background:var(--card2);color:var(--text)}
       <button class="btn btnO" style="font-size:12px;padding:8px 14px;font-weight:700" onclick="openFinModal()">＋ Транзакция</button>
       <button class="btn btnB" style="font-size:12px;padding:8px 14px;font-weight:700" onclick="openTransferModal()">↔ Перевод</button>
       <button class="btn btnG" style="font-size:12px;padding:8px 14px;font-weight:700" onclick="openAccountModal(null)">🏦 Счета</button>
-      <button class="btn btnG" style="font-size:12px;padding:8px 14px;font-weight:700" onclick="openCategoriesModal()">📂 Категории</button>
     </div>
   </div>
   <!-- Summary cards -->
@@ -3023,29 +3007,6 @@ select.inp option{background:var(--card2);color:var(--text)}
   </div>
 </div>
 
-<!-- Categories Management Modal -->
-<div class="overlay" id="categoriesOverlay" style="display:none">
-  <div class="modalBox" style="max-width:520px">
-    <div class="modalHead">
-      <span class="modalTitle">📂 Управление категориями</span>
-      <button class="modalClose" onclick="closeCategoriesModal()">✕</button>
-    </div>
-    <div style="font-size:11px;color:var(--text2);margin-bottom:14px;padding:10px 12px;background:var(--card2);border-radius:var(--r2);border:1px solid var(--border)">
-      Добавляй свои категории расходов и доходов. Используй иконки и цвета для удобства.
-    </div>
-    <!-- Tabs for In/Out -->
-    <div style="display:flex;gap:4px;border-bottom:1px solid var(--border);margin-bottom:14px;flex-wrap:wrap">
-      <button class="rwSubTab on" onclick="catMgmtTab('out',this)" id="catTab-out">💸 Расходы</button>
-      <button class="rwSubTab" onclick="catMgmtTab('in',this)" id="catTab-in">💰 Доходы</button>
-    </div>
-    <div id="categoriesEditorList" style="display:flex;flex-direction:column;gap:8px;max-height:50vh;overflow-y:auto;padding-right:4px;margin-bottom:12px"></div>
-    <div style="display:flex;gap:8px">
-      <button class="btn btnG" style="flex:1;justify-content:center" onclick="addNewCategory()">＋ Добавить категорию</button>
-      <button class="btn btnB" style="flex:1;justify-content:center" onclick="closeCategoriesModal()">✓ Готово</button>
-    </div>
-  </div>
-</div>
-
 <!-- Principles Modal -->
 <div class="overlay" id="princOverlay" style="display:none">
   <div class="modalBox" style="max-width:500px">
@@ -3798,7 +3759,7 @@ function tpToggleDone(){
   _tpHideDone=!_tpHideDone;
   const btn=document.getElementById('tpToggleDone');
   if(btn){
-    btn.textContent=_tpHideDone?'👁 Готовые':'✓ Готовые';
+    btn.textContent=_tpHideDone?'👁 Показать готовые':'🙈 Скрыть готовые';
     btn.style.color=_tpHideDone?'var(--muted)':'var(--green)';
   }
   renderTP();
@@ -3861,7 +3822,7 @@ function renderTP(){
   const filtered=tpSortTasks(byLabel,td);
   // Sync toggle button text on re-render
   const toggleBtn=document.getElementById('tpToggleDone');
-  if(toggleBtn){toggleBtn.textContent=_tpHideDone?'👁 Готовые':'✓ Готовые';toggleBtn.style.color=_tpHideDone?'var(--muted)':'var(--green)';}
+  if(toggleBtn){toggleBtn.textContent=_tpHideDone?'👁 Показать готовые':'🙈 Скрыть готовые';}
   // Sync sort buttons
   document.querySelectorAll('.tpSortBtn').forEach(b=>b.classList.remove('tpSortOn','btnG'));
   const activeSortBtn=document.getElementById('tpSort'+_tpSortBy.charAt(0).toUpperCase()+_tpSortBy.slice(1));
@@ -5363,55 +5324,6 @@ function renderCatBudgetEditor(){
       <input type="number" class="inp" value="${budgets[cat.id]||''}" style="width:120px;font-size:12px" placeholder="Лимит..."
         oninput="finCatBudgetsD()['${cat.id}']=Number(this.value)||0;saveD()">
     </div>`).join('');
-}
-
-// Category management
-let _currentCatType='out';
-function openCategoriesModal(){
-  _currentCatType='out';
-  renderCategoriesEditor();
-  document.getElementById('categoriesOverlay').style.display='flex';
-}
-function closeCategoriesModal(){
-  document.getElementById('categoriesOverlay').style.display='none';
-  renderFin();
-}
-function catMgmtTab(type,btn){
-  _currentCatType=type;
-  document.querySelectorAll('[id^="catTab-"]').forEach(b=>b.classList.remove('on'));
-  btn.classList.add('on');
-  renderCategoriesEditor();
-}
-function renderCategoriesEditor(){
-  const el=document.getElementById('categoriesEditorList');if(!el)return;
-  const cats=FIN_CATS.filter(c=>c.type===_currentCatType);
-  el.innerHTML=cats.map((cat,idx)=>`
-    <div style="display:flex;align-items:center;gap:10px;padding:12px;background:${hexA(cat.color,0.1)};border:1px solid ${hexA(cat.color,0.25)};border-radius:10px;transition:all var(--dur)">
-      <div style="width:42px;height:42px;border-radius:10px;background:${cat.color};display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">${cat.icon}</div>
-      <div style="flex:1;min-width:0">
-        <input type="text" class="inp" value="${cat.name}" placeholder="Название..." style="font-size:12px;font-weight:600;padding:4px 8px;background:transparent;border-color:transparent" onchange="FIN_CATS[FIN_CATS.findIndex(c=>c.id==='${cat.id}')].name=this.value;saveD()" title="Название категории">
-        <div style="font-size:10px;color:var(--muted);margin-top:2px">ID: ${cat.id}</div>
-      </div>
-      <input type="color" value="${cat.color}" style="width:40px;height:40px;border:none;border-radius:8px;cursor:pointer;padding:2px" onchange="FIN_CATS[FIN_CATS.findIndex(c=>c.id==='${cat.id}')].color=this.value;saveD();renderCategoriesEditor()" title="Цвет категории">
-      <input type="text" value="${cat.icon}" placeholder="📦" maxlength="2" style="width:36px;height:36px;font-size:18px;border:none;border-radius:6px;padding:2px;text-align:center;background:var(--card2);border:1px solid var(--border)" onchange="FIN_CATS[FIN_CATS.findIndex(c=>c.id==='${cat.id}')].icon=this.value;saveD();renderCategoriesEditor()" title="Иконка">
-      <button class="btn btnR" style="font-size:11px;padding:6px 8px;opacity:0.7" onclick="delCategory('${cat.id}')" title="Удалить категорию">🗑</button>
-    </div>`).join('');
-}
-function addNewCategory(){
-  const icon=prompt('Иконка категории:','📦');if(!icon)return;
-  const name=prompt('Название категории:','Новая категория');if(!name)return;
-  const id=(name.toLowerCase().replace(/\s+/g,'_')+Date.now()).slice(0,20);
-  const colors={in:'#22d3ee',out:'#f87171'};
-  FIN_CATS.push({id,name,icon,type:_currentCatType,color:colors[_currentCatType]||'#9ca3af'});
-  saveD();
-  renderCategoriesEditor();
-}
-function delCategory(catId){
-  if(!confirm('Удалить категорию? Это не удалит существующие транзакции.'))return;
-  const idx=FIN_CATS.findIndex(c=>c.id===catId);
-  if(idx>=0)FIN_CATS.splice(idx,1);
-  saveD();
-  renderCategoriesEditor();
 }
 
 /* ═══════════════════════════════════
@@ -7197,7 +7109,7 @@ function renderAnalytics(){
   if(!window._anlFilter)window._anlFilter=[];
 
   const selIds=window._anlFilter;
-  const tasks=(selIds.length?allTasks.filter(t=>getLabels(t).some(l=>selIds.includes(l.id))):allTasks).filter(t=>t.done);
+  const tasks=selIds.length?allTasks.filter(t=>getLabels(t).some(l=>selIds.includes(l.id))):allTasks;
 
   // ── Core stats ──
   const total=tasks.length;
@@ -7210,13 +7122,13 @@ function renderAnalytics(){
   const plannedMin=timedTasks.reduce((s,t)=>s+taskMin(t),0);
   const spentMin=timedTasks.filter(t=>t.done).reduce((s,t)=>s+taskMin(t),0);
 
-  // ── 14-day chart data (только завершённые) ──
+  // ── 14-day chart data ──
   const today=t0();
   const dayData=[];
   for(let i=13;i>=0;i--){
     const d=new Date(today);d.setDate(d.getDate()-i);
     const dstr=dk(d);
-    const dt=allTasks.filter(t=>t.deadline===dstr&&t.done);
+    const dt=allTasks.filter(t=>t.deadline===dstr);
     dayData.push({
       lbl:d.getDate()+'.'+(d.getMonth()+1),
       dstr,
