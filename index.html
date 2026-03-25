@@ -688,8 +688,15 @@ select.inp option{background:var(--card2);color:var(--text)}
 .tTbl th{padding:10px 10px;text-align:left;font-size:8.5px;font-weight:800;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);border-bottom:1px solid var(--border);background:rgba(17,18,38,.95);cursor:pointer;transition:color .15s;user-select:none}
 .tTbl td{padding:8px 10px;border-bottom:1px solid rgba(255,255,255,.03);vertical-align:middle;transition:background .1s}
 .tTbl tbody tr:hover{background:rgba(155,143,245,.05);transition:background .1s}
+.tLabelCell{position:relative;cursor:pointer;min-width:60px}
+.tLabelDots{display:flex;gap:4px;align-items:center;padding:2px 0}
+.tLabelPills{display:none;position:absolute;top:50%;left:0;transform:translateY(-50%);z-index:20;background:var(--card2);border:1px solid var(--border2);border-radius:8px;padding:5px 7px;white-space:nowrap;gap:4px;align-items:center;box-shadow:var(--shadow2);flex-wrap:nowrap;min-width:max-content}
+.tTbl tbody tr:hover .tLabelPills{display:flex}
+.tLabelAddBtn{color:var(--muted);font-size:11px;width:18px;height:18px;border-radius:50%;border:1px dashed var(--border2);display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;margin-left:2px;cursor:pointer}
+.tGroupTooltip{position:fixed;z-index:999;background:var(--card2);border:1px solid var(--border2);border-radius:10px;padding:8px 10px;box-shadow:var(--shadow2);min-width:160px;pointer-events:none;animation:fadeIn .12s}
+.tpGroupBtn.tpGroupOn{background:var(--pdim2)!important;color:var(--p)!important;border:1px solid var(--p)!important;box-shadow:0 0 12px var(--pglow2)!important}
 .trOv td{background:rgba(248,113,113,.05)!important}.trTd td{background:rgba(251,146,60,.05)!important}.trSo td{background:rgba(245,158,11,.04)!important}.trDn td{background:rgba(45,212,166,.04)!important}
-.tCb{width:15px;height:15px;cursor:pointer;accent-color:var(--green);transition:transform .1s}.tCb:hover{transform:scale(1.15)}
+.tCb{width:15px;height:15px;cursor:pointer;accent-color:var(--green);transition:transform .1s,opacity .15s;opacity:0}.tCb:hover{transform:scale(1.15)}.tTbl tbody tr:hover .tCb{opacity:1}.tCb:checked{opacity:1}
 .tNameInp{border:none;background:transparent;font-family:var(--font-body);font-size:12px;font-weight:700;color:var(--text);outline:none;width:100%}
 .tDateInp{border:1px solid var(--border2);border-radius:7px;padding:4px 7px;font-family:var(--font-mono);font-size:11px;outline:none;background:var(--card2);color:var(--text);color-scheme:dark;transition:border-color var(--dur) var(--ease)}
 .tDateInp:hover,.tDateInp:focus{border-color:var(--p)}
@@ -2031,8 +2038,10 @@ select.inp option{background:var(--card2);color:var(--text)}
     <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
       <span style="font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--muted)">Сорт:</span>
       <button id="tpSortDate" class="btn tpSortBtn tpSortOn" style="font-size:10px;padding:3px 10px" onclick="tpSetSort('date')">📅 По дате</button>
-      <button id="tpSortStatus" class="btn tpSortBtn btnG" style="font-size:10px;padding:3px 10px" onclick="tpSetSort('status')">⚡ По статусу</button>
       <button id="tpSortAdd" class="btn tpSortBtn btnG" style="font-size:10px;padding:3px 10px" onclick="tpSetSort('added')">➕ По добавлению</button>
+      <div style="width:1px;height:18px;background:var(--border);flex-shrink:0;margin:0 2px"></div>
+      <button id="tpGroupBal" class="btn tpGroupBtn btnG" style="font-size:10px;padding:3px 10px" onclick="tpSetGroupFilter('lg1')" onmouseenter="tpShowGroupTooltip(this,'lg1')" onmouseleave="tpHideGroupTooltip()">⚖️ Баланс</button>
+      <button id="tpGroupAtt" class="btn tpGroupBtn btnG" style="font-size:10px;padding:3px 10px" onclick="tpSetGroupFilter('lg2')" onmouseenter="tpShowGroupTooltip(this,'lg2')" onmouseleave="tpHideGroupTooltip()">🔥 Внимание</button>
       <div style="margin-left:auto">
         <button id="tpToggleDone" class="btn btnG" style="font-size:10px;padding:3px 10px" onclick="tpToggleDone()">🙈 Скрыть готовые</button>
       </div>
@@ -2876,20 +2885,15 @@ select.inp option{background:var(--card2);color:var(--text)}
 
 <!-- Labels Modal -->
 <div class="overlay" id="labelsOverlay" style="display:none">
-  <div class="modalBox" style="max-width:460px">
+  <div class="modalBox" style="max-width:480px">
     <div class="modalHead">
-      <span class="modalTitle">Группы меток</span>
+      <span class="modalTitle">⚙ Метки и группы</span>
       <button class="modalClose" onclick="closeLabelsModal()">✕</button>
     </div>
-    <div id="labelsEditorList" style="display:flex;flex-direction:column;gap:4px;max-height:60vh;overflow-y:auto;margin-bottom:10px"></div>
-    <div style="display:flex;gap:8px;margin-bottom:8px">
-      <input class="inp" id="newLabelNameInp" placeholder="Быстро добавить метку..." style="flex:1">
-      <input type="color" id="newLabelColorInp" value="#4f87f7" style="width:38px;height:36px;border:none;border-radius:8px;cursor:pointer;padding:2px;background:var(--card2);border:1px solid var(--border2)">
-      <button class="btn btnB" style="padding:7px 12px" onclick="addLabel()">+</button>
-    </div>
+    <div id="labelsEditorList" style="display:flex;flex-direction:column;gap:2px;max-height:58vh;overflow-y:auto;padding-right:2px;margin-bottom:12px"></div>
     <div style="display:flex;gap:8px">
-      <button class="btn btnG" style="flex:1;justify-content:center;font-size:11px" onclick="addLabelGroup()">+ Новая группа</button>
-      <button class="btn btnG" style="flex:1;justify-content:center" onclick="closeLabelsModal()">Готово</button>
+      <button class="btn btnG" style="flex:1;justify-content:center;font-size:11px" onclick="addLabelGroup()">＋ Новая группа</button>
+      <button class="btn btnP" style="flex:1;justify-content:center;font-size:11px" onclick="closeLabelsModal()">✓ Готово</button>
     </div>
   </div>
 </div>
@@ -3732,6 +3736,30 @@ function _refreshAllTaskViews(){
 let _tpSortBy='date'; // 'date' | 'status' | 'added'
 let _tpHideDone=true;
 
+let _tpGroupFilter=null; // null | group id
+function tpSetGroupFilter(gid){
+  _tpGroupFilter=_tpGroupFilter===gid?null:gid;
+  document.querySelectorAll('.tpGroupBtn').forEach(b=>b.classList.remove('tpGroupOn'));
+  if(_tpGroupFilter){
+    const map={'lg1':'tpGroupBal','lg2':'tpGroupAtt'};
+    const b=document.getElementById(map[gid]);if(b)b.classList.add('tpGroupOn');
+  }
+  renderTP();
+}
+let _tpGroupTooltipEl=null;
+function tpShowGroupTooltip(btn,gid){
+  tpHideGroupTooltip();
+  const g=labelGroupsD().find(x=>x.id===gid);if(!g)return;
+  const el=document.createElement('div');el.className='tGroupTooltip';
+  el.innerHTML=`<div style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.8px;color:${g.color};margin-bottom:6px">${esc(g.name)}</div>`+
+    g.labels.map(l=>`<div style="display:flex;align-items:center;gap:6px;padding:2px 0"><span style="width:7px;height:7px;border-radius:50%;background:${l.color};flex-shrink:0"></span><span style="font-size:11px;color:var(--text)">${esc(l.name)}</span></div>`).join('');
+  document.body.appendChild(el);
+  const r=btn.getBoundingClientRect();
+  el.style.top=(r.bottom+6)+'px';el.style.left=r.left+'px';
+  _tpGroupTooltipEl=el;
+}
+function tpHideGroupTooltip(){if(_tpGroupTooltipEl){_tpGroupTooltipEl.remove();_tpGroupTooltipEl=null;}}
+
 function tpSetSort(v){
   _tpSortBy=v;
   document.querySelectorAll('.tpSortBtn').forEach(b=>b.classList.remove('tpSortOn','btnG'));
@@ -3799,7 +3827,13 @@ function renderTP(){
   document.getElementById('tpPct').textContent=pct+'%';
   document.getElementById('tpFill').style.width=pct+'%';
   renderLabelsFilterBar();
-  const byLabel=activeLabel?tasks.filter(t=>(t.labelIds&&t.labelIds.includes(activeLabel))||(t.labelId===activeLabel)):tasks;
+  // Group filter (Баланс / Внимание)
+  let byGroup=tasks;
+  if(_tpGroupFilter){
+    const gLabels=(labelGroupsD().find(g=>g.id===_tpGroupFilter)||{labels:[]}).labels.map(l=>l.id);
+    byGroup=tasks.filter(t=>(t.labelIds||[]).some(id=>gLabels.includes(id))||(t.labelId&&gLabels.includes(t.labelId)));
+  }
+  const byLabel=activeLabel?byGroup.filter(t=>(t.labelIds&&t.labelIds.includes(activeLabel))||(t.labelId===activeLabel)):byGroup;
   const filtered=tpSortTasks(byLabel,td);
   // Sync toggle button text on re-render
   const toggleBtn=document.getElementById('tpToggleDone');
@@ -3809,6 +3843,9 @@ function renderTP(){
   const activeSortBtn=document.getElementById('tpSort'+_tpSortBy.charAt(0).toUpperCase()+_tpSortBy.slice(1));
   if(activeSortBtn)activeSortBtn.classList.add('tpSortOn');
   document.querySelectorAll('.tpSortBtn').forEach(b=>{if(!b.classList.contains('tpSortOn'))b.classList.add('btnG');});
+  // Sync group filter buttons
+  document.querySelectorAll('.tpGroupBtn').forEach(b=>b.classList.remove('tpGroupOn'));
+  if(_tpGroupFilter){const map={'lg1':'tpGroupBal','lg2':'tpGroupAtt'};const gb=document.getElementById(map[_tpGroupFilter]);if(gb)gb.classList.add('tpGroupOn');}
   const isMob=window.innerWidth<=700;
 
   if(!isMob){
@@ -3836,9 +3873,11 @@ function renderTP(){
       let dlLabel='';
       if(t.deadline){const dl=new Date(t.deadline+'T00:00:00');dlLabel=`${dws[dl.getDay()]}, ${dl.getDate()} ${mons[dl.getMonth()]}.`}
       const taskLabelsDesk=getTaskLabels(t);
-      const labelHtml=`<div style="display:flex;flex-wrap:wrap;gap:3px;align-items:center">
-        ${taskLabelsDesk.map(l=>`<span class="labelPill" style="background:${hexA(l.color,0.15)};color:${l.color};cursor:pointer;border:1px solid ${hexA(l.color,0.35)}" onclick="openLabelPicker(${realIdx},this);event.stopPropagation()"><span class="labelDot" style="background:${l.color}"></span>${esc(l.name)}</span>`).join('')}
-        <span style="color:var(--muted);cursor:pointer;font-size:11px;width:20px;height:20px;border-radius:50%;border:1px dashed var(--border2);display:inline-flex;align-items:center;justify-content:center;flex-shrink:0" onclick="openLabelPicker(${realIdx},this);event.stopPropagation()">＋</span>
+      const dotsHtml=taskLabelsDesk.map(l=>`<span style="width:8px;height:8px;border-radius:50%;background:${l.color};display:inline-block;flex-shrink:0;box-shadow:0 0 4px ${l.color}55"></span>`).join('');
+      const pillsHtml=taskLabelsDesk.map(l=>`<span class="labelPill" style="background:${hexA(l.color,0.15)};color:${l.color};border:1px solid ${hexA(l.color,0.35)}">${esc(l.name)}</span>`).join('');
+      const labelHtml=`<div class="tLabelCell" onclick="openLabelPicker(${realIdx},this);event.stopPropagation()">
+        <div class="tLabelDots">${dotsHtml||'<span style="color:var(--border2);font-size:10px">＋</span>'}</div>
+        <div class="tLabelPills">${pillsHtml}<span class="tLabelAddBtn">＋</span></div>
       </div>`;
       const barColor=taskLabelsDesk.length?taskLabelsDesk[0].color:'transparent';
       tr.style.borderLeft=`3px solid ${barColor}`;
@@ -5630,24 +5669,52 @@ function renderLabelsEditorList(){
   const el=document.getElementById('labelsEditorList');if(!el)return;
   const groups=labelGroupsD();
   el.innerHTML=groups.map((g,gi)=>`
-    <div style="margin-bottom:14px">
-      <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
-        <input type="color" value="${g.color}" style="width:28px;height:28px;border:none;border-radius:6px;cursor:pointer;padding:1px;background:var(--card3);flex-shrink:0" onchange="labelGroupsD()[${gi}].color=this.value;saveD();renderLabelsEditorList()">
-        <input class="inp" value="${esc(g.name)}" style="flex:1;font-weight:700;font-size:12px" oninput="labelGroupsD()[${gi}].name=this.value;saveD()">
-        <button class="btn btnO" style="font-size:10px;padding:3px 8px" onclick="addLabelToGroup(${gi})">+ Метка</button>
-        <button class="btn btnR" style="font-size:10px;padding:3px 8px" onclick="delLabelGroup(${gi})">×</button>
+    <div data-gblock="${gi}" style="margin-bottom:6px;background:var(--card2);border:1px solid var(--border);border-radius:10px;overflow:hidden">
+      <!-- Group header -->
+      <div style="display:flex;align-items:center;gap:8px;padding:8px 10px;background:${hexA(g.color,0.08)};border-bottom:1px solid ${hexA(g.color,0.18)}">
+        <input type="color" value="${g.color}" title="Цвет группы" style="width:22px;height:22px;border:none;border-radius:6px;cursor:pointer;padding:1px;background:none;flex-shrink:0" onchange="labelGroupsD()[${gi}].color=this.value;saveD();renderLabelsEditorList()">
+        <input class="inp" value="${esc(g.name)}" style="flex:1;font-weight:700;font-size:12px;background:transparent;border-color:transparent;padding:3px 6px" oninput="labelGroupsD()[${gi}].name=this.value;saveD()">
+        <button class="btn" style="font-size:10px;padding:3px 10px;background:${hexA(g.color,0.15)};color:${g.color};border:1px solid ${hexA(g.color,0.35)};border-radius:6px" onclick="addLabelToGroup(${gi})">＋ Метка</button>
+        <button class="btn btnR" style="font-size:10px;padding:3px 8px;opacity:.6" onclick="delLabelGroup(${gi})" title="Удалить группу">🗑</button>
       </div>
-      ${g.labels.map((l,li)=>`<div style="display:flex;align-items:center;gap:6px;padding:4px 0 4px 16px;border-left:2px solid ${g.color}22">
-        <input type="color" value="${l.color}" style="width:22px;height:22px;border:none;border-radius:50%;cursor:pointer;padding:1px;background:none;flex-shrink:0" onchange="labelGroupsD()[${gi}].labels[${li}].color=this.value;saveD();renderLabelsEditorList()">
-        <input class="inp" value="${esc(l.name)}" style="flex:1;font-size:11px" oninput="labelGroupsD()[${gi}].labels[${li}].name=this.value;saveD()">
-        <button class="btn btnG" style="font-size:10px;padding:2px 6px" onclick="delLabelFromGroup(${gi},'${l.id}')">×</button>
-      </div>`).join('')}
+      <!-- Labels in group -->
+      <div style="padding:4px 8px 6px">
+      ${g.labels.length?g.labels.map((l,li)=>`
+        <div style="display:flex;align-items:center;gap:8px;padding:5px 4px;border-bottom:1px solid var(--border)">
+          <input type="color" value="${l.color}" title="Цвет метки" style="width:20px;height:20px;border:none;border-radius:50%;cursor:pointer;padding:1px;background:none;flex-shrink:0" onchange="labelGroupsD()[${gi}].labels[${li}].color=this.value;saveD();renderLabelsEditorList()">
+          <span style="width:7px;height:7px;border-radius:50%;background:${l.color};flex-shrink:0"></span>
+          <input class="inp" value="${esc(l.name)}" style="flex:1;font-size:11px;background:transparent;border-color:transparent;padding:3px 6px" oninput="labelGroupsD()[${gi}].labels[${li}].name=this.value;saveD()">
+          <button class="btn btnR" style="font-size:10px;padding:2px 7px;opacity:.5" onclick="delLabelFromGroup(${gi},'${l.id}')" title="Удалить метку">×</button>
+        </div>`).join(''):'<div style="padding:6px 4px;font-size:11px;color:var(--muted)">Нет меток — нажмите ＋ Метка</div>'}
+      </div>
     </div>`).join('');
 }
 
 function addLabelToGroup(gi){
-  const name=prompt('Название метки:');if(!name)return;
-  labelGroupsD()[gi].labels.push({id:uid(),name:name.trim(),color:'#9b7cf4'});
+  // Expand inline add row in the editor
+  const listEl=document.getElementById('labelsEditorList');
+  // Check if already open for this group
+  const existing=listEl.querySelector('.lbInlineAdd[data-gi="'+gi+'"]');
+  if(existing){existing.querySelector('input').focus();return;}
+  const row=document.createElement('div');
+  row.className='lbInlineAdd';row.dataset.gi=gi;
+  row.style.cssText='display:flex;align-items:center;gap:6px;padding:6px 6px 6px 16px;border-left:2px solid var(--p);background:var(--pdim);border-radius:0 6px 6px 0;margin-bottom:4px;animation:fadeIn .15s';
+  row.innerHTML=`<input type="color" value="#9b7cf4" style="width:22px;height:22px;border:none;border-radius:50%;cursor:pointer;padding:1px;background:none;flex-shrink:0" id="lbAddColor_${gi}">
+    <input class="inp" placeholder="Название метки..." style="flex:1;font-size:11px;padding:5px 8px" id="lbAddName_${gi}" onkeydown="if(event.key==='Enter')confirmAddLabel(${gi});if(event.key==='Escape')this.closest('.lbInlineAdd').remove()">
+    <button class="btn btnP" style="font-size:10px;padding:4px 10px" onclick="confirmAddLabel(${gi})">Добавить</button>
+    <button class="btn btnG" style="font-size:10px;padding:4px 8px" onclick="this.closest('.lbInlineAdd').remove()">✕</button>`;
+  // Insert after the group block
+  const groupBlocks=listEl.querySelectorAll(':scope > div[data-gblock]');
+  if(groupBlocks[gi])groupBlocks[gi].after(row);
+  else listEl.appendChild(row);
+  setTimeout(()=>row.querySelector('input[type=text],input.inp').focus(),50);
+}
+function confirmAddLabel(gi){
+  const nameEl=document.getElementById('lbAddName_'+gi);
+  const colorEl=document.getElementById('lbAddColor_'+gi);
+  const name=(nameEl?.value||'').trim();if(!name)return;
+  const color=colorEl?.value||'#9b7cf4';
+  labelGroupsD()[gi].labels.push({id:uid(),name,color});
   saveD();renderLabelsEditorList();renderLabelsFilterBar();renderTP();
 }
 function delLabelFromGroup(gi,lid){
