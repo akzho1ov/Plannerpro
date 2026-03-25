@@ -1193,7 +1193,9 @@ select.inp option{background:var(--card2);color:var(--text)}
 .labelPill{display:inline-flex;align-items:center;gap:4px;padding:2px 9px;border-radius:20px;font-size:9.5px;font-weight:700;cursor:default;white-space:nowrap;letter-spacing:.01em;transition:filter .15s,transform .1s}
 .labelPill:hover{filter:brightness(1.15)}
 .labelDot{width:7px;height:7px;border-radius:50%;flex-shrink:0;display:inline-block}
-.labelsFilterBar{display:flex;gap:5px;flex-wrap:wrap;align-items:center;margin-bottom:10px}
+.labelsFilterBar{display:flex;flex-direction:column;gap:5px;margin-bottom:2px}
+.lbfRow{display:flex;align-items:center;gap:5px;flex-wrap:wrap}
+.lbfGroupLabel{font-size:8.5px;font-weight:800;text-transform:uppercase;letter-spacing:1px;white-space:nowrap;opacity:.75;flex-shrink:0;padding:2px 4px;border-radius:4px;background:rgba(255,255,255,.04)}
 
 /* ══════════════════════════════
    KANBAN BOARDS
@@ -2017,9 +2019,13 @@ select.inp option{background:var(--card2);color:var(--text)}
       <span style="font-size:13px;font-weight:800;color:var(--green);font-family:var(--font-display);flex-shrink:0" id="tpPct">0%</span>
     </div>
     <!-- Labels + add button -->
-    <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:8px">
-      <div class="labelsFilterBar" id="labelsFilterBar" style="margin:0;flex:1"></div>
-      <button class="btn btnG" style="font-size:10.5px;padding:5px 10px;flex-shrink:0" onclick="openLabelsModal()">⚙ Метки</button>
+    <!-- Labels + add button -->
+    <div style="margin-bottom:8px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:5px">
+        <span style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.8px;color:var(--muted)">Фильтр по меткам</span>
+        <button class="btn btnG" style="font-size:10px;padding:3px 9px" onclick="openLabelsModal()">⚙ Метки</button>
+      </div>
+      <div class="labelsFilterBar" id="labelsFilterBar" style="margin:0"></div>
     </div>
     <!-- Sort + hide done controls -->
     <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
@@ -3915,6 +3921,26 @@ function toggleT(i,checked,evtTarget){
   }
   _refreshAllTaskViews();
 }
+
+/* ── Per-date done tracking for recurring tasks ── */
+function isTaskDoneOnDate(t, dstr){
+  if(!t.repeat) return !!t.done;
+  return (t.doneDates||[]).includes(dstr);
+}
+function toggleCalTaskDone(taskId, dstr, checked){
+  const tasks=tpD();
+  const t=tasks.find(x=>x.id===taskId);
+  if(!t)return;
+  if(t.repeat){
+    if(!t.doneDates)t.doneDates=[];
+    if(checked){if(!t.doneDates.includes(dstr))t.doneDates.push(dstr);}
+    else{t.doneDates=t.doneDates.filter(d=>d!==dstr);}
+  } else {
+    t.done=checked;
+  }
+  saveD();
+  renderCal();
+}
 function updTField(i,f,v){const t=tpD()[i];if(!t)return;t[f]=v;saveD();_refreshAllTaskViews();}
 // Keep old updT for backward compat
 function updT(i,f,v){updTField(i,f,v);}
@@ -4112,7 +4138,7 @@ function plEvtsForDate(dstr){
       id:t.id,text:t.text,
       time:t.time||'',endTime:t.endTime||'',
       color:col,allDay:!t.time,
-      src:'task',done:t.done,
+      src:'task',done:isTaskDoneOnDate(t,dstr),
       labelIds:t.labelIds||[],labelId:t.labelId||'',
       labelName:taskLabels.map(l=>l.name).join(', '),_date:dstr,
       isRepeat:!!t.repeat
@@ -4291,8 +4317,9 @@ function plRenderGrid(main){
       const bg=e.color+'28',col=e.color;
       const icon=e.src==='task'?(e.isRepeat?'↻ ':''):'📅 ';
       const clickFn=e.src==='task'?`plCalOpenTask('${e.id}','${dstr}')`:`plCalOpenModal('${e.id}','${dstr}')`;
-      adHtml+=`<div class="plEvt-allday calTaskRow" style="background:${bg};color:${col};border-left-color:${col};opacity:${e.done?0.6:1};cursor:pointer;${e.done?'text-decoration:line-through;':''}" title="${esc(e.text)}" onclick="event.stopPropagation();${clickFn}">
-        <span style="width:7px;height:7px;border-radius:50%;background:${col};display:inline-block;flex-shrink:0;margin-right:4px"></span>${icon}${esc(e.text)}
+      const adCb=e.src==='task'?`<input type="checkbox" ${e.done?'checked':''} onclick="event.stopPropagation();toggleCalTaskDone('${e.id}','${dstr}',this.checked)" style="flex-shrink:0;margin-right:4px;accent-color:${col};cursor:pointer;width:11px;height:11px">`:''
+      adHtml+=`<div class="plEvt-allday calTaskRow" style="background:${bg};color:${col};border-left-color:${col};opacity:${e.done?0.6:1};cursor:pointer;${e.done?'text-decoration:line-through;':''};display:flex;align-items:center" title="${esc(e.text)}" onclick="event.stopPropagation();${clickFn}">
+        ${adCb}<span style="width:7px;height:7px;border-radius:50%;background:${col};display:inline-block;flex-shrink:0;margin-right:4px"></span>${icon}${esc(e.text)}
       </div>`;
     });
     adHtml+=`</div>`;
@@ -4335,9 +4362,12 @@ function plRenderGrid(main){
       const icon=e.src==='task'?(e.isRepeat?'↻ ':''):'';
       const evtSrc=e.src;const evtId=e.id;
       const doneStyle=e.done?`background:${bg};color:${col};border-left-color:${col};opacity:.6;`:`background:${bg};color:${col};border-left-color:${col};`;
-      colsHtml+=`<div class="plEvt calTaskRow" data-evtid="${e.id}" data-dstr="${dstr}" data-src="${e.src}" draggable="true" style="top:${top}px;height:${height}px;left:calc(${left}% + 2px);width:calc(${width}% - 4px);${doneStyle}overflow:hidden;cursor:pointer" title="${esc(e.text)}">
-        <div class="plEvt-title" style="${e.done?'text-decoration:line-through;opacity:.7':''}">${e.done?'<span style="font-size:8px;margin-right:2px;opacity:.7">✓</span>':''}${icon}${esc(e.text)}</div>
+      const cbHtml=e.src==='task'?`<input type="checkbox" ${e.done?'checked':''} onclick="event.stopPropagation();toggleCalTaskDone('${e.id}','${dstr}',this.checked)" style="flex-shrink:0;margin-right:3px;accent-color:${col};cursor:pointer;width:11px;height:11px">`:''
+      colsHtml+=`<div class="plEvt calTaskRow" data-evtid="${e.id}" data-dstr="${dstr}" data-src="${e.src}" draggable="true" style="top:${top}px;height:${height}px;left:calc(${left}% + 2px);width:calc(${width}% - 4px);${doneStyle}overflow:hidden;cursor:pointer;display:flex;align-items:flex-start;padding:3px 5px;gap:2px" title="${esc(e.text)}">
+        ${cbHtml}<div style="flex:1;min-width:0;overflow:hidden">
+        <div class="plEvt-title" style="${e.done?'text-decoration:line-through;opacity:.7':''}">${icon}${esc(e.text)}</div>
         ${height>30?`<div class="plEvt-time" style="${e.done?'opacity:.5':''}">${tStr}</div>`:''}
+        </div>
       </div>`;
     });
     colsHtml+=`</div>`;
@@ -5572,13 +5602,16 @@ function openLabelPicker(taskIdx, anchorEl){
 function renderLabelsFilterBar(){
   const bar=document.getElementById('labelsFilterBar');if(!bar)return;
   const groups=labelGroupsD();
-  let html=`<span class="labelPill" onclick="setActiveLabel(null)" style="background:${!activeLabel?'rgba(255,255,255,.12)':'rgba(255,255,255,.05)'};color:var(--text2);cursor:pointer">Все</span>`;
+  const allActive=!activeLabel;
+  let html=`<div class="lbfRow"><span class="labelPill" onclick="setActiveLabel(null)" style="background:${allActive?'rgba(255,255,255,.14)':'rgba(255,255,255,.05)'};color:var(--text2);cursor:pointer;border:1px solid ${allActive?'rgba(255,255,255,.22)':'transparent'}">✦ Все</span></div>`;
   groups.forEach(g=>{
-    html+=`<span style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.8px;color:${g.color};padding:0 4px;opacity:.7;align-self:center">${esc(g.name)}</span>`;
+    if(!g.labels||!g.labels.length)return;
+    html+=`<div class="lbfRow"><span class="lbfGroupLabel" style="color:${g.color}">${esc(g.name)}</span>`;
     g.labels.forEach(l=>{
       const active=activeLabel===l.id;
-      html+=`<span class="labelPill" onclick="setActiveLabel('${l.id}')" style="background:${hexA(l.color,active?0.25:0.12)};color:${l.color};cursor:pointer;${active?'outline:1px solid '+l.color:''}">${esc(l.name)}</span>`;
+      html+=`<span class="labelPill" onclick="setActiveLabel('${l.id}')" style="background:${hexA(l.color,active?0.28:0.10)};color:${l.color};cursor:pointer;border:1px solid ${active?l.color:'transparent'}"><span style="width:6px;height:6px;border-radius:50%;background:${l.color};display:inline-block;flex-shrink:0"></span>${esc(l.name)}</span>`;
     });
+    html+=`</div>`;
   });
   bar.innerHTML=html;
 }
