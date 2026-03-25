@@ -834,7 +834,7 @@ select.inp option{background:var(--card2);color:var(--text)}
 /* ── DAY / WEEK / 3-DAY TIME GRID ── */
 .plGrid{display:flex;flex-direction:column;height:100%;overflow:hidden}
 .plGrid-colHead{display:flex;flex-shrink:0;border-bottom:1px solid var(--border);background:var(--card2)}
-.plGrid-gut{width:52px;flex-shrink:0;border-right:1px solid var(--border)}
+.plGrid-gut{width:56px;flex-shrink:0;border-right:1px solid var(--border)}
 .plGrid-colCells{flex:1;display:flex}
 .plGrid-hCell{flex:1;padding:8px 4px;text-align:center;border-right:1px solid rgba(255,255,255,.04);cursor:pointer;transition:background .12s}
 .plGrid-hCell:hover{background:rgba(255,255,255,.04)}
@@ -846,18 +846,19 @@ select.inp option{background:var(--card2);color:var(--text)}
 .plGrid-hNum{font-size:18px;font-weight:800;color:var(--text);font-family:var(--font-display);line-height:1.1}
 /* All-day row */
 .plGrid-allday{display:flex;flex-shrink:0;border-bottom:1px solid var(--border);background:rgba(255,255,255,.015);min-height:24px}
-.plGrid-adGut{width:52px;flex-shrink:0;border-right:1px solid var(--border);font-size:7.5px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.3px;display:flex;align-items:center;justify-content:center;padding:3px}
+.plGrid-adGut{width:56px;flex-shrink:0;border-right:1px solid var(--border);font-size:7.5px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.3px;display:flex;align-items:center;justify-content:center;padding:3px}
 .plGrid-adCols{flex:1;display:flex}
 .plGrid-adCol{flex:1;border-right:1px solid rgba(255,255,255,.04);padding:2px 2px;display:flex;flex-direction:column;gap:1px;cursor:pointer}
-/* Scroll area */
 .plGrid-scroll{flex:1;overflow-y:auto;display:flex;position:relative}
-.plGrid-timeGut{width:52px;flex-shrink:0;position:relative;border-right:1px solid var(--border)}
-.plGrid-hrLbl{position:absolute;right:6px;font-size:8.5px;color:var(--text2);font-weight:600;transform:translateY(-50%);white-space:nowrap;line-height:1}
+.plGrid-timeGut{width:56px;flex-shrink:0;position:relative;border-right:1px solid var(--border);background:var(--bg2)}
+.plGrid-hrLbl{position:absolute;right:6px;font-size:9px;color:var(--text2);font-weight:700;transform:translateY(-50%);white-space:nowrap;line-height:1;font-family:var(--font-mono)}
+.plGrid-hrLbl15{position:absolute;right:6px;font-size:7.5px;color:var(--muted);font-weight:500;transform:translateY(-50%);white-space:nowrap;line-height:1;font-family:var(--font-mono);opacity:.6}
 .plGrid-cols{flex:1;display:flex;position:relative}
 .plGrid-col{flex:1;border-right:1px solid rgba(255,255,255,.04);position:relative;cursor:crosshair;transition:background .1s}.plGrid-col:hover{background:rgba(255,255,255,.012)!important}
 .plGrid-col:last-child{border-right:none}
-.plGrid-hline{position:absolute;left:0;right:0;border-top:1px solid rgba(255,255,255,.04);pointer-events:none}
-.plGrid-hline.half{border-top:1px dashed rgba(255,255,255,.025)}
+.plGrid-hline{position:absolute;left:0;right:0;border-top:1px solid rgba(255,255,255,.05);pointer-events:none}
+.plGrid-hline.half{border-top:1px dashed rgba(255,255,255,.04)}
+.plGrid-hline.q15{border-top:1px solid rgba(255,255,255,.02);pointer-events:none}
 /* Now line */
 .plGrid-now{position:absolute;left:0;right:0;pointer-events:none;z-index:6;display:flex;align-items:center}
 .plGrid-nowDot{width:8px;height:8px;border-radius:50%;background:var(--red);flex-shrink:0;margin-left:-4px}
@@ -1718,14 +1719,24 @@ select.inp option{background:var(--card2);color:var(--text)}
 /* Group tooltip */
 .anGroupBtnWrap{position:relative;display:inline-block}
 .anGroupTooltip{
-  display:none;position:absolute;top:calc(100% + 8px);left:50%;transform:translateX(-50%);
+  display:none;position:absolute;top:calc(100% + 4px);left:50%;transform:translateX(-50%);
   min-width:200px;max-width:280px;z-index:200;
   background:var(--card2);border:1px solid var(--border2);border-radius:12px;
   padding:12px;box-shadow:var(--shadow2);
+  pointer-events:auto;
+}
+.anGroupTooltip::before{
+  content:'';position:absolute;top:-14px;left:0;right:0;height:14px;
+  background:transparent;
+}
+.anGroupTooltip::after{
+  content:'';position:absolute;top:-5px;left:50%;transform:translateX(-50%);
+  width:8px;height:8px;background:var(--card2);
+  border-left:1px solid var(--border2);border-top:1px solid var(--border2);rotate:45deg;
   pointer-events:none;
 }
-.anGroupTooltip::before{content:'';position:absolute;top:-5px;left:50%;transform:translateX(-50%);width:8px;height:8px;background:var(--card2);border-left:1px solid var(--border2);border-top:1px solid var(--border2);rotate:45deg}
-.anGroupBtnWrap:hover .anGroupTooltip{display:block;animation:paneIn .15s var(--ease) both}
+.anGroupBtnWrap:hover .anGroupTooltip,
+.anGroupTooltip:hover{display:block;animation:paneIn .15s var(--ease) both}
 
 /* Charts area */
 .anCharts{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:18px}
@@ -4393,7 +4404,7 @@ function taskModalDelete(){
    4. CALENDAR — PLANYWAY STYLE
 ═══════════════════════════════════ */
 const CAL_COLORS=['#4f87f7','#2dd4a6','#9b7cf4','#f59e0b','#f87171','#f472b6','#22d3ee','#fb923c'];
-const HOUR_H=56; // px per hour in time grid
+const HOUR_H=64; // px per hour in time grid (64px = 16px per 15min slot)
 const DS_RU=['Вс','Пн','Вт','Ср','Чт','Пт','Сб'];
 const DS_SHORT=['вс','пн','вт','ср','чт','пт','сб'];
 
@@ -4644,9 +4655,14 @@ function plRenderGrid(main){
   });
   adHtml+=`</div></div>`;
 
-  // Time gutter
+  // Time gutter with 15-min marks
   let gutHtml=`<div class="plGrid-timeGut" style="height:${totalH}px">`;
-  for(let h=0;h<24;h++){gutHtml+=`<div class="plGrid-hrLbl" style="top:${h*HOUR_H}px">${h}:00</div>`;}
+  for(let h=0;h<24;h++){
+    gutHtml+=`<div class="plGrid-hrLbl" style="top:${h*HOUR_H}px">${h<10?'0'+h:h}:00</div>`;
+    gutHtml+=`<div class="plGrid-hrLbl15" style="top:${h*HOUR_H+HOUR_H*0.25}px">:15</div>`;
+    gutHtml+=`<div class="plGrid-hrLbl15" style="top:${h*HOUR_H+HOUR_H*0.5}px">:30</div>`;
+    gutHtml+=`<div class="plGrid-hrLbl15" style="top:${h*HOUR_H+HOUR_H*0.75}px">:45</div>`;
+  }
   gutHtml+=`</div>`;
 
   // Cols with timed events
@@ -4654,7 +4670,9 @@ function plRenderGrid(main){
   let linesHtml='';
   for(let h=0;h<24;h++){
     linesHtml+=`<div class="plGrid-hline" style="top:${h*HOUR_H}px;left:0;right:0;position:absolute"></div>`;
-    linesHtml+=`<div class="plGrid-hline half" style="top:${h*HOUR_H+HOUR_H/2}px;left:0;right:0;position:absolute"></div>`;
+    linesHtml+=`<div class="plGrid-hline q15" style="top:${h*HOUR_H+HOUR_H*0.25}px;left:0;right:0;position:absolute"></div>`;
+    linesHtml+=`<div class="plGrid-hline half" style="top:${h*HOUR_H+HOUR_H*0.5}px;left:0;right:0;position:absolute"></div>`;
+    linesHtml+=`<div class="plGrid-hline q15" style="top:${h*HOUR_H+HOUR_H*0.75}px;left:0;right:0;position:absolute"></div>`;
   }
   dates.forEach((dstr,ci)=>{
     const isT=dstr===todK;
@@ -4672,7 +4690,7 @@ function plRenderGrid(main){
       lanes[lane]=sm+duration;
       const nLanes=lanes.length;
       const top=sm/60*HOUR_H;
-      const height=Math.max((duration/60)*HOUR_H,22);
+      const height=Math.max((duration/60)*HOUR_H, HOUR_H/4); // min 1 slot = 15min
       const width=Math.round(90/nLanes);
       const left=lane*(90/nLanes);
       const bg=e.color+'22',col=e.color;
@@ -4697,7 +4715,7 @@ function plRenderGrid(main){
   const nowTop=nowMin/60*HOUR_H;
   const nowLineHtml=dates.includes(todK)?`<div class="plGrid-now" style="top:${nowTop}px;position:absolute;left:0;right:0;pointer-events:none;z-index:6;display:flex;align-items:center"><div class="plGrid-nowDot"></div><div class="plGrid-nowBar" style="flex:1"></div></div>`:'';
 
-  main.innerHTML=`<div class="plGrid">${hdrHtml}${adHtml}<div class="plGrid-scroll" id="plGrid-scroll" style="flex:1;overflow-y:auto;display:flex"><div style="width:56px;flex-shrink:0;position:relative;border-right:1px solid var(--border2);min-height:${totalH}px;background:var(--bg2)">${Array.from({length:24},(_,h)=>`<div style="position:absolute;right:8px;top:${h*HOUR_H}px;font-size:10px;color:var(--text2);font-weight:600;transform:translateY(-50%);white-space:nowrap;pointer-events:none;font-family:var(--font-mono)">${h<10?'0'+h:h}:00</div>`).join('')}</div><div id="plGridCols" style="flex:1;display:flex;position:relative;min-height:${totalH}px">${nowLineHtml}${colsHtml}</div></div></div>`;
+  main.innerHTML=`<div class="plGrid">${hdrHtml}${adHtml}<div class="plGrid-scroll" id="plGrid-scroll" style="flex:1;overflow-y:auto;display:flex">${gutHtml}<div id="plGridCols" style="flex:1;display:flex;position:relative;min-height:${totalH}px">${nowLineHtml}${colsHtml}</div></div></div>`;
 
   // Attach interactive events AFTER render
   requestAnimationFrame(()=>{
@@ -7556,6 +7574,17 @@ function renderAnalytics(){
   }
 
   el.innerHTML=`
+  <!-- ── Page Header ── -->
+  <div style="margin-bottom:20px;padding-bottom:16px;border-bottom:1px solid var(--border)">
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:6px">
+      <div style="width:40px;height:40px;border-radius:12px;background:linear-gradient(135deg,var(--p),var(--purple));display:flex;align-items:center;justify-content:center;font-size:18px;box-shadow:0 0 20px var(--pglow2);flex-shrink:0">📊</div>
+      <div>
+        <div style="font-family:var(--font-display);font-size:22px;font-weight:800;letter-spacing:-.4px;color:var(--text)">Аналитика</div>
+        <div style="font-size:11px;color:var(--text2);margin-top:1px">Твой прогресс за ${rangeLabels[_anRange].toLowerCase()} · ${total} задач${_anGroup?` · фильтр: <b style="color:var(--p)">${esc(groups.find(g=>g.id===_anGroup)?.name||'')}</b>`:''}</div>
+      </div>
+    </div>
+  </div>
+
   <!-- ── Filter Bar ── -->
   <div class="anFilterBar">
     <span class="anFilterLabel">Период</span>
@@ -7569,30 +7598,33 @@ function renderAnalytics(){
       ${groups.map(g=>{
         const gLabels=(g.labels||[]);
         const tooltipHtml=gLabels.length?gLabels.map(l=>`<span style="display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:600;padding:3px 8px;border-radius:10px;background:${l.color}22;color:${l.color};border:1px solid ${l.color}44"><span style="width:5px;height:5px;border-radius:50%;background:${l.color};flex-shrink:0"></span>${esc(l.name)}</span>`).join(''):'';
-        return `<div class="anGroupBtnWrap" style="position:relative;display:inline-block">
+        return `<div class="anGroupBtnWrap">
           <button class="anGroupBtn${_anGroup===g.id?' on':''}" onclick="anSetGroup('${g.id}')" style="${_anGroup===g.id?`background:${g.color}22;border-color:${g.color};color:${g.color}`:''}">
             <span style="width:7px;height:7px;border-radius:50%;background:${g.color};display:inline-block;margin-right:5px;vertical-align:middle;box-shadow:0 0 6px ${g.color}88"></span>${esc(g.name)}
           </button>
           ${tooltipHtml?`<div class="anGroupTooltip">
-            <div style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);margin-bottom:6px">Метки группы</div>
+            <div style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);margin-bottom:6px">Метки группы «${esc(g.name)}»</div>
             <div style="display:flex;flex-wrap:wrap;gap:4px">${tooltipHtml}</div>
-            <div style="margin-top:8px;font-size:9px;color:var(--muted)">Нажми чтобы отфильтровать</div>
+            <div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--border);font-size:9px;color:var(--muted)">👆 Нажми кнопку чтобы отфильтровать</div>
           </div>`:''}
         </div>`;
       }).join('')}
     </div>
   </div>
 
-  <!-- ── KPI Row ── -->
-  <div class="anKpi">
+  <!-- ── Section: Главные числа ── -->
+  <div style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:1.5px;color:var(--muted);margin-bottom:10px;display:flex;align-items:center;gap:8px">
+    <span>Главные числа</span><div style="flex:1;height:1px;background:linear-gradient(90deg,var(--border),transparent)"></div>
+  </div>
+  <div class="anKpi" style="margin-bottom:20px">
     ${[
-      {icon:'📋',label:'Всего задач',val:total,sub:rangeLabels[_anRange],color:'var(--p)',bg:'rgba(155,143,245,.1)',bar:null},
-      {icon:'✅',label:'Выполнено',val:done,sub:pct+'% от всех',color:'var(--green)',bg:'rgba(15,221,170,.1)',bar:{w:pct,c:'var(--green)'}},
-      {icon:'⏳',label:'В процессе',val:total-done,sub:overdue>0?overdue+' просрочено':'всё в срок',color:'var(--gold)',bg:'rgba(240,171,48,.1)',bar:null},
-      {icon:'⚠️',label:'Просрочено',val:overdue,sub:overdue?'требуют внимания':'чисто 🎉',color:overdue?'var(--red)':'var(--green)',bg:overdue?'rgba(255,79,114,.1)':'rgba(15,221,170,.1)',bar:null},
-      {icon:'⏱',label:'Общее время',val:fmtMin(totalMin),sub:'запланировано',color:'var(--blue)',bg:'rgba(91,149,255,.1)',bar:{w:timePct,c:'var(--blue)'}},
-      {icon:'⚡',label:'Время выполнено',val:fmtMin(doneMin),sub:timePct+'% по времени',color:'var(--cyan)',bg:'rgba(34,204,232,.1)',bar:{w:timePct,c:'var(--cyan)'}},
-    ].map(k=>`<div class="anKpiCard" style="border-color:${k.color}22">
+      {icon:'📋',label:'Всего задач',val:total,sub:`за ${rangeLabels[_anRange].toLowerCase()}`,color:'var(--p)',bg:'rgba(155,143,245,.1)',bar:null,hint:'Сколько задач было запланировано'},
+      {icon:'✅',label:'Выполнено',val:done,sub:pct+'% от всех',color:'var(--green)',bg:'rgba(15,221,170,.1)',bar:{w:pct,c:'var(--green)'},hint:'Сколько задач закрыто'},
+      {icon:'⏳',label:'В процессе',val:total-done,sub:overdue>0?`⚠️ ${overdue} просрочено`:'всё в срок',color:overdue?'var(--gold)':'var(--green)',bg:overdue?'rgba(240,171,48,.1)':'rgba(15,221,170,.1)',bar:null,hint:'Ещё не закрыты'},
+      {icon:'⚠️',label:'Просрочено',val:overdue,sub:overdue?'требуют внимания':'чисто 🎉',color:overdue?'var(--red)':'var(--green)',bg:overdue?'rgba(255,79,114,.1)':'rgba(15,221,170,.1)',bar:null,hint:'Прошёл дедлайн'},
+      {icon:'⏱',label:'Время запланировано',val:fmtMin(totalMin),sub:'суммарно по всем',color:'var(--blue)',bg:'rgba(91,149,255,.1)',bar:{w:timePct,c:'var(--blue)'},hint:'Сколько часов назначено'},
+      {icon:'⚡',label:'Время выполнено',val:fmtMin(doneMin),sub:timePct+'% закрыто',color:'var(--cyan)',bg:'rgba(34,204,232,.1)',bar:{w:timePct,c:'var(--cyan)'},hint:'Из запланированного'},
+    ].map(k=>`<div class="anKpiCard" style="border-color:${k.color}22" title="${k.hint}">
       <div class="anKpiIcon">${k.icon}</div>
       <div class="anKpiLabel">${k.label}</div>
       <div class="anKpiVal" style="color:${k.color}">${k.val}</div>
@@ -7602,46 +7634,54 @@ function renderAnalytics(){
     </div>`).join('')}
   </div>
 
-  <!-- ── Donut Rings ── -->
-  <div class="anRingsRow">
+  <!-- ── Section: Прогресс ── -->
+  <div style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:1.5px;color:var(--muted);margin-bottom:10px;display:flex;align-items:center;gap:8px">
+    <span>Прогресс</span><div style="flex:1;height:1px;background:linear-gradient(90deg,var(--border),transparent)"></div>
+    <span style="font-size:8.5px;text-transform:none;letter-spacing:0;color:var(--muted);font-weight:400">Насколько ты продвинулся</span>
+  </div>
+  <div class="anRingsRow" style="margin-bottom:20px">
     <div class="anRingCard">
       ${_anDonutSvg(pct,'#0FDDAA',80,8)}
       <div class="anRingInfo">
-        <div class="anRingTitle">Прогресс задач</div>
-        <div class="anRingSub">${done} из ${total} задач выполнено за ${rangeLabels[_anRange].toLowerCase()}</div>
+        <div class="anRingTitle">Задачи выполнены</div>
+        <div class="anRingSub">${done} из ${total} задач закрыто</div>
         <div class="anRingMeta">
-          <div class="anRingMetaRow"><span style="color:var(--muted)">Выполнено</span><span style="color:var(--green);font-weight:700">${done}</span></div>
-          <div class="anRingMetaRow"><span style="color:var(--muted)">В процессе</span><span style="color:var(--gold);font-weight:700">${total-done}</span></div>
-          ${overdue?`<div class="anRingMetaRow"><span style="color:var(--muted)">Просрочено</span><span style="color:var(--red);font-weight:700">${overdue}</span></div>`:''}
+          <div class="anRingMetaRow"><span style="color:var(--muted)">✅ Выполнено</span><span style="color:var(--green);font-weight:700">${done}</span></div>
+          <div class="anRingMetaRow"><span style="color:var(--muted)">⏳ Осталось</span><span style="color:var(--gold);font-weight:700">${total-done}</span></div>
+          ${overdue?`<div class="anRingMetaRow"><span style="color:var(--muted)">⚠️ Просрочено</span><span style="color:var(--red);font-weight:700">${overdue}</span></div>`:''}
         </div>
       </div>
     </div>
     <div class="anRingCard">
       ${_anDonutSvg(timePct,'#5B95FF',80,8)}
       <div class="anRingInfo">
-        <div class="anRingTitle">Прогресс времени</div>
-        <div class="anRingSub">${fmtMin(doneMin)} из ${fmtMin(totalMin)} запланированного выполнено</div>
+        <div class="anRingTitle">Время использовано</div>
+        <div class="anRingSub">${fmtMin(doneMin)} потрачено из ${fmtMin(totalMin)}</div>
         <div class="anRingMeta">
-          <div class="anRingMetaRow"><span style="color:var(--muted)">Выполнено</span><span style="color:var(--blue);font-weight:700">${fmtMin(doneMin)}</span></div>
-          <div class="anRingMetaRow"><span style="color:var(--muted)">Осталось</span><span style="color:var(--text2);font-weight:700">${fmtMin(totalMin-doneMin)}</span></div>
+          <div class="anRingMetaRow"><span style="color:var(--muted)">⚡ Выполнено</span><span style="color:var(--blue);font-weight:700">${fmtMin(doneMin)}</span></div>
+          <div class="anRingMetaRow"><span style="color:var(--muted)">⏱ Осталось</span><span style="color:var(--text2);font-weight:700">${fmtMin(totalMin-doneMin)||'—'}</span></div>
         </div>
       </div>
     </div>
     <div class="anRingCard">
       ${_anDonutSvg(overdue&&total?Math.round((1-overdue/total)*100):total>0?100:0,'#F0AB30',80,8)}
       <div class="anRingInfo">
-        <div class="anRingTitle">Своевременность</div>
-        <div class="anRingSub">${overdue?overdue+' задач просрочено':'Все задачи в срок'}</div>
+        <div class="anRingTitle">Сделано вовремя</div>
+        <div class="anRingSub">${overdue?`${overdue} задач просрочено`:'Все задачи сделаны в срок!'}</div>
         <div class="anRingMeta">
-          <div class="anRingMetaRow"><span style="color:var(--muted)">В срок</span><span style="color:var(--gold);font-weight:700">${done-Math.min(overdue,done)}</span></div>
-          <div class="anRingMetaRow"><span style="color:var(--muted)">Просрочено</span><span style="color:${overdue?'var(--red)':'var(--green)'};font-weight:700">${overdue}</span></div>
+          <div class="anRingMetaRow"><span style="color:var(--muted)">✓ В срок</span><span style="color:var(--gold);font-weight:700">${Math.max(0,done-overdue)}</span></div>
+          <div class="anRingMetaRow"><span style="color:var(--muted)">✗ Просрочено</span><span style="color:${overdue?'var(--red)':'var(--green)'};font-weight:700">${overdue}</span></div>
         </div>
       </div>
     </div>
   </div>
 
   <!-- ── Insights ── -->
-  ${insights.length?`<div class="anInsights">
+  ${insights.length?`<div style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:1.5px;color:var(--muted);margin-bottom:10px;display:flex;align-items:center;gap:8px">
+    <span>Выводы</span><div style="flex:1;height:1px;background:linear-gradient(90deg,var(--border),transparent)"></div>
+    <span style="font-size:8.5px;text-transform:none;letter-spacing:0;font-weight:400">Что можно улучшить</span>
+  </div>
+  <div class="anInsights" style="margin-bottom:20px">
     ${insights.map(ins=>`<div class="anInsightCard" style="background:${ins.bg};border-color:${ins.border}">
       <div class="anInsightIcon">${ins.icon}</div>
       <div class="anInsightText">
@@ -7651,22 +7691,26 @@ function renderAnalytics(){
     </div>`).join('')}
   </div>`:''}
 
-  <!-- ── Charts: 14 days + Weekly load ── -->
-  <div class="anCharts" style="grid-template-columns:1fr 1fr;margin-bottom:16px">
-    <!-- 14-day -->
+  <!-- ── Section: Графики ── -->
+  <div style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:1.5px;color:var(--muted);margin-bottom:10px;display:flex;align-items:center;gap:8px">
+    <span>Активность</span><div style="flex:1;height:1px;background:linear-gradient(90deg,var(--border),transparent)"></div>
+    <span style="font-size:8.5px;text-transform:none;letter-spacing:0;font-weight:400">Когда и сколько ты работаешь</span>
+  </div>
+  <div class="anCharts" style="grid-template-columns:1fr 1fr;margin-bottom:20px">
     <div class="anCard">
       <div class="anCardTitle">
         <span>📊</span>
         <span class="anCardTitleMain">Нагрузка за 14 дней</span>
         <span style="margin-left:auto;font-size:9px;text-transform:none;letter-spacing:0;color:var(--muted);font-weight:400">задач/день</span>
       </div>
+      <div style="font-size:10px;color:var(--muted);margin-bottom:10px;line-height:1.5">Зелёный = выполнено, серый = ещё не сделано</div>
       <div class="an14Wrap">
         ${dayStats.map(d=>{
           const isToday=d.date===dk(today);
           const hTot=maxDayTot>0?Math.round((d.total/maxDayTot)*88):0;
           const hDone=d.total>0?Math.round((d.done/d.total)*hTot):0;
           const hActive=hTot-hDone;
-          return `<div class="an14BarItem${isToday?' an14Today':''}" title="${d.date}: ${d.total} задач (${d.done}✓ ${d.active} в процессе)">
+          return `<div class="an14BarItem${isToday?' an14Today':''}" title="${d.date}: ${d.total} задач · ${d.done} выполнено · ${d.active} в процессе">
             <div class="an14BarOuter" style="height:${Math.max(hTot,2)}px;width:100%">
               <div class="an14BarTrack" style="height:100%"></div>
               <div class="an14BarActive" style="height:${hActive}px;background:rgba(255,255,255,.12)"></div>
@@ -7681,21 +7725,19 @@ function renderAnalytics(){
         <span style="display:flex;align-items:center;gap:5px"><span class="anLegendDot" style="background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.15)"></span>В процессе</span>
       </div>
     </div>
-
-    <!-- Weekly -->
     <div class="anCard">
       <div class="anCardTitle">
         <span>📅</span>
-        <span class="anCardTitleMain">По неделям</span>
-        <span style="margin-left:auto;font-size:9px;text-transform:none;letter-spacing:0;color:var(--muted);font-weight:400">последние 8 нед.</span>
+        <span class="anCardTitleMain">Нагрузка по неделям</span>
+        <span style="margin-left:auto;font-size:9px;text-transform:none;letter-spacing:0;color:var(--muted);font-weight:400">8 нед.</span>
       </div>
+      <div style="font-size:10px;color:var(--muted);margin-bottom:10px;line-height:1.5">Высота столбца = задач на неделе. Текущая — фиолетовая</div>
       <div class="anWeekWrap">
         ${weekStats.map((w,i)=>{
           const hPct=maxWeekTot>0?Math.round((w.total/maxWeekTot)*60):0;
-          const dPct=w.total>0?Math.round((w.done/w.total)*100):0;
           const isCur=i===weekStats.length-1;
           const doneH=Math.round((w.done/Math.max(w.total,1))*hPct);
-          return `<div class="anWeekBarCol${isCur?' anWeekCurr':''}" title="Неделя ${w.label}: ${w.total} задач, ${w.done} выполнено">
+          return `<div class="anWeekBarCol${isCur?' anWeekCurr':''}" title="Неделя ${w.label}: ${w.total} задач · ${w.done} выполнено">
             <div class="anWeekBar" style="height:${Math.max(hPct,2)}px;background:var(--card3);overflow:hidden;position:relative;border-radius:4px 4px 0 0">
               <div style="position:absolute;bottom:0;left:0;right:0;height:${doneH}px;background:${isCur?'linear-gradient(180deg,var(--p),var(--p2))':'var(--blue)'};opacity:.85;border-radius:4px 4px 0 0"></div>
             </div>
@@ -7706,15 +7748,20 @@ function renderAnalytics(){
       </div>
       <div class="anLegend">
         <span style="display:flex;align-items:center;gap:5px"><span class="anLegendDot" style="background:var(--blue)"></span>Выполнено</span>
-        <span style="display:flex;align-items:center;gap:5px"><span class="anLegendDot" style="background:var(--p)"></span>Текущая неделя</span>
+        <span style="display:flex;align-items:center;gap:5px"><span class="anLegendDot" style="background:var(--p)"></span>Текущая</span>
       </div>
     </div>
   </div>
 
-  <!-- ── Day of week + Priority ── -->
-  <div class="anCharts" style="grid-template-columns:1fr 1fr;margin-bottom:16px">
+  <!-- ── Section: Паттерны ── -->
+  <div style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:1.5px;color:var(--muted);margin-bottom:10px;display:flex;align-items:center;gap:8px">
+    <span>Паттерны</span><div style="flex:1;height:1px;background:linear-gradient(90deg,var(--border),transparent)"></div>
+    <span style="font-size:8.5px;text-transform:none;letter-spacing:0;font-weight:400">Привычки и распределение</span>
+  </div>
+  <div class="anCharts" style="grid-template-columns:1fr 1fr;margin-bottom:20px">
     <div class="anCard">
       <div class="anCardTitle"><span>🗓</span><span class="anCardTitleMain">По дням недели</span></div>
+      <div style="font-size:10px;color:var(--muted);margin-bottom:10px">В какой день у тебя больше всего задач</div>
       <div class="anDowGrid">
         ${['Пн','Вт','Ср','Чт','Пт','Сб','Вс'].map((d,idx)=>{
           const jsDay=[1,2,3,4,5,6,0][idx];
@@ -7738,9 +7785,9 @@ function renderAnalytics(){
         <b style="color:var(--p);background:var(--pdim);padding:1px 8px;border-radius:6px">${['Пн','Вт','Ср','Чт','Пт','Сб','Вс'][([1,2,3,4,5,6,0].indexOf(busiestDow))]||'—'}</b>
       </div>
     </div>
-
     <div class="anCard">
       <div class="anCardTitle"><span>🎯</span><span class="anCardTitleMain">По приоритету</span></div>
+      <div style="font-size:10px;color:var(--muted);margin-bottom:10px">Сколько задач каждого уровня</div>
       <div class="anPrioGrid">
         ${[{label:'Высокий',emoji:'🔴',val:1,color:'var(--red)',bg:'rgba(255,79,114,.08)'},{label:'Средний',emoji:'🟡',val:2,color:'var(--gold)',bg:'rgba(240,171,48,.08)'},{label:'Низкий',emoji:'🟢',val:3,color:'var(--green)',bg:'rgba(15,221,170,.08)'}].map(p=>{
           const pts=tasks.filter(t=>t.priority===p.val);
@@ -7762,13 +7809,18 @@ function renderAnalytics(){
     </div>
   </div>
 
-  <!-- ── Time by Labels ── -->
-  <div class="anCard" style="margin-bottom:16px">
+  <!-- ── Section: По меткам ── -->
+  <div style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:1.5px;color:var(--muted);margin-bottom:10px;display:flex;align-items:center;gap:8px">
+    <span>По меткам</span><div style="flex:1;height:1px;background:linear-gradient(90deg,var(--border),transparent)"></div>
+    <span style="font-size:8.5px;text-transform:none;letter-spacing:0;font-weight:400">Куда уходит больше всего времени</span>
+  </div>
+  <div class="anCard" style="margin-bottom:20px">
     <div class="anCardTitle">
       <span>⏱</span>
-      <span class="anCardTitleMain">Время по меткам</span>
-      <span style="margin-left:auto;font-size:9px;text-transform:none;letter-spacing:0;color:var(--muted);font-weight:400">сортировка: выполнено ↓</span>
+      <span class="anCardTitleMain">Время и задачи по каждой метке</span>
+      <span style="margin-left:auto;font-size:9px;text-transform:none;letter-spacing:0;color:var(--muted);font-weight:400">↓ по кол-ву выполнено</span>
     </div>
+    <div style="font-size:10px;color:var(--muted);margin-bottom:12px">Полоса = сколько времени на метке. Светлая часть = уже выполнено</div>
     ${labelArr.length?`<div class="anLabelRow">${labelArr.map(l=>{
       const maxLblMin=Math.max(...labelArr.map(x=>x.minutes),1);
       const barW=Math.round((l.minutes/maxLblMin)*100);
@@ -7800,33 +7852,35 @@ function renderAnalytics(){
     :'<div class="anEmpty">Нет задач с метками в выбранный период.<br>Добавьте метки к задачам чтобы видеть статистику.</div>'}
   </div>
 
-  <!-- ── Completed Tasks List ── -->
+  <!-- ── Section: Выполненные задачи ── -->
   ${(()=>{
     const doneTasks=rangedTasks.filter(t=>t.done).sort((a,b)=>(b.deadline||'').localeCompare(a.deadline||''));
-    if(!doneTasks.length) return '';
-    return `<div class="anCard" style="margin-bottom:16px">
-      <div class="anCardTitle" style="cursor:pointer" onclick="anToggleTaskList()">
+    if(!doneTasks.length) return `<div class="anEmpty" style="border:1px dashed var(--border);border-radius:12px;margin-bottom:16px">Нет выполненных задач за ${rangeLabels[_anRange].toLowerCase()}</div>`;
+    return `<div style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:1.5px;color:var(--muted);margin-bottom:10px;display:flex;align-items:center;gap:8px">
+      <span>Выполненные задачи</span><div style="flex:1;height:1px;background:linear-gradient(90deg,var(--border),transparent)"></div>
+      <span style="font-size:8.5px;text-transform:none;letter-spacing:0;font-weight:400;color:var(--green)">${doneTasks.length} задач</span>
+    </div>
+    <div class="anCard" style="margin-bottom:20px">
+      <div class="anCardTitle" style="cursor:pointer;user-select:none" onclick="anToggleTaskList()">
         <span>✅</span>
-        <span class="anCardTitleMain">Выполненные задачи</span>
-        <span style="margin-left:auto;display:flex;align-items:center;gap:8px">
-          <span style="font-size:10px;font-weight:700;color:var(--green);background:rgba(15,221,170,.12);padding:2px 10px;border-radius:10px;border:1px solid rgba(15,221,170,.2)">${doneTasks.length} задач</span>
-          <span style="font-size:10px;color:var(--muted)">▼</span>
-        </span>
+        <span class="anCardTitleMain">Список выполненных</span>
+        <span style="margin-left:auto;font-size:10px;color:var(--muted)">нажми чтобы свернуть ▾</span>
       </div>
       <div id="anDoneTaskList">
-        <div style="display:flex;flex-direction:column;gap:6px">
-          ${doneTasks.slice(0,30).map(t=>{
+        <div style="font-size:10px;color:var(--muted);margin-bottom:10px">Все задачи которые ты закрыл за этот период:</div>
+        <div style="display:flex;flex-direction:column;gap:5px">
+          ${doneTasks.slice(0,50).map(t=>{
             const tLabels=getTaskLabelObjects(t);
             const tMin=taskMinutes(t);
-            return `<div style="display:flex;align-items:center;gap:10px;padding:9px 12px;background:var(--card3);border-radius:10px;border:1px solid rgba(15,221,170,.08);transition:border-color .15s" onmouseover="this.style.borderColor='rgba(15,221,170,.2)'" onmouseout="this.style.borderColor='rgba(15,221,170,.08)'">
+            return `<div style="display:flex;align-items:center;gap:10px;padding:8px 12px;background:rgba(15,221,170,.05);border-radius:10px;border:1px solid rgba(15,221,170,.1)">
               <span style="width:18px;height:18px;border-radius:50%;background:rgba(15,221,170,.15);border:1.5px solid var(--green);display:flex;align-items:center;justify-content:center;font-size:9px;flex-shrink:0;color:var(--green)">✓</span>
-              <span style="flex:1;font-size:12px;font-weight:600;color:var(--text);text-decoration:line-through;opacity:.7;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(t.text||'')}</span>
-              ${tLabels.length?`<div style="display:flex;gap:3px;flex-shrink:0">${tLabels.slice(0,3).map(l=>`<span style="width:6px;height:6px;border-radius:50%;background:${l.color};box-shadow:0 0 4px ${l.color}66" title="${esc(l.name)}"></span>`).join('')}</div>`:''}
+              <span style="flex:1;font-size:12px;font-weight:600;color:var(--text2);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(t.text||'')}</span>
+              ${tLabels.length?`<div style="display:flex;gap:3px;flex-shrink:0">${tLabels.slice(0,3).map(l=>`<span style="font-size:9px;font-weight:600;padding:1px 7px;border-radius:8px;background:${l.color}22;color:${l.color};border:1px solid ${l.color}33">${esc(l.name)}</span>`).join('')}</div>`:''}
               ${tMin?`<span style="font-size:9px;color:var(--blue);font-family:var(--font-mono);flex-shrink:0">${fmtMin(tMin)}</span>`:''}
-              ${t.deadline?`<span style="font-size:9px;color:var(--muted);flex-shrink:0">${t.deadline}</span>`:''}
+              ${t.deadline?`<span style="font-size:9px;color:var(--muted);flex-shrink:0">${t.deadline.slice(5).replace('-','.')}</span>`:''}
             </div>`;
           }).join('')}
-          ${doneTasks.length>30?`<div style="text-align:center;font-size:10px;color:var(--muted);padding:6px">...и ещё ${doneTasks.length-30} задач</div>`:''}
+          ${doneTasks.length>50?`<div style="text-align:center;font-size:10px;color:var(--muted);padding:8px">...и ещё ${doneTasks.length-50} задач</div>`:''}
         </div>
       </div>
     </div>`;
