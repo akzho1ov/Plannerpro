@@ -792,7 +792,7 @@ select.inp option{background:var(--card2);color:var(--text)}
 .plMini-nb{border:none;background:none;color:var(--muted);cursor:pointer;font-size:12px;padding:2px 5px;border-radius:4px;line-height:1;transition:.15s}
 .plMini-nb:hover{background:var(--card2);color:var(--text)}
 .plMini-dow{display:grid;grid-template-columns:repeat(7,1fr);margin-bottom:2px}
-.plMini-dw{text-align:center;font-size:8px;font-weight:700;color:var(--muted);padding:2px 0;text-transform:uppercase}
+.plMini-dw{text-align:center;font-size:8px;font-weight:700;color:var(--text2);padding:2px 0;text-transform:uppercase}
 .plMini-days{display:grid;grid-template-columns:repeat(7,1fr);gap:1px}
 .plMini-d{text-align:center;font-size:10px;font-weight:600;border-radius:50%;cursor:pointer;color:var(--text2);width:26px;height:26px;display:flex;align-items:center;justify-content:center;transition:.15s;margin:0 auto}
 .plMini-d:hover:not(.empty){background:var(--card2)}
@@ -815,7 +815,7 @@ select.inp option{background:var(--card2);color:var(--text)}
 /* ── MONTH VIEW ── */
 .plMonth{display:flex;flex-direction:column;height:100%;overflow:hidden}
 .plMonth-dow{display:grid;grid-template-columns:repeat(7,1fr);border-bottom:1px solid var(--border);background:var(--card2);flex-shrink:0}
-.plMonth-dw{padding:6px 4px;text-align:center;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted)}
+.plMonth-dw{padding:6px 4px;text-align:center;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--text2)}
 .plMonth-dw:nth-child(6),.plMonth-dw:nth-child(7){color:var(--pink)}
 .plMonth-grid{display:grid;grid-template-columns:repeat(7,1fr);flex:1;overflow-y:auto;grid-auto-rows:minmax(90px,1fr)}
 .plMonth-cell{border-right:1px solid rgba(255,255,255,.04);border-bottom:1px solid rgba(255,255,255,.04);padding:4px;cursor:pointer;display:flex;flex-direction:column;transition:.15s}
@@ -824,7 +824,7 @@ select.inp option{background:var(--card2);color:var(--text)}
 .plMonth-cell.todayM{background:rgba(34,211,238,.06)}
 .plMonth-cell.selM{outline:2px solid var(--blue);outline-offset:-1px;z-index:1;position:relative}
 .plMonth-cell.we .plMonth-dn{color:var(--pink)}
-.plMonth-dn{font-size:12px;font-weight:700;color:var(--muted);width:24px;height:24px;display:flex;align-items:center;justify-content:center;border-radius:50%;margin-bottom:2px;flex-shrink:0}
+.plMonth-dn{font-size:12px;font-weight:700;color:var(--text);width:24px;height:24px;display:flex;align-items:center;justify-content:center;border-radius:50%;margin-bottom:2px;flex-shrink:0}
 .plMonth-cell.todayM .plMonth-dn{background:var(--cyan);color:#000;font-weight:800}
 .plMonth-pill{font-size:9px;font-weight:600;padding:2px 6px;border-radius:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.6;margin-top:1px;cursor:pointer;transition:all .12s}.plMonth-pill:hover{filter:brightness(1.2);transform:translateX(1px)}
 .plMonth-pill:hover{filter:brightness(1.15)}
@@ -842,7 +842,7 @@ select.inp option{background:var(--card2);color:var(--text)}
 .plGrid-hCell.today .plGrid-hNum{background:linear-gradient(135deg,var(--p),var(--purple));color:#fff;border-radius:50%;width:34px;height:34px;display:flex;align-items:center;justify-content:center;margin:2px auto 0;font-size:17px;box-shadow:0 0 16px var(--pglow),0 2px 8px rgba(0,0,0,.4)}
 .plGrid-hCell.we .plGrid-hDay{color:var(--pink)}
 .plGrid-hCell.we .plGrid-hNum:not(.plGrid-hCell.today .plGrid-hNum){color:var(--pink)}
-.plGrid-hDay{font-size:8.5px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted)}
+.plGrid-hDay{font-size:8.5px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--text2)}
 .plGrid-hNum{font-size:18px;font-weight:800;color:var(--text);font-family:var(--font-display);line-height:1.1}
 /* All-day row */
 .plGrid-allday{display:flex;flex-shrink:0;border-bottom:1px solid var(--border);background:rgba(255,255,255,.015);min-height:24px}
@@ -852,7 +852,7 @@ select.inp option{background:var(--card2);color:var(--text)}
 /* Scroll area */
 .plGrid-scroll{flex:1;overflow-y:auto;display:flex;position:relative}
 .plGrid-timeGut{width:52px;flex-shrink:0;position:relative;border-right:1px solid var(--border)}
-.plGrid-hrLbl{position:absolute;right:6px;font-size:8.5px;color:var(--muted);font-weight:600;transform:translateY(-50%);white-space:nowrap;line-height:1}
+.plGrid-hrLbl{position:absolute;right:6px;font-size:8.5px;color:var(--text2);font-weight:600;transform:translateY(-50%);white-space:nowrap;line-height:1}
 .plGrid-cols{flex:1;display:flex;position:relative}
 .plGrid-col{flex:1;border-right:1px solid rgba(255,255,255,.04);position:relative;cursor:crosshair;transition:background .1s}.plGrid-col:hover{background:rgba(255,255,255,.012)!important}
 .plGrid-col:last-child{border-right:none}
@@ -1642,6 +1642,133 @@ select.inp option{background:var(--card2);color:var(--text)}
   will-change:left,top;
   transition:opacity .4s;
 }
+
+/* ═══════════════════════════════════
+   ANALYTICS — Filter bar & cards
+═══════════════════════════════════ */
+.anFilterBar{
+  display:flex;align-items:center;gap:8px;flex-wrap:wrap;
+  padding:12px 14px;
+  background:var(--card2);border:1px solid var(--border);border-radius:var(--r);
+  margin-bottom:16px;
+}
+.anFilterLabel{font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);flex-shrink:0;padding-right:4px}
+.anRangeBtns,.anStatusBtns{display:flex;background:var(--card3);border-radius:8px;border:1px solid var(--border);overflow:hidden;flex-shrink:0}
+.anRangeBtn,.anStatusBtn{
+  padding:5px 11px;border:none;background:none;
+  color:var(--text2);font-size:10.5px;font-weight:600;
+  cursor:pointer;font-family:var(--font-body);transition:.15s;
+  white-space:nowrap;border-right:1px solid var(--border)
+}
+.anRangeBtn:last-child,.anStatusBtn:last-child{border-right:none}
+.anRangeBtn.on{background:var(--p);color:#fff}
+.anRangeBtn:hover:not(.on){background:rgba(255,255,255,.06);color:var(--text)}
+.anStatusBtn.on{background:var(--green);color:#000;font-weight:700}
+.anStatusBtn:hover:not(.on){background:rgba(255,255,255,.06);color:var(--text)}
+.anGroupBtns{display:flex;gap:5px;flex-wrap:wrap;flex:1}
+.anGroupBtn{
+  padding:4px 12px;border-radius:20px;font-size:10.5px;font-weight:700;
+  cursor:pointer;border:1px solid var(--border2);
+  background:var(--card2);color:var(--text2);
+  transition:.15s;white-space:nowrap;font-family:var(--font-body)
+}
+.anGroupBtn.on{box-shadow:0 0 12px var(--pglow2)}
+.anGroupBtn:hover:not(.on){border-color:var(--border3);color:var(--text)}
+.anSep{width:1px;height:24px;background:var(--border);flex-shrink:0;margin:0 2px}
+.anKpi{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;margin-bottom:16px}
+.anKpiCard{background:var(--card2);border:1px solid var(--border);border-radius:12px;padding:12px 14px;transition:border-color .2s}
+.anKpiCard:hover{border-color:var(--border2)}
+.anKpiLabel{font-size:10px;color:var(--text2);margin-bottom:5px;display:flex;align-items:center;gap:5px}
+.anKpiVal{font-size:22px;font-weight:800;font-family:var(--font-display);line-height:1}
+.anKpiSub{font-size:10px;color:var(--muted);margin-top:3px}
+.anRow2{display:grid;grid-template-columns:300px 1fr;gap:12px;margin-bottom:16px;align-items:start}
+.anCard{background:var(--card2);border:1px solid var(--border);border-radius:12px;padding:16px}
+.anCardTitle{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);margin-bottom:14px;display:flex;align-items:center;gap:6px}
+.an14Bar{display:flex;align-items:flex-end;gap:3px;height:90px;margin-bottom:6px}
+.an14BarItem{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;min-width:0}
+.an14BarOuter{width:100%;background:var(--card3);border-radius:3px 3px 0 0;position:relative;overflow:hidden;min-height:3px}
+.an14BarDone{position:absolute;bottom:0;left:0;right:0;border-radius:2px 2px 0 0}
+.an14Label{font-size:7.5px;color:var(--text2);white-space:nowrap;overflow:hidden;text-overflow:clip;max-width:100%;text-align:center;line-height:1}
+.an14Today .an14Label{color:var(--green);font-weight:800}
+.anWeekBars{display:flex;gap:6px}
+.anWeekBarCol{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px}
+.anWeekBarOuter{width:100%;background:var(--card3);border-radius:4px;overflow:hidden;position:relative}
+.anWeekBarFill{width:100%;border-radius:4px;transition:height .4s var(--ease)}
+.anWeekBarLabel{font-size:9px;font-weight:600;color:var(--text2)}
+.anWeekBarCount{font-size:8px;color:var(--muted)}
+.anLabelRow{display:flex;flex-direction:column;gap:7px}
+.anLabelItem{cursor:default}
+.anLabelHead{display:flex;align-items:center;justify-content:space-between;margin-bottom:3px;gap:8px}
+.anLabelInfo{display:flex;align-items:center;gap:7px;min-width:0;flex:1}
+.anLabelMeta{display:flex;gap:8px;font-size:10px;flex-shrink:0}
+.anLabelBar{height:6px;background:var(--card3);border-radius:3px;overflow:hidden}
+.anLabelBarFill{height:100%;border-radius:3px;position:relative;overflow:hidden}
+.anLabelBarDone{position:absolute;top:0;left:0;bottom:0;background:rgba(255,255,255,.35)}
+.anPrioGrid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.anPrioCard{border-radius:10px;padding:12px;border:1px solid transparent}
+.anDowGrid{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
+.anDowItem{text-align:center}
+.anDowBar{height:52px;border-radius:6px;margin-bottom:4px;position:relative;overflow:hidden;background:var(--card3)}
+.anDowBarFill{position:absolute;bottom:0;left:0;right:0;border-radius:5px}
+.anEmpty{text-align:center;padding:40px 16px;color:var(--muted);font-size:12px}
+
+/* ── Mobile analytics ── */
+@media(max-width:700px){
+  .anRow2{grid-template-columns:1fr}
+  .anKpi{grid-template-columns:repeat(2,1fr)}
+  .anPrioGrid{grid-template-columns:repeat(3,1fr);gap:6px}
+  .anFilterBar{gap:6px;padding:10px 12px}
+  .anRangeBtn,.anStatusBtn{padding:5px 8px;font-size:10px}
+  .an14Bar{gap:2px}
+  .anDowGrid{gap:3px}
+  .anGroupBtns{gap:4px}
+  /* Row 3 DoW + Priority: stack on mobile */
+  #analytics-content>[style*="grid-template-columns:1fr 1fr"]{grid-template-columns:1fr!important}
+}
+
+/* ── General mobile improvements ── */
+@media(max-width:700px){
+  /* Dashboard stats strip responsive */
+  .dashStatsStrip{grid-template-columns:repeat(2,1fr)!important}
+  /* Finance layout */
+  .finLayout2{grid-template-columns:1fr!important}
+  /* Gym stat row */
+  .gymStatRow{grid-template-columns:repeat(2,1fr)!important}
+  /* Weekly planner horizontal scroll */
+  .wGrid{display:flex!important;overflow-x:auto;gap:8px;padding-bottom:8px;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch}
+  .dCard{min-width:280px;scroll-snap-align:start;flex-shrink:0}
+  /* Goals layout */
+  .growthChartsRow{grid-template-columns:1fr!important}
+  /* Habit table overflow */
+  .htTableWrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+  /* Kanban cols */
+  .kbLayout{padding-bottom:80px}
+  /* Finance summary grid */
+  .finSummaryGrid{grid-template-columns:1fr!important}
+  /* Priority grid */
+  .anPrioGrid{gap:6px}
+  .anPrioCard{padding:10px 8px}
+  /* Task modal */
+  #taskModalBox{padding:16px;margin:8px;max-height:100dvh}
+  /* Fix tab-calendar height on mobile */
+  #tab-calendar{height:calc(100dvh - 110px)}
+  /* More menu analytics button */
+  .mMoreBtn{font-size:10px;padding:10px 6px}
+  /* Finance accounts row scroll */
+  #finAccountsRow{overflow-x:auto;flex-wrap:nowrap!important;padding-bottom:4px}
+  .finAcctCard{min-width:110px}
+  /* Rewards sub tabs scroll */
+  .rwSubTabs{overflow-x:auto;-webkit-overflow-scrolling:touch;flex-wrap:nowrap!important;padding-bottom:4px}
+  /* Goals sub-tabs */
+  #tab-goals>[style*="display:flex"][style*="border-bottom"]{overflow-x:auto;flex-wrap:nowrap;-webkit-overflow-scrolling:touch}
+  /* Gym sub-tabs */
+  .gymSubTabs{overflow-x:auto;-webkit-overflow-scrolling:touch;flex-wrap:nowrap!important}
+  /* Week nav */
+  .wNav{flex-wrap:wrap;gap:6px}
+  .wNavLbl{width:100%;text-align:center;order:-1}
+  /* Fix KPI overflow */
+  .anKpiVal{font-size:18px}
+}
 </style>
 </head>
 <body>
@@ -1816,8 +1943,8 @@ select.inp option{background:var(--card2);color:var(--text)}
       <button class="mMoreBtn" onclick="switchTabMob('routine',null);closeMoreMenu()">🔄<br>Рутина</button>
       <button class="mMoreBtn" onclick="switchTabMob('calendar',null);closeMoreMenu()">📆<br>Календарь</button>
       <button class="mMoreBtn" onclick="switchTabMob('kanban',null);closeMoreMenu()">🎯<br>Канбан</button>
-      <button class="mMoreBtn" onclick="switchTabMob('finance',null);closeMoreMenu()">💰<br>Финансы</button>
       <button class="mMoreBtn" onclick="switchTabMob('goals',null);closeMoreMenu()">🌱<br>Цели</button>
+      <button class="mMoreBtn" onclick="switchTabMob('analytics',null);closeMoreMenu()">📊<br>Аналитика</button>
     </div>
   </div>
 </div>
@@ -7088,42 +7215,90 @@ function gymNotif(msg,type){
 });
 
 /* ═══════════════════════════════════
-   ANALYTICS
+   ANALYTICS — State
 ═══════════════════════════════════ */
+let _anRange='month';   // 'day'|'week'|'month'|'quarter'|'year'|'all'
+let _anGroup=null;      // null | group id
+let _anStatus='all';    // 'all'|'done'|'active'
+
+function anSetRange(r){_anRange=r;renderAnalytics();}
+function anSetGroup(gid){_anGroup=(_anGroup===gid?null:gid);renderAnalytics();}
+function anSetStatus(s){_anStatus=s;renderAnalytics();}
+
+function _anDateRange(){
+  const now=t0();
+  let from=null;
+  if(_anRange==='day'){from=new Date(now);}
+  else if(_anRange==='week'){from=getMon(now);}
+  else if(_anRange==='month'){from=new Date(now.getFullYear(),now.getMonth(),1);}
+  else if(_anRange==='quarter'){const q=Math.floor(now.getMonth()/3);from=new Date(now.getFullYear(),q*3,1);}
+  else if(_anRange==='year'){from=new Date(now.getFullYear(),0,1);}
+  else{from=null;}// 'all'
+  return {from,to:now};
+}
+
 function renderAnalytics(){
   const el=document.getElementById('analytics-content');
   if(!el)return;
 
-  const tasks=tpD();
+  const allTasks=tpD();
   const labels=labelsD();
   const groups=labelGroupsD();
+  const {from,to}=_anDateRange();
 
   // ── Helpers ──
   function timeToMin(t){if(!t)return 0;const[h,m]=(t||'').split(':').map(Number);return(h||0)*60+(m||0);}
-  function taskMinutes(t){
-    if(!t.time||!t.endTime)return 0;
-    const d=timeToMin(t.endTime)-timeToMin(t.time);
-    return d>0?d:0;
-  }
-  function fmtMin(m){
-    if(m<60)return m+'мин';
-    return Math.floor(m/60)+'ч '+(m%60?m%60+'мин':'');
+  function taskMinutes(t){if(!t.time||!t.endTime)return 0;const d=timeToMin(t.endTime)-timeToMin(t.time);return d>0?d:0;}
+  function fmtMin(m){if(!m)return '—';if(m<60)return m+'м';return Math.floor(m/60)+'ч'+(m%60?' '+m%60+'м':'');}
+  function taskDate(t){return t.deadline?new Date(t.deadline+'T00:00:00'):null;}
+  function inRange(t){
+    if(!from)return true;
+    const d=taskDate(t);
+    if(!d)return false;
+    const df=new Date(from);df.setHours(0,0,0,0);
+    const dt=new Date(to);dt.setHours(23,59,59,999);
+    return d>=df&&d<=dt;
   }
   function getTaskLabelObjects(t){
     const ids=t.labelIds&&t.labelIds.length?t.labelIds:(t.labelId?[t.labelId]:[]);
     return ids.map(id=>labels.find(l=>l.id===id)).filter(Boolean);
   }
+  function matchGroup(t){
+    if(!_anGroup)return true;
+    const g=groups.find(g=>g.id===_anGroup);
+    if(!g)return true;
+    const gIds=g.labels.map(l=>l.id);
+    return getTaskLabelObjects(t).some(l=>gIds.includes(l.id));
+  }
 
+  // Apply date range + group filter
+  const rangedTasks=allTasks.filter(t=>inRange(t)&&matchGroup(t));
+
+  // Apply status filter for "display" tasks
+  let tasks;
+  if(_anStatus==='done')tasks=rangedTasks.filter(t=>t.done);
+  else if(_anStatus==='active')tasks=rangedTasks.filter(t=>!t.done);
+  else tasks=rangedTasks;
+
+  const today=t0();
+
+  // ── KPI stats ──
   const total=tasks.length;
   const done=tasks.filter(t=>t.done).length;
-  const overdue=tasks.filter(t=>!t.done&&t.deadline&&(new Date(t.deadline+'T00:00:00')<t0())).length;
+  const overdue=tasks.filter(t=>!t.done&&t.deadline&&(new Date(t.deadline+'T00:00:00')<today)).length;
   const withTime=tasks.filter(t=>t.time&&t.endTime&&taskMinutes(t)>0);
   const totalMin=withTime.reduce((s,t)=>s+taskMinutes(t),0);
   const doneMin=withTime.filter(t=>t.done).reduce((s,t)=>s+taskMinutes(t),0);
+  const pct=total?Math.round(done/total*100):0;
+  const timePct=totalMin?Math.round(doneMin/totalMin*100):0;
+  const dowNames=['Вс','Пн','Вт','Ср','Чт','Пт','Сб'];
+  const dowCounts=[0,0,0,0,0,0,0];
+  tasks.forEach(t=>{if(t.deadline){const d=new Date(t.deadline+'T00:00:00');dowCounts[d.getDay()]++;}});
+  const busiestDow=dowCounts.indexOf(Math.max(...dowCounts));
 
-  // Per-label stats
+  // ── Per-label stats (based on filtered tasks) ──
   const labelStats={};
-  labels.forEach(l=>{labelStats[l.id]={name:l.name,color:l.color,count:0,doneCount:0,minutes:0,doneMin:0,groupName:l.groupName,groupColor:l.groupColor};});
+  labels.forEach(l=>{labelStats[l.id]={id:l.id,name:l.name,color:l.color,count:0,doneCount:0,minutes:0,doneMin:0,groupName:l.groupName,groupColor:l.groupColor};});
   tasks.forEach(t=>{
     const tMin=taskMinutes(t);
     getTaskLabelObjects(t).forEach(l=>{
@@ -7133,167 +7308,255 @@ function renderAnalytics(){
       if(t.done){labelStats[l.id].doneCount++;labelStats[l.id].doneMin+=tMin;}
     });
   });
-  const labelArr=Object.values(labelStats).filter(l=>l.count>0).sort((a,b)=>b.minutes-a.minutes||b.count-a.count);
+  const labelArr=Object.values(labelStats).filter(l=>l.count>0).sort((a,b)=>b.doneCount-a.doneCount||b.count-a.count||b.minutes-a.minutes);
 
-  // Per-group stats
-  const groupStats={};
-  groups.forEach(g=>{
-    const gLabels=g.labels.map(l=>l.id);
-    const gTasks=tasks.filter(t=>getTaskLabelObjects(t).some(l=>gLabels.includes(l.id)));
-    const gMin=gTasks.filter(t=>t.time&&t.endTime).reduce((s,t)=>s+taskMinutes(t),0);
+  // ── Per-group stats (based on filtered tasks) ──
+  const groupStatsArr=groups.map(g=>{
+    const gIds=g.labels.map(l=>l.id);
+    const gTasks=tasks.filter(t=>getTaskLabelObjects(t).some(l=>gIds.includes(l.id)));
     const gDone=gTasks.filter(t=>t.done).length;
-    groupStats[g.id]={name:g.name,color:g.color,count:gTasks.length,done:gDone,minutes:gMin};
+    const gMin=gTasks.reduce((s,t)=>s+taskMinutes(t),0);
+    const gDoneMin=gTasks.filter(t=>t.done).reduce((s,t)=>s+taskMinutes(t),0);
+    return{id:g.id,name:g.name,color:g.color,count:gTasks.length,done:gDone,minutes:gMin,doneMin:gDoneMin};
   });
 
-  // Timeline: tasks per day (last 14 days)
-  const today=t0();
+  // ── 14-day timeline (always last 14 days from source tasks, filtered by group/status) ──
   const dayStats=[];
   for(let i=13;i>=0;i--){
     const d=new Date(today);d.setDate(d.getDate()-i);
-    const dk2=dk(d);
-    const dayTasks=tasks.filter(t=>t.deadline===dk2);
-    dayStats.push({date:dk2,label:`${d.getDate()}.${String(d.getMonth()+1).padStart(2,'0')}`,total:dayTasks.length,done:dayTasks.filter(t=>t.done).length,min:dayTasks.reduce((s,t)=>s+taskMinutes(t),0)});
+    const dKey=dk(d);
+    // Use rangedTasks (no status filter) for the chart so both bars show
+    const sourceTasks=rangedTasks.filter(t=>t.deadline===dKey);
+    const barDone=sourceTasks.filter(t=>t.done);
+    const barActive=sourceTasks.filter(t=>!t.done);
+    // Group coloring: pick top group for done tasks
+    const topDoneGroup=groupStatsArr.find(g=>{
+      const gIds=groups.find(gr=>gr.id===g.id)?.labels.map(l=>l.id)||[];
+      return barDone.some(t=>getTaskLabelObjects(t).some(l=>gIds.includes(l.id)));
+    });
+    dayStats.push({
+      date:dKey,
+      label:`${d.getDate()}.${String(d.getMonth()+1).padStart(2,'0')}`,
+      total:sourceTasks.length,
+      done:barDone.length,
+      active:barActive.length,
+      min:sourceTasks.reduce((s,t)=>s+taskMinutes(t),0),
+      doneColor:topDoneGroup?topDoneGroup.color:'var(--green)',
+    });
   }
+  const maxDayTot=Math.max(...dayStats.map(d=>d.total),1);
 
-  // Completion rate pct
-  const pct=total?Math.round(done/total*100):0;
-  const timePct=totalMin?Math.round(doneMin/totalMin*100):0;
+  // ── Weekly load (last 8 weeks) ──
+  const weekStats=[];
+  for(let w=7;w>=0;w--){
+    const wStart=new Date(getMon(today));wStart.setDate(wStart.getDate()-w*7);
+    const wEnd=new Date(wStart);wEnd.setDate(wEnd.getDate()+6);
+    const wKey=`${wStart.getDate()}.${String(wStart.getMonth()+1).padStart(2,'0')}`;
+    const wTasks=rangedTasks.filter(t=>{
+      if(!t.deadline)return false;
+      const d=new Date(t.deadline+'T00:00:00');return d>=wStart&&d<=wEnd;
+    });
+    weekStats.push({label:wKey,total:wTasks.length,done:wTasks.filter(t=>t.done).length});
+  }
+  const maxWeekTot=Math.max(...weekStats.map(w=>w.total),1);
 
-  // Most loaded day of week
-  const dowNames=['Вс','Пн','Вт','Ср','Чт','Пт','Сб'];
-  const dowCounts=[0,0,0,0,0,0,0];
-  tasks.forEach(t=>{if(t.deadline){const d=new Date(t.deadline+'T00:00:00');dowCounts[d.getDay()]++;}});
-  const busiestDow=dowCounts.indexOf(Math.max(...dowCounts));
-
-  // Top label by time
-  const topLabel=labelArr[0];
+  // ── Range button labels ──
+  const rangeLabels={day:'День',week:'Неделя',month:'Месяц',quarter:'Квартал',year:'Год',all:'Всё время'};
+  const statusLabels={all:'Все',done:'✓ Выполнено',active:'В процессе'};
 
   // ── Render ──
-  const maxBar=labelArr.length?Math.max(...labelArr.map(l=>l.minutes))||1:1;
-  const maxDayMin=Math.max(...dayStats.map(d=>d.min))||1;
-  const maxDayTot=Math.max(...dayStats.map(d=>d.total))||1;
-
   el.innerHTML=`
+  <!-- FILTER BAR -->
+  <div class="anFilterBar">
+    <span class="anFilterLabel">Период</span>
+    <div class="anRangeBtns">
+      ${['day','week','month','quarter','year','all'].map(r=>`<button class="anRangeBtn${_anRange===r?' on':''}" onclick="anSetRange('${r}')">${rangeLabels[r]}</button>`).join('')}
+    </div>
+    <div class="anSep"></div>
+    <span class="anFilterLabel">Статус</span>
+    <div class="anStatusBtns">
+      ${['all','done','active'].map(s=>`<button class="anStatusBtn${_anStatus===s?' on':''}" onclick="anSetStatus('${s}')">${statusLabels[s]}</button>`).join('')}
+    </div>
+    <div class="anSep"></div>
+    <span class="anFilterLabel">Группа</span>
+    <div class="anGroupBtns">
+      <button class="anGroupBtn${!_anGroup?' on':''}" onclick="anSetGroup(null)" style="${!_anGroup?'background:var(--pdim);border-color:var(--p);color:var(--p)':''}">Все</button>
+      ${groups.map(g=>`<button class="anGroupBtn${_anGroup===g.id?' on':''}" onclick="anSetGroup('${g.id}')" style="${_anGroup===g.id?`background:${g.color}22;border-color:${g.color};color:${g.color}`:''}">
+        ${esc(g.name)}
+      </button>`).join('')}
+    </div>
+  </div>
+
   <!-- KPI Row -->
-  <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px;margin-bottom:18px">
+  <div class="anKpi">
     ${[
-      {label:'Всего задач',val:total,color:'var(--p)',icon:'📋'},
-      {label:'Выполнено',val:done+' ('+pct+'%)',color:'var(--green)',icon:'✅'},
-      {label:'Просрочено',val:overdue,color:'var(--red)',icon:'⚠️'},
-      {label:'Общее время',val:fmtMin(totalMin),color:'var(--blue)',icon:'⏱'},
-      {label:'Выполнено (время)',val:fmtMin(doneMin)+' ('+timePct+'%)',color:'var(--gold)',icon:'⚡'},
-      {label:'Загруженный день',val:dowNames[busiestDow],color:'var(--purple)',icon:'📅'},
-    ].map(k=>`<div style="background:var(--card2);border:1px solid var(--border);border-radius:12px;padding:12px 14px">
-      <div style="font-size:11px;color:var(--text2);margin-bottom:4px">${k.icon} ${k.label}</div>
-      <div style="font-size:20px;font-weight:800;color:${k.color};font-family:var(--font-display)">${k.val}</div>
+      {label:'Всего задач',val:total,sub:rangeLabels[_anRange],color:'var(--p)',icon:'📋'},
+      {label:'Выполнено',val:done,sub:pct+'% от всех',color:'var(--green)',icon:'✅'},
+      {label:'В процессе',val:total-done,sub:overdue+' просрочено',color:'var(--gold)',icon:'⏳'},
+      {label:'Просрочено',val:overdue,sub:'без дедлайна безопасны',color:'var(--red)',icon:'⚠️'},
+      {label:'Общее время',val:fmtMin(totalMin),sub:'запланировано',color:'var(--blue)',icon:'⏱'},
+      {label:'Время выполнено',val:fmtMin(doneMin),sub:timePct+'% по времени',color:'var(--cyan)',icon:'⚡'},
+    ].map(k=>`<div class="anKpiCard">
+      <div class="anKpiLabel">${k.icon} ${k.label}</div>
+      <div class="anKpiVal" style="color:${k.color}">${k.val}</div>
+      <div class="anKpiSub">${k.sub}</div>
     </div>`).join('')}
   </div>
 
-  <!-- Row 2: Groups + Timeline -->
-  <div style="display:grid;grid-template-columns:1fr 2fr;gap:12px;margin-bottom:18px;align-items:start">
-    <!-- Groups summary -->
-    <div style="background:var(--card2);border:1px solid var(--border);border-radius:12px;padding:14px">
-      <div style="font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);margin-bottom:12px">Группы</div>
-      ${Object.values(groupStats).map(g=>{
+  <!-- Row 2: Groups + 14-day chart -->
+  <div class="anRow2">
+    <!-- Groups breakdown -->
+    <div class="anCard">
+      <div class="anCardTitle">🗂 Группы ${_anGroup?'<span style="color:var(--p);font-size:9px;text-transform:none;letter-spacing:0">— фильтр активен</span>':''}</div>
+      ${groupStatsArr.length?groupStatsArr.map(g=>{
         const gPct=g.count?Math.round(g.done/g.count*100):0;
-        return `<div style="margin-bottom:12px">
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
-            <span style="font-size:12px;font-weight:700;color:${g.color}">${g.name}</span>
-            <span style="font-size:10px;color:var(--text2)">${g.done}/${g.count} · ${fmtMin(g.minutes)}</span>
+        const donePct2=g.count?gPct:0;
+        return `<div style="margin-bottom:13px">
+          <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:5px">
+            <span style="font-size:12px;font-weight:700;color:${g.color};display:flex;align-items:center;gap:5px">
+              <span style="width:8px;height:8px;border-radius:50%;background:${g.color};display:inline-block;flex-shrink:0"></span>${esc(g.name)}
+            </span>
+            <span style="font-size:10px;color:var(--text2);font-family:var(--font-mono)">${g.done}/${g.count}</span>
           </div>
-          <div style="height:6px;background:var(--card3);border-radius:3px;overflow:hidden">
-            <div style="height:100%;width:${gPct}%;background:${g.color};border-radius:3px;transition:width .4s"></div>
+          <div style="height:8px;background:var(--card3);border-radius:4px;overflow:hidden;position:relative">
+            <div style="position:absolute;top:0;left:0;bottom:0;width:${gPct}%;background:${g.color};opacity:.35;border-radius:4px"></div>
+            <div style="position:absolute;top:0;left:0;bottom:0;width:${donePct2}%;background:${g.color};border-radius:4px;transition:width .5s var(--ease)"></div>
+          </div>
+          <div style="display:flex;justify-content:space-between;margin-top:3px;font-size:9px;color:var(--muted)">
+            <span>${gPct}% выполнено</span>
+            <span>${fmtMin(g.doneMin)} / ${fmtMin(g.minutes)}</span>
           </div>
         </div>`;
-      }).join('')}
+      }).join(''):'<div class="anEmpty">Нет групп меток.<br>Настройте метки в разделе Задачи.</div>'}
     </div>
 
-    <!-- 14-day timeline -->
-    <div style="background:var(--card2);border:1px solid var(--border);border-radius:12px;padding:14px">
-      <div style="font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);margin-bottom:12px">Нагрузка за 14 дней</div>
-      <div style="display:flex;align-items:flex-end;gap:4px;height:80px">
+    <!-- 14-day load chart -->
+    <div class="anCard">
+      <div class="anCardTitle">📊 Нагрузка за 14 дней
+        <span style="margin-left:auto;font-size:9px;text-transform:none;letter-spacing:0;color:var(--text2);font-weight:500">серый = в процессе, цвет = выполнено</span>
+      </div>
+      <div class="an14Bar">
         ${dayStats.map(d=>{
-          const h=Math.round((d.total/maxDayTot)*76);
-          const dh=Math.round((d.done/Math.max(d.total,1))*h);
           const isToday=d.date===dk(today);
-          return `<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px" title="${d.date}: ${d.total} задач, ${d.done} выполнено, ${fmtMin(d.min)}">
-            <div style="width:100%;background:var(--card3);border-radius:3px 3px 0 0;position:relative;height:${Math.max(h,2)}px;overflow:hidden">
-              <div style="position:absolute;bottom:0;width:100%;height:${dh}px;background:${isToday?'var(--green)':'var(--p)'};opacity:.8;border-radius:2px 2px 0 0"></div>
+          const hTot=Math.round((d.total/maxDayTot)*82);
+          const hDone=d.total?Math.round((d.done/d.total)*hTot):0;
+          const hActive=hTot-hDone;
+          return `<div class="an14BarItem${isToday?' an14Today':''}" title="${d.date}: ${d.total} задач (${d.done} выполнено, ${d.active} в процессе)">
+            <div class="an14BarOuter" style="height:${Math.max(hTot,2)}px">
+              <div class="an14BarDone" style="height:${hDone}px;background:${isToday?'var(--green)':d.doneColor};opacity:.9"></div>
+              <div style="position:absolute;top:0;left:0;right:0;height:${hActive}px;background:var(--card3);opacity:.5;border-radius:2px 2px 0 0"></div>
             </div>
-            <span style="font-size:8px;color:${isToday?'var(--green)':'var(--text2)'};font-weight:${isToday?'800':'400'}">${d.label}</span>
+            <span class="an14Label">${d.label}</span>
           </div>`;
         }).join('')}
       </div>
-      <div style="display:flex;gap:12px;margin-top:8px;font-size:10px;color:var(--text2)">
-        <span><span style="display:inline-block;width:8px;height:8px;border-radius:2px;background:var(--p);margin-right:3px"></span>Всего</span>
-        <span><span style="display:inline-block;width:8px;height:8px;border-radius:2px;background:var(--green);margin-right:3px"></span>Выполнено</span>
+      <div style="display:flex;gap:12px;margin-top:6px;font-size:9px;color:var(--text2)">
+        <span style="display:flex;align-items:center;gap:3px"><span style="width:8px;height:8px;border-radius:2px;background:var(--green);display:inline-block"></span>Выполнено</span>
+        <span style="display:flex;align-items:center;gap:3px"><span style="width:8px;height:8px;border-radius:2px;background:var(--card3);border:1px solid var(--border3);display:inline-block"></span>В процессе</span>
+      </div>
+
+      <!-- Weekly load bars -->
+      <div class="anCardTitle" style="margin-top:16px">📅 Нагрузка по неделям <span style="font-size:9px;text-transform:none;letter-spacing:0;font-weight:400;color:var(--muted)">(последние 8 нед.)</span></div>
+      <div class="anWeekBars">
+        ${weekStats.map((w,i)=>{
+          const hPct=maxWeekTot?Math.round((w.total/maxWeekTot)*60):0;
+          const dPct=w.total?Math.round((w.done/w.total)*100):0;
+          const isCur=i===weekStats.length-1;
+          return `<div class="anWeekBarCol" title="Неделя от ${w.label}: ${w.total} задач, ${w.done} выполнено">
+            <div class="anWeekBarOuter" style="height:60px">
+              <div style="height:${hPct}px;background:var(--card3);border-radius:3px;overflow:hidden;position:relative;margin-top:${60-hPct}px">
+                <div style="position:absolute;bottom:0;left:0;right:0;height:${Math.round((w.done/Math.max(w.total,1))*hPct)}px;background:${isCur?'var(--p)':'var(--blue)'};opacity:.8;border-radius:2px"></div>
+              </div>
+            </div>
+            <div class="anWeekBarLabel" style="color:${isCur?'var(--p)':'var(--text2)'};font-size:8px">${w.label}</div>
+            <div class="anWeekBarCount">${w.done}/${w.total}</div>
+          </div>`;
+        }).join('')}
       </div>
     </div>
   </div>
 
-  <!-- Label time breakdown -->
-  <div style="background:var(--card2);border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:18px">
-    <div style="font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);margin-bottom:14px">⏱ Время по меткам</div>
-    ${labelArr.length?`
-    <div style="display:flex;flex-direction:column;gap:8px">
-      ${labelArr.map(l=>{
-        const barW=Math.round((l.minutes/maxBar)*100);
-        const donePct=l.count?Math.round(l.doneCount/l.count*100):0;
-        return `<div>
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:3px">
-            <div style="display:flex;align-items:center;gap:6px">
-              <span style="width:8px;height:8px;border-radius:50%;background:${l.color};flex-shrink:0"></span>
-              <span style="font-size:12px;font-weight:600;color:var(--text)">${l.name}</span>
-              <span style="font-size:9px;color:var(--muted);background:var(--card3);padding:1px 5px;border-radius:4px">${l.groupName}</span>
-            </div>
-            <div style="display:flex;gap:10px;font-size:10px;color:var(--text2)">
-              <span>${l.count} задач</span>
-              <span style="color:var(--green)">${donePct}% выполнено</span>
-              <span style="color:var(--blue);font-weight:700">${fmtMin(l.minutes)}</span>
-            </div>
-          </div>
-          <div style="height:6px;background:var(--card3);border-radius:3px;overflow:hidden">
-            <div style="height:100%;width:${barW}%;background:linear-gradient(90deg,${l.color}cc,${l.color}66);border-radius:3px;transition:width .4s"></div>
-          </div>
-        </div>`;
-      }).join('')}
-    </div>`:'<div style="font-size:12px;color:var(--muted);padding:8px 0">Нет задач с метками</div>'}
-  </div>
-
-  <!-- Day of week heatmap -->
-  <div style="background:var(--card2);border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:18px">
-    <div style="font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);margin-bottom:12px">📅 Нагрузка по дням недели</div>
-    <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:6px">
-      ${dowNames.map((d,i)=>{
-        const cnt=dowCounts[i];
-        const maxDow=Math.max(...dowCounts)||1;
-        const intensity=Math.round((cnt/maxDow)*100);
-        const isBusy=cnt===Math.max(...dowCounts)&&cnt>0;
-        return `<div style="text-align:center">
-          <div style="height:48px;background:linear-gradient(180deg,var(--p) ${intensity}%,var(--card3) ${intensity}%);border-radius:6px;margin-bottom:4px;opacity:.85"></div>
-          <div style="font-size:10px;font-weight:${isBusy?'800':'500'};color:${isBusy?'var(--p)':'var(--text2)'}">${d}</div>
-          <div style="font-size:9px;color:var(--muted)">${cnt}</div>
-        </div>`;
-      }).join('')}
+  <!-- Time by Labels (filtered, sorted by done first) -->
+  <div class="anCard" style="margin-bottom:14px">
+    <div class="anCardTitle">⏱ Время по меткам
+      <span style="margin-left:auto;font-size:9px;text-transform:none;letter-spacing:0;color:var(--text2);font-weight:400">сортировка: выполнено ↓</span>
     </div>
+    ${labelArr.length?`<div class="anLabelRow">${labelArr.map(l=>{
+      const maxLblMin=labelArr.length?Math.max(...labelArr.map(x=>x.minutes),1):1;
+      const barW=Math.round((l.minutes/maxLblMin)*100);
+      const doneBarW=l.minutes?Math.round((l.doneMin/l.minutes)*barW):0;
+      const donePct=l.count?Math.round(l.doneCount/l.count*100):0;
+      return `<div class="anLabelItem">
+        <div class="anLabelHead">
+          <div class="anLabelInfo">
+            <span style="width:9px;height:9px;border-radius:50%;background:${l.color};flex-shrink:0;box-shadow:0 0 6px ${l.color}66"></span>
+            <span style="font-size:12px;font-weight:700;color:var(--text)">${esc(l.name)}</span>
+            <span style="font-size:9px;color:var(--muted);background:var(--card3);padding:1px 6px;border-radius:4px">${esc(l.groupName)}</span>
+          </div>
+          <div class="anLabelMeta">
+            <span style="color:var(--text2)">${l.count} зад.</span>
+            <span style="color:var(--green);font-weight:700">${donePct}% ✓</span>
+            <span style="color:var(--blue);font-weight:700;font-family:var(--font-mono)">${fmtMin(l.minutes)}</span>
+          </div>
+        </div>
+        <div class="anLabelBar">
+          <div class="anLabelBarFill" style="width:${barW}%;background:linear-gradient(90deg,${l.color}bb,${l.color}55)">
+            <div class="anLabelBarDone" style="width:${l.minutes?Math.round((l.doneMin/l.minutes)*100):0}%"></div>
+          </div>
+        </div>
+        <div style="display:flex;justify-content:space-between;font-size:9px;color:var(--muted);margin-top:2px">
+          <span style="color:var(--green)">${fmtMin(l.doneMin)} выполнено</span>
+          <span>${fmtMin(l.minutes-l.doneMin)} осталось</span>
+        </div>
+      </div>`;
+    }).join('')}</div>`
+    :'<div class="anEmpty">Нет задач с метками в выбранный период.<br>Добавьте метки к задачам чтобы видеть статистику.</div>'}
   </div>
 
-  <!-- Priority breakdown -->
-  <div style="background:var(--card2);border:1px solid var(--border);border-radius:12px;padding:14px">
-    <div style="font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);margin-bottom:12px">🎯 По приоритету</div>
-    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px">
-      ${[{label:'Высокий',val:1,color:'var(--red)'},{label:'Средний',val:2,color:'var(--gold)'},{label:'Низкий',val:3,color:'var(--green)'}].map(p=>{
-        const pts=tasks.filter(t=>t.priority===p.val);
-        const pDone=pts.filter(t=>t.done).length;
-        const pMin=pts.reduce((s,t)=>s+taskMinutes(t),0);
-        const pPct=pts.length?Math.round(pDone/pts.length*100):0;
-        return `<div style="background:var(--card3);border-radius:8px;padding:10px;border:1px solid ${p.color}22">
-          <div style="font-size:10px;color:${p.color};font-weight:700;margin-bottom:6px">${p.label}</div>
-          <div style="font-size:18px;font-weight:800;color:var(--text);font-family:var(--font-display)">${pts.length}</div>
-          <div style="font-size:10px;color:var(--text2);margin-top:2px">${pDone} выполнено (${pPct}%)</div>
-          <div style="font-size:10px;color:var(--blue);margin-top:1px">${fmtMin(pMin)}</div>
-        </div>`;
-      }).join('')}
+  <!-- Row 3: DoW heatmap + Priority breakdown -->
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px">
+    <!-- Day of week -->
+    <div class="anCard">
+      <div class="anCardTitle">🗓 По дням недели</div>
+      <div class="anDowGrid">
+        ${['Пн','Вт','Ср','Чт','Пт','Сб','Вс'].map((d,idx)=>{
+          // Remap: Mon=1,Tue=2...Sun=0 in JS
+          const jsDay=[1,2,3,4,5,6,0][idx];
+          const cnt=dowCounts[jsDay];
+          const maxDow=Math.max(...dowCounts,1);
+          const pctH=Math.round((cnt/maxDow)*100);
+          const isBusy=cnt===Math.max(...dowCounts)&&cnt>0;
+          const isWe=idx>=5;
+          return `<div class="anDowItem">
+            <div class="anDowBar">
+              <div style="position:absolute;bottom:0;left:0;right:0;height:${pctH}%;background:${isWe?'var(--pink)':isBusy?'var(--p)':'var(--blue)'};opacity:${cnt?'.8':'.15'};border-radius:4px;transition:height .4s var(--ease)"></div>
+            </div>
+            <div style="font-size:9px;font-weight:${isBusy?'800':'600'};color:${isBusy?'var(--p)':isWe?'var(--pink)':'var(--text2)'}">${d}</div>
+            <div style="font-size:8px;color:var(--muted)">${cnt}</div>
+          </div>`;
+        }).join('')}
+      </div>
+      <div style="font-size:10px;color:var(--muted);margin-top:10px">Самый загруженный: <b style="color:var(--p)">${['Пн','Вт','Ср','Чт','Пт','Сб','Вс'][([1,2,3,4,5,6,0].indexOf(busiestDow))]||'—'}</b></div>
+    </div>
+
+    <!-- Priority -->
+    <div class="anCard">
+      <div class="anCardTitle">🎯 По приоритету</div>
+      <div class="anPrioGrid">
+        ${[{label:'🔴 Высокий',val:1,color:'var(--red)'},{label:'🟡 Средний',val:2,color:'var(--gold)'},{label:'🟢 Низкий',val:3,color:'var(--green)'}].map(p=>{
+          const pts=tasks.filter(t=>t.priority===p.val);
+          const pDone=pts.filter(t=>t.done).length;
+          const pMin=pts.reduce((s,t)=>s+taskMinutes(t),0);
+          const pPct=pts.length?Math.round(pDone/pts.length*100):0;
+          return `<div class="anPrioCard" style="background:var(--card3);border-color:${p.color}22">
+            <div style="font-size:9px;color:${p.color};font-weight:800;margin-bottom:6px;text-transform:uppercase;letter-spacing:.4px">${p.label}</div>
+            <div style="font-size:20px;font-weight:800;color:var(--text);font-family:var(--font-display);line-height:1">${pts.length}</div>
+            <div style="font-size:9px;color:var(--text2);margin-top:4px">${pDone} ✓ (${pPct}%)</div>
+            <div style="height:4px;background:var(--card2);border-radius:2px;margin-top:6px;overflow:hidden"><div style="height:100%;width:${pPct}%;background:${p.color};border-radius:2px"></div></div>
+            <div style="font-size:9px;color:var(--blue);margin-top:4px">${fmtMin(pMin)}</div>
+          </div>`;
+        }).join('')}
+      </div>
     </div>
   </div>`;
 }
