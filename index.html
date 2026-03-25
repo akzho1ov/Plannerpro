@@ -689,9 +689,8 @@ select.inp option{background:var(--card2);color:var(--text)}
 .tTbl td{padding:8px 10px;border-bottom:1px solid rgba(255,255,255,.03);vertical-align:middle;transition:background .1s}
 .tTbl tbody tr:hover{background:rgba(155,143,245,.05);transition:background .1s}
 .tLabelCell{position:relative;cursor:pointer;min-width:60px}
-.tLabelDots{display:flex;gap:4px;align-items:center;padding:2px 0}
-.tLabelPills{display:none;position:absolute;top:50%;left:0;transform:translateY(-50%);z-index:20;background:var(--card2);border:1px solid var(--border2);border-radius:8px;padding:5px 7px;white-space:nowrap;gap:4px;align-items:center;box-shadow:var(--shadow2);flex-wrap:nowrap;min-width:max-content}
-.tTbl tbody tr:hover .tLabelPills{display:flex}
+.tLabelDots{display:none}
+.tLabelPills{display:flex;gap:4px;align-items:center;flex-wrap:wrap}
 .tLabelAddBtn{color:var(--muted);font-size:11px;width:18px;height:18px;border-radius:50%;border:1px dashed var(--border2);display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;margin-left:2px;cursor:pointer}
 .tGroupTooltip{position:fixed;z-index:999;background:var(--card2);border:1px solid var(--border2);border-radius:10px;padding:8px 10px;box-shadow:var(--shadow2);min-width:160px;pointer-events:none;animation:fadeIn .12s}
 .tpGroupBtn.tpGroupOn{background:var(--pdim2)!important;color:var(--p)!important;border:1px solid var(--p)!important;box-shadow:0 0 12px var(--pglow2)!important}
@@ -1585,6 +1584,9 @@ select.inp option{background:var(--card2);color:var(--text)}
 /* left accent bar on task rows in calendar */
 .calTaskRow{cursor:pointer;transition:all var(--dur) var(--ease)}
 .calTaskRow:hover{filter:brightness(1.15)}
+.plEvt .calEvtCb{opacity:0;transition:opacity .15s;flex-shrink:0;cursor:pointer;width:11px;height:11px}
+.plEvt:hover .calEvtCb{opacity:1}
+.plEvt .calEvtCb:checked{opacity:1}
 
 /* ── labelPickerDrop ── */
 .labelPickerDrop{animation:fadeUp .15s ease;z-index:1200}
@@ -1742,6 +1744,7 @@ select.inp option{background:var(--card2);color:var(--text)}
           <button class="hTab" onclick="switchTab('goals',this)" title="Клавиша 8">Цели</button>
           <button class="hTab" onclick="switchTab('rewards',this)" title="Клавиша 9">Награды</button>
           <button class="hTab" onclick="switchTab('gym',this)" title="Клавиша 0">Тренировки</button>
+          <button class="hTab" onclick="switchTab('analytics',this)">📊 Аналитика</button>
         </div>
       </div>
       <!-- Right controls -->
@@ -2063,20 +2066,6 @@ select.inp option{background:var(--card2);color:var(--text)}
   <!-- Mobile card list -->
   <div id="tpMobile" style="display:none">
     <div id="tBodyMobile"></div>
-  </div>
-  <!-- Repeat / Routine section inside Tasks -->
-  <div style="margin-top:20px">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px">
-      <div class="secLbl" style="margin:0">↻ Регулярные задачи</div>
-      <div style="display:flex;gap:6px;flex-wrap:wrap">
-        <button class="rwSubTab on" onclick="rbSetFreq('daily',this)" id="rb-tab-daily" style="font-size:10px">Ежедневно</button>
-        <button class="rwSubTab" onclick="rbSetFreq('weekly',this)" id="rb-tab-weekly" style="font-size:10px">Еженедельно</button>
-        <button class="rwSubTab" onclick="rbSetFreq('monthly',this)" id="rb-tab-monthly" style="font-size:10px">Ежемесячно</button>
-        <button class="rwSubTab" onclick="rbSetFreq('all',this)" id="rb-tab-all" style="font-size:10px">Все</button>
-        <button class="btn btnB" style="font-size:10px;padding:4px 10px" onclick="rbOpenModal(null)">+ Рутина</button>
-      </div>
-    </div>
-    <div id="rb-grid" class="rbGrid"></div>
   </div>
 </div>
 
@@ -2516,6 +2505,13 @@ select.inp option{background:var(--card2);color:var(--text)}
     <input class="inp" id="gym-lib-search" placeholder="Поиск упражнения..." style="margin-bottom:10px" oninput="gymRenderLibrary()">
     <div class="gymLibGrid" id="gym-library-grid"></div>
   </div>
+</div>
+
+<!-- ═══ 10. ANALYTICS ═══ -->
+<div id="tab-analytics" class="pane hInner">
+  <div style="font-family:var(--font-display);font-size:22px;font-weight:800;letter-spacing:-.4px;color:var(--text);margin-bottom:4px">📊 Аналитика</div>
+  <div style="font-size:12px;color:var(--text2);margin-bottom:20px">Полная статистика по задачам, времени и меткам</div>
+  <div id="analytics-content"></div>
 </div>
 
 <!-- GYM: Program Modal -->
@@ -3157,7 +3153,7 @@ function setSyncDot(state){
 
 // ── Re-render whichever tab is currently visible (called after cloud sync) ──
 function reRenderCurrentTab(){
-  const renders={dash:renderDash,weekly:renderWP,habits:renderHT,tasks:renderTP,routine:renderRoutine,calendar:renderCal,kanban:renderKanban,finance:renderFin,goals:renderGrowth,rewards:rwRender,gym:gymRender};
+  const renders={dash:renderDash,weekly:renderWP,habits:renderHT,tasks:renderTP,routine:renderRoutine,calendar:renderCal,kanban:renderKanban,finance:renderFin,goals:renderGrowth,rewards:rwRender,gym:gymRender,analytics:renderAnalytics};
   for(const[name,fn] of Object.entries(renders)){
     if(document.getElementById('tab-'+name)?.classList.contains('on')){
       try{fn();}catch(e){console.warn('rerender err',e);}
@@ -3414,7 +3410,7 @@ function switchTab(name,btn){
   if(btn)btn.classList.add('on');
   // Scroll to top on tab switch
   window.scrollTo({top:0,behavior:'instant'});
-  const renders={dash:renderDash,weekly:renderWP,habits:renderHT,tasks:renderTP,routine:renderRoutine,calendar:renderCal,kanban:renderKanban,finance:renderFin,goals:renderGrowth,rewards:rwRender,gym:gymRender};
+  const renders={dash:renderDash,weekly:renderWP,habits:renderHT,tasks:renderTP,routine:renderRoutine,calendar:renderCal,kanban:renderKanban,finance:renderFin,goals:renderGrowth,rewards:rwRender,gym:gymRender,analytics:renderAnalytics};
   if(renders[name])renders[name]();
 }
 
@@ -4392,7 +4388,7 @@ function plRenderGrid(main){
       const icon=e.src==='task'?(e.isRepeat?'↻ ':''):'';
       const evtSrc=e.src;const evtId=e.id;
       const doneStyle=e.done?`background:${bg};color:${col};border-left-color:${col};opacity:.6;`:`background:${bg};color:${col};border-left-color:${col};`;
-      const cbHtml=e.src==='task'?`<input type="checkbox" ${e.done?'checked':''} onclick="event.stopPropagation();toggleCalTaskDone('${e.id}','${dstr}',this.checked)" style="flex-shrink:0;margin-right:3px;accent-color:${col};cursor:pointer;width:11px;height:11px">`:''
+      const cbHtml=e.src==='task'?`<input type="checkbox" class="calEvtCb" ${e.done?'checked':''} onclick="event.stopPropagation();toggleCalTaskDone('${e.id}','${dstr}',this.checked)" style="margin-right:3px;accent-color:${col}">`:''
       colsHtml+=`<div class="plEvt calTaskRow" data-evtid="${e.id}" data-dstr="${dstr}" data-src="${e.src}" draggable="true" style="top:${top}px;height:${height}px;left:calc(${left}% + 2px);width:calc(${width}% - 4px);${doneStyle}overflow:hidden;cursor:pointer;display:flex;align-items:flex-start;padding:3px 5px;gap:2px" title="${esc(e.text)}">
         ${cbHtml}<div style="flex:1;min-width:0;overflow:hidden">
         <div class="plEvt-title" style="${e.done?'text-decoration:line-through;opacity:.7':''}">${icon}${esc(e.text)}</div>
@@ -7092,6 +7088,217 @@ function gymNotif(msg,type){
 });
 
 /* ═══════════════════════════════════
+   ANALYTICS
+═══════════════════════════════════ */
+function renderAnalytics(){
+  const el=document.getElementById('analytics-content');
+  if(!el)return;
+
+  const tasks=tpD();
+  const labels=labelsD();
+  const groups=labelGroupsD();
+
+  // ── Helpers ──
+  function timeToMin(t){if(!t)return 0;const[h,m]=(t||'').split(':').map(Number);return(h||0)*60+(m||0);}
+  function taskMinutes(t){
+    if(!t.time||!t.endTime)return 0;
+    const d=timeToMin(t.endTime)-timeToMin(t.time);
+    return d>0?d:0;
+  }
+  function fmtMin(m){
+    if(m<60)return m+'мин';
+    return Math.floor(m/60)+'ч '+(m%60?m%60+'мин':'');
+  }
+  function getTaskLabelObjects(t){
+    const ids=t.labelIds&&t.labelIds.length?t.labelIds:(t.labelId?[t.labelId]:[]);
+    return ids.map(id=>labels.find(l=>l.id===id)).filter(Boolean);
+  }
+
+  const total=tasks.length;
+  const done=tasks.filter(t=>t.done).length;
+  const overdue=tasks.filter(t=>!t.done&&t.deadline&&(new Date(t.deadline+'T00:00:00')<t0())).length;
+  const withTime=tasks.filter(t=>t.time&&t.endTime&&taskMinutes(t)>0);
+  const totalMin=withTime.reduce((s,t)=>s+taskMinutes(t),0);
+  const doneMin=withTime.filter(t=>t.done).reduce((s,t)=>s+taskMinutes(t),0);
+
+  // Per-label stats
+  const labelStats={};
+  labels.forEach(l=>{labelStats[l.id]={name:l.name,color:l.color,count:0,doneCount:0,minutes:0,doneMin:0,groupName:l.groupName,groupColor:l.groupColor};});
+  tasks.forEach(t=>{
+    const tMin=taskMinutes(t);
+    getTaskLabelObjects(t).forEach(l=>{
+      if(!labelStats[l.id])return;
+      labelStats[l.id].count++;
+      labelStats[l.id].minutes+=tMin;
+      if(t.done){labelStats[l.id].doneCount++;labelStats[l.id].doneMin+=tMin;}
+    });
+  });
+  const labelArr=Object.values(labelStats).filter(l=>l.count>0).sort((a,b)=>b.minutes-a.minutes||b.count-a.count);
+
+  // Per-group stats
+  const groupStats={};
+  groups.forEach(g=>{
+    const gLabels=g.labels.map(l=>l.id);
+    const gTasks=tasks.filter(t=>getTaskLabelObjects(t).some(l=>gLabels.includes(l.id)));
+    const gMin=gTasks.filter(t=>t.time&&t.endTime).reduce((s,t)=>s+taskMinutes(t),0);
+    const gDone=gTasks.filter(t=>t.done).length;
+    groupStats[g.id]={name:g.name,color:g.color,count:gTasks.length,done:gDone,minutes:gMin};
+  });
+
+  // Timeline: tasks per day (last 14 days)
+  const today=t0();
+  const dayStats=[];
+  for(let i=13;i>=0;i--){
+    const d=new Date(today);d.setDate(d.getDate()-i);
+    const dk2=dk(d);
+    const dayTasks=tasks.filter(t=>t.deadline===dk2);
+    dayStats.push({date:dk2,label:`${d.getDate()}.${String(d.getMonth()+1).padStart(2,'0')}`,total:dayTasks.length,done:dayTasks.filter(t=>t.done).length,min:dayTasks.reduce((s,t)=>s+taskMinutes(t),0)});
+  }
+
+  // Completion rate pct
+  const pct=total?Math.round(done/total*100):0;
+  const timePct=totalMin?Math.round(doneMin/totalMin*100):0;
+
+  // Most loaded day of week
+  const dowNames=['Вс','Пн','Вт','Ср','Чт','Пт','Сб'];
+  const dowCounts=[0,0,0,0,0,0,0];
+  tasks.forEach(t=>{if(t.deadline){const d=new Date(t.deadline+'T00:00:00');dowCounts[d.getDay()]++;}});
+  const busiestDow=dowCounts.indexOf(Math.max(...dowCounts));
+
+  // Top label by time
+  const topLabel=labelArr[0];
+
+  // ── Render ──
+  const maxBar=labelArr.length?Math.max(...labelArr.map(l=>l.minutes))||1:1;
+  const maxDayMin=Math.max(...dayStats.map(d=>d.min))||1;
+  const maxDayTot=Math.max(...dayStats.map(d=>d.total))||1;
+
+  el.innerHTML=`
+  <!-- KPI Row -->
+  <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px;margin-bottom:18px">
+    ${[
+      {label:'Всего задач',val:total,color:'var(--p)',icon:'📋'},
+      {label:'Выполнено',val:done+' ('+pct+'%)',color:'var(--green)',icon:'✅'},
+      {label:'Просрочено',val:overdue,color:'var(--red)',icon:'⚠️'},
+      {label:'Общее время',val:fmtMin(totalMin),color:'var(--blue)',icon:'⏱'},
+      {label:'Выполнено (время)',val:fmtMin(doneMin)+' ('+timePct+'%)',color:'var(--gold)',icon:'⚡'},
+      {label:'Загруженный день',val:dowNames[busiestDow],color:'var(--purple)',icon:'📅'},
+    ].map(k=>`<div style="background:var(--card2);border:1px solid var(--border);border-radius:12px;padding:12px 14px">
+      <div style="font-size:11px;color:var(--text2);margin-bottom:4px">${k.icon} ${k.label}</div>
+      <div style="font-size:20px;font-weight:800;color:${k.color};font-family:var(--font-display)">${k.val}</div>
+    </div>`).join('')}
+  </div>
+
+  <!-- Row 2: Groups + Timeline -->
+  <div style="display:grid;grid-template-columns:1fr 2fr;gap:12px;margin-bottom:18px;align-items:start">
+    <!-- Groups summary -->
+    <div style="background:var(--card2);border:1px solid var(--border);border-radius:12px;padding:14px">
+      <div style="font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);margin-bottom:12px">Группы</div>
+      ${Object.values(groupStats).map(g=>{
+        const gPct=g.count?Math.round(g.done/g.count*100):0;
+        return `<div style="margin-bottom:12px">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+            <span style="font-size:12px;font-weight:700;color:${g.color}">${g.name}</span>
+            <span style="font-size:10px;color:var(--text2)">${g.done}/${g.count} · ${fmtMin(g.minutes)}</span>
+          </div>
+          <div style="height:6px;background:var(--card3);border-radius:3px;overflow:hidden">
+            <div style="height:100%;width:${gPct}%;background:${g.color};border-radius:3px;transition:width .4s"></div>
+          </div>
+        </div>`;
+      }).join('')}
+    </div>
+
+    <!-- 14-day timeline -->
+    <div style="background:var(--card2);border:1px solid var(--border);border-radius:12px;padding:14px">
+      <div style="font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);margin-bottom:12px">Нагрузка за 14 дней</div>
+      <div style="display:flex;align-items:flex-end;gap:4px;height:80px">
+        ${dayStats.map(d=>{
+          const h=Math.round((d.total/maxDayTot)*76);
+          const dh=Math.round((d.done/Math.max(d.total,1))*h);
+          const isToday=d.date===dk(today);
+          return `<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px" title="${d.date}: ${d.total} задач, ${d.done} выполнено, ${fmtMin(d.min)}">
+            <div style="width:100%;background:var(--card3);border-radius:3px 3px 0 0;position:relative;height:${Math.max(h,2)}px;overflow:hidden">
+              <div style="position:absolute;bottom:0;width:100%;height:${dh}px;background:${isToday?'var(--green)':'var(--p)'};opacity:.8;border-radius:2px 2px 0 0"></div>
+            </div>
+            <span style="font-size:8px;color:${isToday?'var(--green)':'var(--text2)'};font-weight:${isToday?'800':'400'}">${d.label}</span>
+          </div>`;
+        }).join('')}
+      </div>
+      <div style="display:flex;gap:12px;margin-top:8px;font-size:10px;color:var(--text2)">
+        <span><span style="display:inline-block;width:8px;height:8px;border-radius:2px;background:var(--p);margin-right:3px"></span>Всего</span>
+        <span><span style="display:inline-block;width:8px;height:8px;border-radius:2px;background:var(--green);margin-right:3px"></span>Выполнено</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Label time breakdown -->
+  <div style="background:var(--card2);border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:18px">
+    <div style="font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);margin-bottom:14px">⏱ Время по меткам</div>
+    ${labelArr.length?`
+    <div style="display:flex;flex-direction:column;gap:8px">
+      ${labelArr.map(l=>{
+        const barW=Math.round((l.minutes/maxBar)*100);
+        const donePct=l.count?Math.round(l.doneCount/l.count*100):0;
+        return `<div>
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:3px">
+            <div style="display:flex;align-items:center;gap:6px">
+              <span style="width:8px;height:8px;border-radius:50%;background:${l.color};flex-shrink:0"></span>
+              <span style="font-size:12px;font-weight:600;color:var(--text)">${l.name}</span>
+              <span style="font-size:9px;color:var(--muted);background:var(--card3);padding:1px 5px;border-radius:4px">${l.groupName}</span>
+            </div>
+            <div style="display:flex;gap:10px;font-size:10px;color:var(--text2)">
+              <span>${l.count} задач</span>
+              <span style="color:var(--green)">${donePct}% выполнено</span>
+              <span style="color:var(--blue);font-weight:700">${fmtMin(l.minutes)}</span>
+            </div>
+          </div>
+          <div style="height:6px;background:var(--card3);border-radius:3px;overflow:hidden">
+            <div style="height:100%;width:${barW}%;background:linear-gradient(90deg,${l.color}cc,${l.color}66);border-radius:3px;transition:width .4s"></div>
+          </div>
+        </div>`;
+      }).join('')}
+    </div>`:'<div style="font-size:12px;color:var(--muted);padding:8px 0">Нет задач с метками</div>'}
+  </div>
+
+  <!-- Day of week heatmap -->
+  <div style="background:var(--card2);border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:18px">
+    <div style="font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);margin-bottom:12px">📅 Нагрузка по дням недели</div>
+    <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:6px">
+      ${dowNames.map((d,i)=>{
+        const cnt=dowCounts[i];
+        const maxDow=Math.max(...dowCounts)||1;
+        const intensity=Math.round((cnt/maxDow)*100);
+        const isBusy=cnt===Math.max(...dowCounts)&&cnt>0;
+        return `<div style="text-align:center">
+          <div style="height:48px;background:linear-gradient(180deg,var(--p) ${intensity}%,var(--card3) ${intensity}%);border-radius:6px;margin-bottom:4px;opacity:.85"></div>
+          <div style="font-size:10px;font-weight:${isBusy?'800':'500'};color:${isBusy?'var(--p)':'var(--text2)'}">${d}</div>
+          <div style="font-size:9px;color:var(--muted)">${cnt}</div>
+        </div>`;
+      }).join('')}
+    </div>
+  </div>
+
+  <!-- Priority breakdown -->
+  <div style="background:var(--card2);border:1px solid var(--border);border-radius:12px;padding:14px">
+    <div style="font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);margin-bottom:12px">🎯 По приоритету</div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px">
+      ${[{label:'Высокий',val:1,color:'var(--red)'},{label:'Средний',val:2,color:'var(--gold)'},{label:'Низкий',val:3,color:'var(--green)'}].map(p=>{
+        const pts=tasks.filter(t=>t.priority===p.val);
+        const pDone=pts.filter(t=>t.done).length;
+        const pMin=pts.reduce((s,t)=>s+taskMinutes(t),0);
+        const pPct=pts.length?Math.round(pDone/pts.length*100):0;
+        return `<div style="background:var(--card3);border-radius:8px;padding:10px;border:1px solid ${p.color}22">
+          <div style="font-size:10px;color:${p.color};font-weight:700;margin-bottom:6px">${p.label}</div>
+          <div style="font-size:18px;font-weight:800;color:var(--text);font-family:var(--font-display)">${pts.length}</div>
+          <div style="font-size:10px;color:var(--text2);margin-top:2px">${pDone} выполнено (${pPct}%)</div>
+          <div style="font-size:10px;color:var(--blue);margin-top:1px">${fmtMin(pMin)}</div>
+        </div>`;
+      }).join('')}
+    </div>
+  </div>`;
+}
+
+/* ═══════════════════════════════════
    COMMAND PALETTE — ⌘K
 ═══════════════════════════════════ */
 const CMD_ITEMS=[
@@ -7566,7 +7773,7 @@ function switchTabMob(name,btn){
   document.querySelectorAll('.mNavBtn').forEach(b=>b.classList.remove('on'));
   if(btn)btn.classList.add('on');
   // Render
-  const renders={dash:renderDash,weekly:renderWP,habits:renderHT,tasks:renderTP,routine:renderRoutine,calendar:renderCal,kanban:renderKanban,finance:renderFin,goals:renderGrowth,rewards:rwRender,gym:gymRender};
+  const renders={dash:renderDash,weekly:renderWP,habits:renderHT,tasks:renderTP,routine:renderRoutine,calendar:renderCal,kanban:renderKanban,finance:renderFin,goals:renderGrowth,rewards:rwRender,gym:gymRender,analytics:renderAnalytics};
   if(renders[name])renders[name]();
   window.scrollTo(0,0);
 }
