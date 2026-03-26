@@ -1783,16 +1783,12 @@ select.inp option{background:var(--card2);color:var(--text)}
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
       <span>Дашборд</span>
     </button>
-    <button class="mNavBtn" onclick="switchTabMob('rewards',this)">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
-      <span>Награды</span>
-    </button>
-    <button class="mNavBtn" onclick="switchTabMob('gym',this)">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M6.5 6.5h1.5v11H6.5zM16 6.5h1.5v11H16zM3 9.5h4v5H3zM17 9.5h4v5h-4zM8 11.5h8" stroke-linecap="round"/></svg>
-      <span>Тренировки</span>
+    <button class="mNavBtn" onclick="switchTabMob('tasks',this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
+      <span>Задачи</span>
     </button>
     <button class="mNavBtn" onclick="switchTabMob('habits',this)">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3" stroke-linecap="round"/></svg>
       <span>Привычки</span>
     </button>
     <button class="mNavBtn" onclick="switchTabMob('finance',this)">
@@ -1800,24 +1796,24 @@ select.inp option{background:var(--card2);color:var(--text)}
       <span>Финансы</span>
     </button>
     <button class="mNavBtn" onclick="moreMenu()">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="5" r="1.5" fill="currentColor"/><circle cx="12" cy="12" r="1.5" fill="currentColor"/><circle cx="12" cy="19" r="1.5" fill="currentColor"/></svg>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="5" cy="12" r="1.5" fill="currentColor"/><circle cx="12" cy="12" r="1.5" fill="currentColor"/><circle cx="19" cy="12" r="1.5" fill="currentColor"/></svg>
       <span>Ещё</span>
     </button>
   </div>
 </div>
 
-<!-- More menu (mobile) -->
-<div id="moreMenuOverlay" style="display:none;position:fixed;inset:0;z-index:700;background:rgba(0,0,0,.7)" onclick="closeMoreMenu()">
-  <div style="position:absolute;bottom:0;left:0;right:0;background:var(--card);border-radius:20px 20px 0 0;padding:16px 16px max(16px,env(safe-area-inset-bottom));border-top:1px solid var(--border2)" onclick="event.stopPropagation()">
-    <div style="width:36px;height:3px;background:var(--border3);border-radius:2px;margin:0 auto 16px"></div>
-    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">
+<!-- More menu (mobile) — bottom sheet -->
+<div id="moreMenuOverlay" style="display:none;position:fixed;inset:0;z-index:700;background:rgba(0,0,0,.6);backdrop-filter:blur(4px)" onclick="closeMoreMenu()">
+  <div style="position:absolute;bottom:0;left:0;right:0;background:var(--card);border-radius:24px 24px 0 0;padding:12px 16px max(20px,env(safe-area-inset-bottom));border-top:1px solid var(--border2);box-shadow:0 -8px 40px rgba(0,0,0,.5)" onclick="event.stopPropagation()">
+    <div style="width:32px;height:3px;background:var(--border3);border-radius:2px;margin:0 auto 18px"></div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px">
       <button class="mMoreBtn" onclick="switchTabMob('weekly',null);closeMoreMenu()">📅<br>Неделя</button>
-      <button class="mMoreBtn" onclick="switchTabMob('tasks',null);closeMoreMenu()">📋<br>Задачи</button>
-      <button class="mMoreBtn" onclick="switchTabMob('routine',null);closeMoreMenu()">🔄<br>Рутина</button>
       <button class="mMoreBtn" onclick="switchTabMob('calendar',null);closeMoreMenu()">📆<br>Календарь</button>
-      <button class="mMoreBtn" onclick="switchTabMob('kanban',null);closeMoreMenu()">🎯<br>Канбан</button>
-      <button class="mMoreBtn" onclick="switchTabMob('finance',null);closeMoreMenu()">💰<br>Финансы</button>
+      <button class="mMoreBtn" onclick="switchTabMob('kanban',null);closeMoreMenu()">🗂<br>Канбан</button>
       <button class="mMoreBtn" onclick="switchTabMob('goals',null);closeMoreMenu()">🌱<br>Цели</button>
+      <button class="mMoreBtn" onclick="switchTabMob('rewards',null);closeMoreMenu()">🏆<br>Награды</button>
+      <button class="mMoreBtn" onclick="switchTabMob('gym',null);closeMoreMenu()">💪<br>Тренировки</button>
+      <button class="mMoreBtn" onclick="switchTabMob('analytics',null);closeMoreMenu()">📊<br>Аналитика</button>
     </div>
   </div>
 </div>
@@ -2028,22 +2024,19 @@ select.inp option{background:var(--card2);color:var(--text)}
       <div class="tpBar" style="flex:1"><div class="tpBarFill" id="tpFill" style="width:0%"></div></div>
       <span style="font-size:13px;font-weight:800;color:var(--green);font-family:var(--font-display);flex-shrink:0" id="tpPct">0%</span>
     </div>
-    <!-- Sort + hide done controls -->
+    <!-- Sort + controls -->
     <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
       <span style="font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--muted)">Сорт:</span>
       <button id="tpSortDate" class="btn tpSortBtn tpSortOn" style="font-size:10px;padding:3px 10px" onclick="tpSetSort('date')">📅 По дате</button>
       <button id="tpSortAdd" class="btn tpSortBtn btnG" style="font-size:10px;padding:3px 10px" onclick="tpSetSort('added')">➕ По добавлению</button>
-      <div style="width:1px;height:18px;background:var(--border);flex-shrink:0;margin:0 2px"></div>
-      <button id="tpGroupBal" class="btn tpGroupBtn btnG" style="font-size:10px;padding:3px 10px" onclick="tpSetGroupFilter('lg1')" onmouseenter="tpShowGroupTooltip(this,'lg1')" onmouseleave="tpHideGroupTooltip()">⚖️ Баланс</button>
-      <button id="tpGroupAtt" class="btn tpGroupBtn btnG" style="font-size:10px;padding:3px 10px" onclick="tpSetGroupFilter('lg2')" onmouseenter="tpShowGroupTooltip(this,'lg2')" onmouseleave="tpHideGroupTooltip()">🔥 Внимание</button>
       <div style="margin-left:auto;display:flex;gap:6px;align-items:center">
         <button class="btn btnG" style="font-size:10px;padding:3px 9px" onclick="openLabelsModal()">⚙ Метки</button>
         <button id="tpToggleDone" class="btn btnG" style="font-size:10px;padding:3px 10px" onclick="tpToggleDone()">🙈 Скрыть готовые</button>
       </div>
     </div>
   </div>
-  <!-- Labels filter bar -->
-  <div id="labelsFilterBar" class="labelsFilterBar" style="margin-bottom:12px;padding:10px 14px;background:var(--card2);border:1px solid var(--border);border-radius:12px"></div>
+  <!-- Labels filter bar — dropdown style -->
+  <div id="labelsFilterBar" style="margin-bottom:12px"></div>
   <!-- Add task input -->
   <div style="margin-bottom:12px;position:relative">
     <input class="tAddInp" id="tAddInp" placeholder="＋ Новая задача — нажмите Enter..." onkeydown="onNewTask(event)">
@@ -3845,9 +3838,6 @@ function renderTP(){
   const activeSortBtn=document.getElementById('tpSort'+_tpSortBy.charAt(0).toUpperCase()+_tpSortBy.slice(1));
   if(activeSortBtn)activeSortBtn.classList.add('tpSortOn');
   document.querySelectorAll('.tpSortBtn').forEach(b=>{if(!b.classList.contains('tpSortOn'))b.classList.add('btnG');});
-  // Sync group filter buttons
-  document.querySelectorAll('.tpGroupBtn').forEach(b=>b.classList.remove('tpGroupOn'));
-  if(_tpGroupFilter){const map={'lg1':'tpGroupBal','lg2':'tpGroupAtt'};const gb=document.getElementById(map[_tpGroupFilter]);if(gb)gb.classList.add('tpGroupOn');}
   const isMob=window.innerWidth<=700;
 
   if(!isMob){
@@ -5724,21 +5714,78 @@ function openLabelPicker(taskIdx, anchorEl){
 
 function renderLabelsFilterBar(){
   const bar=document.getElementById('labelsFilterBar');if(!bar)return;
-  const groups=labelGroupsD();
-  const allActive=!activeLabel;
-  let html=`<div class="lbfRow"><span class="labelPill" onclick="setActiveLabel(null)" style="background:${allActive?'rgba(255,255,255,.14)':'rgba(255,255,255,.05)'};color:var(--text2);cursor:pointer;border:1px solid ${allActive?'rgba(255,255,255,.22)':'transparent'}">✦ Все</span></div>`;
-  groups.forEach(g=>{
-    if(!g.labels||!g.labels.length)return;
-    html+=`<div class="lbfRow"><span class="lbfGroupLabel" style="color:${g.color}">${esc(g.name)}</span>`;
-    g.labels.forEach(l=>{
-      const active=activeLabel===l.id;
-      html+=`<span class="labelPill" onclick="setActiveLabel('${l.id}')" style="background:${hexA(l.color,active?0.28:0.10)};color:${l.color};cursor:pointer;border:1px solid ${active?l.color:'transparent'}"><span style="width:6px;height:6px;border-radius:50%;background:${l.color};display:inline-block;flex-shrink:0"></span>${esc(l.name)}</span>`;
-    });
-    html+=`</div>`;
-  });
+  const groups=labelGroupsD().filter(g=>g.labels&&g.labels.length);
+  if(!groups.length){bar.innerHTML='';return;}
+
+  // Build selected label name for display
+  let selLabel=null;
+  if(activeLabel){
+    for(const g of groups){
+      const l=g.labels.find(x=>x.id===activeLabel);
+      if(l){selLabel=l;break;}
+    }
+  }
+
+  // Find active group (if label selected, show its group)
+  let activeGroupId=null;
+  if(selLabel){
+    for(const g of groups){if(g.labels.find(l=>l.id===activeLabel)){activeGroupId=g.id;break;}}
+  }
+
+  const dropId='lbfDrop_'+Date.now();
+  const isOpen=window._lbfDropOpen;
+
+  let html=`<div style="position:relative;user-select:none">
+    <!-- Trigger row -->
+    <div style="display:flex;align-items:center;gap:8px;padding:8px 12px;background:var(--card2);border:1px solid ${activeLabel?selLabel.color:'var(--border)'};border-radius:10px;cursor:pointer;transition:all .15s" onclick="lbfToggleDrop(event)">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="${activeLabel?selLabel.color:'var(--muted)'}" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      <span style="font-size:11px;font-weight:600;color:${activeLabel?selLabel.color:'var(--text2)'};flex:1">
+        ${activeLabel?`<span style="width:7px;height:7px;border-radius:50%;background:${selLabel.color};display:inline-block;margin-right:5px;vertical-align:middle"></span>${esc(selLabel.name)}`:'Фильтр по меткам'}
+      </span>
+      ${activeLabel?`<button onclick="event.stopPropagation();setActiveLabel(null)" style="border:none;background:transparent;color:var(--muted);font-size:13px;cursor:pointer;line-height:1;padding:0 2px;transition:color .1s" onmouseover="this.style.color='var(--red)'" onmouseout="this.style.color='var(--muted)'">✕</button>`:''}
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="2" style="transition:transform .2s;transform:rotate(${isOpen?'180':'0'}deg)"><path d="m6 9 6 6 6-6"/></svg>
+    </div>
+    <!-- Dropdown panel -->
+    <div id="lbfPanel" style="display:${isOpen?'block':'none'};position:absolute;top:calc(100% + 6px);left:0;right:0;z-index:200;background:var(--card);border:1px solid var(--border2);border-radius:12px;overflow:hidden;box-shadow:0 8px 32px rgba(0,0,0,.5);max-height:320px;overflow-y:auto">
+      <div style="padding:8px 6px">
+        <div onclick="setActiveLabel(null);lbfClose()" style="display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:7px;cursor:pointer;background:${!activeLabel?'var(--pdim2)':'transparent'};transition:background .1s" onmouseover="if(${activeLabel?1:0})this.style.background='var(--card2)'" onmouseout="if(${activeLabel?1:0})this.style.background='transparent'">
+          <span style="font-size:11px;font-weight:600;color:${!activeLabel?'var(--p)':'var(--text2)'}">✦ Все задачи</span>
+          ${!activeLabel?`<svg style="margin-left:auto" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--p)" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>`:''}
+        </div>
+        ${groups.map(g=>`
+          <div style="margin-top:6px;padding-top:6px;border-top:1px solid var(--border)">
+            <div style="font-size:8.5px;font-weight:800;text-transform:uppercase;letter-spacing:.9px;color:${g.color};padding:0 10px 4px;opacity:.8">${esc(g.name)}</div>
+            ${g.labels.map(l=>{
+              const on=activeLabel===l.id;
+              return`<div onclick="setActiveLabel('${l.id}');lbfClose()" style="display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:7px;cursor:pointer;background:${on?hexA(l.color,0.14):'transparent'};transition:background .1s" onmouseover="if(!${on?1:0})this.style.background='var(--card2)'" onmouseout="if(!${on?1:0})this.style.background='transparent'">
+                <span style="width:8px;height:8px;border-radius:50%;background:${l.color};flex-shrink:0;box-shadow:0 0 5px ${l.color}66"></span>
+                <span style="font-size:11.5px;font-weight:${on?700:500};color:${on?l.color:'var(--text2)'};flex:1">${esc(l.name)}</span>
+                ${on?`<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="${l.color}" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>`:''}
+              </div>`;
+            }).join('')}
+          </div>`).join('')}
+      </div>
+    </div>
+  </div>`;
+
   bar.innerHTML=html;
 }
-function setActiveLabel(id){activeLabel=id;renderTP()}
+function lbfToggleDrop(e){
+  e.stopPropagation();
+  window._lbfDropOpen=!window._lbfDropOpen;
+  const panel=document.getElementById('lbfPanel');
+  if(panel){panel.style.display=window._lbfDropOpen?'block':'none';}
+  if(window._lbfDropOpen){
+    setTimeout(()=>document.addEventListener('click',lbfClickOut,{once:true}),10);
+  }
+}
+function lbfClose(){
+  window._lbfDropOpen=false;
+  const panel=document.getElementById('lbfPanel');
+  if(panel)panel.style.display='none';
+}
+function lbfClickOut(){window._lbfDropOpen=false;renderLabelsFilterBar();}
+function setActiveLabel(id){activeLabel=id;window._lbfDropOpen=false;renderTP();}
 
 function openLabelsModal(){
   renderLabelsEditorList();
@@ -7286,15 +7333,45 @@ function renderAnalytics(){
     }).join('')}
   </div>`;
 
-  // ── Фильтр по меткам ──
-  const allLblsFlat=groups.flatMap(g=>g.labels||[]);
-  const lblFilterBar=allLblsFlat.length?`<div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:20px;align-items:center;padding:10px 14px;background:var(--card2);border:1px solid var(--border);border-radius:12px">
-    <span style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);margin-right:4px;flex-shrink:0">Метки:</span>
-    <button onclick="anlSetLabels([])" style="padding:3px 10px;border-radius:16px;font-size:10.5px;font-weight:600;cursor:pointer;border:1px solid ${!S.labelIds.length?'var(--p)':'var(--border)'};background:${!S.labelIds.length?'var(--pdim2)':'transparent'};color:${!S.labelIds.length?'var(--p)':'var(--text2)'}">Все</button>
-    ${allLblsFlat.map(l=>{
-      const on=S.labelIds.includes(l.id);
-      return`<button onclick="anlToggleLbl('${l.id}')" style="padding:3px 10px;border-radius:16px;font-size:10.5px;font-weight:600;cursor:pointer;border:1px solid ${on?l.color:'var(--border)'};background:${on?hexA(l.color,0.18):'transparent'};color:${on?l.color:'var(--text2)'};display:inline-flex;align-items:center;gap:4px;transition:all .15s"><span style="width:6px;height:6px;border-radius:50%;background:${l.color};flex-shrink:0"></span>${esc(l.name)}</button>`;
-    }).join('')}
+  // ── Фильтр по меткам — dropdown с группами ──
+  const selLblNames=S.labelIds.length
+    ? groups.flatMap(g=>g.labels||[]).filter(l=>S.labelIds.includes(l.id)).map(l=>l.name).join(', ')
+    : '';
+  const firstSelLbl=S.labelIds.length ? groups.flatMap(g=>g.labels||[]).find(l=>l.id===S.labelIds[0]) : null;
+  const lblFilterBar=groups.some(g=>g.labels&&g.labels.length)?`
+  <div style="position:relative;user-select:none;margin-bottom:16px">
+    <div style="display:flex;align-items:center;gap:8px;padding:8px 12px;background:var(--card2);border:1px solid ${S.labelIds.length?(firstSelLbl?firstSelLbl.color:'var(--p)'):'var(--border)'};border-radius:10px;cursor:pointer;transition:all .15s" onclick="anlLbfToggle(event)">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="${S.labelIds.length?'var(--p)':'var(--muted)'}" stroke-width="2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z"/><circle cx="7" cy="7" r="1.5"/></svg>
+      <span style="font-size:11px;font-weight:600;color:${S.labelIds.length?'var(--p)':'var(--text2)'};flex:1">
+        ${S.labelIds.length
+          ? (S.labelIds.length===1 && firstSelLbl
+              ? `<span style="width:7px;height:7px;border-radius:50%;background:${firstSelLbl.color};display:inline-block;margin-right:5px;vertical-align:middle"></span>${esc(firstSelLbl.name)}`
+              : `${S.labelIds.length} меток выбрано`)
+          : 'Фильтр по меткам'}
+      </span>
+      ${S.labelIds.length?`<button onclick="event.stopPropagation();anlSetLabels([])" style="border:none;background:transparent;color:var(--muted);font-size:13px;cursor:pointer;line-height:1;padding:0 2px;transition:color .1s" onmouseover="this.style.color='var(--red)'" onmouseout="this.style.color='var(--muted)'">✕</button>`:''}
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg>
+    </div>
+    <div id="anlLbfPanel" style="display:none;position:absolute;top:calc(100% + 6px);left:0;right:0;z-index:200;background:var(--card);border:1px solid var(--border2);border-radius:12px;overflow:hidden;box-shadow:0 8px 32px rgba(0,0,0,.5);max-height:300px;overflow-y:auto">
+      <div style="padding:8px 6px">
+        <div onclick="anlSetLabels([]);anlLbfClose()" style="display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:7px;cursor:pointer;background:${!S.labelIds.length?'var(--pdim2)':'transparent'}">
+          <span style="font-size:11px;font-weight:600;color:${!S.labelIds.length?'var(--p)':'var(--text2)'}">✦ Все задачи</span>
+          ${!S.labelIds.length?`<svg style="margin-left:auto" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--p)" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>`:''}
+        </div>
+        ${groups.filter(g=>g.labels&&g.labels.length).map(g=>`
+          <div style="margin-top:6px;padding-top:6px;border-top:1px solid var(--border)">
+            <div style="font-size:8.5px;font-weight:800;text-transform:uppercase;letter-spacing:.9px;color:${g.color};padding:0 10px 4px;opacity:.8">${esc(g.name)}</div>
+            ${g.labels.map(l=>{
+              const on=S.labelIds.includes(l.id);
+              return`<div onclick="anlToggleLbl('${l.id}')" style="display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:7px;cursor:pointer;background:${on?hexA(l.color,0.14):'transparent'}">
+                <span style="width:8px;height:8px;border-radius:50%;background:${l.color};flex-shrink:0"></span>
+                <span style="font-size:11.5px;font-weight:${on?700:500};color:${on?l.color:'var(--text2)'};flex:1">${esc(l.name)}</span>
+                ${on?`<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="${l.color}" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>`:''}
+              </div>`;
+            }).join('')}
+          </div>`).join('')}
+      </div>
+    </div>
   </div>`:'';
 
   // ── KPI карточки ──
@@ -7474,6 +7551,19 @@ function anlToggleLbl(id){
   if(i>=0)arr.splice(i,1);else arr.push(id);
   renderAnalytics();
 }
+function anlLbfToggle(e){
+  e.stopPropagation();
+  const panel=document.getElementById('anlLbfPanel');
+  if(!panel)return;
+  const open=panel.style.display==='block';
+  panel.style.display=open?'none':'block';
+  if(!open)setTimeout(()=>document.addEventListener('click',anlLbfClickOut,{once:true}),10);
+}
+function anlLbfClose(){
+  const panel=document.getElementById('anlLbfPanel');
+  if(panel)panel.style.display='none';
+}
+function anlLbfClickOut(){anlLbfClose();}
 // legacy compat
 function anlToggleFilter(id){if(!id)anlSetLabels([]);else anlToggleLbl(id);}
 
