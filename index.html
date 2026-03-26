@@ -1446,7 +1446,7 @@ select.inp option{background:var(--card2);color:var(--text)}
 .rwTaskPtsSmall{font-family:var(--font-mono);font-size:11px;font-weight:400;color:var(--muted);margin-top:2px;white-space:nowrap}
 
 /* ══ AUTH OVERLAY ══ */
-#authOverlay{position:fixed;inset:0;z-index:10000;background:var(--bg);display:flex;align-items:center;justify-content:center;padding:20px}
+#authOverlay{position:fixed;inset:0;z-index:900;background:var(--bg);display:flex;align-items:center;justify-content:center;padding:20px}
 #authOverlay.hidden{display:none}
 .authBox{background:var(--card);border:1px solid var(--border2);border-radius:20px;padding:36px 32px;max-width:400px;width:100%;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.8)}
 .authLogo{width:56px;height:56px;background:linear-gradient(135deg,#f59e0b,#9b7cf4,#f472b6);border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:28px;margin:0 auto 16px}
@@ -3380,17 +3380,8 @@ function updateUserUI(user){
   }
 }
 
-// Fallback: if Firebase auth takes too long (e.g. slow network), hide loader and show auth screen
-const _authTimeout = setTimeout(()=>{
-  const loader = document.getElementById('appLoader');
-  if(loader && !loader.classList.contains('hidden')){
-    hideLoader();
-  }
-}, 8000);
-
 // Auth state listener — entry point
 auth.onAuthStateChanged(async(user)=>{
-  clearTimeout(_authTimeout);
   if(user){
     currentUser=user;
     loaderStep('Авторизация...',20);
@@ -7448,187 +7439,6 @@ function renderAnalytics(){
   const selLblGroup=S.lblGroup?groups.find(g=>g.id===S.lblGroup):null;
   const visLblStats=selLblGroup?lblStats.filter(l=>selLblGroup.labels.some(gl=>gl.id===l.id)):lblStats;
   const totalVisLblMin=visLblStats.reduce((s,l)=>s+l.min,0)||1;
-
-  // ── Периоды ──
-  const periods=[
-    {k:'day',n:'День'},{k:'week',n:'Неделя'},{k:'month',n:'Месяц'},
-    {k:'quarter',n:'Квартал'},{k:'year',n:'Год'},{k:'alltime',n:'Всё время'}
-  ];
-  const periodBar=`<div style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:16px">
-    ${periods.map(p=>{
-      const on=S.period===p.k;
-      return`<button onclick="anlSetPeriod('${p.k}')" style="padding:5px 13px;border-radius:20px;font-size:11px;font-weight:600;cursor:pointer;border:1px solid ${on?'var(--p)':'var(--border)'};background:${on?'var(--pdim2)':'var(--card2)'};color:${on?'var(--p)':'var(--text2)'};transition:all .15s">${p.n}</button>`;
-    }).join('')}
-  </div>`;
-
-  // ── Фильтр по меткам — dropdown с группами ──
-  const selLblNames=S.labelIds.length
-    ? groups.flatMap(g=>g.labels||[]).filter(l=>S.labelIds.includes(l.id)).map(l=>l.name).join(', ')
-    : '';
-  const firstSelLbl=S.labelIds.length ? groups.flatMap(g=>g.labels||[]).find(l=>l.id===S.labelIds[0]) : null;
-  const lblFilterBar=groups.some(g=>g.labels&&g.labels.length)?`
-  <div style="position:relative;user-select:none;margin-bottom:16px">
-    <div style="display:flex;align-items:center;gap:8px;padding:8px 12px;background:var(--card2);border:1px solid ${S.labelIds.length?(firstSelLbl?firstSelLbl.color:'var(--p)'):'var(--border)'};border-radius:10px;cursor:pointer;transition:all .15s" onclick="anlLbfToggle(event)">
-      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="${S.labelIds.length?'var(--p)':'var(--muted)'}" stroke-width="2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z"/><circle cx="7" cy="7" r="1.5"/></svg>
-      <span style="font-size:11px;font-weight:600;color:${S.labelIds.length?'var(--p)':'var(--text2)'};flex:1">
-        ${S.labelIds.length
-          ? (S.labelIds.length===1 && firstSelLbl
-              ? `<span style="width:7px;height:7px;border-radius:50%;background:${firstSelLbl.color};display:inline-block;margin-right:5px;vertical-align:middle"></span>${esc(firstSelLbl.name)}`
-              : `${S.labelIds.length} меток выбрано`)
-          : 'Фильтр по меткам'}
-      </span>
-      ${S.labelIds.length?`<button onclick="event.stopPropagation();anlSetLabels([])" style="border:none;background:transparent;color:var(--muted);font-size:13px;cursor:pointer;line-height:1;padding:0 2px;transition:color .1s" onmouseover="this.style.color='var(--red)'" onmouseout="this.style.color='var(--muted)'">✕</button>`:''}
-      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg>
-    </div>
-    <div id="anlLbfPanel" style="display:none;position:absolute;top:calc(100% + 6px);left:0;right:0;z-index:200;background:var(--card);border:1px solid var(--border2);border-radius:12px;overflow:hidden;box-shadow:0 8px 32px rgba(0,0,0,.5);max-height:300px;overflow-y:auto">
-      <div style="padding:8px 6px">
-        <div onclick="anlSetLabels([]);anlLbfClose()" style="display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:7px;cursor:pointer;background:${!S.labelIds.length?'var(--pdim2)':'transparent'}">
-          <span style="font-size:11px;font-weight:600;color:${!S.labelIds.length?'var(--p)':'var(--text2)'}">✦ Все задачи</span>
-          ${!S.labelIds.length?`<svg style="margin-left:auto" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--p)" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>`:''}
-        </div>
-        ${groups.filter(g=>g.labels&&g.labels.length).map(g=>`
-          <div style="margin-top:6px;padding-top:6px;border-top:1px solid var(--border)">
-            <div style="font-size:8.5px;font-weight:800;text-transform:uppercase;letter-spacing:.9px;color:${g.color};padding:0 10px 4px;opacity:.8">${esc(g.name)}</div>
-            ${g.labels.map(l=>{
-              const on=S.labelIds.includes(l.id);
-              return`<div onclick="anlToggleLbl('${l.id}')" style="display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:7px;cursor:pointer;background:${on?hexA(l.color,0.14):'transparent'}">
-                <span style="width:8px;height:8px;border-radius:50%;background:${l.color};flex-shrink:0"></span>
-                <span style="font-size:11.5px;font-weight:${on?700:500};color:${on?l.color:'var(--text2)'};flex:1">${esc(l.name)}</span>
-                ${on?`<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="${l.color}" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>`:''}
-              </div>`;
-            }).join('')}
-          </div>`).join('')}
-      </div>
-    </div>
-  </div>`:'';
-
-  // ── KPI карточки ──
-  const periodFromFmt=`${from.getDate()}.${from.getMonth()+1}.${from.getFullYear()}`;
-  const periodToFmt=`${to.getDate()}.${to.getMonth()+1}.${to.getFullYear()}`;
-  const kpi=[
-    {ico:'✅',lbl:'Выполнено задач',val:doneTasks.length,sub:`за период`,c:'var(--green)'},
-    {ico:'⏱',lbl:'Запланировано',val:fmtMin(totalPlannedMin),sub:'по завершённым',c:'var(--p)'},
-    {ico:'😴',lbl:'Свободное время',val:fmtMin(unplannedMin),sub:`${unplannedPct}% от бодрствования`,c:'var(--blue)'},
-    {ico:'📅',lbl:'Дней в периоде',val:days,sub:`${periodFromFmt} — ${periodToFmt}`,c:'var(--gold)'},
-  ];
-  const kpiRow=`<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px;margin-bottom:20px">
-    ${kpi.map(k=>`<div style="background:var(--card2);border:1px solid var(--border);border-radius:12px;padding:14px 16px">
-      <div style="font-size:10.5px;color:var(--muted);margin-bottom:6px">${k.ico} ${k.lbl}</div>
-      <div style="font-size:20px;font-weight:800;color:${k.c};font-family:var(--font-display);line-height:1.1">${k.val}</div>
-      <div style="font-size:9.5px;color:var(--muted);margin-top:4px">${k.sub}</div>
-    </div>`).join('')}
-  </div>`;
-
-  // ── Баланс времени — горизонтальный стек ──
-  const timeBalHtml=`<div style="background:var(--card2);border:1px solid var(--border);border-radius:12px;padding:16px 18px;margin-bottom:16px">
-    <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;margin-bottom:14px">⏳ Баланс времени (без 8ч сна)</div>
-    <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
-      <div style="flex:1;height:22px;background:var(--card3);border-radius:6px;overflow:hidden;display:flex">
-        <div style="width:${plannedPct}%;background:linear-gradient(90deg,var(--p),var(--cyan));border-radius:6px 0 0 6px;transition:width .5s;min-width:${plannedPct?2:0}px;position:relative">
-          ${plannedPct>8?`<span style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;color:#fff">${plannedPct}%</span>`:''}
-        </div>
-        <div style="flex:1;display:flex;align-items:center;justify-content:center;font-size:9px;color:var(--muted)">${unplannedPct>5?unplannedPct+'% свободно':''}</div>
-      </div>
-    </div>
-    <div style="display:flex;gap:16px;flex-wrap:wrap">
-      <div style="display:flex;align-items:center;gap:6px">
-        <span style="width:10px;height:10px;border-radius:3px;background:var(--p);flex-shrink:0"></span>
-        <span style="font-size:10px;color:var(--text2)">Запланировано: <b style="color:var(--text)">${fmtMin(totalPlannedMin)}</b></span>
-      </div>
-      <div style="display:flex;align-items:center;gap:6px">
-        <span style="width:10px;height:10px;border-radius:3px;background:var(--card3);border:1px solid var(--border2);flex-shrink:0"></span>
-        <span style="font-size:10px;color:var(--text2)">Свободное: <b style="color:var(--text)">${fmtMin(unplannedMin)}</b></span>
-      </div>
-      <div style="display:flex;align-items:center;gap:6px">
-        <span style="font-size:10px;color:var(--muted)">Всего бодрствования: ${fmtMin(availableMin)} (${days}д × 16ч)</span>
-      </div>
-    </div>
-  </div>`;
-
-  // ── Бар-чарт по дням ──
-  const showDays=Math.min(dayArr.length,30);
-  const visibleDays=dayArr.slice(-showDays);
-  const barChartHtml=visibleDays.some(d=>d.min>0||d.count>0)?`<div style="background:var(--card2);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:16px">
-    <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;margin-bottom:14px">📊 Время по дням (выполненные задачи)</div>
-    <div style="display:flex;align-items:flex-end;gap:${showDays>14?'2':'4'}px;height:88px;overflow:hidden">
-      ${visibleDays.map(d=>{
-        const hMin=maxDayMin?Math.max(Math.round(d.min/maxDayMin*82),d.min?3:0):0;
-        const hCount=maxDayCount?Math.max(Math.round(d.count/maxDayCount*82),d.count?3:0):0;
-        const dayLabel=showDays<=14?(d.d.getDate()+'.'+(d.d.getMonth()+1)):(d.d.getDate()+'');
-        return`<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:1px;min-width:0" title="${d.d.toLocaleDateString('ru')}: ${d.count} задач · ${fmtMin(d.min)}">
-          <div style="width:100%;display:flex;flex-direction:column;justify-content:flex-end;height:82px;gap:1px">
-            ${d.min?`<div style="width:100%;height:${hMin}px;background:${d.isToday?'var(--p)':'var(--cyan)'};border-radius:2px 2px 0 0;opacity:.9"></div>`:''}
-            ${!d.min&&d.count?`<div style="width:100%;height:${hCount}px;background:rgba(255,255,255,.12);border-radius:2px 2px 0 0"></div>`:''}
-          </div>
-          <span style="font-size:${showDays>20?'7':'8'}px;color:${d.isToday?'var(--p)':'var(--muted)'};font-weight:${d.isToday?700:400};white-space:nowrap">${dayLabel}</span>
-        </div>`;
-      }).join('')}
-    </div>
-    <div style="display:flex;gap:14px;margin-top:8px;font-size:9.5px;color:var(--muted)">
-      <span><span style="display:inline-block;width:8px;height:8px;border-radius:2px;background:var(--cyan);margin-right:3px;vertical-align:middle"></span>Запланированное время</span>
-      <span><span style="display:inline-block;width:8px;height:8px;border-radius:2px;background:rgba(255,255,255,.15);margin-right:3px;vertical-align:middle"></span>Задачи без времени</span>
-    </div>
-  </div>`:'';
-
-  // ── По меткам ──
-  const lblBreakdown=lblStats.length?`<div style="background:var(--card2);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:16px">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px">
-      <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.6px">🏷 Время по меткам</div>
-      <div style="display:flex;gap:4px;flex-wrap:wrap">
-        <button onclick="anlSetLblGroup(null)" style="padding:3px 10px;border-radius:20px;font-size:10px;font-weight:600;cursor:pointer;border:1px solid ${!S.lblGroup?'var(--p)':'var(--border)'};background:${!S.lblGroup?'var(--pdim2)':'var(--card3)'};color:${!S.lblGroup?'var(--p)':'var(--text2)'};transition:all .15s">Все</button>
-        ${groups.filter(g=>g.labels&&g.labels.length).map(g=>{
-          const on=S.lblGroup===g.id;
-          return`<button onclick="anlSetLblGroup('${g.id}')" style="padding:3px 10px;border-radius:20px;font-size:10px;font-weight:600;cursor:pointer;border:1px solid ${on?g.color:'var(--border)'};background:${on?hexA(g.color,0.15):'var(--card3)'};color:${on?g.color:'var(--text2)'};transition:all .15s">${esc(g.name)}</button>`;
-        }).join('')}
-      </div>
-    </div>
-    <div style="display:flex;flex-direction:column;gap:12px">
-      ${visLblStats.length?visLblStats.map(l=>{
-        const pct=Math.round(l.min/totalVisLblMin*100);
-        const barW=Math.round(l.min/Math.max(...visLblStats.map(x=>x.min),1)*100);
-        return`<div>
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px">
-            <div style="display:flex;align-items:center;gap:7px">
-              <span style="width:9px;height:9px;border-radius:50%;background:${l.color};flex-shrink:0;box-shadow:0 0 6px ${l.color}66"></span>
-              <span style="font-size:12px;font-weight:600;color:var(--text)">${esc(l.name)}</span>
-              <span style="font-size:9px;color:var(--muted);background:var(--card3);padding:1px 6px;border-radius:4px">${l.count} задач</span>
-            </div>
-            <div style="display:flex;gap:10px;align-items:center">
-              <span style="font-size:11px;font-weight:700;color:${l.color};font-family:var(--font-mono)">${fmtMinShort(l.min)}</span>
-              <span style="font-size:10px;color:var(--muted)">${pct}%</span>
-            </div>
-          </div>
-          <div style="height:6px;background:var(--card3);border-radius:3px;overflow:hidden">
-            <div style="height:100%;width:${barW}%;background:${l.color};border-radius:3px;transition:width .4s;opacity:.85"></div>
-          </div>
-        </div>`;
-      }).join(''):`<div style="text-align:center;padding:16px 0;font-size:11px;color:var(--muted)">Нет данных для выбранной группы</div>`}
-    </div>
-    <!-- Пи-чарт SVG -->
-    ${visLblStats.length?`<div style="margin-top:16px;display:flex;justify-content:center">
-      ${anlDrawPie(visLblStats)}
-    </div>`:''}
-  </div>`:'';
-
-  // ── Топ дней ──
-  const topDays=[...dayArr].filter(d=>d.min>0).sort((a,b)=>b.min-a.min).slice(0,5);
-  const topDaysHtml=topDays.length?`<div style="background:var(--card2);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:16px">
-    <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;margin-bottom:12px">🔥 Самые продуктивные дни</div>
-    <div style="display:flex;flex-direction:column;gap:8px">
-      ${topDays.map((d,i)=>{
-        const cols=['var(--gold)','var(--p)','var(--cyan)','var(--green)','var(--text2)'];
-        const medals=['🥇','🥈','🥉','4️⃣','5️⃣'];
-        return`<div style="display:flex;align-items:center;gap:10px">
-          <span style="font-size:13px;flex-shrink:0">${medals[i]}</span>
-          <span style="font-size:11px;color:var(--text2);min-width:90px">${d.d.toLocaleDateString('ru',{day:'numeric',month:'short',weekday:'short'})}</span>
-          <div style="flex:1;height:5px;background:var(--card3);border-radius:3px;overflow:hidden">
-            <div style="height:100%;width:${Math.round(d.min/topDays[0].min*100)}%;background:${cols[i]};border-radius:3px"></div>
-          </div>
-          <span style="font-size:11px;font-weight:700;color:${cols[i]};font-family:var(--font-mono);min-width:50px;text-align:right">${fmtMinShort(d.min)}</span>
-        </div>`;
-      }).join('')}
-    </div>
-  </div>`:'';
 
   // ── Time tracker stats (plannedDuration vs actualDuration) ──
   const trackedTasks=doneTasks.filter(t=>t.plannedDuration||t.actualDuration);
