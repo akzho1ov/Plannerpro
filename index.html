@@ -577,6 +577,7 @@ select.inp option{background:var(--card2);color:var(--text)}
 .rTrack{fill:none;stroke:rgba(255,255,255,.06);stroke-width:4.5}
 .rFill{fill:none;stroke-width:4.5;stroke-linecap:round;stroke:var(--CC);transition:.8s var(--ease);filter:url(#ringGlow)}
 .dPct{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;color:var(--CC);font-family:var(--font-display);text-shadow:0 0 12px var(--CC)}
+@media(max-width:700px){.dRing svg{filter:none!important;overflow:visible}.rFill{filter:none!important}}
 .dFocusInp{width:100%;max-width:100%;box-sizing:border-box;border:1px solid var(--border);border-radius:8px;padding:5px 8px;font-family:var(--font-body);font-size:11px;resize:none;min-height:34px;outline:none;background:var(--card2);color:var(--text);transition:border-color var(--dur) var(--ease)}
 .dFocusInp::placeholder{color:var(--text2);opacity:.5}.dFocusInp:focus{border-color:var(--CC)}
 .dStats{display:grid;grid-template-columns:1fr 1fr 1fr;text-align:center;border-top:1px solid var(--border);padding:6px 0;overflow:hidden}
@@ -7237,7 +7238,7 @@ function gymNotif(msg,type){
 // ═══════════════════════════════════════════════════════
 //  ANALYTICS v2 — время по выполненным, периоды, метки
 // ═══════════════════════════════════════════════════════
-if(!window._anlState)window._anlState={period:'week',labelIds:[],groupOpen:{}};
+if(!window._anlState)window._anlState={period:'week',labelIds:[],groupOpen:{},lblGroup:null};
 
 function anlGetPeriodRange(period){
   const now=new Date();now.setHours(0,0,0,0);
@@ -7320,6 +7321,10 @@ function renderAnalytics(){
     return{id:l.id,name:l.name,color:l.color,count:lt.length,min:lMin};
   }).filter(l=>l.count>0).sort((a,b)=>b.min-a.min||b.count-a.count);
   const totalLblMin=lblStats.reduce((s,l)=>s+l.min,0)||1;
+  // Group filter for label breakdown
+  const selLblGroup=S.lblGroup?groups.find(g=>g.id===S.lblGroup):null;
+  const visLblStats=selLblGroup?lblStats.filter(l=>selLblGroup.labels.some(gl=>gl.id===l.id)):lblStats;
+  const totalVisLblMin=visLblStats.reduce((s,l)=>s+l.min,0)||1;
 
   // ── Периоды ──
   const periods=[
@@ -7444,11 +7449,20 @@ function renderAnalytics(){
 
   // ── По меткам ──
   const lblBreakdown=lblStats.length?`<div style="background:var(--card2);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:16px">
-    <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;margin-bottom:14px">🏷 Время по меткам</div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px">
+      <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.6px">🏷 Время по меткам</div>
+      <div style="display:flex;gap:4px;flex-wrap:wrap">
+        <button onclick="anlSetLblGroup(null)" style="padding:3px 10px;border-radius:20px;font-size:10px;font-weight:600;cursor:pointer;border:1px solid ${!S.lblGroup?'var(--p)':'var(--border)'};background:${!S.lblGroup?'var(--pdim2)':'var(--card3)'};color:${!S.lblGroup?'var(--p)':'var(--text2)'};transition:all .15s">Все</button>
+        ${groups.filter(g=>g.labels&&g.labels.length).map(g=>{
+          const on=S.lblGroup===g.id;
+          return`<button onclick="anlSetLblGroup('${g.id}')" style="padding:3px 10px;border-radius:20px;font-size:10px;font-weight:600;cursor:pointer;border:1px solid ${on?g.color:'var(--border)'};background:${on?hexA(g.color,0.15):'var(--card3)'};color:${on?g.color:'var(--text2)'};transition:all .15s">${esc(g.name)}</button>`;
+        }).join('')}
+      </div>
+    </div>
     <div style="display:flex;flex-direction:column;gap:12px">
-      ${lblStats.map(l=>{
-        const pct=Math.round(l.min/totalLblMin*100);
-        const barW=Math.round(l.min/Math.max(...lblStats.map(x=>x.min),1)*100);
+      ${visLblStats.length?visLblStats.map(l=>{
+        const pct=Math.round(l.min/totalVisLblMin*100);
+        const barW=Math.round(l.min/Math.max(...visLblStats.map(x=>x.min),1)*100);
         return`<div>
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px">
             <div style="display:flex;align-items:center;gap:7px">
@@ -7465,12 +7479,12 @@ function renderAnalytics(){
             <div style="height:100%;width:${barW}%;background:${l.color};border-radius:3px;transition:width .4s;opacity:.85"></div>
           </div>
         </div>`;
-      }).join('')}
+      }).join(''):`<div style="text-align:center;padding:16px 0;font-size:11px;color:var(--muted)">Нет данных для выбранной группы</div>`}
     </div>
     <!-- Пи-чарт SVG -->
-    <div style="margin-top:16px;display:flex;justify-content:center">
-      ${anlDrawPie(lblStats)}
-    </div>
+    ${visLblStats.length?`<div style="margin-top:16px;display:flex;justify-content:center">
+      ${anlDrawPie(visLblStats)}
+    </div>`:''}
   </div>`:'';
 
   // ── Топ дней ──
@@ -7544,6 +7558,7 @@ function anlDrawPie(lblStats){
 }
 
 function anlSetPeriod(p){window._anlState.period=p;renderAnalytics();}
+function anlSetLblGroup(gid){window._anlState.lblGroup=window._anlState.lblGroup===gid?null:gid;renderAnalytics();}
 function anlSetLabels(arr){window._anlState.labelIds=arr;renderAnalytics();}
 function anlToggleLbl(id){
   const arr=window._anlState.labelIds;
