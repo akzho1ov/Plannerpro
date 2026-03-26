@@ -3231,10 +3231,11 @@ function subscribeCloud(){
 
   _cloudListener=db.collection('users').doc(currentUser.uid)
     .onSnapshot({includeMetadataChanges:true}, snap=>{
-    clearTimeout(_connectTimeout); // connected — cancel timeout
-
     // Skip snapshots that are our OWN local writes still pending on server
+    // IMPORTANT: do NOT cancel the timeout here — cancel only when we actually process the snapshot
     if(snap.metadata.hasPendingWrites){return;}
+
+    clearTimeout(_connectTimeout); // connected and data is ready — cancel timeout
 
     setSyncDot('ok');
 
