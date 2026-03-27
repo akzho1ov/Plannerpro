@@ -1037,6 +1037,9 @@ select.inp option{background:var(--card2);color:var(--text)}
 .finSummaryGrid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:14px}
 @media(max-width:600px){.finSummaryGrid{grid-template-columns:1fr 1fr}}
 .finSumCard{background:var(--card);border-radius:var(--r);border:1px solid var(--border);padding:14px 16px}
+.finPeriodBtn{background:var(--card2);border:1px solid var(--border);border-radius:6px;padding:3px 9px;font-size:10px;font-weight:700;color:var(--muted);cursor:pointer;transition:.12s}
+.finPeriodBtn:hover{border-color:var(--border2);color:var(--text)}
+.finPeriodBtn.active{background:var(--pdim);border-color:var(--p);color:var(--p)}
 .finSumLbl{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.8px;color:var(--text2);margin-bottom:6px}
 .finSumVal{font-size:22px;font-weight:800;font-family:var(--font-display)}
 .finSumSub{font-size:10px;color:var(--text2);margin-top:2px}
@@ -1532,10 +1535,8 @@ select.inp option{background:var(--card2);color:var(--text)}
 
 /* ── Kanban drag-drop ── */
 .kbDragOver{background:rgba(139,122,240,.08)!important;border:1.5px dashed var(--p)!important;border-radius:var(--r);}
-.kbCard{cursor:default;user-select:none;transition:opacity .15s,transform .15s,box-shadow .15s}
+.kbCard{cursor:pointer;user-select:none;transition:opacity .15s,transform .15s,box-shadow .15s}
 .kbCard:hover{box-shadow:0 4px 20px rgba(0,0,0,.5);border-color:var(--border3)}
-.kbCard[draggable="true"]:hover{cursor:grab}
-.kbCard[draggable="true"]:active{cursor:grabbing}
 .kbCardDone{opacity:.55}
 .kbCardDone .kbCardTitle{text-decoration:line-through}
 .kbCol{border-top:3px solid transparent;transition:border-color .2s}
@@ -2171,14 +2172,28 @@ select.inp option{background:var(--card2);color:var(--text)}
   <div id="finAccountsRow" style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px"></div>
   <!-- Income/Expense Line Chart -->
   <div class="card" style="padding:14px 16px;margin-bottom:12px">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
-      <div class="secLbl" style="margin:0">Доходы и расходы (6 мес.)</div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;flex-wrap:wrap;gap:8px">
+      <div class="secLbl" style="margin:0">Доходы и расходы</div>
+      <div style="display:flex;gap:4px">
+        <button class="finPeriodBtn active" data-period="week" onclick="setFinChartPeriod('week',this)">Неделя</button>
+        <button class="finPeriodBtn" data-period="month3" onclick="setFinChartPeriod('month3',this)">3 мес.</button>
+        <button class="finPeriodBtn" data-period="month6" onclick="setFinChartPeriod('month6',this)">6 мес.</button>
+        <button class="finPeriodBtn" data-period="year" onclick="setFinChartPeriod('year',this)">Год</button>
+      </div>
       <div style="display:flex;gap:10px;font-size:10px;font-weight:700">
         <span style="display:flex;align-items:center;gap:4px"><span style="display:inline-block;width:10px;height:3px;background:var(--green);border-radius:2px"></span>Доходы</span>
         <span style="display:flex;align-items:center;gap:4px"><span style="display:inline-block;width:10px;height:3px;background:var(--red);border-radius:2px"></span>Расходы</span>
       </div>
     </div>
     <canvas id="finLineChart" height="100" style="width:100%;display:block"></canvas>
+  </div>
+  <!-- Expense Pie Chart -->
+  <div class="card" style="padding:14px 16px;margin-bottom:12px">
+    <div class="secLbl" style="margin-bottom:12px">Структура расходов</div>
+    <div style="display:flex;align-items:center;gap:20px;flex-wrap:wrap">
+      <canvas id="finPieChart" width="160" height="160" style="flex-shrink:0"></canvas>
+      <div id="finPieLegend" style="flex:1;min-width:140px;display:flex;flex-direction:column;gap:6px"></div>
+    </div>
   </div>
   <!-- Budget by categories -->
   <div class="finBudgetWrap" style="margin-bottom:12px">
@@ -2897,7 +2912,7 @@ select.inp option{background:var(--card2);color:var(--text)}
       <span class="modalTitle">⚙ Метки и группы</span>
       <button class="modalClose" onclick="closeLabelsModal()">✕</button>
     </div>
-    <div id="labelsEditorList" style="flex:1;min-height:0;max-height:calc(88vh - 130px);overflow-y:scroll;overflow-x:hidden;display:flex;flex-direction:column;gap:6px;padding-right:4px;padding-bottom:4px;scrollbar-width:thin;scroll-behavior:smooth;-webkit-overflow-scrolling:touch"></div>
+    <div id="labelsEditorList" style="flex:1;min-height:0;height:calc(88vh - 130px);overflow-y:auto;overflow-x:hidden;display:flex;flex-direction:column;gap:6px;padding-right:6px;padding-bottom:8px;scrollbar-width:thin;scroll-behavior:smooth;-webkit-overflow-scrolling:touch;overscroll-behavior:contain"></div>
     <div style="display:flex;gap:8px;flex-shrink:0;padding-top:12px;border-top:1px solid var(--border);margin-top:10px">
       <button class="btn btnG" style="flex:1;justify-content:center;font-size:11px" onclick="addLabelGroup()">＋ Новая группа</button>
       <button class="btn btnP" style="flex:1;justify-content:center;font-size:11px" onclick="closeLabelsModal()">✓ Готово</button>
@@ -4926,9 +4941,11 @@ function renderKanban(){
     colEl.appendChild(cardsEl);
     colCards.forEach(c=>{
       const card=document.createElement('div');card.className='kbCard';card.id='kbcard-'+c.id;card.draggable=true;
-      card.style.cssText=`background:var(--card);border-radius:10px;padding:11px 12px;border:1px solid var(--border);margin:0 8px 7px;cursor:grab;transition:all .15s;position:relative;${c.done?'opacity:.5':''}`;
-      card.addEventListener('dragstart',e=>{_kbDragId=c.id;e.dataTransfer.setData('text/plain',c.id);e.dataTransfer.effectAllowed='move';setTimeout(()=>{card.style.opacity='.3';card.style.transform='scale(.96)';},0);});
-      card.addEventListener('dragend',()=>{card.style.opacity='';card.style.transform='';document.querySelectorAll('.kbCards').forEach(z=>{z.style.background='';z.style.outline='';});_kbDragId=null;});
+      card.style.cssText=`background:var(--card);border-radius:10px;padding:11px 12px;border:1px solid var(--border);margin:0 8px 7px;cursor:pointer;transition:all .15s;position:relative;${c.done?'opacity:.5':''}`;
+      let _kbDragMoved=false;
+      card.addEventListener('dragstart',e=>{_kbDragId=c.id;_kbDragMoved=true;e.dataTransfer.setData('text/plain',c.id);e.dataTransfer.effectAllowed='move';setTimeout(()=>{card.style.opacity='.3';card.style.transform='scale(.96)';},0);});
+      card.addEventListener('dragend',()=>{card.style.opacity='';card.style.transform='';document.querySelectorAll('.kbCards').forEach(z=>{z.style.background='';z.style.outline='';});_kbDragId=null;setTimeout(()=>{_kbDragMoved=false;},100);});
+      card.addEventListener('click',e=>{if(_kbDragMoved)return;if(e.target.closest('button'))return;openKbModal('${col.id}','${c.id}');});
       const lbl=c.labelId?labelsD().find(l=>l.id===c.labelId):null;
       if(lbl)card.style.borderLeft=`3px solid ${lbl.color}`;
       const lblHtml=lbl?`<span style="display:inline-flex;align-items:center;gap:3px;font-size:9px;font-weight:700;color:${lbl.color};background:${hexA(lbl.color,.12)};padding:2px 6px;border-radius:20px">${esc(lbl.name)}</span>`:'';
@@ -4938,23 +4955,24 @@ function renderKanban(){
       const priDotColors={1:'var(--red)',2:'var(--gold)',3:'var(--green)'};
       const priDot=`<span style="width:7px;height:7px;border-radius:50%;background:${priDotColors[c.priority]||'var(--border2)'};display:inline-block;flex-shrink:0"></span>`;
       card.innerHTML=`
-        <button onclick="event.stopPropagation();delCard('${c.id}')" style="position:absolute;top:7px;right:7px;border:none;background:none;cursor:pointer;color:var(--border2);font-size:16px;padding:0;line-height:1;display:none" class="kbDelBtn">×</button>
-        <div style="display:flex;align-items:flex-start;gap:6px">
-          <span style="color:var(--border2);font-size:13px;padding-top:1px;flex-shrink:0;cursor:grab">⠿</span>
-          <div style="flex:1;min-width:0;cursor:pointer" onclick="openKbModal('${col.id}','${c.id}')">
-            <div style="font-size:12px;font-weight:700;color:${c.done?'var(--muted)':'var(--text)'};${c.done?'text-decoration:line-through':''}">${esc(c.title)}${c.taskId?'<span style="font-size:8px;color:var(--border3);margin-left:3px">🔗</span>':''}</div>
-            ${c.desc?`<div style="font-size:11px;color:var(--muted);margin-top:3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(c.desc)}</div>`:''}
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:6px;margin-bottom:${c.desc?'6px':'0'}">
+          <div style="display:flex;align-items:flex-start;gap:7px;flex:1;min-width:0">
+            <span style="color:var(--border2);font-size:13px;padding-top:1px;flex-shrink:0;cursor:grab" onclick="event.stopPropagation()">⠿</span>
+            <div style="flex:1;min-width:0">
+              <div style="font-size:12.5px;font-weight:700;color:${c.done?'var(--muted)':'var(--text)'};${c.done?'text-decoration:line-through':''}line-height:1.35">${esc(c.title)}${c.taskId?'<span style="font-size:8px;color:var(--border3);margin-left:4px">🔗</span>':''}</div>
+              ${c.desc?`<div style="font-size:11px;color:var(--text2);margin-top:3px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;line-height:1.5">${esc(c.desc)}</div>`:''}
+            </div>
           </div>
+          <button onclick="event.stopPropagation();delCard('${c.id}')" class="kbDelBtn" style="border:none;background:none;cursor:pointer;color:var(--border2);font-size:16px;padding:0;line-height:1;flex-shrink:0;opacity:0;transition:opacity .15s">×</button>
         </div>
-        <div style="display:flex;align-items:center;gap:5px;flex-wrap:wrap;margin-top:7px">${priDot}${lblHtml}${repeatBadge}</div>
-        ${dlHtml}
+        ${(lblHtml||priDot||repeatBadge||dlHtml)?`<div style="display:flex;align-items:center;gap:5px;flex-wrap:wrap;margin-top:8px;padding-top:8px;border-top:1px solid var(--border)">${priDot}${lblHtml}${repeatBadge}${dlHtml}</div>`:''}
         <div style="display:flex;gap:5px;margin-top:8px;justify-content:flex-end">
           ${ci>0?`<button class="kbMoveBtn" onclick="event.stopPropagation();moveCard('${c.id}',-1)">◀</button>`:''}
           ${!col.isDone?`<button onclick="event.stopPropagation();kbMarkDone('${c.id}')" style="background:var(--greendim);color:var(--green);border:1px solid rgba(18,232,172,.3);border-radius:6px;padding:2px 9px;font-size:10px;font-weight:700;cursor:pointer">✓ Готово</button>`:''}
           ${ci<board.cols.length-1?`<button class="kbMoveBtn" onclick="event.stopPropagation();moveCard('${c.id}',1)">▶</button>`:''}
         </div>`;
-      card.addEventListener('mouseover',()=>{const d=card.querySelector('.kbDelBtn');if(d)d.style.display='block';});
-      card.addEventListener('mouseout',()=>{const d=card.querySelector('.kbDelBtn');if(d)d.style.display='none';});
+      card.addEventListener('mouseover',()=>{const d=card.querySelector('.kbDelBtn');if(d)d.style.opacity='1';});
+      card.addEventListener('mouseout',()=>{const d=card.querySelector('.kbDelBtn');if(d)d.style.opacity='0';});
       cardsEl.appendChild(card);
     });
     if(!col.isDone){const addBtn=document.createElement('button');addBtn.className='kbAddBtn';addBtn.textContent='+ Добавить';addBtn.onclick=()=>openKbModal(col.id);colEl.appendChild(addBtn);}
@@ -5108,7 +5126,7 @@ function deleteCurrentBoard(){
 /* ═══════════════════════════════════
    6. FINANCE
 ═══════════════════════════════════ */
-let finY=t0().getFullYear(),finM=t0().getMonth(),finTypeVal='out';
+let finY=t0().getFullYear(),finM=t0().getMonth(),finTypeVal='out',finChartPeriod='month6';
 
 // ── Категории финансов (динамические, из G + дефолты) ──
 const FIN_CATS_DEFAULT=[
@@ -5258,8 +5276,12 @@ function renderFin(){
       <div style="font-size:9px;color:var(--muted);font-weight:700">Новый счёт</div>
     </div>`;
 
+  // Sync period buttons
+  document.querySelectorAll('.finPeriodBtn').forEach(b=>b.classList.toggle('active',b.dataset.period===finChartPeriod));
   // Line chart
   drawFinLineChart();
+  // Pie chart
+  drawFinPieChart(txs);
 
   // Category budget bars
   renderCatBudgetBars(exp,txs);
@@ -5332,59 +5354,123 @@ function renderCatBudgetBars(totalExp, txs){
   el.innerHTML=html||'<div style="font-size:11px;color:var(--muted);padding:8px 0">Установи лимиты по категориям</div>';
 }
 
+function setFinChartPeriod(p,btn){
+  finChartPeriod=p;
+  document.querySelectorAll('.finPeriodBtn').forEach(b=>b.classList.toggle('active',b===btn));
+  drawFinLineChart();
+}
 function drawFinLineChart(){
   const cv=document.getElementById('finLineChart');if(!cv)return;
-  cv.width=cv.offsetWidth||600;cv.height=100;
+  cv.width=cv.offsetWidth||600;cv.height=110;
   const ctx=cv.getContext('2d'),W=cv.width,H=cv.height;
   ctx.clearRect(0,0,W,H);
-  const months=6;const incData=[],expData=[],labels=[];
   const now=new Date();
-  for(let i=months-1;i>=0;i--){
-    let y=now.getFullYear(),m=now.getMonth()-i;
-    while(m<0){m+=12;y--}
-    const txs=finTxD().filter(t=>{const d=new Date(t.date);return d.getFullYear()===y&&d.getMonth()===m});
-    incData.push(txs.filter(t=>t.type==='in').reduce((a,t)=>a+Number(t.amount),0));
-    expData.push(txs.filter(t=>t.type==='out').reduce((a,t)=>a+Number(t.amount),0));
-    labels.push(MN[m].slice(0,3));
+  let points=[];
+  if(finChartPeriod==='week'){
+    // last 7 days
+    for(let i=6;i>=0;i--){
+      const d=new Date(now);d.setDate(now.getDate()-i);
+      const dk2=d.toISOString().slice(0,10);
+      const txs=finTxD().filter(t=>t.date===dk2);
+      const inc=txs.filter(t=>t.type==='in'&&!t.isTransfer).reduce((a,t)=>a+Number(t.amount),0);
+      const exp=txs.filter(t=>t.type==='out'&&!t.isTransfer).reduce((a,t)=>a+Number(t.amount),0);
+      const wd=['Вс','Пн','Вт','Ср','Чт','Пт','Сб'];
+      points.push({inc,exp,lbl:wd[d.getDay()]});
+    }
+  } else {
+    const months=finChartPeriod==='month3'?3:finChartPeriod==='year'?12:6;
+    for(let i=months-1;i>=0;i--){
+      let y=now.getFullYear(),m=now.getMonth()-i;
+      while(m<0){m+=12;y--}
+      const txs=finTxD().filter(t=>{const d=new Date(t.date);return d.getFullYear()===y&&d.getMonth()===m});
+      const inc=txs.filter(t=>t.type==='in'&&!t.isTransfer).reduce((a,t)=>a+Number(t.amount),0);
+      const exp=txs.filter(t=>t.type==='out'&&!t.isTransfer).reduce((a,t)=>a+Number(t.amount),0);
+      points.push({inc,exp,lbl:MN[m].slice(0,3)});
+    }
   }
+  const incData=points.map(p=>p.inc),expData=points.map(p=>p.exp),labels=points.map(p=>p.lbl);
+  const n=points.length;
   const maxV=Math.max(...incData,...expData,1);
-  const pad={l:6,r:6,t:10,b:18};
+  const pad={l:6,r:6,t:10,b:20};
   const chartW=W-pad.l-pad.r,chartH=H-pad.t-pad.b;
-  const xStep=chartW/(months-1);
+  const xStep=n>1?chartW/(n-1):chartW;
   const yToCanvas=v=>pad.t+chartH-(v/maxV)*chartH;
-  // Draw grid lines
   [0,.25,.5,.75,1].forEach(f=>{
     const y=pad.t+chartH*(1-f);
     ctx.beginPath();ctx.strokeStyle='rgba(255,255,255,.05)';ctx.lineWidth=1;
     ctx.moveTo(pad.l,y);ctx.lineTo(W-pad.r,y);ctx.stroke();
   });
-  // Fill area under income
+  // Income fill + line
   ctx.beginPath();
-  incData.forEach((v,i)=>{const x=pad.l+i*xStep,y=yToCanvas(v);i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);});
-  ctx.lineTo(pad.l+(months-1)*xStep,H-pad.b);ctx.lineTo(pad.l,H-pad.b);ctx.closePath();
+  incData.forEach((v,i)=>{const x=pad.l+(n>1?i*xStep:chartW/2),y=yToCanvas(v);i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);});
+  ctx.lineTo(pad.l+(n>1?(n-1)*xStep:chartW/2),H-pad.b);ctx.lineTo(pad.l,H-pad.b);ctx.closePath();
   ctx.fillStyle='rgba(18,232,172,.08)';ctx.fill();
-  // Draw income line
-  ctx.beginPath();ctx.strokeStyle='rgba(18,232,172,.8)';ctx.lineWidth=2;ctx.lineJoin='round';
-  incData.forEach((v,i)=>{const x=pad.l+i*xStep,y=yToCanvas(v);i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);});
+  ctx.beginPath();ctx.strokeStyle='rgba(18,232,172,.85)';ctx.lineWidth=2;ctx.lineJoin='round';
+  incData.forEach((v,i)=>{const x=pad.l+(n>1?i*xStep:chartW/2),y=yToCanvas(v);i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);});
   ctx.stroke();
-  // Fill area under expense
+  // Expense fill + line
   ctx.beginPath();
-  expData.forEach((v,i)=>{const x=pad.l+i*xStep,y=yToCanvas(v);i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);});
-  ctx.lineTo(pad.l+(months-1)*xStep,H-pad.b);ctx.lineTo(pad.l,H-pad.b);ctx.closePath();
-  ctx.fillStyle='rgba(255,92,122,.06)';ctx.fill();
-  // Draw expense line
-  ctx.beginPath();ctx.strokeStyle='rgba(255,92,122,.8)';ctx.lineWidth=2;ctx.lineJoin='round';
-  expData.forEach((v,i)=>{const x=pad.l+i*xStep,y=yToCanvas(v);i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);});
+  expData.forEach((v,i)=>{const x=pad.l+(n>1?i*xStep:chartW/2),y=yToCanvas(v);i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);});
+  ctx.lineTo(pad.l+(n>1?(n-1)*xStep:chartW/2),H-pad.b);ctx.lineTo(pad.l,H-pad.b);ctx.closePath();
+  ctx.fillStyle='rgba(255,92,122,.07)';ctx.fill();
+  ctx.beginPath();ctx.strokeStyle='rgba(255,92,122,.85)';ctx.lineWidth=2;ctx.lineJoin='round';
+  expData.forEach((v,i)=>{const x=pad.l+(n>1?i*xStep:chartW/2),y=yToCanvas(v);i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);});
   ctx.stroke();
   // Labels
   labels.forEach((lbl,i)=>{
-    const x=pad.l+i*xStep;
+    const x=pad.l+(n>1?i*xStep:chartW/2);
     ctx.fillStyle='rgba(90,97,130,.8)';ctx.font='8px Instrument Sans,sans-serif';ctx.textAlign='center';
-    ctx.fillText(lbl,x,H-3);
+    ctx.fillText(lbl,x,H-4);
   });
-  // Dots
-  incData.forEach((v,i)=>{const x=pad.l+i*xStep,y=yToCanvas(v);ctx.beginPath();ctx.arc(x,y,3,0,Math.PI*2);ctx.fillStyle='rgba(18,232,172,1)';ctx.fill();});
-  expData.forEach((v,i)=>{const x=pad.l+i*xStep,y=yToCanvas(v);ctx.beginPath();ctx.arc(x,y,3,0,Math.PI*2);ctx.fillStyle='rgba(255,92,122,1)';ctx.fill();});
+  // Dots with value tooltip on hover
+  incData.forEach((v,i)=>{const x=pad.l+(n>1?i*xStep:chartW/2),y=yToCanvas(v);ctx.beginPath();ctx.arc(x,y,3,0,Math.PI*2);ctx.fillStyle='rgba(18,232,172,1)';ctx.fill();});
+  expData.forEach((v,i)=>{const x=pad.l+(n>1?i*xStep:chartW/2),y=yToCanvas(v);ctx.beginPath();ctx.arc(x,y,3,0,Math.PI*2);ctx.fillStyle='rgba(255,92,122,1)';ctx.fill();});
+}
+function drawFinPieChart(txs){
+  const cv=document.getElementById('finPieChart');if(!cv)return;
+  const ctx=cv.getContext('2d'),S=cv.width,cx=S/2,cy=S/2,R=S/2-8,rInner=R*0.55;
+  ctx.clearRect(0,0,S,S);
+  const outCats=FIN_CATS.filter(c=>c.type==='out');
+  const slices=outCats.map(cat=>({
+    cat,amt:txs.filter(t=>t.type==='out'&&!t.isTransfer&&t.category===cat.id).reduce((a,t)=>a+Number(t.amount),0)
+  })).filter(s=>s.amt>0).sort((a,b)=>b.amt-a.amt);
+  const total=slices.reduce((a,s)=>a+s.amt,0);
+  const legend=document.getElementById('finPieLegend');
+  if(!total){
+    ctx.beginPath();ctx.arc(cx,cy,R,0,Math.PI*2);ctx.fillStyle='rgba(255,255,255,.05)';ctx.fill();
+    ctx.beginPath();ctx.arc(cx,cy,rInner,0,Math.PI*2);ctx.fillStyle='var(--bg,#0f1117)';ctx.fill();
+    if(legend)legend.innerHTML='<div style="font-size:11px;color:var(--muted)">Нет расходов</div>';
+    return;
+  }
+  let angle=-Math.PI/2;
+  slices.forEach(s=>{
+    const sweep=(s.amt/total)*Math.PI*2;
+    ctx.beginPath();ctx.moveTo(cx,cy);ctx.arc(cx,cy,R,angle,angle+sweep);ctx.closePath();
+    ctx.fillStyle=s.cat.color;ctx.fill();
+    ctx.beginPath();ctx.arc(cx,cy,R+1,angle,angle+sweep);ctx.strokeStyle='rgba(0,0,0,.3)';ctx.lineWidth=2;ctx.stroke();
+    angle+=sweep;
+  });
+  // Donut hole
+  ctx.beginPath();ctx.arc(cx,cy,rInner,0,Math.PI*2);
+  const bg=getComputedStyle(document.documentElement).getPropertyValue('--bg2').trim()||'#141722';
+  ctx.fillStyle=bg;ctx.fill();
+  // Center text
+  ctx.fillStyle='rgba(255,255,255,.9)';ctx.font=`bold 13px Instrument Sans,sans-serif`;ctx.textAlign='center';ctx.textBaseline='middle';
+  ctx.fillText(fmtMoney(total),cx,cy-6);
+  ctx.fillStyle='rgba(255,255,255,.4)';ctx.font=`9px Instrument Sans,sans-serif`;
+  ctx.fillText('расходы',cx,cy+8);
+  // Legend
+  if(legend){
+    legend.innerHTML=slices.slice(0,7).map(s=>{
+      const pct=Math.round(s.amt/total*100);
+      return `<div style="display:flex;align-items:center;gap:7px">
+        <span style="width:9px;height:9px;border-radius:50%;background:${s.cat.color};flex-shrink:0"></span>
+        <span style="font-size:11px;color:var(--text2);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${s.cat.icon} ${s.cat.name}</span>
+        <span style="font-size:11px;font-weight:700;color:var(--text)">${pct}%</span>
+        <span style="font-size:10px;color:var(--muted)">${fmtMoney(s.amt)}</span>
+      </div>`;
+    }).join('');
+  }
 }
 
 let _finEditId=null;
