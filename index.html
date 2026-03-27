@@ -2872,30 +2872,37 @@ select.inp option{background:var(--card2);color:var(--text)}
 
 <!-- ═══ KANBAN MODAL ═══ -->
 <div class="overlay" id="kbOverlay" style="display:none">
-  <div class="modalBox">
-    <div class="modalHead">
+  <div class="modalBox" style="max-width:500px">
+    <div class="modalHead" style="margin-bottom:4px">
       <span class="modalTitle" id="kbModalTitle">Новая карточка</span>
       <button class="modalClose" onclick="closeKbModal()">✕</button>
     </div>
-    <div class="fldGrp"><div class="fldLbl">Заголовок</div><input class="inp" id="kbCardTitle" placeholder="Название задачи..."></div>
-    <div class="fldGrp"><div class="fldLbl">Описание / Заметки</div><textarea class="kbTxtarea" id="kbCardDesc" placeholder="Подробное описание..." style="min-height:56px;resize:none"></textarea></div>
-    <div class="fldGrp"><div class="fldLbl">Приоритет</div>
+    <div class="tmField"><label class="tmLabel">Заголовок</label><input class="inp" id="kbCardTitle" placeholder="Название задачи..." style="font-size:14px;font-weight:600;padding:10px 14px"></div>
+    <div class="tmField"><label class="tmLabel">Описание / Заметки</label><textarea class="kbTxtarea" id="kbCardDesc" placeholder="Подробное описание..." style="min-height:56px;resize:none"></textarea></div>
+    <div class="tmField"><label class="tmLabel">Приоритет</label>
       <div class="kbPriRow">
         <button class="kbPriBtn" data-p="1" onclick="selKbPri(1)">🔴 Высокий</button>
         <button class="kbPriBtn sel" data-p="2" onclick="selKbPri(2)">🟡 Средний</button>
         <button class="kbPriBtn" data-p="3" onclick="selKbPri(3)">🟢 Низкий</button>
       </div>
     </div>
-    <div style="display:flex;gap:10px;flex-wrap:wrap">
-      <div class="fldGrp" style="flex:1;min-width:130px"><div class="fldLbl">Срок</div><input type="date" class="inp" id="kbCardDl" style="color-scheme:dark"></div>
-      <div class="fldGrp" style="flex:1;min-width:100px"><div class="fldLbl">Начало</div><input type="time" class="inp" id="kbCardTime" style="color-scheme:dark;font-family:var(--font-mono)"></div>
-      <div class="fldGrp" style="flex:1;min-width:100px"><div class="fldLbl">Конец</div><input type="time" class="inp" id="kbCardEndTime" style="color-scheme:dark;font-family:var(--font-mono)"></div>
+    <div class="tmField"><label class="tmLabel">Срок выполнения</label><input type="date" class="inp" id="kbCardDl" style="color-scheme:dark"></div>
+    <div style="display:flex;gap:8px;margin-bottom:14px;align-items:flex-end">
+      <div style="flex:1">
+        <label class="tmLabel" style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:1.2px;color:var(--muted);display:block;margin-bottom:5px">▶ Начало</label>
+        <input type="time" class="inp" id="kbCardTime" style="color-scheme:dark;font-family:var(--font-mono);font-size:13px;font-weight:700;padding:8px 10px">
+      </div>
+      <div style="flex-shrink:0;padding-bottom:10px;color:var(--border3);font-size:16px;font-weight:300">→</div>
+      <div style="flex:1">
+        <label class="tmLabel" style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:1.2px;color:var(--muted);display:block;margin-bottom:5px">■ Конец</label>
+        <input type="time" class="inp" id="kbCardEndTime" style="color-scheme:dark;font-family:var(--font-mono);font-size:13px;font-weight:700;padding:8px 10px">
+      </div>
     </div>
-    <div class="fldGrp">
-      <div class="fldLbl" style="margin-bottom:8px">Метка</div>
+    <div class="tmField">
+      <label class="tmLabel" style="margin-bottom:8px">Метка</label>
       <div id="kbLabelsList" style="display:flex;flex-wrap:wrap;gap:6px;max-height:160px;overflow-y:auto;padding-right:2px;scrollbar-width:thin"></div>
     </div>
-    <div class="fldGrp"><div class="fldLbl">Колонка</div>
+    <div class="tmField"><label class="tmLabel">Колонка</label>
       <select class="inp" id="kbCardCol"></select>
     </div>
     <div style="display:flex;gap:8px">
@@ -6031,23 +6038,28 @@ function renderLabelsEditorList(){
   const el=document.getElementById('labelsEditorList');if(!el)return;
   const groups=labelGroupsD();
   el.innerHTML=groups.map((g,gi)=>`
-    <div data-gblock="${gi}" style="margin-bottom:6px;background:var(--card2);border:1px solid var(--border);border-radius:10px;overflow:hidden">
+    <div data-gblock="${gi}" style="margin-bottom:8px;background:var(--card2);border:1px solid var(--border2);border-radius:12px;overflow:visible">
       <!-- Group header -->
-      <div style="display:flex;align-items:center;gap:8px;padding:8px 10px;background:${hexA(g.color,0.08)};border-bottom:1px solid ${hexA(g.color,0.18)}">
-        <input type="color" value="${g.color}" title="Цвет группы" style="width:22px;height:22px;border:none;border-radius:6px;cursor:pointer;padding:1px;background:none;flex-shrink:0" onchange="labelGroupsD()[${gi}].color=this.value;saveD();renderLabelsEditorList()">
-        <input class="inp" value="${esc(g.name)}" style="flex:1;font-weight:700;font-size:12px;background:transparent;border-color:transparent;padding:3px 6px" oninput="labelGroupsD()[${gi}].name=this.value;saveD()">
-        <button class="btn" style="font-size:10px;padding:3px 10px;background:${hexA(g.color,0.15)};color:${g.color};border:1px solid ${hexA(g.color,0.35)};border-radius:6px" onclick="addLabelToGroup(${gi})">＋ Метка</button>
-        <button class="btn btnR" style="font-size:10px;padding:3px 8px;opacity:.6" onclick="delLabelGroup(${gi})" title="Удалить группу">🗑</button>
+      <div style="display:flex;align-items:center;gap:8px;padding:10px 12px;background:${hexA(g.color,0.10)};border-bottom:1px solid ${hexA(g.color,0.22)};border-radius:12px 12px 0 0">
+        <label style="position:relative;width:28px;height:28px;flex-shrink:0;cursor:pointer" title="Цвет группы">
+          <span style="display:block;width:28px;height:28px;border-radius:8px;background:${g.color};border:2px solid ${hexA(g.color,0.5)};box-shadow:0 0 8px ${hexA(g.color,0.35)}"></span>
+          <input type="color" value="${g.color}" style="position:absolute;inset:0;opacity:0;width:100%;height:100%;cursor:pointer;border:none;padding:0" onchange="labelGroupsD()[${gi}].color=this.value;saveD();renderLabelsEditorList()">
+        </label>
+        <input class="inp" value="${esc(g.name)}" style="flex:1;font-weight:700;font-size:13px;background:var(--card3);border-color:var(--border2);padding:5px 10px;color:var(--text)" oninput="labelGroupsD()[${gi}].name=this.value;saveD()" placeholder="Название группы...">
+        <button class="btn" style="font-size:10.5px;padding:5px 12px;background:${hexA(g.color,0.18)};color:${g.color};border:1px solid ${hexA(g.color,0.4)};border-radius:8px;white-space:nowrap" onclick="addLabelToGroup(${gi})">+ Метка</button>
+        <button class="btn btnR" style="font-size:12px;padding:5px 9px;opacity:.7;border-radius:8px" onclick="delLabelGroup(${gi})" title="Удалить группу">🗑</button>
       </div>
       <!-- Labels in group -->
-      <div style="padding:4px 8px 6px">
+      <div style="padding:6px 10px 8px">
       ${g.labels.length?g.labels.map((l,li)=>`
-        <div style="display:flex;align-items:center;gap:8px;padding:5px 4px;border-bottom:1px solid var(--border)">
-          <input type="color" value="${l.color}" title="Цвет метки" style="width:20px;height:20px;border:none;border-radius:50%;cursor:pointer;padding:1px;background:none;flex-shrink:0" onchange="labelGroupsD()[${gi}].labels[${li}].color=this.value;saveD();renderLabelsEditorList()">
-          <span style="width:7px;height:7px;border-radius:50%;background:${l.color};flex-shrink:0"></span>
-          <input class="inp" value="${esc(l.name)}" style="flex:1;font-size:11px;background:transparent;border-color:transparent;padding:3px 6px" oninput="labelGroupsD()[${gi}].labels[${li}].name=this.value;saveD()">
-          <button class="btn btnR" style="font-size:10px;padding:2px 7px;opacity:.5" onclick="delLabelFromGroup(${gi},'${l.id}')" title="Удалить метку">×</button>
-        </div>`).join(''):'<div style="padding:6px 4px;font-size:11px;color:var(--muted)">Нет меток — нажмите ＋ Метка</div>'}
+        <div style="display:flex;align-items:center;gap:8px;padding:7px 6px;border-bottom:1px solid var(--border);border-radius:0">
+          <label style="position:relative;width:26px;height:26px;flex-shrink:0;cursor:pointer" title="Изменить цвет">
+            <span style="display:block;width:26px;height:26px;border-radius:50%;background:${l.color};border:2px solid ${hexA(l.color,0.6)};box-shadow:0 0 6px ${hexA(l.color,0.3)}"></span>
+            <input type="color" value="${l.color}" style="position:absolute;inset:0;opacity:0;width:100%;height:100%;cursor:pointer;border:none;padding:0" onchange="labelGroupsD()[${gi}].labels[${li}].color=this.value;saveD();renderLabelsEditorList()">
+          </label>
+          <input class="inp" value="${esc(l.name)}" style="flex:1;font-size:12px;background:var(--card3);border-color:var(--border2);padding:5px 10px;color:var(--text)" oninput="labelGroupsD()[${gi}].labels[${li}].name=this.value;saveD()" placeholder="Название метки...">
+          <button class="btn btnR" style="font-size:13px;padding:4px 10px;border-radius:8px;font-weight:700" onclick="delLabelFromGroup(${gi},'${l.id}')" title="Удалить метку">×</button>
+        </div>`).join(''):'<div style="padding:10px 6px;font-size:11.5px;color:var(--muted);text-align:center">Нет меток — нажмите + Метка</div>'}
       </div>
     </div>`).join('');
 }
@@ -6060,11 +6072,14 @@ function addLabelToGroup(gi){
   if(existing){existing.querySelector('input').focus();return;}
   const row=document.createElement('div');
   row.className='lbInlineAdd';row.dataset.gi=gi;
-  row.style.cssText='display:flex;align-items:center;gap:6px;padding:6px 6px 6px 16px;border-left:2px solid var(--p);background:var(--pdim);border-radius:0 6px 6px 0;margin-bottom:4px;animation:fadeIn .15s';
-  row.innerHTML=`<input type="color" value="#9b7cf4" style="width:22px;height:22px;border:none;border-radius:50%;cursor:pointer;padding:1px;background:none;flex-shrink:0" id="lbAddColor_${gi}">
-    <input class="inp" placeholder="Название метки..." style="flex:1;font-size:11px;padding:5px 8px" id="lbAddName_${gi}" onkeydown="if(event.key==='Enter')confirmAddLabel(${gi});if(event.key==='Escape')this.closest('.lbInlineAdd').remove()">
-    <button class="btn btnP" style="font-size:10px;padding:4px 10px" onclick="confirmAddLabel(${gi})">Добавить</button>
-    <button class="btn btnG" style="font-size:10px;padding:4px 8px" onclick="this.closest('.lbInlineAdd').remove()">✕</button>`;
+  row.style.cssText='display:flex;align-items:center;gap:8px;padding:8px 10px;border:1.5px solid var(--p);background:var(--pdim);border-radius:10px;margin:6px 0;animation:fadeIn .15s';
+  row.innerHTML=`<label style="position:relative;width:28px;height:28px;flex-shrink:0;cursor:pointer" title="Цвет метки">
+      <span id="lbAddColorDot_${gi}" style="display:block;width:28px;height:28px;border-radius:50%;background:#9b7cf4;border:2px solid rgba(155,143,245,.5);box-shadow:0 0 6px rgba(155,143,245,.3)"></span>
+      <input type="color" value="#9b7cf4" style="position:absolute;inset:0;opacity:0;width:100%;height:100%;cursor:pointer;border:none;padding:0" id="lbAddColor_${gi}" oninput="document.getElementById('lbAddColorDot_${gi}').style.background=this.value">
+    </label>
+    <input class="inp" placeholder="Название метки..." style="flex:1;font-size:12px;padding:6px 10px;background:var(--card3);border-color:var(--border2);color:var(--text)" id="lbAddName_${gi}" onkeydown="if(event.key==='Enter')confirmAddLabel(${gi});if(event.key==='Escape')this.closest('.lbInlineAdd').remove()">
+    <button class="btn btnP" style="font-size:11px;padding:5px 12px;border-radius:8px" onclick="confirmAddLabel(${gi})">Добавить</button>
+    <button class="btn btnG" style="font-size:11px;padding:5px 9px;border-radius:8px" onclick="this.closest('.lbInlineAdd').remove()">✕</button>`;
   // Insert INSIDE the scrollable container, after the group block
   const groupBlocks=listEl.querySelectorAll(':scope > div[data-gblock]');
   if(groupBlocks[gi])groupBlocks[gi].after(row);
