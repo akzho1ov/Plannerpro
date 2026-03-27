@@ -2897,7 +2897,7 @@ select.inp option{background:var(--card2);color:var(--text)}
       <span class="modalTitle">⚙ Метки и группы</span>
       <button class="modalClose" onclick="closeLabelsModal()">✕</button>
     </div>
-    <div id="labelsEditorList" style="flex:1;min-height:0;overflow-y:auto;overflow-x:hidden;display:flex;flex-direction:column;gap:6px;padding-right:4px;padding-bottom:4px;scrollbar-width:thin;scroll-behavior:smooth"></div>
+    <div id="labelsEditorList" style="flex:1;min-height:0;max-height:calc(88vh - 130px);overflow-y:scroll;overflow-x:hidden;display:flex;flex-direction:column;gap:6px;padding-right:4px;padding-bottom:4px;scrollbar-width:thin;scroll-behavior:smooth;-webkit-overflow-scrolling:touch"></div>
     <div style="display:flex;gap:8px;flex-shrink:0;padding-top:12px;border-top:1px solid var(--border);margin-top:10px">
       <button class="btn btnG" style="flex:1;justify-content:center;font-size:11px" onclick="addLabelGroup()">＋ Новая группа</button>
       <button class="btn btnP" style="flex:1;justify-content:center;font-size:11px" onclick="closeLabelsModal()">✓ Готово</button>
@@ -4293,6 +4293,16 @@ function getTaskLabels(t){
   return [];
 }
 
+function getTaskCalColor(t){
+  const groups=labelGroupsD();
+  const balGroup=groups.find(g=>g.name==='Баланс')||groups[0];
+  if(!balGroup)return'#7C68EE';
+  const taskLabels=getTaskLabels(t);
+  const balLabel=taskLabels.find(l=>balGroup.labels.some(gl=>gl.id===l.id));
+  if(balLabel)return balLabel.color;
+  return taskLabels.length?taskLabels[0].color:'#7C68EE';
+}
+
 function plEvtsForDate(dstr){
   const evts=calEventsD();
   const out=[];
@@ -4303,7 +4313,7 @@ function plEvtsForDate(dstr){
   }));
   tpD().filter(t=>taskAppearsOnDate(t,dstr)).forEach(t=>{
     const taskLabels=getTaskLabels(t);
-    const col=taskLabels.length?taskLabels[0].color:'#7C68EE';
+    const col=getTaskCalColor(t);
     out.push({
       id:t.id,text:t.text,
       time:t.time||'',endTime:t.endTime||'',
@@ -4619,23 +4629,7 @@ function _plSetupGridInteraction(main,dates,totalH){
     // ── Left click on empty space → create new task ──
     let _hintEl=null;
     col.addEventListener('mousemove',ev=>{
-      // Only show hint on bare column background, not on events
-      const onBg = ev.target===col || ev.target.classList.contains('plGrid-hline');
-      if(!onBg){
-        if(_hintEl){_hintEl.style.opacity='0';}
-        return;
-      }
-      if(!_hintEl){
-        _hintEl=document.createElement('div');
-        _hintEl.style.cssText='position:absolute;left:2px;right:2px;height:24px;background:rgba(155,143,245,.12);border:1px dashed rgba(155,143,245,.35);border-radius:6px;z-index:2;pointer-events:none;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;color:var(--p);opacity:0;transition:opacity .12s,top .04s';
-        _hintEl.textContent='＋ Добавить задачу';
-        col.appendChild(_hintEl);
-      }
-      _hintEl.style.opacity='1';
-      const rect=col.getBoundingClientRect();
-      const relY=ev.clientY-rect.top;
-      const mins=Math.round((relY/HOUR_H)*60/15)*15;
-      _hintEl.style.top=(mins/60*HOUR_H)+'px';
+      // Hint hidden for cleaner design — click still works
     });
     col.addEventListener('mouseleave',()=>{if(_hintEl){_hintEl.remove();_hintEl=null;}});
     col.addEventListener('click',e=>{
@@ -4710,11 +4704,12 @@ function _plMoveCalEvt(evtId,src,origDate,newDate,newTime){
   if(src==='task'){
     const task=tpD().find(t=>t.id===evtId);
     if(!task)return;
+    const origTime=task.time; // save before overwriting
     task.deadline=newDate;
     task.time=newTime;
     // Recalculate end time (keep duration)
-    if(task.endTime&&task.time){
-      const origDur=plTimeToMin(task.endTime)-plTimeToMin(task.time.replace(newTime,''));
+    if(task.endTime&&origTime){
+      const origDur=plTimeToMin(task.endTime)-plTimeToMin(origTime);
       const newStart=plTimeToMin(newTime);
       task.endTime=plMinToTime(Math.min(1440,newStart+Math.max(30,origDur||60)));
     }
@@ -7600,7 +7595,6 @@ function renderAnalytics(){
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:6px">
         <div style="font-size:9.5px;font-weight:800;text-transform:uppercase;letter-spacing:1.2px;color:var(--muted)">🏷 По меткам</div>
         <div style="display:flex;gap:4px;flex-wrap:wrap">
-          <button onclick="anlSetLblGroup(null)" style="padding:3px 10px;border-radius:20px;font-size:9.5px;font-weight:700;cursor:pointer;border:1px solid ${!S.lblGroup?'var(--p)':'var(--border)'};background:${!S.lblGroup?'var(--pdim2)':'var(--card3)'};color:${!S.lblGroup?'var(--p)':'var(--text2)'}">Все</button>
           ${groups.filter(g=>g.labels&&g.labels.length).map(g=>{const on=S.lblGroup===g.id;return`<button onclick="anlSetLblGroup('${g.id}')" style="padding:3px 10px;border-radius:20px;font-size:9.5px;font-weight:700;cursor:pointer;border:1px solid ${on?g.color:'var(--border)'};background:${on?hexA(g.color,0.15):'var(--card3)'};color:${on?g.color:'var(--text2)'}">${esc(g.name)}</button>`;}).join('')}
         </div>
       </div>
