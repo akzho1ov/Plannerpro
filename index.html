@@ -2828,6 +2828,29 @@ select.inp option{background:var(--card2);color:var(--text)}
   </div>
 </div>
 
+<!-- ═══ RECURRING SCOPE DIALOG ═══ -->
+<div id="recScopeOverlay" style="display:none;position:fixed;inset:0;z-index:3000;background:rgba(0,0,0,.65);backdrop-filter:blur(8px);display:none;align-items:center;justify-content:center">
+  <div id="recScopeBox" style="background:var(--card2);border:1px solid var(--border2);border-radius:20px;padding:24px;max-width:380px;width:calc(100% - 32px);box-shadow:0 8px 48px rgba(0,0,0,.7),0 0 0 1px rgba(155,143,245,.15)">
+    <div style="font-size:16px;font-weight:800;font-family:var(--font-display);color:var(--text);margin-bottom:6px;letter-spacing:-.3px" id="recScopeTitle">Повторяющаяся задача</div>
+    <div style="font-size:12px;color:var(--text2);margin-bottom:20px;line-height:1.5" id="recScopeDesc"></div>
+    <div style="display:flex;flex-direction:column;gap:8px">
+      <button id="recScopeOne"   onclick="recScopeClose('one')"    style="text-align:left;border:1px solid var(--border2);background:var(--card3);color:var(--text);border-radius:12px;padding:12px 16px;cursor:pointer;transition:.15s;font-family:var(--font-body);font-size:12px;font-weight:600" onmouseover="this.style.borderColor='var(--p)';this.style.background='var(--pdim)'" onmouseout="this.style.borderColor='var(--border2)';this.style.background='var(--card3)'">
+        <div style="font-weight:700;margin-bottom:2px">Только это событие</div>
+        <div style="font-size:10.5px;color:var(--text2);font-weight:400">Изменение коснётся только выбранной даты</div>
+      </button>
+      <button id="recScopeFuture" onclick="recScopeClose('future')" style="text-align:left;border:1px solid var(--border2);background:var(--card3);color:var(--text);border-radius:12px;padding:12px 16px;cursor:pointer;transition:.15s;font-family:var(--font-body);font-size:12px;font-weight:600" onmouseover="this.style.borderColor='var(--gold)';this.style.background='var(--golddim)'" onmouseout="this.style.borderColor='var(--border2)';this.style.background='var(--card3)'">
+        <div style="font-weight:700;margin-bottom:2px">Это и все последующие</div>
+        <div style="font-size:10.5px;color:var(--text2);font-weight:400">Изменение применится к этой и будущим повторениям</div>
+      </button>
+      <button id="recScopeAll"   onclick="recScopeClose('all')"    style="text-align:left;border:1px solid var(--border2);background:var(--card3);color:var(--text);border-radius:12px;padding:12px 16px;cursor:pointer;transition:.15s;font-family:var(--font-body);font-size:12px;font-weight:600" onmouseover="this.style.borderColor='var(--red)';this.style.background='var(--reddim)'" onmouseout="this.style.borderColor='var(--border2)';this.style.background='var(--card3)'">
+        <div style="font-weight:700;margin-bottom:2px">Все события серии</div>
+        <div style="font-size:10.5px;color:var(--text2);font-weight:400">Изменение применится ко всем повторениям этой задачи</div>
+      </button>
+    </div>
+    <button onclick="recScopeClose(null)" style="width:100%;margin-top:12px;border:1px solid var(--border);background:none;color:var(--muted);border-radius:10px;padding:9px;cursor:pointer;font-family:var(--font-body);font-size:12px;font-weight:600;transition:.15s" onmouseover="this.style.color='var(--text)'" onmouseout="this.style.color='var(--muted)'">Отмена</button>
+  </div>
+</div>
+
 <!-- ═══ CALENDAR EVENT MODAL ═══ -->
 <div class="overlay" id="plCalModal" style="display:none">
   <div class="modalBox" style="max-width:440px">
@@ -3500,8 +3523,8 @@ function renderWP(){
     const d=new Date(curMon);d.setDate(d.getDate()+i);
     const key=dk(d),isT=key===todK;
     const dow=d.getDay();
-    // ── Use G.tasks filtered by this date (UNIFIED source) ──
-    const dayTasks=tpD().filter(t=>t.deadline===key);
+    // ── Use G.tasks filtered by this date (UNIFIED source) — includes recurring ──
+    const dayTasks=tpD().filter(t=>taskAppearsOnDate(t,key));
     const done=dayTasks.filter(t=>t.done).length;
     const tot=dayTasks.length;
     const pct=tot?Math.round(done/tot*100):0;
@@ -3546,12 +3569,13 @@ function renderWP(){
     const timeStr=t.time?`<span style="font-size:9px;color:var(--p);font-family:var(--font-mono);flex-shrink:0">${t.time}</span>`:'';
     const labelDots=lbls.length?`<span style="display:inline-flex;gap:2px;align-items:center;flex-shrink:0">${lbls.map(l=>`<span style="width:6px;height:6px;border-radius:50%;background:${l.color};flex-shrink:0;display:inline-block" title="${esc(l.name)}"></span>`).join('')}</span>`:'';
     const label0=lbls[0];
-    return`<div class="dTask" style="border-left:2px solid ${col};padding-left:5px;border-radius:2px;--CC:${col}" onclick="openTaskModal('${t.id}')">
-      <input type="checkbox" ${t.done?'checked':''} onchange="wTaskToggle('${t.id}',this.checked);event.stopPropagation()" style="accent-color:${col};flex-shrink:0">
-      <span class="dTaskInp" style="cursor:pointer;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:11px;color:var(--text);${t.done?'text-decoration:line-through;text-decoration-color:rgba(255,255,255,.5);opacity:.7':''}">${esc(t.text)||'Без названия'}</span>
+    const isDoneOnDate=t.repeat?((t.doneDates||[]).includes(key)):t.done;
+    return`<div class="dTask" style="border-left:2px solid ${col};padding-left:5px;border-radius:2px;--CC:${col}" onclick="openTaskModal('${t.id}','','${key}')">
+      <input type="checkbox" ${isDoneOnDate?'checked':''} onchange="wTaskToggle('${t.id}',this.checked,'${key}');event.stopPropagation()" style="accent-color:${col};flex-shrink:0">
+      <span class="dTaskInp" style="cursor:pointer;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:11px;color:var(--text);${isDoneOnDate?'text-decoration:line-through;text-decoration-color:rgba(255,255,255,.5);opacity:.7':''}">${esc(t.text)||'Без названия'}</span>
       ${labelDots}
       ${timeStr}
-      <button class="dTaskDel" onclick="wTaskDel('${t.id}');event.stopPropagation()">×</button>
+      <button class="dTaskDel" onclick="wTaskDel('${t.id}','${key}');event.stopPropagation()">×</button>
       <span class="dTaskTipData" data-col="${(col&&col.startsWith('#'))?col:'#9B8FF5'}" data-text="${esc(t.text).replace(/"/g,'&quot;')}" data-time="${t.time||''}" data-endtime="${t.endTime||''}" data-done="${t.done}" data-notes="${esc((t.notes||'').slice(0,80)).replace(/"/g,'&quot;')}" data-labels='${JSON.stringify(lbls.map(l=>({name:l.name,color:l.color})))}'></span>
     </div>`;
   }).join('')}</div>
@@ -3573,8 +3597,20 @@ function renderWP(){
 }
 
 // Weekly planner task actions — use G.tasks (unified)
-function wTaskToggle(id,c){const i=findTaskIdxById(id);if(i<0)return;const t=tpD()[i];t.done=c;saveD();_refreshAllTaskViews();}
-function wTaskDel(id){delTById(id);} // delTById already calls _refreshAllTaskViews
+function wTaskToggle(id, c, dstr){
+  const i=findTaskIdxById(id);if(i<0)return;
+  const t=tpD()[i];
+  if(t.repeat && dstr){
+    // Per-date done tracking for recurring tasks
+    if(!t.doneDates)t.doneDates=[];
+    if(c){if(!t.doneDates.includes(dstr))t.doneDates.push(dstr);}
+    else{t.doneDates=t.doneDates.filter(d=>d!==dstr);}
+  } else {
+    t.done=c;
+  }
+  saveD();_refreshAllTaskViews();
+}
+function wTaskDel(id, dstr){delRecurringTask(id, dstr);} // scope dialog for recurring
 function wTaskAdd(dateKey){
   const id=uid();
   tpD().push({id,text:'',deadline:dateKey,time:'',endTime:'',notes:'',done:false,labelId:'',priority:2});
@@ -3932,7 +3968,7 @@ function renderTP(){
         <td><input type="date" class="tDateInp" value="${t.deadline||''}" onchange="updTFieldById('${t.id}','deadline',this.value)" title="${dlLabel}" style="color-scheme:dark;font-size:11px"></td>
         <td>${timeDisplay}</td>
         <td style="text-align:center;font-weight:700;font-size:11px">${dlHtml}</td>
-        <td><button class="tDelBtn" onclick="delTById('${t.id}')">×</button></td>`;
+        <td><button class="tDelBtn" onclick="delRecurringTask('${t.id}','')">×</button></td>`;
       tbody.appendChild(tr);
     });
   } else {
@@ -3967,7 +4003,7 @@ function renderTP(){
         <div class="mTaskTop">
           <input class="mTaskCb" type="checkbox" ${t.done?'checked':''} onchange="toggleTById('${t.id}',this.checked);event.stopPropagation()">
           <span class="mTaskName${t.done?' done':''}" onclick="openTaskModal('${t.id}')">${esc(t.text)||'Без названия'}</span>
-          <button style="border:none;background:none;color:var(--border3);font-size:18px;padding:0 4px;cursor:pointer;flex-shrink:0" onclick="delTById('${t.id}');event.stopPropagation()">×</button>
+          <button style="border:none;background:none;color:var(--border3);font-size:18px;padding:0 4px;cursor:pointer;flex-shrink:0" onclick="delRecurringTask('${t.id}','');event.stopPropagation()">×</button>
         </div>
         <div class="mTaskMeta">
           ${taskLbls.map(l=>`<span class="mTaskMetaChip" style="background:${hexA(l.color,.14)};color:${l.color}"><span style="width:6px;height:6px;border-radius:50%;background:${l.color}"></span>${esc(l.name)}</span>`).join('')}
@@ -4047,7 +4083,67 @@ function onNewTask(e){
 
 /* ── Unified Task Modal ── */
 let _taskModalId=''; // '' = new task, otherwise task.id string
+let _taskModalDstr=''; // date context for recurring task instance
 let _tmRepeatVal='';  // ← FIX: was missing, caused ReferenceError in strict mode
+
+/* ══════════════════════════════════════════
+   RECURRING SCOPE DIALOG (promise-based)
+   Shows when editing/deleting recurring tasks
+══════════════════════════════════════════ */
+let _recScopeResolve=null;
+
+function showRecurringDialog(taskText, mode, dstr){
+  return new Promise(resolve=>{
+    _recScopeResolve=resolve;
+    const overlay=document.getElementById('recScopeOverlay');
+    document.getElementById('recScopeTitle').textContent=
+      mode==='delete'?'Удалить повторяющуюся задачу?':'Изменить повторяющуюся задачу?';
+    // Show date context if known
+    const dateLabel=dstr?` (${dstr.split('-').reverse().join('.')})` : '';
+    document.getElementById('recScopeDesc').textContent=`«${taskText}»${dateLabel}`;
+    // Show/hide "future" button — only useful when we know the date
+    document.getElementById('recScopeFuture').style.display=dstr?'':'none';
+    // Show/hide "one" button — only useful when we know the date
+    document.getElementById('recScopeOne').style.display=dstr?'':'none';
+    overlay.style.display='flex';
+  });
+}
+
+function recScopeClose(val){
+  const overlay=document.getElementById('recScopeOverlay');
+  overlay.style.display='none';
+  if(_recScopeResolve){_recScopeResolve(val);_recScopeResolve=null;}
+}
+
+/* ── Helper: previous day string ── */
+function _prevDstr(dstr){
+  const d=new Date(dstr+'T00:00:00');d.setDate(d.getDate()-1);return dk(d);
+}
+
+/* ── Delete a recurring task with scope dialog ── */
+async function delRecurringTask(id, dstr){
+  const t=tpD().find(x=>x.id===id);
+  if(!t)return;
+  if(!t.repeat){
+    // Not recurring — just delete normally
+    delTById(id);
+    return;
+  }
+  const scope=await showRecurringDialog(t.text,'delete',dstr);
+  if(!scope)return; // cancelled
+  if(scope==='all'){
+    delTById(id);
+  } else if(scope==='one'){
+    // Add this date to exceptions
+    if(!t.exceptions)t.exceptions=[];
+    if(!t.exceptions.includes(dstr))t.exceptions.push(dstr);
+    saveD();_refreshAllTaskViews();
+  } else if(scope==='future'){
+    // Stop repeating before this date (set repeatEnd to day before)
+    t.repeatEnd=_prevDstr(dstr);
+    saveD();_refreshAllTaskViews();
+  }
+}
 
 function tmSelRepeat(v){
   _tmRepeatVal=v;
@@ -4151,16 +4247,16 @@ function _tmToggleTimer(){
 function _updateTimeTrackerBar(){}
 
 
-function openTaskModal(idx,prefillDate){
+function openTaskModal(idx,prefillDate,dstr){
   // idx can be array index (number) or task id (string) or -1/''/null for new task
   let t=null;
-  if(typeof idx==='string'&&idx){
-    // called with task id
+  if(typeof idx==='string'&&idx&&idx!=='-1'){
     t=tpD().find(x=>x.id===idx)||null;
   } else if(typeof idx==='number'&&idx>=0&&idx<tpD().length){
     t=tpD()[idx]||null;
   }
   _taskModalId=t?t.id:''; // store id, not index — immune to reorder/sync
+  _taskModalDstr=dstr||''; // date context for recurring instance
   document.getElementById('taskModalTitle').textContent=t?'Редактировать задачу':'Новая задача';
   document.getElementById('tm-id').value=t?.id||'';
   document.getElementById('tm-text').value=t?.text||'';
@@ -4219,19 +4315,66 @@ function taskModalSave(){
     labelId,labelIds,
     repeat:_tmRepeatVal,
   };
-  // ← FIX: find task by id at save-time, not by cached index (immune to reorder/sync)
-  const currentIdx = _taskModalId ? tpD().findIndex(t=>t.id===_taskModalId) : -1;
+
+  // ← FIX: find task by id at save-time (immune to reorder/sync)
+  const currentIdx=_taskModalId?tpD().findIndex(t=>t.id===_taskModalId):-1;
+
   if(currentIdx>=0){
+    const existingTask=tpD()[currentIdx];
+    // If editing a recurring task, ask scope first
+    if(existingTask.repeat){
+      closeTaskModal();
+      _doSaveRecurring(existingTask, data, _taskModalDstr);
+      return;
+    }
+    // Non-recurring: apply directly
     Object.assign(tpD()[currentIdx],data);
     const taskId=tpD()[currentIdx].id;
     const linked=kbD().find(c=>c.taskId===taskId);
     if(linked){linked.title=data.text;linked.deadline=data.deadline;linked.time=data.time;linked.endTime=data.endTime;linked.labelId=data.labelId;}
   } else {
+    // New task
     const id=uid();
     tpD().push({...data,id,priority:2});
     syncNewTaskToKanban(id);
   }
   saveD();closeTaskModal();_refreshAllTaskViews();
+}
+
+async function _doSaveRecurring(existingTask, data, dstr){
+  const scope=await showRecurringDialog(existingTask.text,'edit',dstr);
+  if(!scope){
+    // User cancelled — reopen modal to let them continue editing
+    openTaskModal(existingTask.id,'',dstr);
+    return;
+  }
+  if(scope==='all'){
+    // Apply to the whole series
+    const i=tpD().findIndex(t=>t.id===existingTask.id);
+    if(i>=0){
+      Object.assign(tpD()[i],data);
+      const linked=kbD().find(c=>c.taskId===existingTask.id);
+      if(linked){linked.title=data.text;linked.deadline=data.deadline;linked.time=data.time;linked.endTime=data.endTime;}
+    }
+  } else if(scope==='one' && dstr){
+    // Add this date to exceptions on original, create a new one-time task for this date
+    if(!existingTask.exceptions)existingTask.exceptions=[];
+    if(!existingTask.exceptions.includes(dstr))existingTask.exceptions.push(dstr);
+    const newTask={...data,id:uid(),priority:existingTask.priority||2,repeat:'',deadline:dstr,exceptions:[],repeatEnd:''};
+    tpD().push(newTask);
+    syncNewTaskToKanban(newTask.id);
+  } else if(scope==='future' && dstr){
+    // Stop original series before this date, create new task from this date forward
+    existingTask.repeatEnd=_prevDstr(dstr);
+    const newTask={
+      ...data,id:uid(),priority:existingTask.priority||2,
+      deadline:dstr, // new series starts from this date
+      exceptions:[],repeatEnd:''
+    };
+    tpD().push(newTask);
+    syncNewTaskToKanban(newTask.id);
+  }
+  saveD();_refreshAllTaskViews();
 }
 
 function closeTaskModal(){document.getElementById('taskModal').classList.remove('open');}
@@ -4276,11 +4419,18 @@ function taskModalClearLabels(){
 function taskModalSelectLabel(id){taskModalToggleLabel(id);}
 function taskModalDelete(){
   if(!_taskModalId)return;
-  if(!confirm('Удалить задачу?'))return;
-  // ← FIX: find fresh index by id at delete-time, not stale cached index
-  const i=tpD().findIndex(t=>t.id===_taskModalId);
-  if(i>=0)delT(i);
-  closeTaskModal();
+  const t=tpD().find(x=>x.id===_taskModalId);
+  if(!t)return;
+  if(t.repeat){
+    // Recurring: close modal first, then show scope dialog
+    closeTaskModal();
+    delRecurringTask(_taskModalId, _taskModalDstr);
+  } else {
+    if(!confirm('Удалить задачу?'))return;
+    const i=tpD().findIndex(x=>x.id===_taskModalId);
+    if(i>=0)delT(i);
+    closeTaskModal();
+  }
 }
 
 /* ═══════════════════════════════════
@@ -4303,13 +4453,18 @@ function calEventsD(){if(!G.calEvents)G.calEvents={};return G.calEvents}
 /* ── Check if a task with repeat should appear on a given date ── */
 function taskAppearsOnDate(t, dstr){
   if(!t.repeat)return t.deadline===dstr;
+  // Don't show before the task's own start date
+  if(t.deadline && dstr < t.deadline) return false;
+  // Don't show after repeatEnd (set when "this and future" split)
+  if(t.repeatEnd && dstr > t.repeatEnd) return false;
+  // Skip dates in exceptions array (set when "only this" is used)
+  if(t.exceptions && t.exceptions.includes(dstr)) return false;
   const d=new Date(dstr+'T00:00:00');
   const dow=d.getDay(); // 0=Sun, 1=Mon...
   const day=d.getDate();
   if(t.repeat==='daily')return true;
   if(t.repeat==='weekdays')return dow>=1&&dow<=5;
   if(t.repeat==='weekly'){
-    // Show on same day of week as the original deadline
     if(!t.deadline)return false;
     const orig=new Date(t.deadline+'T00:00:00');
     return orig.getDay()===dow;
@@ -4374,11 +4529,9 @@ function plCalOpenTask(taskId,dstr){
   const tasks=tpD();
   const idx=tasks.findIndex(t=>t.id===taskId);
   if(idx>=0){
-    openTaskModal(idx);
+    openTaskModal(idx,'',dstr); // pass dstr so recurring scope dialog works
   } else {
-    // Task not found — create a new one pre-filled with the date
-    _taskModalId="";
-    openTaskModal(-1,dstr);
+    openTaskModal(-1,dstr,'');
   }
 }
 
