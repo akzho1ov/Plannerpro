@@ -3546,12 +3546,12 @@ function renderWP(){
     const timeStr=t.time?`<span style="font-size:9px;color:var(--p);font-family:var(--font-mono);flex-shrink:0">${t.time}</span>`:'';
     const labelDots=lbls.length?`<span style="display:inline-flex;gap:2px;align-items:center;flex-shrink:0">${lbls.map(l=>`<span style="width:6px;height:6px;border-radius:50%;background:${l.color};flex-shrink:0;display:inline-block" title="${esc(l.name)}"></span>`).join('')}</span>`:'';
     const label0=lbls[0];
-    return`<div class="dTask" style="border-left:2px solid ${col};padding-left:5px;border-radius:2px;--CC:${col}" onclick="openTaskModal(${idx})">
-      <input type="checkbox" ${t.done?'checked':''} onchange="wTaskToggle(${idx},this.checked);event.stopPropagation()" style="accent-color:${col};flex-shrink:0">
+    return`<div class="dTask" style="border-left:2px solid ${col};padding-left:5px;border-radius:2px;--CC:${col}" onclick="openTaskModal('${t.id}')">
+      <input type="checkbox" ${t.done?'checked':''} onchange="wTaskToggle('${t.id}',this.checked);event.stopPropagation()" style="accent-color:${col};flex-shrink:0">
       <span class="dTaskInp" style="cursor:pointer;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:11px;color:var(--text);${t.done?'text-decoration:line-through;text-decoration-color:rgba(255,255,255,.5);opacity:.7':''}">${esc(t.text)||'Без названия'}</span>
       ${labelDots}
       ${timeStr}
-      <button class="dTaskDel" onclick="wTaskDel(${idx});event.stopPropagation()">×</button>
+      <button class="dTaskDel" onclick="wTaskDel('${t.id}');event.stopPropagation()">×</button>
       <span class="dTaskTipData" data-col="${(col&&col.startsWith('#'))?col:'#9B8FF5'}" data-text="${esc(t.text).replace(/"/g,'&quot;')}" data-time="${t.time||''}" data-endtime="${t.endTime||''}" data-done="${t.done}" data-notes="${esc((t.notes||'').slice(0,80)).replace(/"/g,'&quot;')}" data-labels='${JSON.stringify(lbls.map(l=>({name:l.name,color:l.color})))}'></span>
     </div>`;
   }).join('')}</div>
@@ -3573,8 +3573,8 @@ function renderWP(){
 }
 
 // Weekly planner task actions — use G.tasks (unified)
-function wTaskToggle(idx,c){const t=tpD()[idx];if(!t)return;t.done=c;saveD();_refreshAllTaskViews();}
-function wTaskDel(idx){delT(idx);} // delT already calls _refreshAllTaskViews
+function wTaskToggle(id,c){const i=findTaskIdxById(id);if(i<0)return;const t=tpD()[i];t.done=c;saveD();_refreshAllTaskViews();}
+function wTaskDel(id){delTById(id);} // delTById already calls _refreshAllTaskViews
 function wTaskAdd(dateKey){
   const id=uid();
   tpD().push({id,text:'',deadline:dateKey,time:'',endTime:'',notes:'',done:false,labelId:'',priority:2});
@@ -3914,7 +3914,7 @@ function renderTP(){
       const taskLabelsDesk=getTaskLabels(t);
       const dotsHtml=taskLabelsDesk.map(l=>`<span style="width:8px;height:8px;border-radius:50%;background:${l.color};display:inline-block;flex-shrink:0;box-shadow:0 0 4px ${l.color}55"></span>`).join('');
       const pillsHtml=taskLabelsDesk.map(l=>`<span class="labelPill" style="background:${hexA(l.color,0.15)};color:${l.color};border:1px solid ${hexA(l.color,0.35)}">${esc(l.name)}</span>`).join('');
-      const labelHtml=`<div class="tLabelCell" onclick="openLabelPicker(${realIdx},this);event.stopPropagation()">
+      const labelHtml=`<div class="tLabelCell" onclick="openLabelPickerById('${t.id}',this);event.stopPropagation()">
         <div class="tLabelDots">${dotsHtml||'<span style="color:var(--border2);font-size:10px">＋</span>'}</div>
         <div class="tLabelPills">${pillsHtml}<span class="tLabelAddBtn">＋</span></div>
       </div>`;
@@ -3924,15 +3924,15 @@ function renderTP(){
       const timeDisplay=t.time?`<span style="font-family:var(--font-mono);font-size:10.5px;color:var(--p);font-weight:600">${t.time}${t.endTime?' – '+t.endTime:''}</span>`:'<span style="color:var(--border3)">—</span>';
       tr.innerHTML=`
         <td style="color:var(--muted);font-size:10px;padding-left:10px">${i+1}</td>
-        <td><input type="checkbox" class="tCb" ${t.done?'checked':''} onchange="toggleT(${realIdx},this.checked,this)"></td>
-        <td style="cursor:pointer" onclick="openTaskModal(${realIdx})">
+        <td><input type="checkbox" class="tCb" ${t.done?'checked':''} onchange="toggleTById('${t.id}',this.checked,this)"></td>
+        <td style="cursor:pointer" onclick="openTaskModal('${t.id}')">
           <span style="font-size:12px;font-weight:600;color:var(--text);${t.done?'text-decoration:line-through;opacity:.65':''}">${esc(t.text)||'<em style="color:var(--muted)">Нет названия</em>'}</span>${repeatBadge}
         </td>
         <td>${labelHtml}</td>
-        <td><input type="date" class="tDateInp" value="${t.deadline||''}" onchange="updTField(${realIdx},'deadline',this.value)" title="${dlLabel}" style="color-scheme:dark;font-size:11px"></td>
+        <td><input type="date" class="tDateInp" value="${t.deadline||''}" onchange="updTFieldById('${t.id}','deadline',this.value)" title="${dlLabel}" style="color-scheme:dark;font-size:11px"></td>
         <td>${timeDisplay}</td>
         <td style="text-align:center;font-weight:700;font-size:11px">${dlHtml}</td>
-        <td><button class="tDelBtn" onclick="delT(${realIdx})">×</button></td>`;
+        <td><button class="tDelBtn" onclick="delTById('${t.id}')">×</button></td>`;
       tbody.appendChild(tr);
     });
   } else {
@@ -3965,9 +3965,9 @@ function renderTP(){
       const repeatBadge=t.repeat?`<span class="mTaskRepeatBadge">↻ ${{'daily':'ежедн','weekly':'еженед','weekdays':'будни','monthly':'ежемес'}[t.repeat]||t.repeat}</span>`:'';
       div.innerHTML=`
         <div class="mTaskTop">
-          <input class="mTaskCb" type="checkbox" ${t.done?'checked':''} onchange="toggleT(${realIdx},this.checked);event.stopPropagation()">
-          <span class="mTaskName${t.done?' done':''}" onclick="openTaskModal(${realIdx})">${esc(t.text)||'Без названия'}</span>
-          <button style="border:none;background:none;color:var(--border3);font-size:18px;padding:0 4px;cursor:pointer;flex-shrink:0" onclick="delT(${realIdx});event.stopPropagation()">×</button>
+          <input class="mTaskCb" type="checkbox" ${t.done?'checked':''} onchange="toggleTById('${t.id}',this.checked);event.stopPropagation()">
+          <span class="mTaskName${t.done?' done':''}" onclick="openTaskModal('${t.id}')">${esc(t.text)||'Без названия'}</span>
+          <button style="border:none;background:none;color:var(--border3);font-size:18px;padding:0 4px;cursor:pointer;flex-shrink:0" onclick="delTById('${t.id}');event.stopPropagation()">×</button>
         </div>
         <div class="mTaskMeta">
           ${taskLbls.map(l=>`<span class="mTaskMetaChip" style="background:${hexA(l.color,.14)};color:${l.color}"><span style="width:6px;height:6px;border-radius:50%;background:${l.color}"></span>${esc(l.name)}</span>`).join('')}
@@ -3975,7 +3975,7 @@ function renderTP(){
           ${t.time?`<span class="mTaskMetaChip" style="background:var(--pdim);color:var(--p);font-family:var(--font-mono)">⏱ ${t.time}${t.endTime?' – '+t.endTime:''}</span>`:''}
           ${repeatBadge}
         </div>`;
-      div.addEventListener('click',e=>{if(e.target.classList.contains('mTaskCb')||e.target.tagName==='BUTTON')return;openTaskModal(realIdx);});
+      div.addEventListener('click',e=>{if(e.target.classList.contains('mTaskCb')||e.target.tagName==='BUTTON')return;openTaskModal(t.id);});
       mob.appendChild(div);
     });
     // Add task button on mobile
@@ -4025,9 +4025,17 @@ function updT(i,f,v){updTField(i,f,v);}
 
 function delT(i){
   const t=tpD()[i];if(!t)return;
-  if(t.id)kbD().forEach((c,ci)=>{if(c.taskId===t.id)kbD().splice(ci,1)});
+  // Fix: filter instead of splice-during-forEach to avoid index skipping
+  if(t.id)G.kanban=kbD().filter(c=>c.taskId!==t.id);
   G.tasks.splice(i,1);saveD();_refreshAllTaskViews();
 }
+
+/* ── ID-based task helpers (safe across re-sorts and Firestore syncs) ── */
+function findTaskIdxById(id){return tpD().findIndex(t=>t.id===id);}
+function delTById(id){const i=findTaskIdxById(id);if(i>=0)delT(i);}
+function updTFieldById(id,f,v){const i=findTaskIdxById(id);if(i>=0)updTField(i,f,v);}
+function toggleTById(id,checked,evtTarget){const i=findTaskIdxById(id);if(i>=0)toggleT(i,checked,evtTarget);}
+function openLabelPickerById(id,el){const i=findTaskIdxById(id);if(i>=0)openLabelPicker(i,el);}
 function onNewTask(e){
   if(e.key==='Enter'&&e.target.value.trim()){
     const id=uid();
@@ -4038,7 +4046,7 @@ function onNewTask(e){
 }
 
 /* ── Unified Task Modal ── */
-let _taskModalIdx=-1; // -1 = new task
+let _taskModalId=''; // '' = new task, otherwise task.id string
 let _tmRepeatVal='';  // ← FIX: was missing, caused ReferenceError in strict mode
 
 function tmSelRepeat(v){
@@ -4144,8 +4152,15 @@ function _updateTimeTrackerBar(){}
 
 
 function openTaskModal(idx,prefillDate){
-  _taskModalIdx=idx;
-  const t=(idx>=0&&idx<tpD().length)?tpD()[idx]:null;
+  // idx can be array index (number) or task id (string) or -1/''/null for new task
+  let t=null;
+  if(typeof idx==='string'&&idx){
+    // called with task id
+    t=tpD().find(x=>x.id===idx)||null;
+  } else if(typeof idx==='number'&&idx>=0&&idx<tpD().length){
+    t=tpD()[idx]||null;
+  }
+  _taskModalId=t?t.id:''; // store id, not index — immune to reorder/sync
   document.getElementById('taskModalTitle').textContent=t?'Редактировать задачу':'Новая задача';
   document.getElementById('tm-id').value=t?.id||'';
   document.getElementById('tm-text').value=t?.text||'';
@@ -4204,9 +4219,11 @@ function taskModalSave(){
     labelId,labelIds,
     repeat:_tmRepeatVal,
   };
-  if(_taskModalIdx>=0&&_taskModalIdx<tpD().length){
-    Object.assign(tpD()[_taskModalIdx],data);
-    const taskId=tpD()[_taskModalIdx].id;
+  // ← FIX: find task by id at save-time, not by cached index (immune to reorder/sync)
+  const currentIdx = _taskModalId ? tpD().findIndex(t=>t.id===_taskModalId) : -1;
+  if(currentIdx>=0){
+    Object.assign(tpD()[currentIdx],data);
+    const taskId=tpD()[currentIdx].id;
     const linked=kbD().find(c=>c.taskId===taskId);
     if(linked){linked.title=data.text;linked.deadline=data.deadline;linked.time=data.time;linked.endTime=data.endTime;linked.labelId=data.labelId;}
   } else {
@@ -4258,9 +4275,12 @@ function taskModalClearLabels(){
 }
 function taskModalSelectLabel(id){taskModalToggleLabel(id);}
 function taskModalDelete(){
-  if(_taskModalIdx<0)return;
+  if(!_taskModalId)return;
   if(!confirm('Удалить задачу?'))return;
-  delT(_taskModalIdx);closeTaskModal();
+  // ← FIX: find fresh index by id at delete-time, not stale cached index
+  const i=tpD().findIndex(t=>t.id===_taskModalId);
+  if(i>=0)delT(i);
+  closeTaskModal();
 }
 
 /* ═══════════════════════════════════
@@ -4357,14 +4377,14 @@ function plCalOpenTask(taskId,dstr){
     openTaskModal(idx);
   } else {
     // Task not found — create a new one pre-filled with the date
-    _taskModalIdx=-1;
+    _taskModalId="";
     openTaskModal(-1,dstr);
   }
 }
 
 // Click on empty grid slot → open new task modal pre-filled with date+time
 function plCalGridOpenTask(dstr,startMin){
-  _taskModalIdx=-1;
+  _taskModalId="";
   openTaskModal(-1,dstr);
   if(startMin!==undefined){
     setTimeout(()=>{
@@ -4704,7 +4724,7 @@ function _plSetupGridInteraction(main,dates,totalH){
       if(_plRightDragPreview){_plRightDragPreview.remove();_plRightDragPreview=null;}
       _plRightDrag=false;
       // Open new task modal with pre-filled time
-      _taskModalIdx=-1;
+      _taskModalId="";
       openTaskModal(-1,dstr);
       setTimeout(()=>{
         document.getElementById('tm-time').value=plMinToTime(_plRightDragStart);
