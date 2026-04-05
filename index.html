@@ -7834,50 +7834,85 @@ function renderAnalytics(){
     return`${pf.getDate()}.${pf.getMonth()+1}–${pt.getDate()}.${pt.getMonth()+1}`;
   }
 
-  // ── Периоды — NEW premium picker ──
+  // ── Периоды — premium picker ──
   const quickPresets=[
-    {k:'day',n:'Сегодня',ico:'☀️'},
-    {k:'yesterday',n:'Вчера',ico:'🌙'},
-    {k:'3days',n:'3 дня',ico:'📅'},
-    {k:'last7',n:'7 дней',ico:'7'},
-    {k:'week',n:'Эта неделя',ico:'W'},
-    {k:'last_week',n:'Пр. неделя',ico:'◀'},
-    {k:'month',n:'Месяц',ico:'M'},
-    {k:'last_month',n:'Пр. месяц',ico:'◁'},
-    {k:'last30',n:'30 дней',ico:'30'},
-    {k:'quarter',n:'Квартал',ico:'Q'},
-    {k:'year',n:'Год',ico:'Y'},
-    {k:'alltime',n:'Всё время',ico:'∞'},
+    {k:'day',n:'Сегодня'},{k:'yesterday',n:'Вчера'},{k:'3days',n:'3 дня'},
+    {k:'last7',n:'7 дней'},{k:'week',n:'Эта неделя'},{k:'last_week',n:'Пр. неделя'},
+    {k:'month',n:'Месяц'},{k:'last_month',n:'Пр. месяц'},{k:'last30',n:'30 дней'},
+    {k:'year',n:'Год'},{k:'alltime',n:'Всё время'},
   ];
   const isCustom=S.period==='custom';
-  const periodBar=`
-  <div style="background:linear-gradient(145deg,var(--card),rgba(10,11,22,.98));border:1px solid var(--border);border-radius:18px;padding:16px 20px;margin-bottom:20px">
-    <!-- Quick presets row -->
-    <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:${isCustom?'12px':'0'}">
-      ${quickPresets.map(p=>{const on=S.period===p.k;return`<button onclick="anlSetPeriod('${p.k}')" style="padding:5px 13px;border-radius:20px;font-size:11px;font-weight:700;cursor:pointer;border:1px solid ${on?'var(--p)':'var(--border)'};background:${on?'var(--pdim2)':'rgba(255,255,255,.03)'};color:${on?'var(--p)':'var(--text2)'};transition:all .18s;${on?'box-shadow:0 0 12px var(--pglow2)':''}" onmouseover="if(!${on})this.style.background='rgba(255,255,255,.07)'" onmouseout="if(!${on})this.style.background='rgba(255,255,255,.03)'">${p.n}</button>`;}).join('')}
-      <button onclick="anlToggleCustom()" style="padding:5px 13px;border-radius:20px;font-size:11px;font-weight:700;cursor:pointer;border:1px solid ${isCustom?'var(--gold)':'var(--border)'};background:${isCustom?'rgba(240,171,48,.15)':'rgba(255,255,255,.03)'};color:${isCustom?'var(--gold)':'var(--text2)'};transition:all .18s;display:flex;align-items:center;gap:5px" onmouseover="if(!${isCustom})this.style.background='rgba(255,255,255,.07)'" onmouseout="if(!${isCustom})this.style.background='rgba(255,255,255,.03)'">
-        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M8 2v4M16 2v4M3 10h18"/></svg>
-        Выбрать даты
-      </button>
-    </div>
-    <!-- Custom date range picker -->
-    ${isCustom||S.showCustom?`<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding-top:${isCustom?'12':'0'}px;${isCustom?'border-top:1px solid var(--border)':''}">
-      <div style="display:flex;align-items:center;gap:6px">
-        <span style="font-size:10px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.5px">От</span>
-        <input type="date" id="anlFromDate" value="${S.customFrom||''}" oninput="anlSetCustomFrom(this.value)"
-          style="background:rgba(17,18,38,.9);border:1px solid var(--border2);border-radius:8px;padding:6px 10px;font-size:11.5px;font-weight:600;color:var(--text);outline:none;font-family:var(--font-body);cursor:pointer;transition:border-color .15s;width:140px"
-          onfocus="this.style.borderColor='var(--p)';this.style.boxShadow='0 0 0 3px var(--pdim)'" onblur="this.style.borderColor='var(--border2)';this.style.boxShadow=''">
-      </div>
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-      <div style="display:flex;align-items:center;gap:6px">
-        <span style="font-size:10px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.5px">До</span>
-        <input type="date" id="anlToDate" value="${S.customTo||''}" oninput="anlSetCustomTo(this.value)"
-          style="background:rgba(17,18,38,.9);border:1px solid var(--border2);border-radius:8px;padding:6px 10px;font-size:11.5px;font-weight:600;color:var(--text);outline:none;font-family:var(--font-body);cursor:pointer;transition:border-color .15s;width:140px"
-          onfocus="this.style.borderColor='var(--p)';this.style.boxShadow='0 0 0 3px var(--pdim)'" onblur="this.style.borderColor='var(--border2)';this.style.boxShadow=''">
-      </div>
-      ${S.customFrom&&S.customTo?`<button onclick="anlApplyCustom()" style="padding:6px 16px;border-radius:8px;font-size:11px;font-weight:700;cursor:pointer;border:1px solid var(--gold);background:rgba(240,171,48,.15);color:var(--gold);transition:all .15s" onmouseover="this.style.background='rgba(240,171,48,.25)'" onmouseout="this.style.background='rgba(240,171,48,.15)'">Применить</button>`:''}
-    </div>`:''}
-  </div>`;
+  const showDatePicker=isCustom||S.showCustom;
+  const presetBtns=quickPresets.map(p=>{
+    const on=S.period===p.k;
+    return '<button onclick="anlSetPeriod(\''+p.k+'\')" style="padding:5px 13px;border-radius:20px;font-size:11px;font-weight:700;cursor:pointer;'
+      +'border:1px solid '+(on?'var(--p)':'var(--border)')+';'
+      +'background:'+(on?'var(--pdim2)':'rgba(255,255,255,.03)')+';'
+      +'color:'+(on?'var(--p)':'var(--text2)')+';'
+      +'transition:all .18s;'+(on?'box-shadow:0 0 12px var(--pglow2)':'')+'">'
+      +p.n+'</button>';
+  }).join('');
+  const customBtn='<button onclick="anlToggleCustom()" style="padding:5px 13px;border-radius:20px;font-size:11px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:5px;'
+    +'border:1px solid '+(isCustom?'var(--gold)':'var(--border)')+';'
+    +'background:'+(isCustom?'rgba(240,171,48,.15)':'rgba(255,255,255,.03)')+';'
+    +'color:'+(isCustom?'var(--gold)':'var(--text2)')+';">'
+    +'<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M8 2v4M16 2v4M3 10h18"/></svg>'
+    +'Выбрать даты</button>';
+  const applyBtn=S.customFrom&&S.customTo
+    ?'<button onclick="anlApplyCustom()" style="padding:6px 16px;border-radius:8px;font-size:11px;font-weight:700;cursor:pointer;border:1px solid var(--gold);background:rgba(240,171,48,.15);color:var(--gold)">Применить</button>'
+    :'';
+  const datePicker=showDatePicker
+    ?'<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:12px;padding-top:12px;border-top:1px solid var(--border)">'
+      +'<span style="font-size:10px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.5px">От</span>'
+      +'<input type="date" id="anlFromDate" value="'+( S.customFrom||'')+'" oninput="anlSetCustomFrom(this.value)" '
+      +'style="background:rgba(17,18,38,.9);border:1px solid var(--border2);border-radius:8px;padding:6px 10px;font-size:11.5px;font-weight:600;color:var(--text);outline:none;cursor:pointer;width:145px">'
+      +'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>'
+      +'<span style="font-size:10px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.5px">До</span>'
+      +'<input type="date" id="anlToDate" value="'+(S.customTo||'')+'" oninput="anlSetCustomTo(this.value)" '
+      +'style="background:rgba(17,18,38,.9);border:1px solid var(--border2);border-radius:8px;padding:6px 10px;font-size:11.5px;font-weight:600;color:var(--text);outline:none;cursor:pointer;width:145px">'
+      +applyBtn
+      +'</div>'
+    :'';
+  const periodBar='<div style="background:linear-gradient(145deg,var(--card),rgba(10,11,22,.98));border:1px solid var(--border);border-radius:18px;padding:16px 20px;margin-bottom:20px">'
+    +'<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">'
+    +presetBtns+customBtn
+    +'</div>'
+    +datePicker
+    +'</div>';
+
+  // ── Spark trend (computed before compHtml template) ──
+  let sparkHtml='';
+  if(showComparison){
+    const prevDayCount=Math.max(1,Math.round((prevTo-prevFrom)/86400000)+1);
+    const prevDayArr=[];
+    for(let i=0;i<Math.min(prevDayCount,14);i++){
+      const d=new Date(prevFrom);d.setDate(prevFrom.getDate()+i);
+      prevDayArr.push(donePrev.filter(t=>(t.deadline||t.doneDate||t.date||'')=== dk(d)).length);
+    }
+    const currDayArr2=dayArr.slice(-14).map(d=>d.count);
+    if(currDayArr2.length>=2){
+      const maxV=Math.max(...prevDayArr,...currDayArr2,1);
+      const sparkLine=(arr)=>arr.map((v,i)=>{
+        const x=i*(100/(arr.length-1||1));const y=40-Math.round(v/maxV*36);
+        return(i===0?'M':'L')+x.toFixed(1)+','+y.toFixed(1);
+      }).join(' ');
+      sparkHtml='<div style="margin-top:16px;padding-top:14px;border-top:1px solid var(--border)">'
+        +'<div style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);margin-bottom:10px">Тренд задач по дням</div>'
+        +'<svg viewBox="0 0 100 44" style="width:100%;height:44px;overflow:visible">'
+        +'<defs>'
+        +'<linearGradient id="sparkCurr" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="var(--p)" stop-opacity=".4"/><stop offset="1" stop-color="var(--cyan)"/></linearGradient>'
+        +'<linearGradient id="sparkPrev" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="rgba(255,255,255,.1)"/><stop offset="1" stop-color="rgba(255,255,255,.2)"/></linearGradient>'
+        +'</defs>'
+        +(prevDayArr.length>1?'<path d="'+sparkLine(prevDayArr)+'" fill="none" stroke="url(#sparkPrev)" stroke-width="1.5" stroke-dasharray="3,2" stroke-linecap="round" stroke-linejoin="round"/>'  :'')
+        +'<path d="'+sparkLine(currDayArr2)+'" fill="none" stroke="url(#sparkCurr)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>'
+        +'</svg>'
+        +'<div style="display:flex;gap:14px;margin-top:6px">'
+        +'<span style="display:flex;align-items:center;gap:4px;font-size:9.5px;color:var(--text2)">— Текущий</span>'
+        +'<span style="display:flex;align-items:center;gap:4px;font-size:9.5px;color:var(--muted)">- - Предыдущий</span>'
+        +'</div>'
+        +'</div>';
+    }
+  }
 
   // ── COMPARISON DASHBOARD ──
   const compHtml=showComparison?`
@@ -7902,49 +7937,18 @@ function renderAnalytics(){
         const trendUp=trend!==null&&trend>0;
         const trendDown=trend!==null&&trend<0;
         const sparkBg=trendUp?'rgba(15,221,170,.06)':trendDown?'rgba(255,79,114,.06)':'rgba(255,255,255,.02)';
-        return`<div style="background:${sparkBg};border:1px solid rgba(255,255,255,.06);border-radius:14px;padding:14px 16px;transition:transform .2s" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform=''">
-          <div style="font-size:15px;margin-bottom:6px">${it.ico}</div>
-          <div style="font-size:22px;font-weight:800;color:${it.c};font-family:var(--font-display);letter-spacing:-1px;line-height:1">${it.fmt(it.curr)}</div>
-          <div style="display:flex;align-items:center;gap:6px;margin-top:5px;flex-wrap:wrap">
-            <span style="font-size:9.5px;color:var(--muted)">${it.lbl}</span>
-            ${badge}
-          </div>
-          ${it.prev!==undefined?`<div style="font-size:9.5px;color:rgba(255,255,255,.2);margin-top:4px">пред: ${it.fmt(it.prev)}</div>`:''}
-        </div>`;
+        return'<div style="background:'+sparkBg+';border:1px solid rgba(255,255,255,.06);border-radius:14px;padding:14px 16px;transition:transform .2s" onmouseover="this.style.transform=\'translateY(-2px)\'" onmouseout="this.style.transform=\'\'">'
+          +'<div style="font-size:15px;margin-bottom:6px">'+it.ico+'</div>'
+          +'<div style="font-size:22px;font-weight:800;color:'+it.c+';font-family:var(--font-display);letter-spacing:-1px;line-height:1">'+it.fmt(it.curr)+'</div>'
+          +'<div style="display:flex;align-items:center;gap:6px;margin-top:5px;flex-wrap:wrap">'
+          +'<span style="font-size:9.5px;color:var(--muted)">'+it.lbl+'</span>'
+          +badge
+          +'</div>'
+          +(it.prev!==undefined?'<div style="font-size:9.5px;color:rgba(255,255,255,.2);margin-top:4px">пред: '+it.fmt(it.prev)+'</div>':'')
+          +'</div>';
       }).join('')}
     </div>
-    <!-- Mini trend spark for task count by day -->
-    ${(()=>{
-      const prevDayCount=Math.max(1,Math.round((prevTo-prevFrom)/86400000)+1);
-      const prevDayArr=[];
-      for(let i=0;i<Math.min(prevDayCount,14);i++){
-        const d=new Date(prevFrom);d.setDate(prevFrom.getDate()+i);
-        const dstr=dk(d);
-        prevDayArr.push(donePrev.filter(t=>(t.deadline||t.doneDate||t.date||'')=== dstr).length);
-      }
-      const currDayArr2=dayArr.slice(-14).map(d=>d.count);
-      const maxV=Math.max(...prevDayArr,...currDayArr2,1);
-      const sparkLine=(arr,col)=>arr.map((v,i)=>{
-        const x=i*(100/(arr.length-1||1));const y=40-Math.round(v/maxV*36);
-        return`${i===0?'M':'L'}${x.toFixed(1)},${y.toFixed(1)}`;
-      }).join(' ');
-      if(currDayArr2.length<2)return'';
-      return`<div style="margin-top:16px;padding-top:14px;border-top:1px solid var(--border)">
-        <div style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);margin-bottom:10px">Тренд задач по дням</div>
-        <svg viewBox="0 0 100 44" style="width:100%;height:44px;overflow:visible">
-          <defs>
-            <linearGradient id="sparkCurr" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="var(--p)" stop-opacity=".4"/><stop offset="1" stop-color="var(--cyan)"/></linearGradient>
-            <linearGradient id="sparkPrev" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="rgba(255,255,255,.1)"/><stop offset="1" stop-color="rgba(255,255,255,.2)"/></linearGradient>
-          </defs>
-          ${prevDayArr.length>1?`<path d="${sparkLine(prevDayArr,'prev')}" fill="none" stroke="url(#sparkPrev)" stroke-width="1.5" stroke-dasharray="3,2" stroke-linecap="round" stroke-linejoin="round"/>`:''}
-          <path d="${sparkLine(currDayArr2,'curr')}" fill="none" stroke="url(#sparkCurr)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
-        <div style="display:flex;gap:14px;margin-top:6px">
-          <span style="display:flex;align-items:center;gap:4px;font-size:9.5px;color:var(--text2)"><svg width="14" height="4" viewBox="0 0 14 4"><line x1="0" y1="2" x2="14" y2="2" stroke="url(#sparkCurr)" stroke-width="2"/></svg>Текущий</span>
-          <span style="display:flex;align-items:center;gap:4px;font-size:9.5px;color:var(--muted)"><svg width="14" height="4" viewBox="0 0 14 4"><line x1="0" y1="2" x2="14" y2="2" stroke="rgba(255,255,255,.3)" stroke-width="1.5" stroke-dasharray="3,2"/></svg>Предыдущий</span>
-        </div>
-      </div>`;
-    })()}
+    ${sparkHtml}
   </div>`:'';
 
   // ── Label filter ──
