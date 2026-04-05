@@ -7837,13 +7837,13 @@ function renderAnalytics(){
     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--p)" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
     <span style="font-size:11px;color:var(--text2);font-weight:700">С</span>
     <input type="date" id="anlFromDate" value="${cfrom}"
-      onchange="window._anlState.customFrom=this.value;window._anlState.customTo=document.getElementById('anlToDate')?.value||window._anlState.customTo;if(window._anlState.customFrom&&window._anlState.customTo){renderAnalytics();}"
-      style="background:var(--card3);border:1px solid var(--border2);border-radius:8px;padding:6px 10px;font-size:12px;color:var(--text);font-family:var(--font-body);cursor:pointer;outline:none;transition:border-color .2s"
+      oninput="(function(v){window._anlState.customFrom=v;if(v&&v.length===10&&window._anlState.customTo&&window._anlState.customTo.length===10){var f=new Date(v+'T00:00:00'),t=new Date(window._anlState.customTo+'T00:00:00');if(!isNaN(f)&&!isNaN(t))renderAnalytics();}})(this.value)"
+      style="background:var(--card3);border:1px solid var(--border2);border-radius:8px;padding:6px 10px;font-size:12px;color:var(--text);font-family:var(--font-body);cursor:pointer;outline:none;transition:border-color .2s;color-scheme:dark"
       onfocus="this.style.borderColor='var(--p)'" onblur="this.style.borderColor='var(--border2)'" />
     <span style="font-size:11px;color:var(--text2);font-weight:700">—</span>
     <input type="date" id="anlToDate" value="${cto}"
-      onchange="window._anlState.customTo=this.value;window._anlState.customFrom=document.getElementById('anlFromDate')?.value||window._anlState.customFrom;if(window._anlState.customFrom&&window._anlState.customTo){renderAnalytics();}"
-      style="background:var(--card3);border:1px solid var(--border2);border-radius:8px;padding:6px 10px;font-size:12px;color:var(--text);font-family:var(--font-body);cursor:pointer;outline:none;transition:border-color .2s"
+      oninput="(function(v){window._anlState.customTo=v;if(v&&v.length===10&&window._anlState.customFrom&&window._anlState.customFrom.length===10){var f=new Date(window._anlState.customFrom+'T00:00:00'),t=new Date(v+'T00:00:00');if(!isNaN(f)&&!isNaN(t))renderAnalytics();}})(this.value)"
+      style="background:var(--card3);border:1px solid var(--border2);border-radius:8px;padding:6px 10px;font-size:12px;color:var(--text);font-family:var(--font-body);cursor:pointer;outline:none;transition:border-color .2s;color-scheme:dark"
       onfocus="this.style.borderColor='var(--p)'" onblur="this.style.borderColor='var(--border2)'" />
     ${customDayCount?`<span style="font-size:11px;color:var(--p);font-weight:800;background:var(--pdim);padding:4px 12px;border-radius:20px;border:1px solid var(--pdim2)">${customDayCount} дн.</span>`:'<span style="font-size:11px;color:var(--muted)">Выбери обе даты</span>'}
   </div>`:'';
