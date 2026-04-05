@@ -1680,7 +1680,7 @@ select.inp option{background:var(--card2);color:var(--text)}
 }
 
 /* ────────── APP LOADER ────────── */
-#appLoader{position:fixed;inset:0;z-index:9999;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;transition:opacity .5s,visibility .5s}
+#appLoader{position:fixed;inset:0;z-index:9999;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;transition:opacity .3s,visibility .3s}
 #appLoader.hidden{opacity:0;visibility:hidden;pointer-events:none}
 .loaderLogo{width:52px;height:52px;background:linear-gradient(135deg,#7C68EE,#A78CF8);border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:24px;animation:loaderPulse 2s ease-in-out infinite;box-shadow:0 0 32px rgba(124,104,238,.4)}
 @keyframes loaderPulse{0%,100%{transform:scale(1);box-shadow:0 0 0 0 rgba(124,104,238,.4)}50%{transform:scale(1.05);box-shadow:0 0 0 12px rgba(124,104,238,0)}}
@@ -2035,7 +2035,7 @@ select.inp option{background:var(--card2);color:var(--text)}
           <span style="letter-spacing:-.01em">Поиск</span>
           <span style="font-family:var(--font-mono);font-size:9px;opacity:.5;background:var(--card3);padding:1px 5px;border-radius:4px">⌘K</span>
         </button>
-        <div class="syncDot" id="syncDot" title="Синхронизация"></div>
+        <div class="syncDot" id="syncDot" title="● Синхронизировано" style="cursor:default"></div>
         <div class="hUserBtn" onclick="showUserMenu()">
           <img class="hUserAvatar" id="hUserAvatar" src="" onerror="this.style.display='none'" style="display:none">
           <span style="font-size:15px" id="hUserEmoji">👤</span>
@@ -3623,7 +3623,7 @@ function loaderStep(msg,pct){
 }
 function hideLoader(){
   const el=document.getElementById('appLoader');
-  if(el){el.classList.add('hidden');setTimeout(()=>{el.style.display='none'},600)}
+  if(el){el.classList.add('hidden');setTimeout(()=>{el.style.display='none'},300)}
 }
 
 // Show save status indicator
@@ -3636,6 +3636,7 @@ function showSaveStatus(state,msg){
 function setSyncDot(state){
   const d=document.getElementById('syncDot');if(!d)return;
   d.className='syncDot'+(state==='syncing'?' syncing':state==='error'?' error':'');
+  d.title=state==='syncing'?'Сохранение...':state==='error'?'Офлайн — изменения сохранены локально':'Синхронизировано';
 }
 
 // ── Re-render whichever tab is currently visible (called after cloud sync) ──
@@ -3662,7 +3663,7 @@ function subscribeCloud(){
   setSyncDot('syncing');
   loaderStep('Загрузка данных...',50);
 
-  // Safety timeout — if Firestore doesn't respond in 10s, fall back to cache
+  // Safety timeout — if Firestore doesn't respond in 4s, fall back to cache
   clearTimeout(_connectTimeout);
   _connectTimeout=setTimeout(()=>{
     if(!_appReady){
@@ -3670,12 +3671,11 @@ function subscribeCloud(){
       try{const c=localStorage.getItem(SKEY+'_cache');if(c)G=JSON.parse(c);}catch{}
       _appReady=true;
       hideLoader();
-      setSyncDot('error');
       initApp();
-      // Show a subtle notice
-      setTimeout(()=>showSaveStatus('error','⚠️ Офлайн режим — данные могут быть устаревшими'),500);
     }
-  },10000);
+    // Subtle dot indicator only — no scary red banner
+    setSyncDot('error');
+  },4000);
 
   _cloudListener=db.collection('users').doc(currentUser.uid)
     .onSnapshot({includeMetadataChanges:true}, snap=>{
@@ -3727,7 +3727,7 @@ function subscribeCloud(){
       _appReady=true;
       hideLoader();
       initApp();
-      showSaveStatus('error','⚠️ Нет подключения — работаем офлайн');
+      // Subtle dot only — red dot in header shows offline state
     }
   });
 }
@@ -3749,18 +3749,16 @@ function saveD(){
   try{localStorage.setItem(SKEY+'_cache',JSON.stringify(G))}catch{}
   clearTimeout(_saveTimer);
   setSyncDot('syncing');
-  showSaveStatus('saving','⏳ Сохранение...');
+  // No loading message — just sync dot spins silently
   _saveTimer=setTimeout(async()=>{
-    if(!currentUser){setSyncDot('error');showSaveStatus('error','✗ Нет сессии');return;}
-    if(_isSaving)return; // prevent concurrent saves
+    if(!currentUser){setSyncDot('error');return;}
+    if(_isSaving)return;
     _isSaving=true;
-    _myLastWriteAt=Date.now(); // ← FIX: mark BEFORE save so echo window is active immediately
+    _myLastWriteAt=Date.now();
     try{
-      // Clean undefined fields — Firestore rejects them
       const payload=cleanForFirestore(G);
       await db.collection('users').doc(currentUser.uid).set(payload);
       setSyncDot('ok');
-      showSaveStatus('saved','✓ Сохранено');
     }catch(e){
       console.warn('Save error',e);
       setSyncDot('error');
@@ -3835,20 +3833,33 @@ auth.onAuthStateChanged(async(user)=>{
     loaderStep('Авторизация...',20);
     document.getElementById('authOverlay').classList.add('hidden');
     document.getElementById('appWrap').style.display='block';
-    // Migrate old localStorage data before subscribing
+
+    // ── INSTANT BOOT: load from local cache immediately ──
+    // App shows in <100ms, Firebase syncs silently in background
+    try{
+      const cached=localStorage.getItem(SKEY+'_cache');
+      if(cached){
+        G=JSON.parse(cached)||{};
+        loaderStep('Загрузка...',70);
+        _appReady=true;
+        hideLoader();
+        initApp();
+      }
+    }catch{}
+
+    // Migrate old localStorage data
     const oldData=localStorage.getItem(SKEY);
     if(oldData){
       try{
         const parsed=JSON.parse(oldData)||{};
         if(Object.keys(parsed).length>0){
-          loaderStep('Перенос данных...',35);
           await db.collection('users').doc(user.uid).set(parsed,{merge:true});
           localStorage.removeItem(SKEY);
         }
       }catch{}
     }
     updateUserUI(user);
-    subscribeCloud(); // starts real-time sync; calls initApp() on first data
+    subscribeCloud(); // background sync; refreshes UI when server data arrives
   } else {
     currentUser=null;
     G={};
