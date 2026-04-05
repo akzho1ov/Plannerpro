@@ -1072,22 +1072,93 @@ select.inp option{background:var(--card2);color:var(--text)}
 ══════════════════════════════ */
 .growthGrid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 @media(max-width:900px){.growthGrid{grid-template-columns:1fr}}
-.goalCard{background:var(--card);border-radius:var(--r);border:1px solid var(--border);padding:15px 16px;margin-bottom:10px;transition:.2s}
-.goalCard:hover{border-color:var(--border3)}
-.goalCardHead{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:6px}
-.goalTitle{font-family:var(--font-display);font-size:14px;font-weight:700;color:var(--text)}
-.goalCatBadge{font-size:9px;font-weight:700;padding:2px 8px;border-radius:5px;text-transform:uppercase;letter-spacing:.3px;flex-shrink:0;margin-left:8px}
-.goalWhy{font-size:11px;color:var(--muted);margin-bottom:10px;font-style:italic}
-.goalProg{height:6px;background:var(--border2);border-radius:3px;overflow:hidden;margin-bottom:3px}
-.goalProgFill{height:100%;border-radius:3px;transition:.4s;background:linear-gradient(90deg,var(--purple),var(--blue))}
-.goalProgRow{display:flex;justify-content:space-between;font-size:9px;color:var(--muted);margin-bottom:8px}
-.goalMsList{display:flex;flex-direction:column;gap:5px;margin-bottom:10px}
-.goalMs{display:flex;align-items:center;gap:7px;font-size:11px;color:var(--text2)}
-.goalMs input{accent-color:var(--purple);cursor:pointer}
-.goalMs.done{text-decoration:line-through;color:var(--border3)}
-.goalCardFoot{display:flex;align-items:center;justify-content:space-between}
-.goalDl{font-size:10px;color:var(--muted)}
-.goalDelBtn{border:none;background:none;cursor:pointer;color:var(--border2);font-size:13px;padding:2px;transition:.15s}
+/* ══════════════════════════════
+   GOALS — Vision Board Cards
+══════════════════════════════ */
+.goalsGrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px}
+@media(max-width:700px){.goalsGrid{grid-template-columns:1fr}}
+
+.goalCard{
+  background:var(--card);border-radius:20px;
+  border:1px solid var(--border);
+  overflow:hidden;
+  transition:transform var(--dur2) var(--ease),border-color var(--dur2) var(--ease),box-shadow var(--dur2) var(--ease);
+  box-shadow:var(--shadow),inset 0 1px 0 rgba(255,255,255,.03);
+  position:relative;
+}
+.goalCard:hover{transform:translateY(-3px);border-color:var(--border3);box-shadow:0 12px 40px rgba(0,0,0,.6),0 0 0 1px rgba(255,255,255,.06)}
+
+/* Vision photo strip */
+.goalPhotoStrip{
+  width:100%;height:160px;object-fit:cover;display:block;
+  background:linear-gradient(135deg,var(--card2),var(--card3));
+  position:relative;
+}
+.goalPhotoStripImg{width:100%;height:160px;object-fit:cover;display:block}
+.goalPhotoStripEmpty{
+  width:100%;height:100px;
+  background:linear-gradient(135deg,var(--card2) 0%,var(--card3) 100%);
+  display:flex;align-items:center;justify-content:center;
+}
+.goalNoPhotoOverlay{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;
+  color:var(--border3);font-size:28px;height:100%;
+}
+
+.goalBody{padding:14px 16px 16px}
+.goalCardHead{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:6px;gap:8px}
+.goalTitle{font-family:var(--font-display);font-size:15px;font-weight:800;color:var(--text);letter-spacing:-.2px;line-height:1.3}
+.goalCatBadge{font-size:9px;font-weight:800;padding:3px 9px;border-radius:20px;text-transform:uppercase;letter-spacing:.4px;flex-shrink:0;margin-top:2px}
+.goalWhy{font-size:11.5px;color:var(--text2);margin-bottom:10px;font-style:italic;line-height:1.6;padding:8px 10px;background:rgba(255,255,255,.03);border-left:2px solid var(--p);border-radius:0 6px 6px 0}
+.goalProg{height:5px;background:rgba(255,255,255,.06);border-radius:4px;overflow:hidden;margin-bottom:4px}
+.goalProgFill{height:100%;border-radius:4px;transition:.5s var(--ease);background:linear-gradient(90deg,var(--purple),var(--p),var(--blue))}
+.goalProgRow{display:flex;justify-content:space-between;font-size:10px;color:var(--muted);margin-bottom:10px;font-weight:600;font-family:var(--font-mono)}
+.goalMsList{display:flex;flex-direction:column;gap:5px;margin-bottom:12px;max-height:130px;overflow-y:auto;padding-right:2px}
+.goalMsList::-webkit-scrollbar{width:3px}.goalMsList::-webkit-scrollbar-thumb{background:rgba(155,143,245,.25);border-radius:4px}
+.goalMs{display:flex;align-items:center;gap:8px;font-size:11.5px;color:var(--text2);padding:4px 0;cursor:pointer}
+.goalMs input{accent-color:var(--purple);cursor:pointer;width:14px;height:14px;flex-shrink:0}
+.goalMs.done{text-decoration:line-through;color:var(--muted);opacity:.7}
+.goalCardFoot{display:flex;align-items:center;justify-content:space-between;padding-top:10px;border-top:1px solid rgba(255,255,255,.05);margin-top:4px}
+.goalDl{font-size:10px;color:var(--muted);font-weight:600}
+.goalDelBtn{border:none;background:none;cursor:pointer;color:var(--border3);font-size:15px;padding:3px 6px;border-radius:6px;transition:.15s}
+.goalDelBtn:hover{color:var(--red);background:var(--reddim)}
+
+/* ── Mission Timeline ── */
+.missionTimeline{display:flex;flex-direction:column;gap:0;position:relative;padding-left:44px;margin-top:8px}
+.missionTimeline::before{content:'';position:absolute;left:18px;top:0;bottom:0;width:2px;background:linear-gradient(180deg,var(--gold),var(--orange),var(--p),var(--blue),var(--green));opacity:.3;border-radius:2px}
+.missionBlock{position:relative;margin-bottom:6px}
+.missionDot{
+  position:absolute;left:-35px;top:20px;
+  width:14px;height:14px;border-radius:50%;
+  border:2px solid var(--border2);background:var(--card);
+  transition:all .2s var(--ease);
+  z-index:1;
+}
+.missionBlock:hover .missionDot{transform:scale(1.3);border-color:var(--gold)}
+.missionCard{
+  background:linear-gradient(145deg,var(--card),rgba(10,11,22,.98));
+  border:1px solid var(--border);
+  border-radius:16px;
+  overflow:hidden;
+  transition:border-color .2s,box-shadow .2s,transform .2s var(--ease);
+  box-shadow:var(--shadow);
+}
+.missionCard:hover{border-color:rgba(255,255,255,.12);box-shadow:0 8px 28px rgba(0,0,0,.5);transform:translateX(4px)}
+.missionCardTop{display:flex;align-items:stretch;min-height:80px}
+.missionPhoto{width:120px;flex-shrink:0;position:relative;overflow:hidden;background:var(--card2)}
+.missionPhotoImg{width:100%;height:100%;object-fit:cover}
+.missionPhotoEmpty{width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:28px;color:var(--border2);flex-direction:column;gap:4px;cursor:pointer}
+.missionPhotoEmptyLbl{font-size:9px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px}
+.missionBody{flex:1;padding:12px 14px}
+.missionTimeLabel{font-size:9px;font-weight:900;text-transform:uppercase;letter-spacing:1.2px;margin-bottom:4px}
+.missionTitle{font-family:var(--font-display);font-size:14px;font-weight:700;color:var(--text);margin-bottom:2px;letter-spacing:-.2px;min-height:20px}
+.missionTitleInp{border:none;background:transparent;font-family:var(--font-display);font-size:14px;font-weight:700;color:var(--text);outline:none;width:100%;letter-spacing:-.2px;padding:0}
+.missionTitleInp::placeholder{color:var(--muted);font-weight:500;font-size:12px}
+.missionDesc{font-size:11px;color:var(--text2);line-height:1.6;min-height:18px}
+.missionDescInp{border:none;background:transparent;font-family:var(--font-body);font-size:11px;color:var(--text2);outline:none;width:100%;resize:none;padding:0;line-height:1.6}
+.missionDescInp::placeholder{color:var(--muted)}
+.missionPhotoEditBtn{position:absolute;bottom:4px;right:4px;background:rgba(0,0,0,.75);border:none;border-radius:6px;padding:3px 7px;font-size:9px;font-weight:700;color:#fff;cursor:pointer;opacity:0;transition:.15s;font-family:var(--font-body)}
+.missionCard:hover .missionPhotoEditBtn{opacity:1}.goalDelBtn{border:none;background:none;cursor:pointer;color:var(--border2);font-size:13px;padding:2px;transition:.15s}
 .goalDelBtn:hover{color:var(--red)}
 
 /* Journal */
@@ -2277,18 +2348,32 @@ select.inp option{background:var(--card2);color:var(--text)}
   <!-- Sub-tabs -->
   <div style="display:flex;gap:4px;border-bottom:1px solid var(--border);margin-bottom:16px;overflow-x:auto">
     <button class="rwSubTab on" onclick="goalSubTab('goals',this)">🌱 Цели</button>
+    <button class="rwSubTab" onclick="goalSubTab('mission',this)">🚀 Миссия</button>
     <button class="rwSubTab" onclick="goalSubTab('principles',this)">⚡ Принципы</button>
     <button class="rwSubTab" onclick="goalSubTab('kaizen',this)">🧠 Дневник роста</button>
-    <button class="rwSubTab" onclick="goalSubTab('charts',this)">📊 Аналитика</button>
   </div>
 
   <!-- GOALS tab -->
   <div id="gst-goals">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
-      <div style="font-family:var(--font-display);font-size:20px;font-weight:700;letter-spacing:-.4px;color:var(--green)">Мои цели</div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px">
+      <div>
+        <div style="font-family:var(--font-display);font-size:22px;font-weight:800;letter-spacing:-.4px;color:var(--green)">🌱 Мои цели</div>
+        <div style="font-size:12px;color:var(--text2);margin-top:2px">Карточки желаний — твои мечты и шаги к ним</div>
+      </div>
       <button class="btn btnE" onclick="openGoalModal(null)">+ Новая цель</button>
     </div>
-    <div id="goalsList"></div>
+    <div id="goalsList" class="goalsGrid"></div>
+  </div>
+
+  <!-- MISSION tab -->
+  <div id="gst-mission" style="display:none">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;flex-wrap:wrap;gap:10px">
+      <div>
+        <div style="font-family:var(--font-display);font-size:22px;font-weight:800;letter-spacing:-.4px;background:linear-gradient(135deg,var(--gold),var(--orange));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">🚀 Моя Миссия</div>
+        <div style="font-size:12px;color:var(--text2);margin-top:2px">Долгосрочное видение · От мечты к конкретным шагам</div>
+      </div>
+    </div>
+    <div id="missionContent"></div>
   </div>
 
   <!-- PRINCIPLES tab -->
@@ -2338,25 +2423,8 @@ select.inp option{background:var(--card2);color:var(--text)}
     </div>
   </div>
 
-  <!-- CHARTS tab -->
-  <div id="gst-charts" style="display:none">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
-      <div style="font-family:var(--font-display);font-size:20px;font-weight:700;letter-spacing:-.4px;color:var(--purple)">📊 Аналитика роста</div>
-    </div>
-    <div class="growthChartsRow" style="margin-top:4px">
-      <div class="chartCard">
-        <div class="secLbl" style="margin-bottom:10px">😊 Динамика настроения</div>
-        <div class="moodTimeline" id="moodTimeline"></div>
-      </div>
-    </div>
-    <div style="margin-top:12px;background:linear-gradient(135deg,rgba(155,143,245,.08),rgba(15,221,170,.05));border:1px dashed rgba(155,143,245,.25);border-radius:14px;padding:16px 20px;display:flex;align-items:center;gap:12px;color:var(--text2);font-size:12px">
-      <span style="font-size:22px">📊</span>
-      <div>
-        <div style="font-weight:700;color:var(--p);margin-bottom:3px">Задачи по неделям и тепловая карта привычек</div>
-        <div>Эти виджеты перенесены в раздел <b style="color:var(--green)">Дашборд</b> для быстрого обзора прямо на главной странице.</div>
-      </div>
-    </div>
-  </div>
+  <!-- CHARTS tab REMOVED - moved to dashboard -->
+
 </div>
 
 <!-- ═══ 8. REWARDS SYSTEM ═══ -->
@@ -3218,17 +3286,35 @@ select.inp option{background:var(--card2);color:var(--text)}
   </div>
 </div>
 
-<!-- Goal Modal -->
+<!-- Goal Modal — Vision Board Style -->
 <div class="overlay" id="goalOverlay" style="display:none">
-  <div class="modalBox">
+  <div class="modalBox" style="max-width:520px">
     <div class="modalHead">
       <span class="modalTitle" id="goalModalTitle">Новая цель</span>
       <button class="modalClose" onclick="closeGoalModal()">✕</button>
     </div>
+
+    <!-- Photo / Vision upload -->
+    <div class="fldGrp">
+      <div class="fldLbl">🖼️ Фото для вдохновения (карта желаний)</div>
+      <div id="goalPhotoPreview" style="position:relative;width:100%;height:140px;border-radius:12px;border:2px dashed rgba(155,143,245,.3);background:var(--card2);display:flex;align-items:center;justify-content:center;cursor:pointer;overflow:hidden;transition:border-color .2s" onclick="document.getElementById('goalPhotoInput').click()" onmouseover="this.style.borderColor='var(--p)'" onmouseout="this.style.borderColor='rgba(155,143,245,.3)'">
+        <div id="goalPhotoPlaceholder" style="text-align:center;color:var(--muted)">
+          <div style="font-size:32px;margin-bottom:6px">🌟</div>
+          <div style="font-size:11px;font-weight:600">Нажми чтобы добавить фото</div>
+          <div style="font-size:10px;margin-top:3px;opacity:.6">JPG, PNG, WEBP · до 3MB</div>
+        </div>
+        <img id="goalPhotoImg" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:none" alt="vision">
+        <div id="goalPhotoRemove" style="display:none;position:absolute;top:8px;right:8px;background:rgba(0,0,0,.7);border-radius:50%;width:28px;height:28px;align-items:center;justify-content:center;cursor:pointer;font-size:14px;color:#fff" onclick="event.stopPropagation();removeGoalPhoto()">✕</div>
+      </div>
+      <input type="file" id="goalPhotoInput" accept="image/*" style="display:none" onchange="handleGoalPhoto(this)">
+    </div>
+
     <div class="fldGrp"><div class="fldLbl">Название цели</div><input class="inp" id="goalTitleInp" placeholder="Чего хочу достичь..."></div>
-    <div class="fldGrp"><div class="fldLbl">Зачем это нужно (Мотивация)</div><textarea class="kbTxtarea" id="goalWhyInp" placeholder="Почему эта цель важна для меня..." style="min-height:55px"></textarea></div>
-    <div class="fldGrp"><div class="fldLbl">Категория</div><select class="inp" id="goalCatInp"></select></div>
-    <div class="fldGrp"><div class="fldLbl">Срок достижения</div><input type="date" class="inp" id="goalDlInp" style="color-scheme:dark"></div>
+    <div class="fldGrp"><div class="fldLbl">Зачем это нужно (Аффирмация / Мотивация)</div><textarea class="kbTxtarea" id="goalWhyInp" placeholder="Я достигну этого потому что..." style="min-height:55px"></textarea></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+      <div class="fldGrp"><div class="fldLbl">Категория</div><select class="inp" id="goalCatInp"></select></div>
+      <div class="fldGrp"><div class="fldLbl">Срок достижения</div><input type="date" class="inp" id="goalDlInp" style="color-scheme:dark"></div>
+    </div>
     <div class="fldGrp">
       <div class="fldLbl">Шаги / Вехи (по одному на строку)</div>
       <textarea class="kbTxtarea" id="goalMsInp" placeholder="Шаг 1&#10;Шаг 2&#10;Шаг 3..." style="min-height:80px"></textarea>
@@ -5987,40 +6073,60 @@ const GOAL_CAT_COLORS={'🏋️ Здоровье':'var(--green)','📚 Обра�
 
 function goalsD(){if(!G.goals)G.goals=[];return G.goals}
 function journalD(){if(!G.journal)G.journal=[];return G.journal}
-let goalEditId=null,jMoodSel='😊';
-
+let goalEditId=null,jMoodSel='😊',_goalPhotoData=null;
 
 function renderGoals(){
   const list=document.getElementById('goalsList');list.innerHTML='';
   const goals=goalsD();
-  if(!goals.length){list.innerHTML='<div class="card" style="padding:20px;text-align:center;color:var(--muted);font-size:12px">Добавьте первую цель и начните двигаться к мечте!</div>';return}
+  if(!goals.length){
+    list.innerHTML=`<div style="grid-column:1/-1;padding:40px;text-align:center;background:var(--card);border-radius:20px;border:2px dashed rgba(155,143,245,.2)">
+      <div style="font-size:48px;margin-bottom:12px;filter:drop-shadow(0 0 20px rgba(155,143,245,.3))">🌱</div>
+      <div style="font-family:var(--font-display);font-size:16px;font-weight:700;margin-bottom:6px;color:var(--text)">Создай свою первую карту желаний</div>
+      <div style="font-size:12px;color:var(--muted);margin-bottom:20px;max-width:320px;margin-left:auto;margin-right:auto">Добавь фото, опиши цель и разбей на шаги — это твоя карта желаний</div>
+      <button class="btn btnE" onclick="openGoalModal(null)">✦ Добавить первую цель</button>
+    </div>`;
+    return;
+  }
   goals.forEach(g=>{
     const ms=g.milestones||[];
     const doneCnt=ms.filter(m=>m.done).length;
     const pct=ms.length?Math.round(doneCnt/ms.length*100):0;
-    const card=document.createElement('div');card.className='goalCard';
     const color=GOAL_CAT_COLORS[g.cat]||'var(--muted)';
-    card.innerHTML=`<div class="goalCardHead">
-      <div class="goalTitle">${esc(g.title)}</div>
-      <div class="goalCatBadge" style="background:${color}22;color:${color}">${esc(g.cat||'')}</div>
+    const card=document.createElement('div');card.className='goalCard';
+
+    // Photo area
+    const photoHtml=g.photo
+      ?`<div class="goalPhotoStrip"><img class="goalPhotoStripImg" src="${g.photo}" alt="vision" loading="lazy"><div style="position:absolute;inset:0;background:linear-gradient(to bottom,transparent 40%,rgba(5,6,14,.85) 100%)"></div><div style="position:absolute;bottom:10px;left:14px;right:14px"><div class="goalTitle" style="color:#fff;font-size:16px;text-shadow:0 2px 8px rgba(0,0,0,.8)">${esc(g.title)}</div><div class="goalCatBadge" style="background:${color}33;color:${color};border:1px solid ${color}44">${esc(g.cat||'')}</div></div></div>`
+      :`<div class="goalPhotoStripEmpty"><div class="goalNoPhotoOverlay"><span>${goalCatEmoji(g.cat)}</span></div></div>`;
+
+    card.innerHTML=`
+    <div style="position:relative">${photoHtml}${!g.photo?`<div style="position:absolute;inset:0;display:flex;align-items:flex-end;padding:10px 14px"><div style="flex:1"><div class="goalCatBadge" style="background:${color}22;color:${color};display:inline-block;margin-bottom:4px">${esc(g.cat||'')}</div><div class="goalTitle">${esc(g.title)}</div></div></div>`:''}
     </div>
-    ${g.why?`<div class="goalWhy">"${esc(g.why)}"</div>`:''}
-    <div class="goalProg"><div class="goalProgFill" style="width:${pct}%"></div></div>
-    <div class="goalProgRow"><span>${doneCnt}/${ms.length} шагов</span><span>${pct}%</span></div>
-    ${ms.length?`<div class="goalMsList">${ms.map((m,i)=>`<label class="goalMs${m.done?' done':''}"><input type="checkbox" ${m.done?'checked':''} onchange="toggleMs('${g.id}',${i},this.checked)">${esc(m.text)}</label>`).join('')}</div>`:''}
-    <div class="goalCardFoot">
-      ${g.deadline?`<div class="goalDl">📅 до ${g.deadline}</div>`:'<div></div>'}
-      <div style="display:flex;gap:6px">
-        <button class="btn btnG" style="padding:4px 10px;font-size:10px" onclick="openGoalModal('${g.id}')">✏️</button>
-        <button class="goalDelBtn" onclick="delGoal('${g.id}')">🗑️</button>
+    <div class="goalBody">
+      ${g.why?`<div class="goalWhy">"${esc(g.why)}"</div>`:''}
+      <div class="goalProg"><div class="goalProgFill" style="width:${pct}%"></div></div>
+      <div class="goalProgRow"><span>${doneCnt} из ${ms.length} шагов</span><span>${pct}%</span></div>
+      ${ms.length?`<div class="goalMsList">${ms.map((m,i)=>`<label class="goalMs${m.done?' done':''}"><input type="checkbox" ${m.done?'checked':''} onchange="toggleMs('${g.id}',${i},this.checked)">${esc(m.text)}</label>`).join('')}</div>`:''}
+      <div class="goalCardFoot">
+        ${g.deadline?`<div class="goalDl">📅 до ${g.deadline}</div>`:'<div></div>'}
+        <div style="display:flex;gap:6px">
+          <button class="btn btnG" style="padding:4px 10px;font-size:10px" onclick="openGoalModal('${g.id}')">✏️ Изменить</button>
+          <button class="goalDelBtn" onclick="delGoal('${g.id}')">🗑️</button>
+        </div>
       </div>
     </div>`;
     list.appendChild(card);
   });
 }
 
+function goalCatEmoji(cat){
+  const m={'🏋️ Здоровье':'🏋️','📚 Образование':'📚','💼 Карьера':'💼','💰 Финансы':'💰','🌱 Личностный рост':'🌱','❤️ Отношения':'❤️','🎨 Творчество':'🎨','🌟 Прочее':'🌟'};
+  return m[cat]||'🎯';
+}
+
 function openGoalModal(id){
   goalEditId=id;
+  _goalPhotoData=null;
   const g=id?goalsD().find(x=>x.id===id):null;
   document.getElementById('goalModalTitle').textContent=g?'Редактировать цель':'Новая цель';
   document.getElementById('goalTitleInp').value=g?g.title:'';
@@ -6029,20 +6135,57 @@ function openGoalModal(id){
   document.getElementById('goalMsInp').value=g?(g.milestones||[]).map(m=>m.text).join('\n'):'';
   const sel=document.getElementById('goalCatInp');sel.innerHTML='';
   GOAL_CATS.forEach(c=>{const o=document.createElement('option');o.value=c;o.textContent=c;if(g&&g.cat===c)o.selected=true;sel.appendChild(o)});
+  // Photo preview
+  const img=document.getElementById('goalPhotoImg');
+  const ph=document.getElementById('goalPhotoPlaceholder');
+  const rem=document.getElementById('goalPhotoRemove');
+  if(g&&g.photo){
+    img.src=g.photo;img.style.display='block';ph.style.display='none';rem.style.display='flex';
+    _goalPhotoData=g.photo;
+  } else {
+    img.src='';img.style.display='none';ph.style.display='flex';rem.style.display='none';
+  }
+  document.getElementById('goalPhotoInput').value='';
   document.getElementById('goalOverlay').style.display='flex';
 }
-function closeGoalModal(){document.getElementById('goalOverlay').style.display='none';goalEditId=null}
+
+function handleGoalPhoto(input){
+  const file=input.files[0];if(!file)return;
+  if(file.size>4*1024*1024){alert('Файл слишком большой (максимум 4MB)');return}
+  const reader=new FileReader();
+  reader.onload=e=>{
+    _goalPhotoData=e.target.result;
+    const img=document.getElementById('goalPhotoImg');
+    img.src=_goalPhotoData;img.style.display='block';
+    document.getElementById('goalPhotoPlaceholder').style.display='none';
+    document.getElementById('goalPhotoRemove').style.display='flex';
+  };
+  reader.readAsDataURL(file);
+}
+
+function removeGoalPhoto(){
+  _goalPhotoData=null;
+  document.getElementById('goalPhotoImg').style.display='none';
+  document.getElementById('goalPhotoImg').src='';
+  document.getElementById('goalPhotoPlaceholder').style.display='flex';
+  document.getElementById('goalPhotoRemove').style.display='none';
+  document.getElementById('goalPhotoInput').value='';
+}
+
+function closeGoalModal(){document.getElementById('goalOverlay').style.display='none';goalEditId=null;_goalPhotoData=null;}
+
 function saveGoal(){
   const title=document.getElementById('goalTitleInp').value.trim();if(!title)return;
   const msLines=document.getElementById('goalMsInp').value.split('\n').map(s=>s.trim()).filter(Boolean);
   const existing=goalEditId?goalsD().find(x=>x.id===goalEditId):null;
   const existingMs=existing?existing.milestones||[]:[];
   const milestones=msLines.map((text,i)=>({text,done:existingMs[i]?existingMs[i].done:false}));
-  const data={title,why:document.getElementById('goalWhyInp').value,cat:document.getElementById('goalCatInp').value,deadline:document.getElementById('goalDlInp').value,milestones};
+  const data={title,why:document.getElementById('goalWhyInp').value,cat:document.getElementById('goalCatInp').value,deadline:document.getElementById('goalDlInp').value,milestones,photo:_goalPhotoData||''};
   if(goalEditId){const idx=goalsD().findIndex(x=>x.id===goalEditId);if(idx>=0)goalsD()[idx]={...goalsD()[idx],...data}}
   else{goalsD().push({...data,id:uid()})}
   saveD();closeGoalModal();renderGoals();
 }
+
 function delGoal(id){if(!confirm('Удалить цель?'))return;const i=goalsD().findIndex(x=>x.id===id);if(i>=0){goalsD().splice(i,1);saveD();renderGoals()}}
 function toggleMs(gid,idx,c){const g=goalsD().find(x=>x.id===gid);if(g&&g.milestones&&g.milestones[idx])g.milestones[idx].done=c;saveD();renderGoals()}
 
@@ -8759,18 +8902,102 @@ document.addEventListener('keydown',e=>{
    GOAL SUB-TABS
 ═══════════════════════════════════ */
 function goalSubTab(name,btn){
-  // Only target top-level sub-tabs in the goals section
   const tabs=document.querySelectorAll('#tab-goals > div:first-child .rwSubTab');
   tabs.forEach(b=>b.classList.remove('on'));
   if(btn)btn.classList.add('on');
-  ['goals','principles','kaizen','charts'].forEach(n=>{
+  ['goals','mission','principles','kaizen'].forEach(n=>{
     const el=document.getElementById('gst-'+n);
     if(el)el.style.display=n===name?'block':'none';
   });
   if(name==='kaizen'){kzRenderList();renderJournal();}
-  if(name==='charts'){renderMoodTimeline();renderTaskWeekChart();renderStreakHeatmap();}
   if(name==='goals')renderGoals();
   if(name==='principles')princRenderList();
+  if(name==='mission')renderMission();
+}
+
+/* ═══════════════════════════════════════
+   MISSION SYSTEM — Timeline 15→1 year
+═══════════════════════════════════════ */
+const MISSION_HORIZONS=[
+  {id:'y15',label:'15 лет',emoji:'🌌',color:'var(--purple)',desc:'Глобальное видение',placeholder:'Кем я хочу стать через 15 лет? Какой след оставить?'},
+  {id:'y10',label:'10 лет',emoji:'🚀',color:'var(--p)',desc:'Большая мечта',placeholder:'Каким будет моя жизнь через 10 лет?'},
+  {id:'y5', label:'5 лет', emoji:'🌟',color:'var(--blue)',desc:'Среднесрочные цели',placeholder:'Чего достигну за 5 лет? Карьера, семья, финансы?'},
+  {id:'y3', label:'3 года', emoji:'🎯',color:'var(--cyan)',desc:'Конкретный горизонт',placeholder:'Что конкретно получу за 3 года?'},
+  {id:'y1', label:'1 год', emoji:'📅',color:'var(--green)',desc:'Этот год',placeholder:'Мои главные цели на этот год...'},
+  {id:'m6', label:'6 месяцев',emoji:'📆',color:'var(--gold)',desc:'Полугодие',placeholder:'Что сделаю за следующие 6 месяцев?'},
+  {id:'m3', label:'3 месяца',emoji:'⚡',color:'var(--orange)',desc:'Квартал',placeholder:'Фокус следующих 3 месяцев...'},
+  {id:'m1', label:'1 месяц', emoji:'🔥',color:'var(--pink)',desc:'Этот месяц',placeholder:'Главные приоритеты этого месяца...'},
+];
+
+function missionD(){if(!G.mission)G.mission={};return G.mission;}
+
+function renderMission(){
+  const el=document.getElementById('missionContent');if(!el)return;
+  const data=missionD();
+
+  let html=`
+  <!-- Mission header card -->
+  <div style="background:linear-gradient(135deg,rgba(240,171,48,.08),rgba(255,128,48,.05),rgba(155,143,245,.06));border:1px solid rgba(240,171,48,.2);border-radius:20px;padding:20px 24px;margin-bottom:20px;display:flex;align-items:center;gap:16px;flex-wrap:wrap">
+    <div style="font-size:40px;filter:drop-shadow(0 0 20px rgba(240,171,48,.4))">🌠</div>
+    <div style="flex:1;min-width:200px">
+      <div style="font-family:var(--font-display);font-size:13px;font-weight:800;text-transform:uppercase;letter-spacing:1.5px;color:var(--gold);margin-bottom:4px">Ключевая миссия</div>
+      <input id="missionStatement" class="inp" value="${esc(data.statement||'')}" placeholder="Моя жизненная миссия — зачем я здесь и что несу в мир..." style="background:rgba(255,255,255,.04);border-color:rgba(240,171,48,.2);font-size:13px;font-weight:600;font-family:var(--font-display)" oninput="saveMissionStatement(this.value)">
+    </div>
+  </div>
+  <div class="missionTimeline">`;
+
+  MISSION_HORIZONS.forEach((h,idx)=>{
+    const d=data[h.id]||{};
+    const hasPhoto=d.photo&&d.photo.length>50;
+    html+=`
+    <div class="missionBlock">
+      <div class="missionDot" style="background:${h.color};border-color:${h.color};box-shadow:0 0 8px ${h.color}44"></div>
+      <div class="missionCard" style="border-color:rgba(255,255,255,.07)">
+        <div class="missionCardTop">
+          <!-- Photo zone -->
+          <div class="missionPhoto" onclick="missionPickPhoto('${h.id}')" title="Нажми чтобы добавить фото">
+            ${hasPhoto
+              ?`<img class="missionPhotoImg" src="${d.photo}" alt="${h.label}" loading="lazy"><button class="missionPhotoEditBtn" onclick="event.stopPropagation();missionPickPhoto('${h.id}')">📷 Изменить</button>`
+              :`<div class="missionPhotoEmpty"><span>${h.emoji}</span><span class="missionPhotoEmptyLbl">+ фото</span></div>`
+            }
+            <input type="file" id="mPhoto_${h.id}" accept="image/*" style="display:none" onchange="missionHandlePhoto('${h.id}',this)">
+          </div>
+          <!-- Body -->
+          <div class="missionBody">
+            <div class="missionTimeLabel" style="color:${h.color}">${h.emoji} ${h.label} · <span style="font-weight:500;opacity:.7">${h.desc}</span></div>
+            <input class="missionTitleInp" placeholder="${h.placeholder.split('?')[0]}..." value="${esc(d.title||'')}" oninput="saveMissionField('${h.id}','title',this.value)">
+            <textarea class="missionDescInp" placeholder="Опиши детали, мечты, конкретные результаты..." rows="2" oninput="saveMissionField('${h.id}','desc',this.value)">${esc(d.desc||'')}</textarea>
+          </div>
+        </div>
+        ${d.title||d.desc||hasPhoto?`
+        <div style="padding:8px 14px 10px;border-top:1px solid rgba(255,255,255,.04);display:flex;align-items:center;justify-content:space-between">
+          <div style="font-size:9px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.5px">Ключевые шаги</div>
+          <button onclick="missionClearBlock('${h.id}')" style="border:none;background:none;font-size:10px;color:var(--muted);cursor:pointer;transition:.15s;padding:2px 6px;border-radius:5px;font-family:var(--font-body)" onmouseover="this.style.color='var(--red)'" onmouseout="this.style.color='var(--muted)'">✕ Очистить</button>
+        </div>
+        <div style="padding:0 14px 12px">
+          <textarea class="inp" placeholder="— Шаг 1&#10;— Шаг 2&#10;— Шаг 3..." rows="3" style="font-size:11px;line-height:1.6;resize:none;min-height:60px" oninput="saveMissionField('${h.id}','steps',this.value)">${esc(d.steps||'')}</textarea>
+        </div>`:''}
+      </div>
+    </div>`;
+  });
+
+  html+=`</div>`;
+  el.innerHTML=html;
+}
+
+function saveMissionStatement(v){missionD().statement=v;saveD();}
+function saveMissionField(id,field,v){const d=missionD();if(!d[id])d[id]={};d[id][field]=v;saveD();}
+function missionClearBlock(id){if(!confirm('Очистить этот горизонт?'))return;const d=missionD();d[id]={};saveD();renderMission();}
+function missionPickPhoto(id){document.getElementById('mPhoto_'+id)?.click();}
+function missionHandlePhoto(id,input){
+  const file=input.files[0];if(!file)return;
+  if(file.size>4*1024*1024){alert('Файл слишком большой (максимум 4MB)');return}
+  const reader=new FileReader();
+  reader.onload=e=>{
+    saveMissionField(id,'photo',e.target.result);
+    renderMission();
+  };
+  reader.readAsDataURL(file);
 }
 
 function kzInnerTab(name,btn){
