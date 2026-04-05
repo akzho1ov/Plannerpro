@@ -5174,7 +5174,7 @@ function renderKanban(){
       let _kbDragMoved=false;
       card.addEventListener('dragstart',e=>{_kbDragId=c.id;_kbDragMoved=true;e.dataTransfer.setData('text/plain',c.id);e.dataTransfer.effectAllowed='move';setTimeout(()=>{card.style.opacity='.3';card.style.transform='scale(.96)';},0);});
       card.addEventListener('dragend',()=>{card.style.opacity='';card.style.transform='';document.querySelectorAll('.kbCards').forEach(z=>{z.style.background='';z.style.outline='';});_kbDragId=null;setTimeout(()=>{_kbDragMoved=false;},100);});
-      card.addEventListener('click',e=>{if(_kbDragMoved)return;if(e.target.closest('button'))return;openKbModal('${col.id}','${c.id}');});
+      card.addEventListener('click',e=>{if(_kbDragMoved)return;if(e.target.closest('button'))return;openKbModal(col.id,c.id);});
       const lbl=c.labelId?labelsD().find(l=>l.id===c.labelId):null;
       if(lbl)card.style.borderLeft=`3px solid ${lbl.color}`;
       const lblHtml=lbl?`<span style="display:inline-flex;align-items:center;gap:3px;font-size:9px;font-weight:700;color:${lbl.color};background:${hexA(lbl.color,.12)};padding:2px 6px;border-radius:20px">${esc(lbl.name)}</span>`:'';
