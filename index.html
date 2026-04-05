@@ -7660,7 +7660,7 @@ function gymNotif(msg,type){
 // ═══════════════════════════════════════════════════════
 //  ANALYTICS v2 — время по выполненным, периоды, метки
 // ═══════════════════════════════════════════════════════
-if(!window._anlState)window._anlState={period:'week',labelIds:[],groupOpen:{},lblGroup:null,customFrom:'',customTo:''};
+if(!window._anlState)window._anlState={period:'7days',labelIds:[],groupOpen:{},lblGroup:null,customFrom:'',customTo:''};
 
 function anlGetPeriodRange(period){
   const now=new Date();now.setHours(0,0,0,0);
@@ -7680,6 +7680,8 @@ function anlGetPeriodRange(period){
   else if(period==='custom'){
     if(S.customFrom)from=new Date(S.customFrom+'T00:00:00');
     if(S.customTo)to=new Date(S.customTo+'T00:00:00');
+    // Swap if reversed
+    if(from>to){const tmp=from;from=to;to=tmp;}
   }
   return{from,to};
 }
@@ -7687,31 +7689,26 @@ function anlGetPeriodRange(period){
 // Returns prev period range with same duration for comparison
 function anlGetPrevPeriodRange(period){
   const now=new Date();now.setHours(0,0,0,0);
-  let from=new Date(now),to=new Date(now);
   const S=window._anlState;
-  if(period==='day'){from=new Date(now);from.setDate(now.getDate()-1);to=new Date(from);}
-  else if(period==='yesterday'){from=new Date(now);from.setDate(now.getDate()-2);to=new Date(now);to.setDate(now.getDate()-2);}
-  else if(period==='3days'){from=new Date(now);from.setDate(now.getDate()-5);to=new Date(now);to.setDate(now.getDate()-3);}
-  else if(period==='7days'){from=new Date(now);from.setDate(now.getDate()-13);to=new Date(now);to.setDate(now.getDate()-7);}
-  else if(period==='14days'){from=new Date(now);from.setDate(now.getDate()-27);to=new Date(now);to.setDate(now.getDate()-14);}
-  else if(period==='30days'){from=new Date(now);from.setDate(now.getDate()-59);to=new Date(now);to.setDate(now.getDate()-30);}
-  else if(period==='week'){const dow=now.getDay()||7;const wStart=new Date(now);wStart.setDate(now.getDate()-dow+1);from=new Date(wStart);from.setDate(wStart.getDate()-7);to=new Date(from);to.setDate(from.getDate()+6);}
-  else if(period==='month'){from=new Date(now.getFullYear(),now.getMonth()-1,1);to=new Date(now.getFullYear(),now.getMonth(),0);}
-  else if(period==='quarter'){const q=Math.floor(now.getMonth()/3);from=new Date(now.getFullYear(),q*3-3,1);to=new Date(now.getFullYear(),q*3,0);}
-  else if(period==='year'){from=new Date(now.getFullYear()-1,0,1);to=new Date(now.getFullYear()-1,11,31);}
-  else if(period==='custom'){
+  if(period==='day'){return{from:new Date(now.getTime()-86400000),to:new Date(now.getTime()-86400000)};}
+  if(period==='yesterday'){const y=new Date(now.getTime()-86400000);return{from:new Date(y.getTime()-86400000),to:new Date(y.getTime()-86400000)};}
+  if(period==='3days'){return{from:new Date(now.getTime()-5*86400000),to:new Date(now.getTime()-3*86400000)};}
+  if(period==='7days'){return{from:new Date(now.getTime()-13*86400000),to:new Date(now.getTime()-7*86400000)};}
+  if(period==='14days'){return{from:new Date(now.getTime()-27*86400000),to:new Date(now.getTime()-14*86400000)};}
+  if(period==='30days'){return{from:new Date(now.getTime()-59*86400000),to:new Date(now.getTime()-30*86400000)};}
+  if(period==='year'){return{from:new Date(now.getFullYear()-1,0,1),to:new Date(now.getFullYear()-1,11,31)};}
+  if(period==='custom'){
     const cur=anlGetPeriodRange('custom');
+    if(!S.customFrom||!S.customTo)return null;
     const dur=cur.to-cur.from;
-    from=new Date(cur.from.getTime()-dur-86400000);
-    to=new Date(cur.from.getTime()-86400000);
+    return{from:new Date(cur.from.getTime()-dur-86400000),to:new Date(cur.from.getTime()-86400000)};
   }
-  else return null;
-  return{from,to};
+  return null;
 }
 
 // Period display name for prev period
 function anlPrevPeriodLabel(period){
-  const labels={day:'вчера',yesterday:'позавчера',week:'прошлая неделя',month:'прошлый месяц',quarter:'прошлый квартал',year:'прошлый год','3days':'пред. 3 дня','7days':'пред. 7 дней','14days':'пред. 14 дней','30days':'пред. 30 дней',custom:'пред. период'};
+  const labels={day:'вчера',yesterday:'позавчера',year:'прошлый год','3days':'пред. 3 дня','7days':'пред. 7 дней','14days':'пред. 2 нед.','30days':'пред. 30 дней',custom:'пред. период'};
   return labels[period]||'пред. период';
 }
 
@@ -7823,21 +7820,32 @@ function renderAnalytics(){
     {k:'7days',n:'7 дней'},
     {k:'14days',n:'2 недели'},
     {k:'30days',n:'30 дней'},
-    {k:'week',n:'Нед.'},
-    {k:'month',n:'Месяц'},
-    {k:'quarter',n:'Квартал'},
     {k:'year',n:'Год'},
     {k:'alltime',n:'Всё время'},
     {k:'custom',n:'📅 Свой период'},
   ];
-  // Custom range inputs
-  const customRangeHtml=S.period==='custom'?`<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:10px;padding:12px 16px;background:var(--card2);border:1px solid var(--pdim2);border-radius:14px">
+  // Custom range inputs — rendered only when period==='custom'
+  // Uses onchange (fires on blur/enter) not oninput to avoid re-render on every char
+  const cfrom=S.customFrom||'';
+  const cto=S.customTo||'';
+  let customDayCount='';
+  if(cfrom&&cto){
+    const df=new Date(cfrom+'T00:00:00'),dt=new Date(cto+'T00:00:00');
+    if(dt>=df)customDayCount=Math.round((dt-df)/86400000)+1;
+  }
+  const customRangeHtml=S.period==='custom'?`<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:10px;padding:14px 18px;background:var(--card2);border:1px solid var(--pdim2);border-radius:14px;animation:paneIn .2s var(--ease) both">
     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--p)" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
-    <span style="font-size:11px;color:var(--text2);font-weight:600">С:</span>
-    <input type="date" id="anlFromDate" value="${S.customFrom||''}" onchange="anlSetCustomFrom(this.value)" style="background:var(--card3);border:1px solid var(--border2);border-radius:8px;padding:5px 10px;font-size:11.5px;color:var(--text);font-family:var(--font-body);cursor:pointer;outline:none" />
-    <span style="font-size:11px;color:var(--text2);font-weight:600">По:</span>
-    <input type="date" id="anlToDate" value="${S.customTo||''}" onchange="anlSetCustomTo(this.value)" style="background:var(--card3);border:1px solid var(--border2);border-radius:8px;padding:5px 10px;font-size:11.5px;color:var(--text);font-family:var(--font-body);cursor:pointer;outline:none" />
-    ${S.customFrom&&S.customTo?`<span style="font-size:10.5px;color:var(--p);font-weight:700;background:var(--pdim);padding:4px 10px;border-radius:8px">${Math.round((new Date(S.customTo+'T00:00:00')-new Date(S.customFrom+'T00:00:00'))/86400000)+1} дн.</span>`:''}
+    <span style="font-size:11px;color:var(--text2);font-weight:700">С</span>
+    <input type="date" id="anlFromDate" value="${cfrom}"
+      onchange="window._anlState.customFrom=this.value;window._anlState.customTo=document.getElementById('anlToDate')?.value||window._anlState.customTo;if(window._anlState.customFrom&&window._anlState.customTo){renderAnalytics();}"
+      style="background:var(--card3);border:1px solid var(--border2);border-radius:8px;padding:6px 10px;font-size:12px;color:var(--text);font-family:var(--font-body);cursor:pointer;outline:none;transition:border-color .2s"
+      onfocus="this.style.borderColor='var(--p)'" onblur="this.style.borderColor='var(--border2)'" />
+    <span style="font-size:11px;color:var(--text2);font-weight:700">—</span>
+    <input type="date" id="anlToDate" value="${cto}"
+      onchange="window._anlState.customTo=this.value;window._anlState.customFrom=document.getElementById('anlFromDate')?.value||window._anlState.customFrom;if(window._anlState.customFrom&&window._anlState.customTo){renderAnalytics();}"
+      style="background:var(--card3);border:1px solid var(--border2);border-radius:8px;padding:6px 10px;font-size:12px;color:var(--text);font-family:var(--font-body);cursor:pointer;outline:none;transition:border-color .2s"
+      onfocus="this.style.borderColor='var(--p)'" onblur="this.style.borderColor='var(--border2)'" />
+    ${customDayCount?`<span style="font-size:11px;color:var(--p);font-weight:800;background:var(--pdim);padding:4px 12px;border-radius:20px;border:1px solid var(--pdim2)">${customDayCount} дн.</span>`:'<span style="font-size:11px;color:var(--muted)">Выбери обе даты</span>'}
   </div>`:'';
 
   const periodBar=`<div style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:8px">
