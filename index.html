@@ -6118,23 +6118,26 @@ function renderGoals(){
   }
 
   const now=new Date();
-  function daysUntil(dl){
+  const thisYear=now.getFullYear();
+
+  function deadlineYear(dl){
     if(!dl)return Infinity;
-    const diff=new Date(dl)-now;
-    return Math.ceil(diff/(1000*60*60*24));
+    return new Date(dl).getFullYear();
   }
 
   const periods=[
-    {key:'month', icon:'🔥', label:'Этот месяц', color:'var(--pink)', test:d=>d<=31},
-    {key:'quarter',icon:'⚡', label:'Этот квартал',color:'var(--orange)',test:d=>d>31&&d<=92},
-    {key:'year',  icon:'📅', label:'Этот год',   color:'var(--blue)', test:d=>d>92&&d<=365},
-    {key:'long',  icon:'🌟', label:'Долгосрочные',color:'var(--purple)',test:d=>d>365||d===Infinity},
+    {key:'y0',  icon:'🎯', label:`${thisYear} — Этот год`,  color:'var(--green)',  test:y=>y<=thisYear},
+    {key:'y3',  icon:'⚡', label:'3 года',                  color:'var(--cyan)',   test:y=>y>thisYear&&y<=thisYear+3},
+    {key:'y5',  icon:'🚀', label:'5 лет',                   color:'var(--blue)',   test:y=>y>thisYear+3&&y<=thisYear+5},
+    {key:'y10', icon:'🌟', label:'10 лет',                  color:'var(--purple)', test:y=>y>thisYear+5&&y<=thisYear+10},
+    {key:'y15', icon:'🌌', label:'15 лет',                  color:'var(--p)',      test:y=>y>thisYear+10&&y<=thisYear+15},
+    {key:'long',icon:'♾️', label:'Долгосрочные',             color:'var(--muted)', test:y=>y>thisYear+15||y===Infinity},
   ];
 
-  const buckets={month:[],quarter:[],year:[],long:[]};
+  const buckets={y0:[],y3:[],y5:[],y10:[],y15:[],long:[]};
   goals.forEach(g=>{
-    const d=daysUntil(g.deadline);
-    const p=periods.find(p=>p.test(d));
+    const y=deadlineYear(g.deadline);
+    const p=periods.find(p=>p.test(y));
     if(p)buckets[p.key].push(g);
   });
 
