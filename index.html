@@ -7973,27 +7973,76 @@ function renderAnalytics(){
 
 
   // ── Comparison summary banner ──
-  const compBannerHtml=prevRange&&(prevDoneTasks.length>0||doneTasks.length>0)?`<div style="background:linear-gradient(135deg,rgba(155,143,245,.06),rgba(34,204,232,.03),rgba(10,11,22,.99));border:1px solid rgba(155,143,245,.15);border-radius:16px;padding:14px 20px;margin-bottom:20px;display:flex;align-items:center;gap:16px;flex-wrap:wrap">
-    <div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:var(--p);flex-shrink:0">vs ${anlPrevPeriodLabel(S.period)}</div>
-    <div style="display:flex;gap:20px;flex-wrap:wrap;flex:1">
+  function fmtDateShort(d){return`${d.getDate()}.${pad2(d.getMonth()+1)}.${d.getFullYear()}`;}
+  function pad2(n){return String(n).padStart(2,'0');}
+  const curFromFmt=fmtDateShort(from);
+  const curToFmt=fmtDateShort(to);
+  const prevFromFmt=prevRange?fmtDateShort(prevRange.from):'';
+  const prevToFmt=prevRange?fmtDateShort(prevRange.to):'';
+
+  const compBannerHtml=prevRange&&(prevDoneTasks.length>0||doneTasks.length>0)?`
+  <div style="background:linear-gradient(135deg,rgba(155,143,245,.07) 0%,rgba(34,204,232,.04) 50%,rgba(10,11,22,.99) 100%);border:1px solid rgba(155,143,245,.2);border-radius:18px;padding:0;margin-bottom:20px;overflow:hidden;position:relative">
+    <!-- top glow line -->
+    <div style="position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(155,143,245,.5),transparent)"></div>
+    <!-- header row -->
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 20px 10px;border-bottom:1px solid rgba(255,255,255,.05);flex-wrap:wrap;gap:8px">
+      <div style="display:flex;align-items:center;gap:8px">
+        <div style="width:6px;height:6px;border-radius:50%;background:var(--p);box-shadow:0 0 8px var(--pglow);flex-shrink:0"></div>
+        <span style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:1.2px;color:var(--p)">Сравнение периодов</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
+        <!-- current period badge -->
+        <div style="display:flex;align-items:center;gap:5px;background:rgba(155,143,245,.12);border:1px solid rgba(155,143,245,.2);border-radius:8px;padding:4px 10px">
+          <span style="width:5px;height:5px;border-radius:50%;background:var(--p);flex-shrink:0"></span>
+          <span style="font-size:10px;font-weight:700;color:var(--p);font-family:var(--font-mono)">${curFromFmt}</span>
+          <span style="font-size:9px;color:var(--muted)">—</span>
+          <span style="font-size:10px;font-weight:700;color:var(--p);font-family:var(--font-mono)">${curToFmt}</span>
+        </div>
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
+        <!-- prev period badge -->
+        <div style="display:flex;align-items:center;gap:5px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:8px;padding:4px 10px">
+          <span style="width:5px;height:5px;border-radius:50%;background:var(--muted);flex-shrink:0"></span>
+          <span style="font-size:10px;font-weight:700;color:var(--text2);font-family:var(--font-mono)">${prevFromFmt}</span>
+          <span style="font-size:9px;color:var(--muted)">—</span>
+          <span style="font-size:10px;font-weight:700;color:var(--text2);font-family:var(--font-mono)">${prevToFmt}</span>
+        </div>
+      </div>
+    </div>
+    <!-- stats row -->
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:0">
       ${[
-        {lbl:'Задач',curr:doneTasks.length,prev:prevDoneTasks.length,col:'var(--green)'},
-        {lbl:'Запланировано',curr:totalPlannedMin,prev:prevPlannedMin,col:'var(--p)',fmt:fmtMin},
-        {lbl:'Фактически',curr:totalActualDur,prev:prevActualDur,col:'var(--cyan)',fmt:fmtMin},
-      ].map(c=>{
+        {lbl:'Задач',ico:'✅',curr:doneTasks.length,prev:prevDoneTasks.length,col:'var(--green)',colDim:'rgba(15,221,170,.08)'},
+        {lbl:'Запланировано',ico:'⏱',curr:totalPlannedMin,prev:prevPlannedMin,col:'var(--p)',colDim:'rgba(155,143,245,.06)',fmt:fmtMin},
+        {lbl:'Фактически',ico:'⏳',curr:totalActualDur,prev:prevActualDur,col:'var(--cyan)',colDim:'rgba(34,204,232,.06)',fmt:fmtMin},
+      ].map((c,i)=>{
         const diff=c.curr-c.prev;
         const pct=c.prev>0?Math.round(diff/c.prev*100):c.curr>0?100:0;
         const up=diff>=0;
-        const col=up?'var(--green)':'var(--red)';
+        const noChange=diff===0;
+        const deltaCol=noChange?'var(--muted)':up?'var(--green)':'var(--red)';
+        const arrow=noChange?'—':up?'↑':'↓';
         const dispCurr=c.fmt?c.fmt(c.curr):c.curr;
         const dispPrev=c.fmt?c.fmt(c.prev):c.prev;
-        return`<div style="display:flex;flex-direction:column;gap:1px">
-          <span style="font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;font-weight:700">${c.lbl}</span>
-          <div style="display:flex;align-items:baseline;gap:5px">
-            <span style="font-size:14px;font-weight:800;color:${c.col};font-family:var(--font-display)">${dispCurr}</span>
-            <span style="font-size:10px;color:${col};font-weight:700">${up?'↑+':'↓'}${Math.abs(pct)}%</span>
+        const border=i>0?'border-left:1px solid rgba(255,255,255,.05)':'';
+        return`<div style="padding:14px 20px;background:${c.colDim};${border};position:relative;overflow:hidden">
+          <div style="position:absolute;top:-15px;right:-10px;width:60px;height:60px;border-radius:50%;background:${c.col};opacity:.04;pointer-events:none"></div>
+          <div style="display:flex;align-items:center;gap:5px;margin-bottom:8px">
+            <span style="font-size:11px">${c.ico}</span>
+            <span style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.8px;color:var(--muted)">${c.lbl}</span>
           </div>
-          <span style="font-size:9px;color:var(--muted)">было: ${dispPrev}</span>
+          <!-- current value + delta -->
+          <div style="display:flex;align-items:baseline;gap:8px;flex-wrap:wrap">
+            <span style="font-size:20px;font-weight:800;color:${c.col};font-family:var(--font-display);letter-spacing:-1px;line-height:1">${dispCurr}</span>
+            <div style="display:flex;align-items:center;gap:3px;background:${noChange?'rgba(255,255,255,.05)':up?'rgba(15,221,170,.12)':'rgba(255,79,114,.12)'};border-radius:6px;padding:2px 7px">
+              <span style="font-size:10px;font-weight:800;color:${deltaCol}">${arrow}</span>
+              <span style="font-size:10px;font-weight:800;color:${deltaCol}">${noChange?'0%':Math.abs(pct)+'%'}</span>
+            </div>
+          </div>
+          <!-- prev value -->
+          <div style="display:flex;align-items:center;gap:4px;margin-top:5px">
+            <span style="font-size:9.5px;color:var(--muted)">было:</span>
+            <span style="font-size:10px;font-weight:600;color:var(--text2);font-family:var(--font-mono)">${dispPrev}</span>
+          </div>
         </div>`;
       }).join('')}
     </div>
