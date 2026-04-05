@@ -7824,8 +7824,7 @@ function renderAnalytics(){
     {k:'alltime',n:'Всё время'},
     {k:'custom',n:'📅 Свой период'},
   ];
-  // Custom range inputs — rendered only when period==='custom'
-  // Uses onchange (fires on blur/enter) not oninput to avoid re-render on every char
+  // Custom range inputs — fully custom, no native <input type="date">
   const cfrom=S.customFrom||'';
   const cto=S.customTo||'';
   let customDayCount='';
@@ -7833,20 +7832,36 @@ function renderAnalytics(){
     const df=new Date(cfrom+'T00:00:00'),dt=new Date(cto+'T00:00:00');
     if(dt>=df)customDayCount=Math.round((dt-df)/86400000)+1;
   }
-  const customRangeHtml=S.period==='custom'?`<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:10px;padding:14px 18px;background:var(--card2);border:1px solid var(--pdim2);border-radius:14px;animation:paneIn .2s var(--ease) both">
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--p)" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
-    <span style="font-size:11px;color:var(--text2);font-weight:700">С</span>
-    <input type="date" id="anlFromDate" value="${cfrom}"
-      oninput="(function(v){window._anlState.customFrom=v;if(v&&v.length===10&&window._anlState.customTo&&window._anlState.customTo.length===10){var f=new Date(v+'T00:00:00'),t=new Date(window._anlState.customTo+'T00:00:00');if(!isNaN(f)&&!isNaN(t))renderAnalytics();}})(this.value)"
-      style="background:var(--card3);border:1px solid var(--border2);border-radius:8px;padding:6px 10px;font-size:12px;color:var(--text);font-family:var(--font-body);cursor:pointer;outline:none;transition:border-color .2s;color-scheme:dark"
-      onfocus="this.style.borderColor='var(--p)'" onblur="this.style.borderColor='var(--border2)'" />
-    <span style="font-size:11px;color:var(--text2);font-weight:700">—</span>
-    <input type="date" id="anlToDate" value="${cto}"
-      oninput="(function(v){window._anlState.customTo=v;if(v&&v.length===10&&window._anlState.customFrom&&window._anlState.customFrom.length===10){var f=new Date(window._anlState.customFrom+'T00:00:00'),t=new Date(v+'T00:00:00');if(!isNaN(f)&&!isNaN(t))renderAnalytics();}})(this.value)"
-      style="background:var(--card3);border:1px solid var(--border2);border-radius:8px;padding:6px 10px;font-size:12px;color:var(--text);font-family:var(--font-body);cursor:pointer;outline:none;transition:border-color .2s;color-scheme:dark"
-      onfocus="this.style.borderColor='var(--p)'" onblur="this.style.borderColor='var(--border2)'" />
-    ${customDayCount?`<span style="font-size:11px;color:var(--p);font-weight:800;background:var(--pdim);padding:4px 12px;border-radius:20px;border:1px solid var(--pdim2)">${customDayCount} дн.</span>`:'<span style="font-size:11px;color:var(--muted)">Выбери обе даты</span>'}
-  </div>`:'';
+  function fmtDateDisplay(iso){
+    if(!iso)return'';
+    const[y,m,d]=iso.split('-');
+    return`${d}.${m}.${y}`;
+  }
+  const customRangeHtml=S.period==='custom'?`
+  <div id="anlCustomRange" style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:10px;padding:14px 18px;background:var(--card2);border:1px solid var(--pdim2);border-radius:14px;animation:paneIn .2s var(--ease) both;position:relative">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--p)" stroke-width="2" style="flex-shrink:0"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+    <!-- FROM picker trigger -->
+    <div style="position:relative">
+      <button id="anlFromBtn" onclick="anlPickerOpen('from',event)"
+        style="display:flex;align-items:center;gap:8px;padding:7px 14px;background:var(--card3);border:1px solid ${cfrom?'var(--p)':'var(--border2)'};border-radius:10px;cursor:pointer;font-family:var(--font-body);font-size:12px;font-weight:${cfrom?700:500};color:${cfrom?'var(--text)':'var(--muted)'};transition:all .2s;min-width:110px">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+        ${cfrom?fmtDateDisplay(cfrom):'Начало'}
+      </button>
+    </div>
+    <svg width="14" height="2" viewBox="0 0 14 2" fill="none" style="flex-shrink:0"><line x1="0" y1="1" x2="14" y2="1" stroke="var(--muted)" stroke-width="2" stroke-linecap="round"/></svg>
+    <!-- TO picker trigger -->
+    <div style="position:relative">
+      <button id="anlToBtn" onclick="anlPickerOpen('to',event)"
+        style="display:flex;align-items:center;gap:8px;padding:7px 14px;background:var(--card3);border:1px solid ${cto?'var(--p)':'var(--border2)'};border-radius:10px;cursor:pointer;font-family:var(--font-body);font-size:12px;font-weight:${cto?700:500};color:${cto?'var(--text)':'var(--muted)'};transition:all .2s;min-width:110px">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+        ${cto?fmtDateDisplay(cto):'Конец'}
+      </button>
+    </div>
+    ${customDayCount?`<span style="font-size:11px;color:var(--p);font-weight:800;background:var(--pdim);padding:4px 12px;border-radius:20px;border:1px solid var(--pdim2)">${customDayCount} дн.</span>`:'<span style="font-size:11px;color:var(--muted)">Выбери период</span>'}
+    ${cfrom&&cto?`<button onclick="window._anlState.customFrom='';window._anlState.customTo='';renderAnalytics()" style="border:none;background:transparent;color:var(--muted);font-size:14px;cursor:pointer;padding:2px 4px;border-radius:6px;transition:color .2s;margin-left:auto" onmouseover="this.style.color='var(--red)'" onmouseout="this.style.color='var(--muted)'" title="Сбросить">✕</button>`:''}
+  </div>
+  <!-- Calendar popup rendered by JS into body -->
+  `:'';
 
   const periodBar=`<div style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:8px">
     ${periods.map(p=>{const on=S.period===p.k;return`<button onclick="anlSetPeriod('${p.k}')" style="padding:5px 14px;border-radius:20px;font-size:11px;font-weight:700;cursor:pointer;border:1px solid ${on?'var(--p)':'var(--border)'};background:${on?'var(--pdim2)':'var(--card2)'};color:${on?'var(--p)':'var(--text2)'};transition:all .2s;${on?'box-shadow:0 0 12px var(--pglow2)':''}">${p.n}</button>`;}).join('')}
@@ -8201,6 +8216,206 @@ function anlDrawPie(lblStats){
 function anlSetPeriod(p){window._anlState.period=p;renderAnalytics();}
 function anlSetCustomFrom(v){window._anlState.customFrom=v;if(window._anlState.customTo)renderAnalytics();}
 function anlSetCustomTo(v){window._anlState.customTo=v;if(window._anlState.customFrom)renderAnalytics();}
+
+/* ══════════════════════════════════════════
+   CUSTOM DATE PICKER — no native date input
+══════════════════════════════════════════ */
+(function(){
+  let _pickerEl=null;
+  let _pickerField=null; // 'from' | 'to'
+  let _pickerYear=null;
+  let _pickerMonth=null;
+
+  const MONTHS_RU=['Январь','Февраль','Март','Апрель','Май','Июнь','Июль','Август','Сентябрь','Октябрь','Ноябрь','Декабрь'];
+  const DAYS_RU=['Пн','Вт','Ср','Чт','Пт','Сб','Вс'];
+
+  function pad(n){return String(n).padStart(2,'0');}
+  function toIso(y,m,d){return`${y}-${pad(m)}-${pad(d)}`;}
+  function parseIso(iso){if(!iso)return null;const[y,m,d]=iso.split('-').map(Number);return{y,m,d};}
+
+  function render(){
+    if(!_pickerEl)return;
+    const S=window._anlState;
+    const fromIso=S.customFrom||'';
+    const toIso2=S.customTo||'';
+    const fromP=parseIso(fromIso);
+    const toP=parseIso(toIso2);
+
+    const now=new Date();
+    const y=_pickerYear, m=_pickerMonth; // m: 1-12
+    const firstDay=new Date(y,m-1,1).getDay(); // 0=Sun
+    const firstMon=firstDay===0?6:firstDay-1;   // offset for Mon-start
+    const daysInMonth=new Date(y,m,0).getDate();
+    const daysInPrev=new Date(y,m-1,0).getDate();
+
+    // Build calendar grid
+    let cells='';
+    let cellIdx=0;
+    // prev month filler
+    for(let i=firstMon-1;i>=0;i--){
+      const d=daysInPrev-i;
+      cells+=`<div style="width:30px;height:30px;display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--muted);opacity:.4;cursor:default">${d}</div>`;
+      cellIdx++;
+    }
+    // current month days
+    for(let d=1;d<=daysInMonth;d++){
+      const iso=toIso(y,m,d);
+      const isFrom=fromIso===iso;
+      const isTo=toIso2===iso;
+      const isToday=now.getFullYear()===y&&(now.getMonth()+1)===m&&now.getDate()===d;
+      // range highlight
+      let inRange=false;
+      if(fromIso&&toIso2){
+        inRange=iso>=(fromIso<toIso2?fromIso:toIso2)&&iso<=(fromIso<toIso2?toIso2:fromIso)&&!isFrom&&!isTo;
+      }
+      const isSelected=isFrom||isTo;
+      const bg=isSelected?'var(--p)':inRange?'var(--pdim)':'transparent';
+      const col=isSelected?'#fff':isToday?'var(--p)':'var(--text)';
+      const fw=isSelected||isToday?800:400;
+      const br=isSelected?'50%':inRange?'0':'50%';
+      const shadow=isSelected?'0 0 12px var(--pglow)':'none';
+      cells+=`<div onclick="window._anlPickerDay('${iso}')" style="width:30px;height:30px;display:flex;align-items:center;justify-content:center;font-size:11.5px;font-weight:${fw};color:${col};background:${bg};border-radius:${br};cursor:pointer;transition:all .15s;box-shadow:${shadow};position:relative" onmouseover="if(!${isSelected})this.style.background=this.style.background||'var(--pdim2)';this.style.borderRadius='50%'" onmouseout="this.style.background='${bg}';this.style.borderRadius='${br}'">${d}${isToday&&!isSelected?`<span style="position:absolute;bottom:3px;left:50%;transform:translateX(-50%);width:3px;height:3px;border-radius:50%;background:var(--p)"></span>`:''}
+      </div>`;
+      cellIdx++;
+    }
+    // next month filler
+    const remaining=(7-cellIdx%7)%7;
+    for(let d=1;d<=remaining;d++){
+      cells+=`<div style="width:30px;height:30px;display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--muted);opacity:.4;cursor:default">${d}</div>`;
+    }
+
+    // Year input — plain text input, no native date
+    _pickerEl.innerHTML=`
+      <div style="padding:16px 16px 12px">
+        <!-- Header: nav + month/year -->
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+          <button onclick="window._anlPickerNav(-1)" style="border:none;background:var(--card3);color:var(--text2);width:28px;height:28px;border-radius:8px;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;transition:all .15s" onmouseover="this.style.background='var(--pdim2)';this.style.color='var(--p)'" onmouseout="this.style.background='var(--card3)';this.style.color='var(--text2)'">‹</button>
+          <div style="display:flex;align-items:center;gap:8px">
+            <span style="font-size:13px;font-weight:700;color:var(--text);font-family:var(--font-display)">${MONTHS_RU[m-1]}</span>
+            <input id="anlPickerYearInp" type="text" inputmode="numeric" maxlength="4" value="${y}"
+              style="width:50px;text-align:center;background:var(--card3);border:1px solid var(--border2);border-radius:7px;padding:3px 6px;font-size:13px;font-weight:700;color:var(--p);font-family:var(--font-mono);outline:none"
+              onfocus="this.style.borderColor='var(--p)';this.select()"
+              onblur="this.style.borderColor='var(--border2)';window._anlPickerSetYear(this.value)"
+              onkeydown="if(event.key==='Enter'){event.preventDefault();window._anlPickerSetYear(this.value);this.blur()}"
+              oninput="this.value=this.value.replace(/[^0-9]/g,'')" />
+          </div>
+          <button onclick="window._anlPickerNav(1)" style="border:none;background:var(--card3);color:var(--text2);width:28px;height:28px;border-radius:8px;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;transition:all .15s" onmouseover="this.style.background='var(--pdim2)';this.style.color='var(--p)'" onmouseout="this.style.background='var(--card3)';this.style.color='var(--text2)'">›</button>
+        </div>
+        <!-- Day headers -->
+        <div style="display:grid;grid-template-columns:repeat(7,30px);gap:2px;margin-bottom:4px">
+          ${DAYS_RU.map(d=>`<div style="width:30px;height:22px;display:flex;align-items:center;justify-content:center;font-size:9.5px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.5px">${d}</div>`).join('')}
+        </div>
+        <!-- Day cells -->
+        <div style="display:grid;grid-template-columns:repeat(7,30px);gap:2px">${cells}</div>
+        <!-- Footer: which field we're picking + range summary -->
+        <div style="margin-top:12px;padding-top:10px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:8px">
+          <span style="font-size:10px;color:var(--muted)">Выбираешь: <span style="color:var(--p);font-weight:700">${_pickerField==='from'?'Начало':'Конец'}</span></span>
+          ${fromIso&&toIso2?`<button onclick="window._anlPickerClose();renderAnalytics()" style="border:none;background:var(--p);color:#fff;border-radius:8px;padding:5px 14px;font-size:11px;font-weight:700;cursor:pointer;font-family:var(--font-body)">Применить</button>`:`<span style="font-size:10px;color:var(--muted)">${fromIso?'Теперь выбери конец':'Выбери начало'}</span>`}
+        </div>
+      </div>`;
+  }
+
+  window.anlPickerOpen=function(field, e){
+    e&&e.stopPropagation();
+    // If same picker already open, close it
+    if(_pickerEl&&_pickerField===field){
+      _closeEl();return;
+    }
+    _pickerField=field;
+    const S=window._anlState;
+    const existingIso=field==='from'?S.customFrom:S.customTo;
+    const ref=existingIso?parseIso(existingIso):null;
+    const now=new Date();
+    _pickerYear=ref?ref.y:now.getFullYear();
+    _pickerMonth=ref?ref.m:(now.getMonth()+1);
+
+    // Remove old if any
+    _closeEl();
+
+    _pickerEl=document.createElement('div');
+    _pickerEl.id='anlCalPop';
+    _pickerEl.style.cssText='position:fixed;z-index:9000;background:linear-gradient(160deg,#0e0f24,#0a0b18);border:1px solid rgba(155,143,245,.3);border-radius:16px;box-shadow:0 16px 60px rgba(0,0,0,.7),0 0 0 1px rgba(155,143,245,.1);overflow:hidden;animation:paneIn .18s var(--ease) both;min-width:236px';
+    document.body.appendChild(_pickerEl);
+
+    // Position near trigger button
+    const btnId=field==='from'?'anlFromBtn':'anlToBtn';
+    const btn=document.getElementById(btnId);
+    if(btn){
+      const r=btn.getBoundingClientRect();
+      let left=r.left;
+      let top=r.bottom+6;
+      // keep in viewport
+      if(left+240>window.innerWidth)left=window.innerWidth-248;
+      if(top+360>window.innerHeight)top=r.top-366;
+      if(left<8)left=8;
+      _pickerEl.style.left=left+'px';
+      _pickerEl.style.top=top+'px';
+    }else{
+      _pickerEl.style.left='50%';
+      _pickerEl.style.top='50%';
+      _pickerEl.style.transform='translate(-50%,-50%)';
+    }
+
+    render();
+
+    // Close on outside click
+    setTimeout(()=>document.addEventListener('click',_outsideClick),10);
+  };
+
+  function _closeEl(){
+    if(_pickerEl){_pickerEl.remove();_pickerEl=null;}
+    document.removeEventListener('click',_outsideClick);
+  }
+  function _outsideClick(e){
+    if(_pickerEl&&!_pickerEl.contains(e.target)){
+      const fromBtn=document.getElementById('anlFromBtn');
+      const toBtn=document.getElementById('anlToBtn');
+      if((fromBtn&&fromBtn.contains(e.target))||(toBtn&&toBtn.contains(e.target)))return;
+      _closeEl();
+    }
+  }
+  window._anlPickerClose=function(){_closeEl();};
+
+  window._anlPickerDay=function(iso){
+    const S=window._anlState;
+    if(_pickerField==='from'){
+      S.customFrom=iso;
+      // Auto-switch to 'to' if not set or if from>to
+      if(!S.customTo||iso>S.customTo){
+        _pickerField='to';
+      }else{
+        // Both set — close & apply
+        _closeEl();renderAnalytics();return;
+      }
+    }else{
+      S.customTo=iso;
+      if(!S.customFrom||iso<S.customFrom){
+        _pickerField='from';
+      }else{
+        _closeEl();renderAnalytics();return;
+      }
+    }
+    renderAnalytics(); // re-render the range bar labels without closing
+    render();
+  };
+
+  window._anlPickerNav=function(dir){
+    _pickerMonth+=dir;
+    if(_pickerMonth>12){_pickerMonth=1;_pickerYear++;}
+    if(_pickerMonth<1){_pickerMonth=12;_pickerYear--;}
+    render();
+  };
+
+  window._anlPickerSetYear=function(val){
+    const y=parseInt(val,10);
+    if(!isNaN(y)&&y>=1900&&y<=2200){_pickerYear=y;render();}
+    else{
+      // restore
+      const inp=document.getElementById('anlPickerYearInp');
+      if(inp)inp.value=_pickerYear;
+    }
+  };
+})();
 function anlSetLblGroup(gid){window._anlState.lblGroup=window._anlState.lblGroup===gid?null:gid;renderAnalytics();}
 function anlSetLabels(arr){window._anlState.labelIds=arr;renderAnalytics();}
 function anlToggleLbl(id){
