@@ -2137,13 +2137,6 @@ select.inp option{background:var(--card2);color:var(--text)}
     </div>
     <div style="display:flex;gap:8px;flex-wrap:wrap">
       <button class="btn btnG" style="font-size:10.5px;padding:5px 12px" onclick="openBoardEditor(null)">✏️ Изменить</button>
-      <button class="btn btnP" style="font-size:10.5px;padding:5px 12px" onclick="openBoardEditor('new')">+ Доска</button>
-      <select class="inp" id="kbFilter" onchange="renderKanban()" style="width:auto;font-size:11px">
-        <option value="">Все приоритеты</option>
-        <option value="1">🔴 Высокий</option>
-        <option value="2">🟡 Средний</option>
-        <option value="3">🟢 Низкий</option>
-      </select>
     </div>
   </div>
   <div class="kbWrap"><div class="kbLayout" id="kbLayout"></div></div>
