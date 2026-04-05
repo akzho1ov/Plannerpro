@@ -2896,38 +2896,87 @@ select.inp option{background:var(--card2);color:var(--text)}
 <!-- ═══ KANBAN MODAL ═══ -->
 <div class="overlay" id="kbOverlay" style="display:none">
   <div class="modalBox" style="max-width:500px">
-    <div class="modalHead" style="margin-bottom:4px">
+    <div class="modalHead" style="margin-bottom:18px">
       <span class="modalTitle" id="kbModalTitle">Новая карточка</span>
-      <button class="modalClose" onclick="closeKbModal()">✕</button>
-    </div>
-    <div class="tmField"><label class="tmLabel">Заголовок</label><input class="inp" id="kbCardTitle" placeholder="Название задачи..." style="font-size:14px;font-weight:600;padding:10px 14px"></div>
-    <div class="tmField"><label class="tmLabel">Описание / Заметки</label><textarea class="kbTxtarea" id="kbCardDesc" placeholder="Подробное описание..." style="min-height:56px;resize:none"></textarea></div>
-    <div class="tmField"><label class="tmLabel">Приоритет</label>
-      <div class="kbPriRow">
-        <button class="kbPriBtn" data-p="1" onclick="selKbPri(1)">🔴 Высокий</button>
-        <button class="kbPriBtn sel" data-p="2" onclick="selKbPri(2)">🟡 Средний</button>
-        <button class="kbPriBtn" data-p="3" onclick="selKbPri(3)">🟢 Низкий</button>
+      <div style="display:flex;gap:8px;align-items:center">
+        <div id="kbModalLabelDot" style="width:10px;height:10px;border-radius:50%;background:var(--border2);flex-shrink:0"></div>
+        <button id="kbModalDeleteBtn" class="btn btnR" style="font-size:11px;padding:5px 10px;display:none" onclick="delKbCardFromModal()">Удалить</button>
+        <button class="modalClose" onclick="closeKbModal()">✕</button>
       </div>
     </div>
-    <div class="tmField"><label class="tmLabel">Срок выполнения</label><input type="date" class="inp" id="kbCardDl" style="color-scheme:dark"></div>
+
+    <input type="hidden" id="kb-id">
+
+    <!-- Title -->
+    <div class="tmField">
+      <label class="tmLabel">Название задачи</label>
+      <input class="inp" id="kbCardTitle" placeholder="Что нужно сделать?" style="font-size:14px;font-weight:600;padding:10px 14px">
+    </div>
+
+    <!-- Deadline -->
+    <div class="tmField">
+      <label class="tmLabel">Срок выполнения</label>
+      <input type="date" class="inp" id="kbCardDl" style="color-scheme:dark">
+    </div>
+
+    <!-- Time row — identical to task modal -->
+    <datalist id="kbTimeOptions30"></datalist>
     <div style="display:flex;gap:8px;margin-bottom:14px;align-items:flex-end">
       <div style="flex:1">
         <label class="tmLabel" style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:1.2px;color:var(--muted);display:block;margin-bottom:5px">▶ Начало</label>
-        <input type="time" class="inp" id="kbCardTime" style="color-scheme:dark;font-family:var(--font-mono);font-size:13px;font-weight:700;padding:8px 10px">
+        <input class="inp" id="kbCardTime" list="kbTimeOptions30" placeholder="09:00" maxlength="5" style="font-family:var(--font-mono);font-size:13px;font-weight:700;padding:8px 10px" oninput="_tmAutoFormatTime(this)" onblur="_tmNormalizeTime(this)">
       </div>
       <div style="flex-shrink:0;padding-bottom:10px;color:var(--border3);font-size:16px;font-weight:300">→</div>
       <div style="flex:1">
         <label class="tmLabel" style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:1.2px;color:var(--muted);display:block;margin-bottom:5px">■ Конец</label>
-        <input type="time" class="inp" id="kbCardEndTime" style="color-scheme:dark;font-family:var(--font-mono);font-size:13px;font-weight:700;padding:8px 10px">
+        <input class="inp" id="kbCardEndTime" list="kbTimeOptions30" placeholder="10:00" maxlength="5" style="font-family:var(--font-mono);font-size:13px;font-weight:700;padding:8px 10px" oninput="_tmAutoFormatTime(this)" onblur="_tmNormalizeTime(this)">
       </div>
     </div>
-    <div class="tmField">
-      <label class="tmLabel" style="margin-bottom:8px">Метка</label>
-      <div id="kbLabelsList" style="display:flex;flex-wrap:wrap;gap:6px;max-height:160px;overflow-y:auto;padding-right:2px;scrollbar-width:thin"></div>
+
+    <!-- Actual time tracker — identical to task modal -->
+    <div style="background:var(--card2);border:1px solid var(--border);border-radius:12px;padding:12px 14px;margin-bottom:14px">
+      <div style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:1.2px;color:var(--muted);margin-bottom:10px;display:flex;align-items:center;gap:6px">
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2" stroke-linecap="round"/></svg>
+        Фактическое время (мин)
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+        <input type="number" class="inp" id="kb-actualDuration" min="0" max="1440" placeholder="напр. 45" style="font-family:var(--font-mono);font-size:13px;font-weight:700;max-width:100px;padding:7px 10px;border-color:rgba(15,221,170,.3)">
+        <div style="display:flex;gap:6px;flex-wrap:wrap">
+          <button onclick="document.getElementById('kb-actualDuration').value=15" style="border:1px solid var(--border2);background:var(--card3);color:var(--text2);border-radius:8px;padding:4px 9px;font-size:10px;font-weight:700;cursor:pointer">15м</button>
+          <button onclick="document.getElementById('kb-actualDuration').value=30" style="border:1px solid var(--border2);background:var(--card3);color:var(--text2);border-radius:8px;padding:4px 9px;font-size:10px;font-weight:700;cursor:pointer">30м</button>
+          <button onclick="document.getElementById('kb-actualDuration').value=45" style="border:1px solid var(--border2);background:var(--card3);color:var(--text2);border-radius:8px;padding:4px 9px;font-size:10px;font-weight:700;cursor:pointer">45м</button>
+          <button onclick="document.getElementById('kb-actualDuration').value=60" style="border:1px solid var(--border2);background:var(--card3);color:var(--text2);border-radius:8px;padding:4px 9px;font-size:10px;font-weight:700;cursor:pointer">1ч</button>
+          <button onclick="document.getElementById('kb-actualDuration').value=90" style="border:1px solid var(--border2);background:var(--card3);color:var(--text2);border-radius:8px;padding:4px 9px;font-size:10px;font-weight:700;cursor:pointer">1.5ч</button>
+          <button onclick="document.getElementById('kb-actualDuration').value=120" style="border:1px solid var(--border2);background:var(--card3);color:var(--text2);border-radius:8px;padding:4px 9px;font-size:10px;font-weight:700;cursor:pointer">2ч</button>
+        </div>
+      </div>
     </div>
-    <div class="tmField"><label class="tmLabel">Колонка</label>
+
+    <!-- Labels — identical style to task modal -->
+    <div class="tmField">
+      <label class="tmLabel">Метка</label>
+      <div id="kbLabelsList" style="display:flex;flex-wrap:wrap;gap:6px;max-height:180px;overflow-y:auto;padding-right:2px;scrollbar-width:thin"></div>
+    </div>
+
+    <!-- Notes -->
+    <div class="tmField">
+      <label class="tmLabel">Примечания</label>
+      <textarea class="kbTxtarea" id="kbCardDesc" placeholder="Заметки к задаче..." style="min-height:56px;resize:none"></textarea>
+    </div>
+
+    <!-- Done toggle -->
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">
+      <input type="checkbox" id="kb-done" style="width:16px;height:16px;accent-color:var(--green);cursor:pointer">
+      <label for="kb-done" style="font-size:12px;color:var(--text2);cursor:pointer;font-weight:500">Отметить как выполненное</label>
+    </div>
+
+    <!-- Column selector -->
+    <div class="tmField">
+      <label class="tmLabel">Колонка</label>
       <select class="inp" id="kbCardCol"></select>
     </div>
+
+    <!-- Actions -->
     <div style="display:flex;gap:8px">
       <button class="btn btnG" style="flex:1;justify-content:center" onclick="closeKbModal()">Отмена</button>
       <button class="btn btnB" style="flex:1;justify-content:center" onclick="saveKbCard()">Сохранить</button>
@@ -5189,17 +5238,40 @@ function openKbModal(colId,cardId){
   kbAddCol=colId;kbEditId=cardId||null;
   const c=cardId?kbD().find(x=>x.id===cardId):null;
   const linkedTask=c?.taskId?tpD().find(t=>t.id===c.taskId):null;
+  const src=linkedTask||c; // prefer synced task data
+
   document.getElementById('kbModalTitle').textContent=c?'Редактировать':'Новая карточка';
-  document.getElementById('kbCardTitle').value=c?c.title:(linkedTask?linkedTask.text:'');
-  document.getElementById('kbCardDesc').value=c?c.desc:(linkedTask?linkedTask.notes:'');
-  document.getElementById('kbCardDl').value=c?c.deadline:(linkedTask?linkedTask.deadline:'');
-  document.getElementById('kbCardTime').value=c?.time||(linkedTask?.time||'');
-  document.getElementById('kbCardEndTime').value=c?.endTime||(linkedTask?.endTime||'');
-  _kbLabelSel=c?.labelId||(linkedTask?.labelId||'');
-  selKbPri(c?c.priority:2);_renderKbLabels();
+  document.getElementById('kbCardTitle').value=src?(linkedTask?linkedTask.text:c.title):'';
+  document.getElementById('kbCardDesc').value=src?(linkedTask?linkedTask.notes:c.desc):'';
+  document.getElementById('kbCardDl').value=src?(linkedTask?linkedTask.deadline:c.deadline)||'':'';
+  document.getElementById('kbCardTime').value=src?(linkedTask?linkedTask.time:c.time)||'':'';
+  document.getElementById('kbCardEndTime').value=src?(linkedTask?linkedTask.endTime:c.endTime)||'':'';
+  document.getElementById('kb-actualDuration').value=linkedTask?.actualDuration||c?.actualDuration||'';
+  document.getElementById('kb-done').checked=linkedTask?!!linkedTask.done:!!c?.done;
+  document.getElementById('kb-id').value=cardId||'';
+
+  // Label — support both labelIds array and legacy single labelId
+  const taskLabels=linkedTask?.labelIds||[];
+  const legacyId=linkedTask?.labelId||c?.labelId||'';
+  _kbLabelSel=taskLabels.length?taskLabels[0]:legacyId;
+
+  // Label dot indicator
+  const allLabels=labelsD();
+  const selLabel=allLabels.find(l=>l.id===_kbLabelSel);
+  document.getElementById('kbModalLabelDot').style.background=selLabel?selLabel.color:'var(--border2)';
+
+  // Delete button
+  const delBtn=document.getElementById('kbModalDeleteBtn');
+  delBtn.style.display=c?'inline-flex':'none';
+
+  selKbPri(c?c.priority:2);
+  _renderKbLabels();
+
+  // Populate column select
   const board=kbBoardsD().find(b=>b.id===kbActiveBoardId);
   const sel=document.getElementById('kbCardCol');sel.innerHTML='';
   if(board)board.cols.forEach(col=>{const o=document.createElement('option');o.value=col.id;o.textContent=col.title;if((c?c.col:colId)===col.id)o.selected=true;sel.appendChild(o)});
+
   document.getElementById('kbOverlay').style.display='flex';
 }
 function _renderKbLabels(){
@@ -5215,20 +5287,52 @@ function _renderKbLabels(){
     });
   });
   el.innerHTML=html;
+  // Update header dot
+  const selLabel=labelsD().find(l=>l.id===_kbLabelSel);
+  const dot=document.getElementById('kbModalLabelDot');
+  if(dot)dot.style.background=selLabel?selLabel.color:'var(--border2)';
 }
 function closeKbModal(){document.getElementById('kbOverlay').style.display='none';kbEditId=null;}
 function selKbPri(p){kbSelPri=p;document.querySelectorAll('.kbPriBtn').forEach(b=>{b.classList.toggle('sel',parseInt(b.dataset.p)===p)});}
+function delKbCardFromModal(){
+  if(!kbEditId)return;
+  if(!confirm('Удалить карточку?'))return;
+  const idx=kbD().findIndex(c=>c.id===kbEditId);
+  if(idx>=0){
+    const card=kbD()[idx];
+    // Also remove linked task
+    if(card.taskId){const ti=tpD().findIndex(t=>t.id===card.taskId);if(ti>=0)tpD().splice(ti,1);}
+    kbD().splice(idx,1);
+    saveD();closeKbModal();_refreshAllTaskViews();
+  }
+}
 function saveKbCard(){
   const title=document.getElementById('kbCardTitle').value.trim();if(!title)return;
-  const col=document.getElementById('kbCardCol').value;const deadline=document.getElementById('kbCardDl').value;
-  const time=document.getElementById('kbCardTime').value;const endTime=document.getElementById('kbCardEndTime').value;const desc=document.getElementById('kbCardDesc').value;
-  const data={title,desc,priority:kbSelPri,deadline,time,endTime,col,boardId:kbActiveBoardId,labelId:_kbLabelSel};
+  const col=document.getElementById('kbCardCol').value;
+  const deadline=document.getElementById('kbCardDl').value;
+  const time=document.getElementById('kbCardTime').value;
+  const endTime=document.getElementById('kbCardEndTime').value;
+  const desc=document.getElementById('kbCardDesc').value;
+  const actualDuration=parseInt(document.getElementById('kb-actualDuration').value)||0;
+  const done=document.getElementById('kb-done').checked;
+  const labelId=_kbLabelSel;
+  const labelIds=labelId?[labelId]:[];
+  const data={title,desc,priority:kbSelPri,deadline,time,endTime,col,boardId:kbActiveBoardId,labelId,done,actualDuration};
   if(kbEditId){
     const idx=kbD().findIndex(x=>x.id===kbEditId);
-    if(idx>=0){kbD()[idx]={...kbD()[idx],...data};const linkedTask=kbD()[idx].taskId?tpD().find(t=>t.id===kbD()[idx].taskId):null;if(linkedTask){Object.assign(linkedTask,{text:title,deadline,time,endTime,notes:desc,labelId:_kbLabelSel});saveD();_refreshAllTaskViews();return;}}
+    if(idx>=0){
+      kbD()[idx]={...kbD()[idx],...data};
+      const linkedTask=kbD()[idx].taskId?tpD().find(t=>t.id===kbD()[idx].taskId):null;
+      if(linkedTask){
+        Object.assign(linkedTask,{text:title,deadline,time,endTime,notes:desc,labelId,labelIds,done,actualDuration});
+      }
+      saveD();closeKbModal();_refreshAllTaskViews();return;
+    }
   } else {
-    const newCard={...data,id:uid()};kbD().push(newCard);const taskId=uid();
-    tpD().push({id:taskId,text:title,deadline,time,endTime,notes:desc,done:false,labelId:_kbLabelSel,priority:kbSelPri});newCard.taskId=taskId;
+    const newCard={...data,id:uid()};kbD().push(newCard);
+    const taskId=uid();
+    tpD().push({id:taskId,text:title,deadline,time,endTime,notes:desc,done,actualDuration,labelId,labelIds,priority:kbSelPri});
+    newCard.taskId=taskId;
   }
   saveD();closeKbModal();_refreshAllTaskViews();
 }
