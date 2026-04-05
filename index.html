@@ -7880,77 +7880,6 @@ function renderAnalytics(){
     +datePicker
     +'</div>';
 
-  // ── Spark trend (computed before compHtml template) ──
-  let sparkHtml='';
-  if(showComparison){
-    const prevDayCount=Math.max(1,Math.round((prevTo-prevFrom)/86400000)+1);
-    const prevDayArr=[];
-    for(let i=0;i<Math.min(prevDayCount,14);i++){
-      const d=new Date(prevFrom);d.setDate(prevFrom.getDate()+i);
-      prevDayArr.push(donePrev.filter(t=>(t.deadline||t.doneDate||t.date||'')=== dk(d)).length);
-    }
-    const currDayArr2=dayArr.slice(-14).map(d=>d.count);
-    if(currDayArr2.length>=2){
-      const maxV=Math.max(...prevDayArr,...currDayArr2,1);
-      const sparkLine=(arr)=>arr.map((v,i)=>{
-        const x=i*(100/(arr.length-1||1));const y=40-Math.round(v/maxV*36);
-        return(i===0?'M':'L')+x.toFixed(1)+','+y.toFixed(1);
-      }).join(' ');
-      sparkHtml='<div style="margin-top:16px;padding-top:14px;border-top:1px solid var(--border)">'
-        +'<div style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);margin-bottom:10px">Тренд задач по дням</div>'
-        +'<svg viewBox="0 0 100 44" style="width:100%;height:44px;overflow:visible">'
-        +'<defs>'
-        +'<linearGradient id="sparkCurr" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="var(--p)" stop-opacity=".4"/><stop offset="1" stop-color="var(--cyan)"/></linearGradient>'
-        +'<linearGradient id="sparkPrev" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="rgba(255,255,255,.1)"/><stop offset="1" stop-color="rgba(255,255,255,.2)"/></linearGradient>'
-        +'</defs>'
-        +(prevDayArr.length>1?'<path d="'+sparkLine(prevDayArr)+'" fill="none" stroke="url(#sparkPrev)" stroke-width="1.5" stroke-dasharray="3,2" stroke-linecap="round" stroke-linejoin="round"/>'  :'')
-        +'<path d="'+sparkLine(currDayArr2)+'" fill="none" stroke="url(#sparkCurr)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>'
-        +'</svg>'
-        +'<div style="display:flex;gap:14px;margin-top:6px">'
-        +'<span style="display:flex;align-items:center;gap:4px;font-size:9.5px;color:var(--text2)">— Текущий</span>'
-        +'<span style="display:flex;align-items:center;gap:4px;font-size:9.5px;color:var(--muted)">- - Предыдущий</span>'
-        +'</div>'
-        +'</div>';
-    }
-  }
-
-  // ── COMPARISON DASHBOARD ──
-  const compHtml=showComparison?`
-  <div style="background:linear-gradient(145deg,rgba(155,143,245,.04),rgba(10,11,22,.99));border:1px solid rgba(155,143,245,.15);border-radius:20px;padding:20px 24px;margin-bottom:24px;position:relative;overflow:hidden">
-    <div style="position:absolute;top:-40px;right:-40px;width:200px;height:200px;border-radius:50%;background:radial-gradient(circle,rgba(155,143,245,.06),transparent 70%);pointer-events:none"></div>
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:8px">
-      <div style="font-size:9.5px;font-weight:800;text-transform:uppercase;letter-spacing:1.3px;color:var(--p);display:flex;align-items:center;gap:7px">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>
-        Сравнение с прошлым периодом
-      </div>
-      <span style="font-size:10px;color:var(--muted);background:var(--card3);padding:3px 9px;border-radius:20px;border:1px solid var(--border)">пред. период: ${prevLabel()}</span>
-    </div>
-    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px">
-      ${[
-        {lbl:'Выполнено задач',curr:doneTasks.length,prev:donePrev.length,ico:'✅',c:'var(--green)',fmt:(v)=>v+'зд'},
-        {lbl:'Запланировано',curr:totalPlannedMin,prev:prevTotalPlannedMin,ico:'⏱',c:'var(--cyan)',fmt:(v)=>fmtMin(v)},
-        {lbl:'Фактически',curr:totalActualDur,prev:prevActualDur,ico:'⏳',c:'var(--p)',fmt:(v)=>v?fmtMin(v):'—'},
-        {lbl:'Задач в день',curr:days?+(doneTasks.length/days).toFixed(1):0,prev:(()=>{const pd=Math.max(1,Math.round((prevTo-prevFrom)/86400000)+1);return pd?+(donePrev.length/pd).toFixed(1):0;})(),ico:'📆',c:'var(--gold)',fmt:(v)=>v+'зд'},
-      ].map(it=>{
-        const badge=deltaBadge(it.curr,it.prev);
-        const trend=delta(it.curr,it.prev);
-        const trendUp=trend!==null&&trend>0;
-        const trendDown=trend!==null&&trend<0;
-        const sparkBg=trendUp?'rgba(15,221,170,.06)':trendDown?'rgba(255,79,114,.06)':'rgba(255,255,255,.02)';
-        return'<div style="background:'+sparkBg+';border:1px solid rgba(255,255,255,.06);border-radius:14px;padding:14px 16px;transition:transform .2s" onmouseover="this.style.transform=\'translateY(-2px)\'" onmouseout="this.style.transform=\'\'">'
-          +'<div style="font-size:15px;margin-bottom:6px">'+it.ico+'</div>'
-          +'<div style="font-size:22px;font-weight:800;color:'+it.c+';font-family:var(--font-display);letter-spacing:-1px;line-height:1">'+it.fmt(it.curr)+'</div>'
-          +'<div style="display:flex;align-items:center;gap:6px;margin-top:5px;flex-wrap:wrap">'
-          +'<span style="font-size:9.5px;color:var(--muted)">'+it.lbl+'</span>'
-          +badge
-          +'</div>'
-          +(it.prev!==undefined?'<div style="font-size:9.5px;color:rgba(255,255,255,.2);margin-top:4px">пред: '+it.fmt(it.prev)+'</div>':'')
-          +'</div>';
-      }).join('')}
-    </div>
-    ${sparkHtml}
-  </div>`:'';
-
   // ── Label filter ──
   const firstSelLbl=S.labelIds.length?groups.flatMap(g=>g.labels||[]).find(l=>l.id===S.labelIds[0]):null;
   const lblFilterBar=groups.some(g=>g.labels&&g.labels.length)?`
@@ -8010,7 +7939,71 @@ function renderAnalytics(){
     </div>
   </div>`:'';
 
-  const kpiData=[
+  // ── Spark trend ──
+  let sparkHtml='';
+  if(showComparison){
+    const prevDayCount=Math.max(1,Math.round((prevTo-prevFrom)/86400000)+1);
+    const prevDayArr=[];
+    for(let i=0;i<Math.min(prevDayCount,14);i++){
+      const pd=new Date(prevFrom);pd.setDate(prevFrom.getDate()+i);
+      prevDayArr.push(donePrev.filter(t=>(t.deadline||t.doneDate||t.date||'')=== dk(pd)).length);
+    }
+    const currDayArr2=dayArr.slice(-14).map(d=>d.count);
+    if(currDayArr2.length>=2){
+      const maxV=Math.max(...prevDayArr,...currDayArr2,1);
+      const sparkLine=(arr)=>arr.map((v,i)=>{
+        const x=i*(100/(arr.length-1||1));const y=40-Math.round(v/maxV*36);
+        return(i===0?'M':'L')+x.toFixed(1)+','+y.toFixed(1);
+      }).join(' ');
+      sparkHtml='<div style="margin-top:16px;padding-top:14px;border-top:1px solid var(--border)">'
+        +'<div style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);margin-bottom:10px">Тренд задач по дням</div>'
+        +'<svg viewBox="0 0 100 44" style="width:100%;height:44px;overflow:visible">'
+        +'<defs><linearGradient id="sparkCurr" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="var(--p)" stop-opacity=".4"/><stop offset="1" stop-color="var(--cyan)"/></linearGradient>'
+        +'<linearGradient id="sparkPrev" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="rgba(255,255,255,.1)"/><stop offset="1" stop-color="rgba(255,255,255,.2)"/></linearGradient></defs>'
+        +(prevDayArr.length>1?'<path d="'+sparkLine(prevDayArr)+'" fill="none" stroke="url(#sparkPrev)" stroke-width="1.5" stroke-dasharray="3,2" stroke-linecap="round" stroke-linejoin="round"/>'  :'')
+        +'<path d="'+sparkLine(currDayArr2)+'" fill="none" stroke="url(#sparkCurr)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>'
+        +'</svg>'
+        +'<div style="display:flex;gap:14px;margin-top:6px">'
+        +'<span style="font-size:9.5px;color:var(--text2)">— Текущий</span>'
+        +'<span style="font-size:9.5px;color:var(--muted)">- - Предыдущий</span>'
+        +'</div></div>';
+    }
+  }
+
+  // ── COMPARISON DASHBOARD ──
+  const compHtml=showComparison
+    ?'<div style="background:linear-gradient(145deg,rgba(155,143,245,.04),rgba(10,11,22,.99));border:1px solid rgba(155,143,245,.15);border-radius:20px;padding:20px 24px;margin-bottom:24px;position:relative;overflow:hidden">'
+      +'<div style="position:absolute;top:-40px;right:-40px;width:200px;height:200px;border-radius:50%;background:radial-gradient(circle,rgba(155,143,245,.06),transparent 70%);pointer-events:none"></div>'
+      +'<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:8px">'
+        +'<div style="font-size:9.5px;font-weight:800;text-transform:uppercase;letter-spacing:1.3px;color:var(--p);display:flex;align-items:center;gap:7px">'
+          +'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>'
+          +'Сравнение с прошлым периодом'
+        +'</div>'
+        +'<span style="font-size:10px;color:var(--muted);background:var(--card3);padding:3px 9px;border-radius:20px;border:1px solid var(--border)">пред. период: '+prevLabel()+'</span>'
+      +'</div>'
+      +'<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px">'
+      +[
+        {lbl:'Выполнено задач',curr:doneTasks.length,prev:donePrev.length,ico:'✅',c:'var(--green)',fmt:(v)=>v+'зд'},
+        {lbl:'Запланировано',curr:totalPlannedMin,prev:prevTotalPlannedMin,ico:'⏱',c:'var(--cyan)',fmt:(v)=>fmtMin(v)},
+        {lbl:'Фактически',curr:totalActualDur,prev:prevActualDur,ico:'⏳',c:'var(--p)',fmt:(v)=>v?fmtMin(v):'—'},
+        {lbl:'Задач в день',curr:days?+(doneTasks.length/days).toFixed(1):0,prev:(()=>{const pd2=Math.max(1,Math.round((prevTo-prevFrom)/86400000)+1);return+(donePrev.length/pd2).toFixed(1);})(),ico:'📆',c:'var(--gold)',fmt:(v)=>v+'зд'},
+      ].map(function(it){
+        const badge=deltaBadge(it.curr,it.prev);
+        const trend=delta(it.curr,it.prev);
+        const sparkBg=trend>0?'rgba(15,221,170,.06)':trend<0?'rgba(255,79,114,.06)':'rgba(255,255,255,.02)';
+        return '<div style="background:'+sparkBg+';border:1px solid rgba(255,255,255,.06);border-radius:14px;padding:14px 16px;">'
+          +'<div style="font-size:15px;margin-bottom:6px">'+it.ico+'</div>'
+          +'<div style="font-size:22px;font-weight:800;color:'+it.c+';font-family:var(--font-display);letter-spacing:-1px;line-height:1">'+it.fmt(it.curr)+'</div>'
+          +'<div style="display:flex;align-items:center;gap:6px;margin-top:5px;flex-wrap:wrap">'
+            +'<span style="font-size:9.5px;color:var(--muted)">'+it.lbl+'</span>'+badge
+          +'</div>'
+          +'<div style="font-size:9.5px;color:rgba(255,255,255,.2);margin-top:4px">пред: '+it.fmt(it.prev)+'</div>'
+          +'</div>';
+      }).join('')
+      +'</div>'
+      +sparkHtml
+      +'</div>'
+    :'';
     {ico:'✅',lbl:'Выполнено',val:doneTasks.length,sub:'задач за период',c:'var(--green)',bg:'rgba(15,221,170,.08)',glow:'rgba(15,221,170,.2)'},
     {ico:'⏱',lbl:'Запланировано',val:fmtMin(totalPlannedMin),sub:'по расписанию задач',c:'var(--p)',bg:'rgba(155,143,245,.08)',glow:'rgba(155,143,245,.2)'},
     {ico:'⏳',lbl:'Фактически',val:totalActualDur?fmtMin(totalActualDur):'—',sub:totalActualDur?`${trackedTasks.length} задач записано`:'нет данных',c:'var(--cyan)',bg:'rgba(34,204,232,.08)',glow:'rgba(34,204,232,.2)'},
