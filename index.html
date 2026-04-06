@@ -1219,6 +1219,16 @@ select.inp option{background:var(--card2);color:var(--text)}
   color:var(--muted);margin-bottom:14px;display:flex;align-items:center;gap:8px;
 }
 .dashCardLbl::after{content:'';flex:1;height:1px;background:var(--border)}
+/* Dashboard period switcher */
+.dashPeriodBtn{
+  padding:6px 14px;border:none;background:none;
+  font-family:var(--font-body);font-size:11px;font-weight:600;
+  color:var(--muted);cursor:pointer;transition:all .15s;
+  border-right:1px solid var(--border2);letter-spacing:-.01em;
+}
+.dashPeriodBtn:last-child{border-right:none}
+.dashPeriodBtn.on{background:var(--p);color:#fff;text-shadow:0 0 12px rgba(155,143,245,.5)}
+.dashPeriodBtn:hover:not(.on){background:rgba(255,255,255,.06);color:var(--text2)}
 .dashBigNum{font-family:var(--font-display);font-size:30px;font-weight:800;letter-spacing:-1px}
 .dashSmNum{font-family:var(--font-display);font-size:22px;font-weight:800;letter-spacing:-.5px}
 .scoreRing{position:relative;display:inline-flex;align-items:center;justify-content:center}
@@ -1766,6 +1776,10 @@ select.inp option{background:var(--card2);color:var(--text)}
   .dashCardLbl{font-size:9px;margin-bottom:10px}
   .dashBigNum{font-size:24px}
   .dashSmNum{font-size:18px}
+  /* Score card: full width, horizontal layout preserved but score break visible */
+  .dashScoreCard{grid-column:1/-1!important;flex-direction:row!important;align-items:center!important}
+  .dashScoreCard #dashScoreBreak{flex-direction:row!important;flex-wrap:wrap!important;gap:8px!important;font-size:10px!important}
+  .dashScoreCard .scoreRing{flex-shrink:0}
 
   /* ── Sub-tabs — smooth scroll ── */
   .rwSubTabs,.gymSubTabs,[id^="tab-"] > div:first-child{
@@ -2197,20 +2211,26 @@ select.inp option{background:var(--card2);color:var(--text)}
 
 <!-- ═══ 0. DASHBOARD ═══ -->
 <div id="tab-dash" class="pane on hInner">
-  <!-- Hero greeting -->
-  <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:12px">
+  <!-- Period switcher + hero row -->
+  <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px">
     <div>
       <div style="font-family:var(--font-display);font-size:30px;font-weight:800;letter-spacing:-.7px;background:linear-gradient(135deg,var(--text) 0%,var(--text2) 100%);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;line-height:1.1" id="dashGreet">Доброе утро!</div>
       <div style="font-size:13px;color:var(--text2);margin-top:6px;letter-spacing:-.01em" id="dashDateLbl"></div>
     </div>
-    <div style="display:flex;gap:8px">
+    <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+      <!-- Period buttons -->
+      <div style="display:flex;background:var(--card2);border:1px solid var(--border2);border-radius:10px;overflow:hidden;flex-shrink:0">
+        <button id="dashPeriodDay" class="dashPeriodBtn on" onclick="setDashPeriod('day',this)">День</button>
+        <button id="dashPeriodWeek" class="dashPeriodBtn" onclick="setDashPeriod('week',this)">Неделя</button>
+        <button id="dashPeriodMonth" class="dashPeriodBtn" onclick="setDashPeriod('month',this)">Месяц</button>
+      </div>
       <button class="btn btnG" style="font-size:11.5px" onclick="openJournalModal()">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
-        Запись в дневник
+        Дневник
       </button>
       <button class="btn btnB" style="font-size:11.5px" onclick="openCmdPalette()">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-        Быстрое действие
+        Быстро
       </button>
     </div>
   </div>
@@ -2270,12 +2290,12 @@ select.inp option{background:var(--card2);color:var(--text)}
   <!-- Stat cards row -->
   <div class="dashGrid">
     <!-- Score ring -->
-    <div class="dashCard" style="display:flex;align-items:center;gap:16px">
+    <div class="dashCard dashScoreCard" style="display:flex;align-items:center;gap:16px;flex-wrap:wrap">
       <div class="scoreRing" id="dashRingWrap">
         <svg width="96" height="96" id="dashRingSvg" style="transform:rotate(-90deg)"></svg>
         <div class="scoreRingInner"><div class="scoreRingVal" id="dashScoreVal">0%</div><div class="scoreRingLbl">балл дня</div></div>
       </div>
-      <div style="flex:1;display:flex;flex-direction:column;gap:6px;font-size:10.5px;color:var(--muted)" id="dashScoreBreak"></div>
+      <div style="flex:1;min-width:120px;display:flex;flex-direction:column;gap:6px;font-size:10.5px;color:var(--muted)" id="dashScoreBreak"></div>
     </div>
     <!-- Tasks -->
     <div class="dashCard">
@@ -7109,6 +7129,70 @@ function syncNewTaskToKanban(taskId){
 /* ═══════════════════════════════════
    DASHBOARD
 ═══════════════════════════════════ */
+let _dashPeriod='day';
+function setDashPeriod(p,btn){
+  _dashPeriod=p;
+  document.querySelectorAll('.dashPeriodBtn').forEach(b=>b.classList.remove('on'));
+  if(btn)btn.classList.add('on');
+  // Update card labels
+  const periodLabel={day:'сегодня',week:'неделя',month:'месяц'};
+  const lbl=periodLabel[p]||'сегодня';
+  const taskCard=document.querySelector('#tab-dash .dashCard .dashCardLbl');
+  // Update stats based on period
+  const tasks=tpD(),td=t0(),todK=dk(td);
+  let filtered=[];
+  if(p==='day'){
+    filtered=tasks.filter(t=>t.deadline===todK||(!t.deadline&&!t.done));
+  } else if(p==='week'){
+    const mon=new Date(td);const dow=td.getDay();mon.setDate(td.getDate()-(dow===0?6:dow-1));
+    const sun=new Date(mon);sun.setDate(mon.getDate()+6);
+    filtered=tasks.filter(t=>{
+      if(!t.deadline)return !t.done;
+      const dl=new Date(t.deadline+'T00:00:00');
+      return dl>=mon&&dl<=sun;
+    });
+  } else {
+    filtered=tasks.filter(t=>{
+      if(!t.deadline)return !t.done;
+      const dl=new Date(t.deadline+'T00:00:00');
+      return dl.getFullYear()===td.getFullYear()&&dl.getMonth()===td.getMonth();
+    });
+  }
+  const tot=filtered.length;
+  const done=filtered.filter(t=>t.done).length;
+  const over=filtered.filter(t=>!t.done&&t.deadline&&new Date(t.deadline+'T00:00:00')<td).length;
+  if(document.getElementById('stot'))document.getElementById('stot').textContent=tot;
+  if(document.getElementById('sdone'))document.getElementById('sdone').textContent=done;
+  if(document.getElementById('sover'))document.getElementById('sover').textContent=over;
+  const dOverEl=document.getElementById('dOverdue');if(dOverEl)dOverEl.textContent=over;
+  const dDoneEl=document.getElementById('dDone');if(dDoneEl)dDoneEl.textContent=done;
+  const taskBar=document.getElementById('dashTaskBar');if(taskBar)taskBar.style.width=(tot?Math.round(done/tot*100):0)+'%';
+  // Update finance card
+  const txs=finTxs();
+  const now2=new Date();
+  let finFiltered=txs;
+  if(p==='day'){
+    finFiltered=txs.filter(t=>t.date===todK);
+  } else if(p==='week'){
+    const mon2=new Date(td);const dow2=td.getDay();mon2.setDate(td.getDate()-(dow2===0?6:dow2-1));
+    const monK=dk(mon2);const sunK=dk(new Date(mon2.getTime()+6*86400000));
+    finFiltered=txs.filter(t=>t.date>=monK&&t.date<=sunK);
+  } else {
+    finFiltered=txs.filter(t=>t.date&&t.date.startsWith(`${now2.getFullYear()}-${String(now2.getMonth()+1).padStart(2,'0')}`));
+  }
+  const inc=finFiltered.filter(t=>t.type==='in').reduce((a,t)=>a+Number(t.amount),0);
+  const exp=finFiltered.filter(t=>t.type==='out').reduce((a,t)=>a+Number(t.amount),0);
+  const dFinInc=document.getElementById('dFinInc');if(dFinInc)dFinInc.textContent=fmtMoney(inc);
+  const dFinExp=document.getElementById('dFinExp');if(dFinExp)dFinExp.textContent=fmtMoney(exp);
+  const dFinBal=document.getElementById('dFinBal');if(dFinBal)dFinBal.textContent=fmtMoney(inc-exp);
+  // Update Finance card label
+  const lblMap={day:'сегодня',week:'эта неделя',month:'этот месяц'};
+  document.querySelectorAll('#tab-dash .dashCardLbl').forEach(el=>{
+    if(el.textContent.includes('Задачи'))el.innerHTML='📋 Задачи <span style="font-size:9px;color:var(--text2);text-transform:none;letter-spacing:0;font-weight:500;margin-left:4px">('+lblMap[p]+')</span>';
+    if(el.textContent.includes('Финансы'))el.innerHTML='💰 Финансы <span style="font-size:9px;color:var(--text2);text-transform:none;letter-spacing:0;font-weight:500;margin-left:4px">('+lblMap[p]+')</span>';
+  });
+}
+
 function renderDash(){
   const now=new Date(),h=now.getHours();
   const greetWord=h<5?'Глубокая ночь':h<12?'Доброе утро':h<17?'Добрый день':h<21?'Добрый вечер':'Добрая ночь';
@@ -10258,7 +10342,7 @@ document.addEventListener('click',e=>{
      GUIDE MODAL — Интерактивная инструкция
 ═══════════════════════════════════════════ -->
 <div id="guideOverlay" style="display:none;position:fixed;inset:0;z-index:3000;background:rgba(0,0,0,.8);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);animation:fadeOverlay .2s var(--ease)" onclick="if(event.target===this)closeGuideModal()">
-  <div id="guideModal" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:min(860px,96vw);max-height:90vh;background:linear-gradient(160deg,rgba(10,11,24,.99) 0%,rgba(7,8,18,.99) 100%);border:1px solid rgba(155,143,245,.22);border-radius:24px;box-shadow:0 0 0 1px rgba(255,255,255,.04),0 40px 120px rgba(0,0,0,.9),0 0 100px rgba(155,143,245,.1);display:flex;flex-direction:column;overflow:hidden;animation:slideModal .25s var(--ease-spring)">
+  <div id="guideModal" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:min(860px,96vw);max-height:88vh;background:linear-gradient(160deg,rgba(10,11,24,.99) 0%,rgba(7,8,18,.99) 100%);border:1px solid rgba(155,143,245,.22);border-radius:24px;box-shadow:0 0 0 1px rgba(255,255,255,.04),0 40px 120px rgba(0,0,0,.9),0 0 100px rgba(155,143,245,.1);display:flex;flex-direction:column;overflow:hidden;animation:slideModal .25s var(--ease-spring)">
     <!-- Modal header -->
     <div style="display:flex;align-items:center;justify-content:space-between;padding:18px 22px 14px;border-bottom:1px solid rgba(255,255,255,.06);flex-shrink:0;background:linear-gradient(135deg,rgba(155,143,245,.07),transparent)">
       <div style="display:flex;align-items:center;gap:12px">
@@ -10343,8 +10427,20 @@ document.addEventListener('click',e=>{
 @media(max-width:640px){
   #guideSidebar{display:none!important}
   #guideMobileTabs{display:block!important}
-  #guideModal{border-radius:18px 18px 0 0;top:auto!important;bottom:0!important;left:0!important;right:0!important;transform:none!important;width:100%!important;max-height:92vh!important}
+  #guideOverlay{align-items:flex-end!important;display:flex!important}
+  #guideOverlay[style*="display:none"]{display:none!important}
+  #guideModal{
+    position:relative!important;
+    top:auto!important;bottom:auto!important;
+    left:auto!important;right:auto!important;
+    transform:none!important;
+    width:100%!important;
+    max-height:92vh!important;
+    border-radius:22px 22px 0 0!important;
+    animation:mobileSheetIn .3s var(--ease) both!important;
+  }
   #guideContent{padding:16px 16px 20px!important}
+  #guideOverlay > #guideModal{margin-top:auto}
 }
 </style>
 
@@ -10353,6 +10449,24 @@ document.addEventListener('click',e=>{
    GUIDE MODAL SYSTEM — полное руководство
 ═══════════════════════════════════ */
 const GUIDE_SECTIONS=[
+  // ─── ТЕЛЕФОН — новый первый раздел ───
+  {
+    id:'mobile', icon:'📱', label:'На телефоне', color:'var(--cyan)', group:'СТАРТ',
+    title:'📱 Как пользоваться на телефоне',
+    sub:'PlannerPro полностью оптимизирован для мобильных. Вот как всё работает на экране телефона — быстро и удобно.',
+    blocks:[
+      {icon:'🧭',title:'Нижняя панель навигации',body:'Внизу экрана 5 кнопок: <b>Дашборд, Задачи, Привычки, Финансы</b> и кнопка <b>«Ещё»</b>. Нажми «Ещё» — откроется меню со всеми остальными разделами (Неделя, Календарь, Канбан, Цели, Награды, Тренировки, Аналитика).'},
+      {icon:'➕',title:'Кнопка быстрого добавления',body:'Фиолетовая кнопка <b>＋</b> в правом нижнем углу — создаёт новую задачу с любого экрана. Это самый быстрый способ не забыть идею или дело.'},
+      {icon:'📅',title:'Недельный планер на телефоне',body:'Открой раздел «Неделя» — дни листаются <b>горизонтальным свайпом</b>. Каждый день занимает весь экран. Свайп влево = следующий день. Можно добавлять задачи, заметки и фокус прямо в день.'},
+      {icon:'📋',title:'Задачи на телефоне',body:'В разделе «Задачи» карточки адаптированы под пальцы. Нажми на карточку — открывается полное редактирование. Нажми чекбокс — отметишь выполненной. Кнопки сортировки и фильтра — в верхней полосе, прокрути вправо если не всё видно.'},
+      {icon:'✅',title:'Привычки на телефоне',body:'Таблица привычек прокручивается <b>горизонтально</b> — свайп вправо чтобы увидеть все дни месяца. Нажми на клетку — отметишь привычку выполненной. Внизу — кнопка добавить привычку.'},
+      {icon:'💰',title:'Финансы на телефоне',body:'Карточки счетов растянуты на всю ширину. Кнопки «＋ Транзакция», «↔ Перевод» и другие — вверху страницы. Графики прокручиваются вертикально. Список транзакций — ниже графика.'},
+      {icon:'🏆',title:'Награды и Тренировки',body:'В разделах «Награды» и «Тренировки» есть <b>вкладки</b> — они расположены горизонтальной полосой вверху и выглядят как кнопки с рамкой. Прокрути вправо если вкладки не помещаются. Нажми на нужную вкладку — откроется раздел.'},
+      {icon:'📖',title:'Это руководство на телефоне',body:'Нажми кнопку <b>?</b> в шапке (или через «Ещё» → Аналитика → прокрути вниз до «?»). Руководство откроется снизу как выдвигающаяся панель. Вкладки разделов — горизонтальная полоска вверху, прокручивается.'},
+      {icon:'💾',title:'Сохранение и синхронизация',body:'Всё сохраняется автоматически. В шапке видишь точку: <b>зелёная</b> = синхронизировано, <b>жёлтая мигает</b> = идёт сохранение, <b>красная</b> = нет сети (данные сохраняются локально и загрузятся при подключении).'},
+    ],
+    tip:'💡 <b>Совет:</b> Добавь PlannerPro на главный экран — нажми «Поделиться» в Safari/Chrome → «На экран домой». Будет работать как приложение!'
+  },
   // ─── СТАРТ ───
   {
     id:'start', icon:'🚀', label:'С чего начать', color:'var(--p)', group:'СТАРТ',
