@@ -1861,6 +1861,12 @@ select.inp option{background:var(--card2);color:var(--text)}
   /* ── Analytics ── */
   .analyticsGrid{grid-template-columns:1fr}
   .anBar{font-size:10px}
+  /* Pie section: 1 column on mobile */
+  #analytics-content [style*="grid-template-columns:1fr 2fr"]{grid-template-columns:1fr!important}
+  /* KPI row: 2 cols on mobile */
+  #analytics-content [style*="grid-template-columns:repeat(4,1fr)"]{grid-template-columns:repeat(2,1fr)!important}
+  /* Comparison stats: 3 cols on mobile — shrink */
+  #analytics-content [style*="grid-template-columns:repeat(3,1fr)"]{grid-template-columns:repeat(3,1fr)!important}
   /* Analytics inline card paddings on mobile */
   #analytics-content > div [style*="border-radius:20px"]{border-radius:16px!important}
   #analytics-content [style*="padding:22px 24px"]{padding:16px 14px!important}
@@ -8733,7 +8739,7 @@ function renderAnalytics(){
     {ico:'⏳',lbl:'Фактически',val:totalActualDur,prevVal:prevActualDur,dispVal:totalActualDur?fmtMin(totalActualDur):'—',sub:totalActualDur?`${trackedTasks.length} задач записано`:'нет данных',c:'var(--cyan)',bg:'linear-gradient(145deg,rgba(34,204,232,.15),rgba(34,204,232,.05))',border:'rgba(34,204,232,.25)',glow:'rgba(34,204,232,.3)'},
     {ico:'📅',lbl:'Дней',val:days,prevVal:null,sub:`${periodFromFmt} — ${periodToFmt}`,c:'var(--gold)',bg:'linear-gradient(145deg,rgba(240,171,48,.15),rgba(240,171,48,.05))',border:'rgba(240,171,48,.25)',glow:'rgba(240,171,48,.3)'},
   ];
-  const kpiRow=`<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px;margin-bottom:24px">
+  const kpiRow=`<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:24px">
     ${kpiData.map(k=>`<div style="background:${k.bg};border:1px solid ${k.border||'rgba(255,255,255,.07)'};border-radius:16px;padding:18px 20px;position:relative;overflow:hidden;transition:transform .2s,box-shadow .2s" onmouseover="this.style.transform='translateY(-3px)';this.style.boxShadow='0 12px 40px ${k.glow}'" onmouseout="this.style.transform='';this.style.boxShadow=''">
       <div style="position:absolute;top:-20px;right:-20px;width:80px;height:80px;border-radius:50%;background:${k.glow};filter:blur(20px);pointer-events:none"></div>
       <div style="font-size:18px;margin-bottom:8px">${k.ico}</div>
@@ -8782,7 +8788,7 @@ function renderAnalytics(){
       </div>
     </div>
     <!-- stats row -->
-    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:0">
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:0">
       ${[
         {lbl:'Задач',ico:'✅',curr:doneTasks.length,prev:prevDoneTasks.length,col:'var(--green)',colDim:'rgba(15,221,170,.08)'},
         {lbl:'Запланировано',ico:'⏱',curr:totalPlannedMin,prev:prevPlannedMin,col:'var(--p)',colDim:'rgba(155,143,245,.06)',fmt:fmtMin},
@@ -8840,7 +8846,7 @@ function renderAnalytics(){
       <circle cx="${apts[apts.length-1].split(',')[0]}" cy="${apts[apts.length-1].split(',')[1]}" r="2.5" fill="${color}"/>
     </svg>`;
   }
-  const pieSection=lblStats.length?`<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px;margin-bottom:24px">
+  const pieSection=lblStats.length?`<div style="display:grid;grid-template-columns:1fr 2fr;gap:16px;margin-bottom:24px">
     <!-- PIE CHART -->
     <div style="background:linear-gradient(145deg,var(--card),rgba(10,11,22,.99));border:1px solid var(--border);border-radius:20px;padding:24px;display:flex;flex-direction:column;align-items:center;position:relative;overflow:hidden">
       <div style="position:absolute;inset:0;background:radial-gradient(circle at 50% 50%,rgba(155,143,245,.04),transparent 70%);pointer-events:none"></div>
@@ -8897,7 +8903,7 @@ function renderAnalytics(){
         <div style="flex:1;display:flex;align-items:center;justify-content:center;font-size:9.5px;color:rgba(255,255,255,.3);font-weight:600">${unplannedPct>8?unplannedPct+'% свободно':''}</div>
       </div>
     </div>
-    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:10px">
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px">
       <div style="display:flex;align-items:center;gap:8px;padding:10px 12px;background:var(--pdim);border-radius:10px;border:1px solid var(--pdim2)">
         <span style="width:10px;height:10px;border-radius:3px;background:linear-gradient(135deg,var(--p),var(--cyan));flex-shrink:0"></span>
         <div><div style="font-size:13px;font-weight:800;color:var(--p);font-family:var(--font-display)">${fmtMin(totalPlannedMin)}</div><div style="font-size:9px;color:var(--muted)">Запланировано</div></div>
