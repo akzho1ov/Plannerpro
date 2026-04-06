@@ -3668,6 +3668,51 @@ function cleanForFirestore(obj){
   return JSON.parse(JSON.stringify(obj,(_k,v)=>v===undefined?null:v));
 }
 
+// ── Photo storage — keep base64 photos in localStorage only, not Firestore ──
+// (Firestore docs have 1MB limit; one photo can be 200–500KB)
+const PHOTOS_KEY = SKEY + '_photos';
+
+function savePhotosLocally(){
+  const photos = {};
+  // Goals photos
+  const goals = G.goals || [];
+  goals.forEach(g => { if(g.photo && g.photo.startsWith('data:')) photos['goal_' + g.id] = g.photo; });
+  // Mission horizon photos
+  const mission = G.mission || {};
+  Object.keys(mission).forEach(id => {
+    if(mission[id] && mission[id].photo && mission[id].photo.startsWith('data:'))
+      photos['mission_' + id] = mission[id].photo;
+  });
+  try { localStorage.setItem(PHOTOS_KEY, JSON.stringify(photos)); } catch(e) {
+    console.warn('Photos too large for localStorage, skipping photo cache');
+  }
+}
+
+function restorePhotosFromLocal(){
+  let photos = {};
+  try { const s = localStorage.getItem(PHOTOS_KEY); if(s) photos = JSON.parse(s); } catch{}
+  const goals = G.goals || [];
+  goals.forEach(g => { if(!g.photo && photos['goal_' + g.id]) g.photo = photos['goal_' + g.id]; });
+  const mission = G.mission || {};
+  Object.keys(mission).forEach(id => {
+    if(mission[id] && !mission[id].photo && photos['mission_' + id])
+      mission[id].photo = photos['mission_' + id];
+  });
+}
+
+function cleanForFirestoreNoPhotos(obj){
+  // Deep-clone and strip base64 photo fields to keep Firestore doc small & fast
+  const clone = JSON.parse(JSON.stringify(obj, (_k, v) => v === undefined ? null : v));
+  if(clone.goals) clone.goals = clone.goals.map(g => ({ ...g, photo: g.photo && !g.photo.startsWith('data:') ? g.photo : '' }));
+  if(clone.mission) {
+    Object.keys(clone.mission).forEach(id => {
+      if(clone.mission[id] && clone.mission[id].photo && clone.mission[id].photo.startsWith('data:'))
+        clone.mission[id].photo = '';
+    });
+  }
+  return clone;
+}
+
 // ── Subscribe to Firestore real-time updates ──
 let _connectTimeout=null;
 function subscribeCloud(){
@@ -3681,7 +3726,7 @@ function subscribeCloud(){
   _connectTimeout=setTimeout(()=>{
     if(!_appReady){
       console.warn('Firestore timeout — falling back to cache');
-      try{const c=localStorage.getItem(SKEY+'_cache');if(c)G=JSON.parse(c);}catch{}
+      try{const c=localStorage.getItem(SKEY+'_cache');if(c){G=JSON.parse(c);restorePhotosFromLocal();}}catch{}
       _appReady=true;
       hideLoader();
       initApp();
@@ -3717,10 +3762,12 @@ function subscribeCloud(){
     // Before this fix: G=incoming always ran, wiping local changes before saveD() fired.
     if(!isOwnEcho){
       G=incoming;
+      restorePhotosFromLocal(); // merge photos not stored in Firestore
     }
 
     if(!_appReady){
       G=incoming; // always load on first boot
+      restorePhotosFromLocal(); // merge photos not stored in Firestore
       _appReady=true;
       clearTimeout(_connectTimeout);
       hideLoader();
@@ -3736,7 +3783,7 @@ function subscribeCloud(){
     setSyncDot('error');
     if(!_appReady){
       // Fall back to local cache so app still works offline
-      try{const c=localStorage.getItem(SKEY+'_cache');if(c)G=JSON.parse(c);}catch{}
+      try{const c=localStorage.getItem(SKEY+'_cache');if(c){G=JSON.parse(c);restorePhotosFromLocal();}}catch{}
       _appReady=true;
       hideLoader();
       initApp();
@@ -3752,24 +3799,28 @@ document.addEventListener('visibilitychange',()=>{
   }
 });
 
-// Save to Firestore (debounced 1.5s)
+// Save to Firestore (debounced 500ms)
 // Uses set() WITHOUT merge so the server always has the EXACT current state.
 // merge:true caused phantom data: a device with partial G would NOT delete
 // keys it didn't know about, leading to zombie data staying in Firestore forever.
 let _isSaving=false;
+let _pendingSave=false;
 function saveD(){
-  // Cache locally immediately for resilience
-  try{localStorage.setItem(SKEY+'_cache',JSON.stringify(G))}catch{}
+  // 1. Save to localStorage immediately — instant, zero latency
+  try{localStorage.setItem(SKEY+'_cache',JSON.stringify(G));}catch{}
+  // 2. Save photos to localStorage separately (keeps Firestore doc tiny)
+  savePhotosLocally();
+  // 3. Debounce Firestore write — 500ms (was 1500ms)
   clearTimeout(_saveTimer);
   setSyncDot('syncing');
-  // No loading message — just sync dot spins silently
   _saveTimer=setTimeout(async()=>{
     if(!currentUser){setSyncDot('error');return;}
-    if(_isSaving)return;
+    if(_isSaving){_pendingSave=true;return;}
     _isSaving=true;
+    _pendingSave=false;
     _myLastWriteAt=Date.now();
     try{
-      const payload=cleanForFirestore(G);
+      const payload=cleanForFirestoreNoPhotos(G);
       await db.collection('users').doc(currentUser.uid).set(payload);
       setSyncDot('ok');
     }catch(e){
@@ -3779,8 +3830,10 @@ function saveD(){
     }finally{
       _saveTimer=null;
       _isSaving=false;
+      // If another save was requested while we were saving — do it now
+      if(_pendingSave){_pendingSave=false;saveD();}
     }
-  },1500);
+  },500);
 }
 
 /* ─────────────────────────
@@ -6538,6 +6591,9 @@ function saveGoal(){
   const data={title,why:document.getElementById('goalWhyInp').value,cat:document.getElementById('goalCatInp').value,deadline:document.getElementById('goalDlInp').value,milestones,photo:_goalPhotoData||''};
   if(goalEditId){const idx=goalsD().findIndex(x=>x.id===goalEditId);if(idx>=0)goalsD()[idx]={...goalsD()[idx],...data}}
   else{goalsD().push({...data,id:uid()})}
+  // Show instant feedback
+  const btn=document.querySelector('#goalOverlay .btnB');
+  if(btn){const orig=btn.textContent;btn.textContent='✓ Сохранено!';btn.style.background='var(--green)';setTimeout(()=>{btn.textContent=orig;btn.style.background='';},1200);}
   saveD();closeGoalModal();renderGoals();
 }
 
