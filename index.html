@@ -1606,7 +1606,7 @@ select.inp option{background:var(--card2);color:var(--text)}
 .acctEditRow-fields{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
 
 /* ── Finance account card with color ── */
-.finAcctCard{background:var(--card2);border:1px solid var(--border2);border-radius:var(--r);padding:12px 14px;min-width:130px;flex-shrink:0;cursor:pointer;transition:.15s;position:relative;overflow:hidden}
+.finAcctCard{background:var(--card2);border:1px solid var(--border2);border-radius:var(--r);padding:12px 14px;min-width:0;flex:1;cursor:pointer;transition:.15s;position:relative;overflow:hidden}
 .finAcctCard::after{content:'';position:absolute;inset:0;opacity:0;transition:.15s;background:rgba(255,255,255,.03)}
 .finAcctCard:hover::after{opacity:1}
 .finAcctCard.active{border-color:var(--p);background:var(--pdim)}
@@ -1799,10 +1799,9 @@ select.inp option{background:var(--card2);color:var(--text)}
   .finSummaryGrid{grid-template-columns:1fr 1fr;gap:8px}
   .finLayout2{grid-template-columns:1fr}
   .finSumCard{padding:12px 12px;border-radius:12px}
-  #finAccountsRow{display:grid!important;grid-template-columns:repeat(auto-fill,minmax(140px,1fr))!important;gap:8px!important;flex-wrap:unset!important}
-  .finMonNav{flex-wrap:wrap;gap:6px}
-  .finMonNav > div:last-child{width:100%;display:grid!important;grid-template-columns:1fr 1fr!important;gap:6px!important;flex-wrap:unset!important}
-  .finMonNav > div:last-child .btn{flex:1;justify-content:center;font-size:11px!important;padding:7px 8px!important}
+  #finAccountsRow{grid-template-columns:repeat(auto-fill,minmax(110px,1fr))!important;gap:6px!important}
+  .finMonNav > div:last-child{width:100%;display:grid!important;grid-template-columns:1fr 1fr!important;gap:6px!important}
+  .finMonNav > div:last-child .btn{justify-content:center;font-size:11px!important;padding:7px 8px!important}
 
   /* ── Habit tracker — horizontal scroll ── */
   #htTbl{min-width:580px}
@@ -2445,7 +2444,6 @@ select.inp option{background:var(--card2);color:var(--text)}
     <div style="display:flex;align-items:center;gap:5px;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;padding-bottom:1px">
       <span style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);flex-shrink:0">Сорт:</span>
       <button id="tpSortDate" class="btn tpSortBtn tpSortOn" style="font-size:10px;padding:3px 9px;flex-shrink:0" onclick="tpSetSort('date')">📅 По дате</button>
-      <button id="tpSortAdd" class="btn tpSortBtn btnG" style="font-size:10px;padding:3px 9px;flex-shrink:0" onclick="tpSetSort('added')">➕ По добавлению</button>
       <div style="flex:1"></div>
       <button class="btn btnG" style="font-size:10px;padding:3px 9px;flex-shrink:0" onclick="openLabelsModal()">⚙ Метки</button>
       <button id="tpToggleDone" class="btn btnG" style="font-size:10px;padding:3px 9px;flex-shrink:0" onclick="tpToggleDone()">🙈 Показать готовые</button>
@@ -2575,7 +2573,7 @@ select.inp option{background:var(--card2);color:var(--text)}
     <div class="finSumCard"><div class="finSumLbl">Баланс</div><div class="finSumVal finBal" id="finBalVal">0</div><div class="finSumSub">остаток</div></div>
   </div>
   <!-- Accounts row -->
-  <div id="finAccountsRow" style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px"></div>
+  <div id="finAccountsRow" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:8px;margin-bottom:12px"></div>
   <!-- Income/Expense Line Chart -->
   <div class="card" style="padding:14px 16px;margin-bottom:12px">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;flex-wrap:wrap;gap:8px">
@@ -4208,13 +4206,13 @@ function htD(){
     checks:{},goal:'',stim:''};
   return G[htKey()]
 }
-function saveMeta(){const d=htD();d.goal=document.getElementById('htGoal').value;d.stim=document.getElementById('htStim').value;saveD()}
+function saveMeta(){const d=htD();const g=document.getElementById('htGoal');const s=document.getElementById('htStim');if(g)d.goal=g.value;if(s)d.stim=s.value;saveD()}
 
 function renderHT(){
   const d=htD();
   document.getElementById('htMonthName').textContent=`${MN[htM]} ${htY}`;
-  document.getElementById('htGoal').value=d.goal||'';
-  document.getElementById('htStim').value=d.stim||'';
+  const _htGoal=document.getElementById('htGoal');if(_htGoal)_htGoal.value=d.goal||'';
+  const _htStim=document.getElementById('htStim');if(_htStim)_htStim.value=d.stim||'';
   const days=dim(htY,htM),todK=dk(t0());
 
   // Build week groups - Monday-based ISO weeks (handles 4-6 weeks)
