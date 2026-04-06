@@ -8420,7 +8420,7 @@ function gymNotif(msg,type){
 // ═══════════════════════════════════════════════════════
 //  ANALYTICS v2 — время по выполненным, периоды, метки
 // ═══════════════════════════════════════════════════════
-if(!window._anlState)window._anlState={period:'7days',labelIds:[],groupOpen:{},lblGroup:null,customFrom:'',customTo:''};
+if(!window._anlState)window._anlState={period:'week',labelIds:[],groupOpen:{},lblGroup:null,customFrom:'',customTo:''};
 
 function anlGetPeriodRange(period){
   const now=new Date();now.setHours(0,0,0,0);
@@ -8457,6 +8457,20 @@ function anlGetPrevPeriodRange(period){
   if(period==='14days'){return{from:new Date(now.getTime()-27*86400000),to:new Date(now.getTime()-14*86400000)};}
   if(period==='30days'){return{from:new Date(now.getTime()-59*86400000),to:new Date(now.getTime()-30*86400000)};}
   if(period==='year'){return{from:new Date(now.getFullYear()-1,0,1),to:new Date(now.getFullYear()-1,11,31)};}
+  if(period==='week'){
+    // Предыдущая календарная неделя (Пн-Вс)
+    const dow=now.getDay()||7;
+    const monThis=new Date(now);monThis.setDate(now.getDate()-dow+1);
+    const monPrev=new Date(monThis);monPrev.setDate(monThis.getDate()-7);
+    const sunPrev=new Date(monPrev);sunPrev.setDate(monPrev.getDate()+6);
+    return{from:monPrev,to:sunPrev};
+  }
+  if(period==='month'){
+    // Предыдущий календарный месяц
+    const prevM=new Date(now.getFullYear(),now.getMonth()-1,1);
+    const prevMLast=new Date(now.getFullYear(),now.getMonth(),0);
+    return{from:prevM,to:prevMLast};
+  }
   if(period==='custom'){
     const cur=anlGetPeriodRange('custom');
     if(!S.customFrom||!S.customTo)return null;
@@ -8468,7 +8482,7 @@ function anlGetPrevPeriodRange(period){
 
 // Period display name for prev period
 function anlPrevPeriodLabel(period){
-  const labels={day:'вчера',yesterday:'позавчера',year:'прошлый год','3days':'пред. 3 дня','7days':'пред. неделя','30days':'пред. месяц',custom:'пред. период'};
+  const labels={day:'вчера',yesterday:'позавчера',year:'прошлый год','3days':'пред. 3 дня','7days':'пред. неделя','week':'пред. неделя','30days':'пред. месяц','month':'пред. месяц',custom:'пред. период'};
   return labels[period]||'пред. период';
 }
 
@@ -8577,8 +8591,8 @@ function renderAnalytics(){
     {k:'day',n:'Сегодня'},
     {k:'yesterday',n:'Вчера'},
     {k:'3days',n:'3 дня'},
-    {k:'7days',n:'Неделя'},
-    {k:'30days',n:'Месяц'},
+    {k:'week',n:'Неделя'},
+    {k:'month',n:'Месяц'},
     {k:'year',n:'Год'},
     {k:'alltime',n:'Всё время'},
     {k:'custom',n:'📅 Свой период'},
@@ -8714,13 +8728,13 @@ function renderAnalytics(){
   </div>`:'';
 
   const kpiData=[
-    {ico:'✅',lbl:'Выполнено',val:doneTasks.length,prevVal:prevDoneTasks.length,sub:'задач за период',c:'var(--green)',bg:'rgba(15,221,170,.08)',glow:'rgba(15,221,170,.2)'},
-    {ico:'⏱',lbl:'Запланировано',val:totalPlannedMin,prevVal:prevPlannedMin,dispVal:fmtMin(totalPlannedMin),sub:'по расписанию задач',c:'var(--p)',bg:'rgba(155,143,245,.08)',glow:'rgba(155,143,245,.2)'},
-    {ico:'⏳',lbl:'Фактически',val:totalActualDur,prevVal:prevActualDur,dispVal:totalActualDur?fmtMin(totalActualDur):'—',sub:totalActualDur?`${trackedTasks.length} задач записано`:'нет данных',c:'var(--cyan)',bg:'rgba(34,204,232,.08)',glow:'rgba(34,204,232,.2)'},
-    {ico:'📅',lbl:'Дней',val:days,prevVal:null,sub:`${periodFromFmt} — ${periodToFmt}`,c:'var(--gold)',bg:'rgba(240,171,48,.08)',glow:'rgba(240,171,48,.2)'},
+    {ico:'✅',lbl:'Выполнено',val:doneTasks.length,prevVal:prevDoneTasks.length,sub:'задач за период',c:'var(--green)',bg:'linear-gradient(145deg,rgba(15,221,170,.15),rgba(15,221,170,.05))',border:'rgba(15,221,170,.25)',glow:'rgba(15,221,170,.3)'},
+    {ico:'⏱',lbl:'Запланировано',val:totalPlannedMin,prevVal:prevPlannedMin,dispVal:fmtMin(totalPlannedMin),sub:'по расписанию задач',c:'var(--p)',bg:'linear-gradient(145deg,rgba(155,143,245,.15),rgba(155,143,245,.05))',border:'rgba(155,143,245,.25)',glow:'rgba(155,143,245,.3)'},
+    {ico:'⏳',lbl:'Фактически',val:totalActualDur,prevVal:prevActualDur,dispVal:totalActualDur?fmtMin(totalActualDur):'—',sub:totalActualDur?`${trackedTasks.length} задач записано`:'нет данных',c:'var(--cyan)',bg:'linear-gradient(145deg,rgba(34,204,232,.15),rgba(34,204,232,.05))',border:'rgba(34,204,232,.25)',glow:'rgba(34,204,232,.3)'},
+    {ico:'📅',lbl:'Дней',val:days,prevVal:null,sub:`${periodFromFmt} — ${periodToFmt}`,c:'var(--gold)',bg:'linear-gradient(145deg,rgba(240,171,48,.15),rgba(240,171,48,.05))',border:'rgba(240,171,48,.25)',glow:'rgba(240,171,48,.3)'},
   ];
   const kpiRow=`<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px;margin-bottom:24px">
-    ${kpiData.map(k=>`<div style="background:linear-gradient(145deg,${k.bg},rgba(10,11,22,.99));border:1px solid rgba(255,255,255,.07);border-radius:16px;padding:18px 20px;position:relative;overflow:hidden;transition:transform .2s,box-shadow .2s" onmouseover="this.style.transform='translateY(-3px)';this.style.boxShadow='0 12px 40px ${k.glow}'" onmouseout="this.style.transform='';this.style.boxShadow=''">
+    ${kpiData.map(k=>`<div style="background:${k.bg};border:1px solid ${k.border||'rgba(255,255,255,.07)'};border-radius:16px;padding:18px 20px;position:relative;overflow:hidden;transition:transform .2s,box-shadow .2s" onmouseover="this.style.transform='translateY(-3px)';this.style.boxShadow='0 12px 40px ${k.glow}'" onmouseout="this.style.transform='';this.style.boxShadow=''">
       <div style="position:absolute;top:-20px;right:-20px;width:80px;height:80px;border-radius:50%;background:${k.glow};filter:blur(20px);pointer-events:none"></div>
       <div style="font-size:18px;margin-bottom:8px">${k.ico}</div>
       <div style="font-size:24px;font-weight:800;color:${k.c};font-family:var(--font-display);line-height:1;letter-spacing:-1px">${k.dispVal!==undefined?k.dispVal:k.val}</div>
