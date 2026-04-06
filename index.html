@@ -8968,6 +8968,132 @@ function renderAnalytics(){
     </div>
   </div>`:'';
 
+  // ── WEEKDAY ACTIVITY (активность по дням недели) ──
+  const weekdayNames=['Пн','Вт','Ср','Чт','Пт','Сб','Вс'];
+  const weekdayData=weekdayNames.map((_,wi)=>{
+    const wdTasks=doneTasks.filter(t=>{
+      const d=new Date((t.deadline||t.doneDate||t.date||'')+'T00:00:00');
+      if(isNaN(d))return false;
+      const dow=(d.getDay()||7)-1;
+      return dow===wi;
+    });
+    const wdMin=wdTasks.filter(t=>t.time&&t.endTime&&taskMin(t)>0).reduce((s,t)=>s+taskMin(t),0)+wdTasks.reduce((s,t)=>s+(t.actualDuration||0),0);
+    return{name:weekdayNames[wi],count:wdTasks.length,min:wdMin};
+  });
+  const maxWdCount=Math.max(...weekdayData.map(d=>d.count),1);
+  const wdColors=['var(--blue)','var(--green)','var(--purple)','var(--gold)','var(--red)','var(--orange)','var(--pink)'];
+  const bestWd=weekdayData.reduce((b,d)=>d.count>b.count?d:b,weekdayData[0]);
+  const weekdayHtml=doneTasks.length>0?`<div style="background:linear-gradient(145deg,var(--card),rgba(10,11,22,.99));border:1px solid var(--border);border-radius:20px;padding:22px 24px;margin-bottom:24px">
+    <div style="font-size:9.5px;font-weight:800;text-transform:uppercase;letter-spacing:1.2px;color:var(--muted);margin-bottom:18px;display:flex;align-items:center;gap:6px">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--purple)" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+      🗓 Активность по дням недели
+    </div>
+    <div style="display:flex;align-items:flex-end;gap:8px;height:90px">
+      ${weekdayData.map((d,i)=>{
+        const h=maxWdCount?Math.max(Math.round(d.count/maxWdCount*74),d.count?6:0):0;
+        const isWe=i>=5;
+        return`<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:3px" title="${d.name}: ${d.count} задач">
+          <span style="font-size:9px;font-weight:700;color:${d.count?wdColors[i]:'transparent'};font-family:var(--font-mono)">${d.count||'·'}</span>
+          <div style="width:100%;height:${h||4}px;background:${d.count?`linear-gradient(180deg,${wdColors[i]},${wdColors[i]}66)`:'rgba(255,255,255,.05)'};border-radius:5px 5px 2px 2px;box-shadow:${d.count?`0 0 8px ${wdColors[i]}44`:''}"></div>
+          <span style="font-size:10px;font-weight:${isWe?700:500};color:${isWe?'var(--orange)':'var(--text2)'}">${d.name}</span>
+        </div>`;
+      }).join('')}
+    </div>
+    <div style="margin-top:12px;padding-top:10px;border-top:1px solid var(--border);display:flex;gap:16px;flex-wrap:wrap">
+      ${bestWd.count>0?`<span style="font-size:10px;color:var(--muted)">🏆 Лучший день: <b style="color:var(--gold)">${bestWd.name}</b></span>`:''} 
+      <span style="font-size:10px;color:var(--muted)">📅 Активных дней: <b style="color:var(--p)">${weekdayData.filter(d=>d.count>0).length} из 7</b></span>
+    </div>
+  </div>`:'';
+
+  // ── WEEKLY TREND (тренд по неделям, последние 8 недель) ──
+  const nowTr=new Date();nowTr.setHours(0,0,0,0);
+  const weeklyTrend=[];
+  for(let w=7;w>=0;w--){
+    const dow2=(nowTr.getDay()||7)-1;
+    const monW=new Date(nowTr);monW.setDate(nowTr.getDate()-dow2-w*7);
+    const sunW=new Date(monW);sunW.setDate(monW.getDate()+6);
+    const wt=allTasks.filter(t=>{
+      if(!t.done)return false;
+      const ds=t.deadline||t.doneDate||t.date||'';if(!ds)return false;
+      const d=new Date(ds+'T00:00:00');return d>=monW&&d<=sunW;
+    });
+    weeklyTrend.push({label:w===0?'Эта':`${monW.getDate()}.${monW.getMonth()+1}`,count:wt.length,isCurrent:w===0});
+  }
+  const maxWk=Math.max(...weeklyTrend.map(w=>w.count),1);
+  const wkAvg=Math.round(weeklyTrend.slice(0,7).reduce((s,w)=>s+w.count,0)/7);
+  const weeklyTrendHtml=weeklyTrend.some(w=>w.count>0)?`<div style="background:linear-gradient(145deg,var(--card),rgba(10,11,22,.99));border:1px solid var(--border);border-radius:20px;padding:22px 24px;margin-bottom:24px">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:8px">
+      <div style="font-size:9.5px;font-weight:800;text-transform:uppercase;letter-spacing:1.2px;color:var(--muted);display:flex;align-items:center;gap:6px">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--cyan)" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        📈 Тренд задач по неделям
+      </div>
+      <div style="display:flex;gap:14px">
+        <span style="font-size:10px;color:var(--muted)">Ср/нед: <b style="color:var(--p)">${wkAvg}</b></span>
+        <span style="font-size:10px;color:var(--muted)">Эта нед: <b style="color:var(--cyan)">${weeklyTrend[7].count}</b></span>
+      </div>
+    </div>
+    <div style="display:flex;align-items:flex-end;gap:5px;height:80px">
+      ${weeklyTrend.map(w=>{
+        const h=maxWk?Math.max(Math.round(w.count/maxWk*70),w.count?4:0):0;
+        return`<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:3px">
+          ${w.count?`<span style="font-size:9px;font-weight:700;color:${w.isCurrent?'var(--cyan)':'var(--muted)'}">${w.count}</span>`:'<span style="font-size:9px;color:transparent">0</span>'}
+          <div style="width:100%;height:${h||3}px;background:${w.isCurrent?'linear-gradient(180deg,var(--cyan),rgba(34,204,232,.3))':w.count?'linear-gradient(180deg,var(--p),rgba(155,143,245,.3))':'rgba(255,255,255,.05)'};border-radius:5px 5px 2px 2px;box-shadow:${w.isCurrent?'0 0 10px rgba(34,204,232,.35)':''}"></div>
+          <span style="font-size:8px;color:${w.isCurrent?'var(--cyan)':'rgba(255,255,255,.3)'};font-weight:${w.isCurrent?700:400};white-space:nowrap">${w.label}</span>
+        </div>`;
+      }).join('')}
+    </div>
+    ${wkAvg>0?`<div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--border);font-size:9px;color:var(--p);display:flex;align-items:center;gap:6px">
+      <div style="flex:1;height:1px;background:repeating-linear-gradient(90deg,rgba(155,143,245,.4) 0,rgba(155,143,245,.4) 4px,transparent 4px,transparent 8px)"></div>
+      <span>среднее ${wkAvg} зд/нед</span>
+    </div>`:''}
+  </div>`:'';
+
+  // ── COMPLETION RATE ──
+  const allPeriodTasks=allTasks.filter(t=>anlInRange(t.deadline||t.doneDate||t.date||'',from,to));
+  const totalPeriod=allPeriodTasks.length;
+  const donePeriod=allPeriodTasks.filter(t=>t.done).length;
+  const completionRate=totalPeriod?Math.round(donePeriod/totalPeriod*100):0;
+  const overdueCount=allPeriodTasks.filter(t=>!t.done).length;
+  const crColor=completionRate>=80?'var(--green)':completionRate>=50?'var(--gold)':'var(--red)';
+  const crGrad=completionRate>=80?'linear-gradient(90deg,var(--green),var(--cyan))':completionRate>=50?'linear-gradient(90deg,var(--gold),var(--orange))':'linear-gradient(90deg,var(--red),var(--orange))';
+  const completionHtml=totalPeriod>0?`<div style="background:linear-gradient(145deg,var(--card),rgba(10,11,22,.99));border:1px solid var(--border);border-radius:20px;padding:22px 24px;margin-bottom:24px">
+    <div style="font-size:9.5px;font-weight:800;text-transform:uppercase;letter-spacing:1.2px;color:var(--muted);margin-bottom:16px;display:flex;align-items:center;gap:6px">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+      ✅ Процент выполнения задач
+    </div>
+    <div style="display:flex;align-items:center;gap:20px;flex-wrap:wrap">
+      <div style="position:relative;width:80px;height:80px;flex-shrink:0">
+        <svg width="80" height="80" viewBox="0 0 80 80" style="transform:rotate(-90deg)">
+          <circle cx="40" cy="40" r="32" fill="none" stroke="rgba(255,255,255,.06)" stroke-width="8"/>
+          <circle cx="40" cy="40" r="32" fill="none" stroke="${crColor}" stroke-width="8" stroke-linecap="round"
+            stroke-dasharray="${Math.round(2*Math.PI*32).toFixed(0)}"
+            stroke-dashoffset="${Math.round(2*Math.PI*32*(1-completionRate/100)).toFixed(0)}"
+            style="transition:stroke-dashoffset .8s var(--ease)"/>
+        </svg>
+        <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center">
+          <div style="font-size:16px;font-weight:800;color:${crColor};font-family:var(--font-display);line-height:1;text-align:center">${completionRate}%</div>
+        </div>
+      </div>
+      <div style="flex:1;display:flex;flex-direction:column;gap:8px;min-width:120px">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <span style="font-size:11px;color:var(--text2)">✅ Выполнено</span>
+          <span style="font-size:13px;font-weight:800;color:var(--green);font-family:var(--font-mono)">${donePeriod}</span>
+        </div>
+        ${overdueCount>0?`<div style="display:flex;justify-content:space-between;align-items:center">
+          <span style="font-size:11px;color:var(--text2)">⏳ Не выполнено</span>
+          <span style="font-size:13px;font-weight:800;color:var(--red);font-family:var(--font-mono)">${overdueCount}</span>
+        </div>`:''}
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <span style="font-size:11px;color:var(--text2)">📋 Всего</span>
+          <span style="font-size:13px;font-weight:800;color:var(--text);font-family:var(--font-mono)">${totalPeriod}</span>
+        </div>
+        <div style="height:6px;background:var(--card3);border-radius:4px;overflow:hidden">
+          <div style="height:100%;width:${completionRate}%;background:${crGrad};border-radius:4px;transition:width .7s var(--ease)"></div>
+        </div>
+      </div>
+    </div>
+  </div>`:'';
+
   el.innerHTML=`
     <div style="display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:10px">
       <div>
@@ -8981,7 +9107,10 @@ function renderAnalytics(){
     ${compBannerHtml}
     ${trackerCard}
     ${timeBalHtml}
+    ${completionHtml}
     ${pieSection}
+    ${weekdayHtml}
+    ${weeklyTrendHtml}
     ${barChartHtml}
     ${emptyHtml}
     ${topDaysHtml}`;
@@ -8997,14 +9126,16 @@ function renderAnalytics(){
 
 function anlDrawPie(lblStats){
   if(!lblStats||!lblStats.length)return'';
-  const totalMin=lblStats.reduce((s,l)=>s+l.min,0);
+  // Use actual duration if available, else planned min
+  const getVal=(l)=>l.actual||l.min;
+  const totalMin=lblStats.reduce((s,l)=>s+getVal(l),0);
   if(!totalMin)return'';
   const cx=90,cy=90,r=76,r2=42,size=180;
   let startAngle=-Math.PI/2;
   let slices='';
-  const pieLabels=[];
-  lblStats.forEach((l,idx)=>{
-    const frac=l.min/totalMin;
+  lblStats.forEach((l)=>{
+    const val=getVal(l);
+    const frac=val/totalMin;
     const angle=frac*Math.PI*2;
     const endAngle=startAngle+angle;
     const midAngle=startAngle+angle/2;
@@ -9015,27 +9146,27 @@ function anlDrawPie(lblStats){
     const lg=angle>Math.PI?1:0;
     const pct=Math.round(frac*100);
     slices+=`<path d="M${x1.toFixed(2)},${y1.toFixed(2)} A${r},${r} 0 ${lg},1 ${x2.toFixed(2)},${y2.toFixed(2)} L${x3.toFixed(2)},${y3.toFixed(2)} A${r2},${r2} 0 ${lg},0 ${x4.toFixed(2)},${y4.toFixed(2)} Z" fill="${l.color}" opacity=".9" stroke="var(--card)" stroke-width="2" style="transition:opacity .2s;cursor:pointer" onmouseover="this.style.opacity=1;this.style.filter='brightness(1.15)'" onmouseout="this.style.opacity=.9;this.style.filter=''"><title>${esc(l.name)}: ${pct}%</title></path>`;
-    // percentage label inside slice
     if(pct>=6){
       const lx=cx+(r+r2)/2*Math.cos(midAngle),ly=cy+(r+r2)/2*Math.sin(midAngle);
-      slices+=`<text x="${lx.toFixed(1)}" y="${ly.toFixed(1)}" text-anchor="middle" dominant-baseline="middle" font-size="9" font-weight="800" fill="#fff" style="pointer-events:none;text-shadow:0 1px 2px rgba(0,0,0,.5)">${pct}%</text>`;
+      slices+=`<text x="${lx.toFixed(1)}" y="${ly.toFixed(1)}" text-anchor="middle" dominant-baseline="middle" font-size="9" font-weight="800" fill="#fff" style="pointer-events:none">${pct}%</text>`;
     }
     startAngle=endAngle;
   });
-  const legendItems=lblStats.slice(0,8).map(l=>{
-    const pct=Math.round(l.min/totalMin*100);
+  const fmtM=(m)=>{if(!m)return'0м';const h=Math.floor(m/60),mm=m%60;return h?(h+'ч'+(mm?mm+'м':'')):(mm+'м');};
+  const legendItems=lblStats.slice(0,10).map(l=>{
+    const val=getVal(l);
+    const pct=Math.round(val/totalMin*100);
     return`<div style="display:flex;align-items:center;gap:6px;padding:3px 0">
       <span style="width:10px;height:10px;border-radius:50%;background:${l.color};flex-shrink:0;box-shadow:0 0 5px ${l.color}66"></span>
-      <span style="font-size:10.5px;color:var(--text2);flex:1">${esc(l.name)}</span>
+      <span style="font-size:10.5px;color:var(--text2);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(l.name)}</span>
       <span style="font-size:10px;font-weight:700;color:${l.color};font-family:var(--font-mono)">${pct}%</span>
     </div>`;
   }).join('');
-  const fmtMinShort2=(m)=>{if(!m)return'0м';const h=Math.floor(m/60),mm=m%60;return h?(h+'ч'+(mm?mm+'м':'')):(mm+'м');};
   return`<div style="display:flex;align-items:center;gap:24px;flex-wrap:wrap;justify-content:center;width:100%">
     <div style="position:relative;flex-shrink:0">
       <svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" style="filter:drop-shadow(0 4px 20px rgba(0,0,0,.4))">${slices}</svg>
       <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;pointer-events:none">
-        <div style="font-size:18px;font-weight:800;color:var(--text);font-family:var(--font-display);letter-spacing:-1px">${fmtMinShort2(lblStats.reduce((s,l)=>s+l.min,0))}</div>
+        <div style="font-size:18px;font-weight:800;color:var(--text);font-family:var(--font-display);letter-spacing:-1px">${fmtM(totalMin)}</div>
         <div style="font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted)">итого</div>
       </div>
     </div>
