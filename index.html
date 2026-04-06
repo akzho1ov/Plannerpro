@@ -528,20 +528,30 @@ select.inp option{background:var(--card2);color:var(--text)}
 @media(max-width:1200px){.wGrid{grid-template-columns:repeat(4,1fr)}}
 @media(max-width:700px){
   .wGrid{
-    grid-template-columns:repeat(7,calc(85vw - 24px));
-    gap:10px;
+    display:flex;
+    flex-direction:row;
+    gap:0;
     overflow-x:auto;
     overflow-y:visible;
     scroll-snap-type:x mandatory;
     -webkit-overflow-scrolling:touch;
     padding-bottom:8px;
     align-items:start;
+    /* hide scrollbar but allow scrolling */
+    scrollbar-width:none;
+    -ms-overflow-style:none;
   }
-  .wGrid::-webkit-scrollbar{height:3px}
-  .wGrid::-webkit-scrollbar-thumb{background:rgba(155,143,245,.3);border-radius:4px}
-  .dCard{scroll-snap-align:start;min-width:0}
+  .wGrid::-webkit-scrollbar{display:none}
+  .dCard{
+    scroll-snap-align:start;
+    flex:0 0 calc(100vw - 24px);
+    max-width:calc(100vw - 24px);
+    margin-right:10px;
+    min-width:0;
+  }
+  .dCard:last-child{margin-right:0}
 }
-@media(max-width:380px){.wGrid{grid-template-columns:1fr}}
+@media(max-width:380px){.wGrid{flex-direction:column}.dCard{flex:none;max-width:100%;margin-right:0}}
 
 .dCard[data-d="0"]{--CC:var(--blue);--CL:var(--bluedim)}
 .dCard[data-d="1"]{--CC:var(--green);--CL:var(--greendim)}
@@ -1322,7 +1332,7 @@ select.inp option{background:var(--card2);color:var(--text)}
 .rwProgRow{display:flex;justify-content:space-between;font-size:11px;margin-bottom:6px;color:var(--text2);font-weight:600}
 .rwProgTrack{height:6px;background:var(--border2);border-radius:4px;overflow:hidden}
 .rwProgFill{height:100%;background:linear-gradient(90deg,var(--green),#34d399);border-radius:4px;transition:.4s}
-.rwSubTabs{display:flex;gap:4px;margin-bottom:14px;border-bottom:1px solid var(--border);overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;-ms-overflow-style:none}
+.rwSubTabs{display:flex;gap:4px;margin-bottom:14px;border-bottom:1px solid var(--border);overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;-ms-overflow-style:none;padding:0 0 0 0}
 .rwSubTabs::-webkit-scrollbar{display:none;height:0}
 .rwSubTab{padding:7px 14px 9px;border:none;background:none;font-family:var(--font-body);font-size:11px;font-weight:600;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;white-space:nowrap;transition:.15s;flex-shrink:0}
 .rwSubTab.on{color:var(--gold);border-bottom-color:var(--gold)}
@@ -1789,6 +1799,10 @@ select.inp option{background:var(--card2);color:var(--text)}
   .finSummaryGrid{grid-template-columns:1fr 1fr;gap:8px}
   .finLayout2{grid-template-columns:1fr}
   .finSumCard{padding:12px 12px;border-radius:12px}
+  #finAccountsRow{display:grid!important;grid-template-columns:repeat(auto-fill,minmax(140px,1fr))!important;gap:8px!important;flex-wrap:unset!important}
+  .finMonNav{flex-wrap:wrap;gap:6px}
+  .finMonNav > div:last-child{width:100%;display:grid!important;grid-template-columns:1fr 1fr!important;gap:6px!important;flex-wrap:unset!important}
+  .finMonNav > div:last-child .btn{flex:1;justify-content:center;font-size:11px!important;padding:7px 8px!important}
 
   /* ── Habit tracker — horizontal scroll ── */
   #htTbl{min-width:580px}
@@ -1883,6 +1897,71 @@ select.inp option{background:var(--card2);color:var(--text)}
   .rbGrid{grid-template-columns:1fr 1fr;gap:8px}
   .rwPts{font-size:36px}
 
+  /* ── Rewards & Gym sub-tabs: pill style on mobile ── */
+  .rwSubTabs{
+    display:flex;
+    gap:6px;
+    padding:4px 0 10px;
+    margin-bottom:10px;
+    border-bottom:1px solid var(--border);
+    overflow-x:auto;
+    -webkit-overflow-scrolling:touch;
+    scrollbar-width:none;
+  }
+  .rwSubTabs::-webkit-scrollbar{display:none}
+  .rwSubTab{
+    flex-shrink:0;
+    padding:6px 14px;
+    border-radius:20px;
+    border:1.5px solid var(--border2)!important;
+    background:var(--card2)!important;
+    font-size:11px;font-weight:700;
+    color:var(--text2)!important;
+    cursor:pointer;
+    border-bottom:1.5px solid var(--border2)!important;
+    margin-bottom:0!important;
+    transition:all .15s;
+    white-space:nowrap;
+  }
+  .rwSubTab.on{
+    background:rgba(240,171,48,.12)!important;
+    border-color:var(--gold)!important;
+    color:var(--gold)!important;
+  }
+  .gymSubTabs{
+    display:flex;
+    gap:6px;
+    padding:4px 0 10px;
+    margin-bottom:10px;
+    border-bottom:1px solid var(--border);
+    overflow-x:auto;
+    -webkit-overflow-scrolling:touch;
+    scrollbar-width:none;
+  }
+  .gymSubTabs::-webkit-scrollbar{display:none}
+  .gymSubTab{
+    flex-shrink:0;
+    padding:6px 14px;
+    border-radius:20px;
+    border:1.5px solid var(--border2)!important;
+    background:var(--card2)!important;
+    font-size:11px;font-weight:700;
+    color:var(--text2)!important;
+    cursor:pointer;
+    border-bottom:1.5px solid var(--border2)!important;
+    margin-bottom:0!important;
+    transition:all .15s;
+    white-space:nowrap;
+  }
+  .gymSubTab.on{
+    background:rgba(34,204,232,.1)!important;
+    border-color:var(--cyan)!important;
+    color:var(--cyan)!important;
+  }
+
+  /* ── Weekly grid override: override the flex already set ── */
+  .wGrid{display:flex!important;grid-template-columns:unset!important}
+
   /* ── Finance transactions ── */
   .finTxAmt{font-size:13px}
   .finTxIcon{width:32px;height:32px;font-size:13px;border-radius:9px}
@@ -1900,7 +1979,6 @@ select.inp option{background:var(--card2);color:var(--text)}
   .dashStatsStrip{grid-template-columns:1fr 1fr}
   .finSummaryGrid{grid-template-columns:1fr}
   .gymStatRow{grid-template-columns:1fr 1fr}
-  .wGrid{grid-template-columns:1fr}
   .paneTitle{font-size:17px}
   .dashFocusTitle{font-size:18px}
 }
@@ -2324,16 +2402,6 @@ select.inp option{background:var(--card2);color:var(--text)}
 
 <!-- ═══ 2. HABIT TRACKER ═══ -->
 <div id="tab-habits" class="pane hInner">
-  <div class="htTopMeta">
-    <div class="htMetaItem">
-      <div class="fldLbl" style="margin-bottom:5px">🎯 Цель на месяц</div>
-      <input class="inp" id="htGoal" placeholder="Введите цель на месяц..." oninput="saveMeta()">
-    </div>
-    <div class="htMetaItem">
-      <div class="fldLbl" style="margin-bottom:5px">⚡ Мотивация</div>
-      <input class="inp" id="htStim" placeholder="Что вас мотивирует..." oninput="saveMeta()">
-    </div>
-  </div>
   <div class="htHeader">
     <div class="htMonthNav">
       <button class="btn btnG" onclick="htNav(-1)">◀</button>
@@ -2373,15 +2441,14 @@ select.inp option{background:var(--card2);color:var(--text)}
       <div class="tpBar" style="flex:1"><div class="tpBarFill" id="tpFill" style="width:0%"></div></div>
       <span style="font-size:13px;font-weight:800;color:var(--green);font-family:var(--font-display);flex-shrink:0" id="tpPct">0%</span>
     </div>
-    <!-- Sort + controls -->
-    <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
-      <span style="font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--muted)">Сорт:</span>
-      <button id="tpSortDate" class="btn tpSortBtn tpSortOn" style="font-size:10px;padding:3px 10px" onclick="tpSetSort('date')">📅 По дате</button>
-      <button id="tpSortAdd" class="btn tpSortBtn btnG" style="font-size:10px;padding:3px 10px" onclick="tpSetSort('added')">➕ По добавлению</button>
-      <div style="margin-left:auto;display:flex;gap:6px;align-items:center">
-        <button class="btn btnG" style="font-size:10px;padding:3px 9px" onclick="openLabelsModal()">⚙ Метки</button>
-        <button id="tpToggleDone" class="btn btnG" style="font-size:10px;padding:3px 10px" onclick="tpToggleDone()">🙈 Скрыть готовые</button>
-      </div>
+    <!-- Sort + controls — single row, no wrap -->
+    <div style="display:flex;align-items:center;gap:5px;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;padding-bottom:1px">
+      <span style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);flex-shrink:0">Сорт:</span>
+      <button id="tpSortDate" class="btn tpSortBtn tpSortOn" style="font-size:10px;padding:3px 9px;flex-shrink:0" onclick="tpSetSort('date')">📅 По дате</button>
+      <button id="tpSortAdd" class="btn tpSortBtn btnG" style="font-size:10px;padding:3px 9px;flex-shrink:0" onclick="tpSetSort('added')">➕ По добавлению</button>
+      <div style="flex:1"></div>
+      <button class="btn btnG" style="font-size:10px;padding:3px 9px;flex-shrink:0" onclick="openLabelsModal()">⚙ Метки</button>
+      <button id="tpToggleDone" class="btn btnG" style="font-size:10px;padding:3px 9px;flex-shrink:0" onclick="tpToggleDone()">🙈 Показать готовые</button>
     </div>
   </div>
   <!-- Labels filter bar — dropdown style -->
@@ -2440,7 +2507,6 @@ select.inp option{background:var(--card2);color:var(--text)}
     <button class="plCal-todayBtn" onclick="plCalGoToday()">Сегодня</button>
     <button class="plCal-navBtn" onclick="plCalNav(1)" title="Вперёд">▶</button>
     <div class="plCal-dateLabel" id="plCal-dateLabel"></div>
-    <button class="btn btnB" style="font-size:10.5px;padding:5px 12px;flex-shrink:0" onclick="plCalOpenModal(null,null)">+ Событие</button>
     <div class="plCal-viewBtns">
       <button class="plCal-vBtn" onclick="plCalSetView('day',this)">День</button>
       <button class="plCal-vBtn" onclick="plCalSetView('3day',this)">3 дня</button>
