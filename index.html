@@ -1219,7 +1219,24 @@ select.inp option{background:var(--card2);color:var(--text)}
   color:var(--muted);margin-bottom:14px;display:flex;align-items:center;gap:8px;
 }
 .dashCardLbl::after{content:'';flex:1;height:1px;background:var(--border)}
-/* Dashboard period switcher */
+/* Dashboard hero layout */
+.dashHeroRow{
+  display:flex;align-items:flex-start;justify-content:space-between;
+  gap:12px;margin-bottom:10px;
+}
+.dashHeroLeft{flex:1;min-width:0}
+.dashActionsRow{
+  display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;
+}
+.dashActionBtn{font-size:11.5px}
+@media(max-width:700px){
+  .dashHeroRow{flex-direction:row;align-items:flex-start;gap:10px;margin-bottom:8px}
+  .dashHeroLeft #dashGreet{font-size:22px!important}
+  .dashHeroLeft #dashDateLbl{font-size:11px!important}
+  .dashActionsRow{gap:6px;margin-bottom:12px}
+  .dashActionBtn{flex:1;justify-content:center;font-size:11px!important;padding:7px 10px!important}
+  .dashPeriodBtn{padding:5px 10px!important;font-size:10.5px!important}
+}
 .dashPeriodBtn{
   padding:6px 14px;border:none;background:none;
   font-family:var(--font-body);font-size:11px;font-weight:600;
@@ -1229,6 +1246,11 @@ select.inp option{background:var(--card2);color:var(--text)}
 .dashPeriodBtn:last-child{border-right:none}
 .dashPeriodBtn.on{background:var(--p);color:#fff;text-shadow:0 0 12px rgba(155,143,245,.5)}
 .dashPeriodBtn:hover:not(.on){background:rgba(255,255,255,.06);color:var(--text2)}
+.dashPeriodTag{
+  font-size:8.5px;color:var(--text2);
+  text-transform:none;letter-spacing:0;font-weight:500;
+  margin-left:4px;opacity:.7;
+}
 .dashBigNum{font-family:var(--font-display);font-size:30px;font-weight:800;letter-spacing:-1px}
 .dashSmNum{font-family:var(--font-display);font-size:22px;font-weight:800;letter-spacing:-.5px}
 .scoreRing{position:relative;display:inline-flex;align-items:center;justify-content:center}
@@ -2211,28 +2233,30 @@ select.inp option{background:var(--card2);color:var(--text)}
 
 <!-- ═══ 0. DASHBOARD ═══ -->
 <div id="tab-dash" class="pane on hInner">
-  <!-- Period switcher + hero row -->
-  <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px">
-    <div>
-      <div style="font-family:var(--font-display);font-size:30px;font-weight:800;letter-spacing:-.7px;background:linear-gradient(135deg,var(--text) 0%,var(--text2) 100%);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;line-height:1.1" id="dashGreet">Доброе утро!</div>
-      <div style="font-size:13px;color:var(--text2);margin-top:6px;letter-spacing:-.01em" id="dashDateLbl"></div>
+  <!-- Mobile-optimised header -->
+  <div class="dashHeroRow">
+    <!-- Greeting + date -->
+    <div class="dashHeroLeft">
+      <div style="font-family:var(--font-display);font-size:26px;font-weight:800;letter-spacing:-.7px;background:linear-gradient(135deg,var(--text) 0%,var(--text2) 100%);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;line-height:1.1" id="dashGreet">Добрый день!</div>
+      <div style="font-size:12px;color:var(--text2);margin-top:4px;letter-spacing:-.01em" id="dashDateLbl"></div>
     </div>
-    <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
-      <!-- Period buttons -->
-      <div style="display:flex;background:var(--card2);border:1px solid var(--border2);border-radius:10px;overflow:hidden;flex-shrink:0">
-        <button id="dashPeriodDay" class="dashPeriodBtn on" onclick="setDashPeriod('day',this)">День</button>
-        <button id="dashPeriodWeek" class="dashPeriodBtn" onclick="setDashPeriod('week',this)">Неделя</button>
-        <button id="dashPeriodMonth" class="dashPeriodBtn" onclick="setDashPeriod('month',this)">Месяц</button>
-      </div>
-      <button class="btn btnG" style="font-size:11.5px" onclick="openJournalModal()">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
-        Дневник
-      </button>
-      <button class="btn btnB" style="font-size:11.5px" onclick="openCmdPalette()">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-        Быстро
-      </button>
+    <!-- Period switcher -->
+    <div style="display:flex;background:var(--card2);border:1px solid var(--border2);border-radius:10px;overflow:hidden;flex-shrink:0;align-self:flex-start">
+      <button id="dashPeriodDay" class="dashPeriodBtn on" onclick="setDashPeriod('day',this)">День</button>
+      <button id="dashPeriodWeek" class="dashPeriodBtn" onclick="setDashPeriod('week',this)">Неделя</button>
+      <button id="dashPeriodMonth" class="dashPeriodBtn" onclick="setDashPeriod('month',this)">Месяц</button>
     </div>
+  </div>
+  <!-- Action buttons row -->
+  <div class="dashActionsRow">
+    <button class="btn btnG dashActionBtn" onclick="openJournalModal()">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+      Запись в дневник
+    </button>
+    <button class="btn btnB dashActionBtn" onclick="openCmdPalette()">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      Быстрое действие
+    </button>
   </div>
 
   <!-- Focus hero block -->
@@ -7134,127 +7158,141 @@ function setDashPeriod(p,btn){
   _dashPeriod=p;
   document.querySelectorAll('.dashPeriodBtn').forEach(b=>b.classList.remove('on'));
   if(btn)btn.classList.add('on');
-  // Update card labels
-  const periodLabel={day:'сегодня',week:'неделя',month:'месяц'};
-  const lbl=periodLabel[p]||'сегодня';
-  const taskCard=document.querySelector('#tab-dash .dashCard .dashCardLbl');
-  // Update stats based on period
-  const tasks=tpD(),td=t0(),todK=dk(td);
-  let filtered=[];
-  if(p==='day'){
-    filtered=tasks.filter(t=>t.deadline===todK||(!t.deadline&&!t.done));
-  } else if(p==='week'){
-    const mon=new Date(td);const dow=td.getDay();mon.setDate(td.getDate()-(dow===0?6:dow-1));
-    const sun=new Date(mon);sun.setDate(mon.getDate()+6);
-    filtered=tasks.filter(t=>{
-      if(!t.deadline)return !t.done;
-      const dl=new Date(t.deadline+'T00:00:00');
-      return dl>=mon&&dl<=sun;
-    });
-  } else {
-    filtered=tasks.filter(t=>{
-      if(!t.deadline)return !t.done;
-      const dl=new Date(t.deadline+'T00:00:00');
-      return dl.getFullYear()===td.getFullYear()&&dl.getMonth()===td.getMonth();
-    });
-  }
-  const tot=filtered.length;
-  const done=filtered.filter(t=>t.done).length;
-  const over=filtered.filter(t=>!t.done&&t.deadline&&new Date(t.deadline+'T00:00:00')<td).length;
-  if(document.getElementById('stot'))document.getElementById('stot').textContent=tot;
-  if(document.getElementById('sdone'))document.getElementById('sdone').textContent=done;
-  if(document.getElementById('sover'))document.getElementById('sover').textContent=over;
-  const dOverEl=document.getElementById('dOverdue');if(dOverEl)dOverEl.textContent=over;
-  const dDoneEl=document.getElementById('dDone');if(dDoneEl)dDoneEl.textContent=done;
-  const taskBar=document.getElementById('dashTaskBar');if(taskBar)taskBar.style.width=(tot?Math.round(done/tot*100):0)+'%';
-  // Update finance card
-  const txs=finTxs();
-  const now2=new Date();
-  let finFiltered=txs;
-  if(p==='day'){
-    finFiltered=txs.filter(t=>t.date===todK);
-  } else if(p==='week'){
-    const mon2=new Date(td);const dow2=td.getDay();mon2.setDate(td.getDate()-(dow2===0?6:dow2-1));
-    const monK=dk(mon2);const sunK=dk(new Date(mon2.getTime()+6*86400000));
-    finFiltered=txs.filter(t=>t.date>=monK&&t.date<=sunK);
-  } else {
-    finFiltered=txs.filter(t=>t.date&&t.date.startsWith(`${now2.getFullYear()}-${String(now2.getMonth()+1).padStart(2,'0')}`));
-  }
-  const inc=finFiltered.filter(t=>t.type==='in').reduce((a,t)=>a+Number(t.amount),0);
-  const exp=finFiltered.filter(t=>t.type==='out').reduce((a,t)=>a+Number(t.amount),0);
-  const dFinInc=document.getElementById('dFinInc');if(dFinInc)dFinInc.textContent=fmtMoney(inc);
-  const dFinExp=document.getElementById('dFinExp');if(dFinExp)dFinExp.textContent=fmtMoney(exp);
-  const dFinBal=document.getElementById('dFinBal');if(dFinBal)dFinBal.textContent=fmtMoney(inc-exp);
-  // Update Finance card label
-  const lblMap={day:'сегодня',week:'эта неделя',month:'этот месяц'};
-  document.querySelectorAll('#tab-dash .dashCardLbl').forEach(el=>{
-    if(el.textContent.includes('Задачи'))el.innerHTML='📋 Задачи <span style="font-size:9px;color:var(--text2);text-transform:none;letter-spacing:0;font-weight:500;margin-left:4px">('+lblMap[p]+')</span>';
-    if(el.textContent.includes('Финансы'))el.innerHTML='💰 Финансы <span style="font-size:9px;color:var(--text2);text-transform:none;letter-spacing:0;font-weight:500;margin-left:4px">('+lblMap[p]+')</span>';
-  });
+  renderDash();
 }
 
 function renderDash(){
-  const now=new Date(),h=now.getHours();
+  const now=new Date(),h=now.getHours(),p=_dashPeriod||'day';
   const greetWord=h<5?'Глубокая ночь':h<12?'Доброе утро':h<17?'Добрый день':h<21?'Добрый вечер':'Добрая ночь';
   const userEl=document.getElementById('hUserName');
   const name=userEl?.textContent&&userEl.textContent!=='Загрузка...'?', '+userEl.textContent.split(' ')[0]:'';
-  document.getElementById('dashGreet').textContent=greetWord+name+' 👋';
-  document.getElementById('dashDateLbl').textContent=now.toLocaleDateString('ru-RU',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+  const greetEl=document.getElementById('dashGreet');if(greetEl)greetEl.textContent=greetWord+name+' 👋';
+  const dateLblEl=document.getElementById('dashDateLbl');if(dateLblEl)dateLblEl.textContent=now.toLocaleDateString('ru-RU',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
 
-  // Tasks stats
-  const tasks=tpD(),td=t0(),todK=dk(td);
-  let over=0,dueToday=0,done=0;
-  tasks.forEach(t=>{
-    if(t.done){done++;return}
-    if(!t.deadline)return;
-    const dl=new Date(t.deadline+'T00:00:00');dl.setHours(0,0,0,0);
-    const diff=Math.floor((dl-td)/86400000);
-    if(diff<0)over++;else if(diff===0)dueToday++;
-  });
-  const tot=tasks.length;
+  const td=t0(),todK=dk(td);
 
-  // Update quick stats strip
+  // ── Date range for period ──
+  function inPeriod(dateStr){
+    if(!dateStr)return false;
+    if(p==='day') return dateStr===todK;
+    if(p==='week'){
+      const mon=new Date(td);const dow=td.getDay();mon.setDate(td.getDate()-(dow===0?6:dow-1));
+      const sun=new Date(mon);sun.setDate(mon.getDate()+6);
+      return dateStr>=dk(mon)&&dateStr<=dk(sun);
+    }
+    // month
+    return dateStr.startsWith(`${td.getFullYear()}-${String(td.getMonth()+1).padStart(2,'0')}`);
+  }
+
+  // ── Period label ──
+  const lblMap={day:'сегодня',week:'эта неделя',month:'этот месяц'};
+  const periodLbl=lblMap[p];
+
+  // ── Tasks ──
+  const tasks=tpD();
+  let taskFiltered,over=0,dueToday=0,done=0,tot=0;
+  if(p==='day'){
+    taskFiltered=tasks.filter(t=>t.deadline===todK||(t.done&&t.deadline===todK));
+    tasks.forEach(t=>{
+      if(t.done){if(t.deadline===todK)done++;return}
+      if(!t.deadline)return;
+      const dl=new Date(t.deadline+'T00:00:00');dl.setHours(0,0,0,0);
+      const diff=Math.floor((dl-td)/86400000);
+      if(diff<0)over++;else if(diff===0)dueToday++;
+    });
+    tot=tasks.length;done=tasks.filter(t=>t.done).length;
+  } else {
+    taskFiltered=tasks.filter(t=>inPeriod(t.deadline)||(p!=='day'&&!t.deadline));
+    done=taskFiltered.filter(t=>t.done).length;
+    tot=taskFiltered.length;
+    over=taskFiltered.filter(t=>!t.done&&t.deadline&&t.deadline<todK).length;
+    dueToday=taskFiltered.filter(t=>!t.done&&t.deadline===todK).length;
+  }
+
+  // Update quick stats
   if(document.getElementById('stot'))document.getElementById('stot').textContent=tot;
   if(document.getElementById('sdone'))document.getElementById('sdone').textContent=done;
   if(document.getElementById('sover'))document.getElementById('sover').textContent=over;
-
-  // Old stat IDs fallback
   const dOverEl=document.getElementById('dOverdue');if(dOverEl)dOverEl.textContent=over;
   const dTodEl=document.getElementById('dDueToday');if(dTodEl)dTodEl.textContent=dueToday;
   const dDoneEl=document.getElementById('dDone');if(dDoneEl)dDoneEl.textContent=done;
   const taskBar=document.getElementById('dashTaskBar');if(taskBar)taskBar.style.width=(tot?Math.round(done/tot*100):0)+'%';
 
-  // Habits today
+  // Update card label
+  document.querySelectorAll('#tab-dash .dashCardLbl').forEach(el=>{
+    const t=el.textContent||el.innerText||'';
+    if(t.includes('Задач'))el.innerHTML=`📋 Задачи <span class="dashPeriodTag">${periodLbl}</span>`;
+    if(t.includes('Финанс'))el.innerHTML=`💰 Финансы <span class="dashPeriodTag">${periodLbl}</span>`;
+    if(t.includes('Привычк'))el.innerHTML=`✅ Привычки <span class="dashPeriodTag">${periodLbl}</span>`;
+  });
+
+  // ── Habits ──
   const htd=htD(),habits=htd.habits||[],todDay=td.getDate();
-  let habDone=0;
-  habits.forEach((_,hi)=>{if(htd.checks&&htd.checks[`${hi}_${todDay}`])habDone++});
+  let habDone=0,habTotal=habits.length;
+  if(p==='day'){
+    habits.forEach((_,hi)=>{if(htd.checks&&htd.checks[`${hi}_${todDay}`])habDone++});
+  } else if(p==='week'){
+    // average completion this week
+    const mon=new Date(td);const dow=td.getDay();mon.setDate(td.getDate()-(dow===0?6:dow-1));
+    let totalChecks=0,totalPossible=0;
+    for(let i=0;i<7;i++){
+      const d=new Date(mon);d.setDate(mon.getDate()+i);
+      if(d>td)break;
+      const dayNum=d.getDate();
+      const key=`ht_${d.getFullYear()}_${d.getMonth()}`;
+      const hd2=G[key]||htd;
+      const hn=hd2.habits?hd2.habits.length:0;
+      if(!hn)continue;
+      totalPossible+=hn;
+      hd2.habits.forEach((_,hi)=>{if(hd2.checks&&hd2.checks[`${hi}_${dayNum}`])totalChecks++;});
+    }
+    habDone=totalChecks;habTotal=totalPossible;
+  } else {
+    // month average
+    const dim2=new Date(td.getFullYear(),td.getMonth()+1,0).getDate();
+    let totalChecks=0,totalPossible=0;
+    for(let day=1;day<=Math.min(todDay,dim2);day++){
+      const hn=habits.length;
+      if(!hn)continue;
+      totalPossible+=hn;
+      habits.forEach((_,hi)=>{if(htd.checks&&htd.checks[`${hi}_${day}`])totalChecks++;});
+    }
+    habDone=totalChecks;habTotal=totalPossible;
+  }
+  const habPct=habTotal?Math.round(habDone/habTotal*100):0;
   const habEl=document.getElementById('dHabDone');if(habEl)habEl.textContent=habDone;
-  const habTotEl=document.getElementById('dHabTot');if(habTotEl)habTotEl.textContent=habits.length;
-  const habPct=habits.length?Math.round(habDone/habits.length*100):0;
+  const habTotEl=document.getElementById('dHabTot');if(habTotEl)habTotEl.textContent=habTotal;
   const habBar=document.getElementById('dashHabBar');if(habBar)habBar.style.width=habPct+'%';
   const habPctEl=document.getElementById('dashHabPct');if(habPctEl)habPctEl.textContent=habPct+'%';
 
-  // Habit streak
-  let streak=0;const todayD=t0();
+  // Habit streak (always current)
+  let streak=0;
   for(let i=0;i<90;i++){
-    const d=new Date(todayD);d.setDate(d.getDate()-i);
+    const d=new Date(td);d.setDate(d.getDate()-i);
     const key=`ht_${d.getFullYear()}_${d.getMonth()}`;
-    const hd=G[key]||{habits:[],checks:{}};
-    const hn=hd.habits?hd.habits.length:0;
+    const hd2=G[key]||{habits:[],checks:{}};
+    const hn=hd2.habits?hd2.habits.length:0;
     if(!hn)break;
-    const done2=hd.habits.filter((_,hi)=>hd.checks&&hd.checks[`${hi}_${d.getDate()}`]).length;
+    const done2=hd2.habits.filter((_,hi)=>hd2.checks&&hd2.checks[`${hi}_${d.getDate()}`]).length;
     if(done2===hn)streak++;else break;
   }
   const streakEl=document.getElementById('dashStreakVal');if(streakEl)streakEl.textContent=streak;
 
-  // Hero focus text
+  // Habit dots (today)
+  const dotsEl=document.getElementById('dashHabDots');if(dotsEl){dotsEl.innerHTML='';
+  habits.slice(0,8).forEach((_,hi)=>{
+    const done2=htd.checks&&htd.checks[`${hi}_${todDay}`];
+    dotsEl.innerHTML+=`<div style="width:10px;height:10px;border-radius:3px;background:${done2?'var(--green)':'var(--border2)'};flex-shrink:0" title="${esc(habits[hi]?.name||'')}"></div>`;
+  });}
+
+  // Hero focus text (always today)
   const focusSub=document.getElementById('dashFocusSub');
   const bigTxt=document.getElementById('dashGreetBig');
   if(focusSub&&bigTxt){
-    const pending=tasks.filter(t=>!t.done&&t.deadline===dk(td));
+    const pending=tasks.filter(t=>!t.done&&t.deadline===todK);
     const topTask=tasks.find(t=>!t.done&&!t.deadline)||tasks.find(t=>!t.done);
     if(pending.length){
-      bigTxt.textContent=`${pending.length} ${pending.length===1?'задача':'задачи'} на сегодня`;
+      bigTxt.textContent=`${pending.length} ${pending.length===1?'задача':(pending.length<5?'задачи':'задач')} на сегодня`;
       focusSub.textContent=topTask?`Следующая: ${topTask.text}`:'Всё выглядит отлично!';
     } else if(topTask){
       bigTxt.textContent='Что сделаем сегодня?';
@@ -7265,30 +7303,32 @@ function renderDash(){
     }
   }
 
-  const dotsEl=document.getElementById('dashHabDots');if(dotsEl){dotsEl.innerHTML='';
-  habits.slice(0,8).forEach((_,hi)=>{
-    const done2=htd.checks&&htd.checks[`${hi}_${todDay}`];
-    dotsEl.innerHTML+=`<div style="width:10px;height:10px;border-radius:3px;background:${done2?'var(--green)':'var(--border2)'};flex-shrink:0" title="${esc(habits[hi]?.name||'')}"></div>`;
-  });}
-
-  // Finance
-  const fnow=new Date();
-  const txs=finTxD().filter(t=>{const d=new Date(t.date);return d.getFullYear()===fnow.getFullYear()&&d.getMonth()===fnow.getMonth()});
+  // ── Finance ──
+  const allTxs=finTxD();
+  const txs=allTxs.filter(t=>inPeriod(t.date));
   const inc=txs.filter(t=>t.type==='in').reduce((a,t)=>a+Number(t.amount),0);
-  const exp=txs.filter(t=>t.type==='out').reduce((a,t)=>a+Number(t.amount),0);
+  const exp2=txs.filter(t=>t.type==='out').reduce((a,t)=>a+Number(t.amount),0);
   const dFiEl=document.getElementById('dFinInc');if(dFiEl)dFiEl.textContent=fmtMoney(inc);
-  const dFeEl=document.getElementById('dFinExp');if(dFeEl)dFeEl.textContent=fmtMoney(exp);
-  const balEl=document.getElementById('dFinBal');if(balEl){balEl.textContent=fmtMoney(inc-exp);balEl.style.color=(inc-exp)>=0?'var(--green)':'var(--red)';}
+  const dFeEl=document.getElementById('dFinExp');if(dFeEl)dFeEl.textContent=fmtMoney(exp2);
+  const balEl=document.getElementById('dFinBal');if(balEl){balEl.textContent=fmtMoney(inc-exp2);balEl.style.color=(inc-exp2)>=0?'var(--green)':'var(--red)';}
 
-  // Score ring
+  // ── Score ring ──
   const taskScore=tot?Math.round(done/tot*100):0;
   const score=Math.round(taskScore*0.5+habPct*0.5);
   const scEl=document.getElementById('dashScoreVal');if(scEl)scEl.textContent=score+'%';
   drawDashRing(score);
   const sbEl=document.getElementById('dashScoreBreak');
-  if(sbEl)sbEl.innerHTML=`<div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid var(--border);font-size:11.5px"><span style="color:var(--text2)">Задачи</span><span style="color:var(--green);font-weight:700;font-family:var(--font-display)">${taskScore}%</span></div><div style="display:flex;justify-content:space-between;padding:4px 0;font-size:11.5px"><span style="color:var(--text2)">Привычки</span><span style="color:var(--pink);font-weight:700;font-family:var(--font-display)">${habPct}%</span></div>`;
+  if(sbEl)sbEl.innerHTML=`
+    <div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid var(--border);font-size:11.5px">
+      <span style="color:var(--text2)">Задачи</span>
+      <span style="color:var(--green);font-weight:700;font-family:var(--font-display)">${taskScore}%</span>
+    </div>
+    <div style="display:flex;justify-content:space-between;padding:4px 0;font-size:11.5px">
+      <span style="color:var(--text2)">Привычки</span>
+      <span style="color:var(--pink);font-weight:700;font-family:var(--font-display)">${habPct}%</span>
+    </div>`;
 
-  // Kanban pipeline
+  // ── Kanban pipeline ──
   kbMigrate();
   const board=kbBoardsD()[0];
   const pipeEl=document.getElementById('dashPipeline');if(pipeEl){pipeEl.innerHTML='';
@@ -7298,32 +7338,31 @@ function renderDash(){
     });
   }}
 
-  // Goals preview
+  // ── Goals preview ──
   const goalsEl=document.getElementById('dashGoals');if(goalsEl){goalsEl.innerHTML='';
   goalsD().slice(0,3).forEach(g=>{
     const ms=g.milestones||[];const pct2=ms.length?Math.round(ms.filter(m=>m.done).length/ms.length*100):0;
     goalsEl.innerHTML+=`<div class="dashGoalRow"><div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:5px"><span style="color:var(--text2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:160px">${esc(g.title)}</span><span style="color:var(--p);font-weight:700;font-family:var(--font-display)">${pct2}%</span></div><div class="dashGoalRowBar"><div class="dashGoalRowFill" style="width:${pct2}%"></div></div></div>`;
   });
-  if(!goalsD().length)goalsEl.innerHTML='<div style="font-size:12px;color:var(--muted);text-align:center;padding:16px 0">Нет целей — <a href="#" onclick="switchTab(\'goals\',document.querySelectorAll(\'.hTab\')[7])" style="color:var(--p);text-decoration:none">добавить?</a></div>';}
+  if(!goalsD().length)goalsEl.innerHTML='<div style="font-size:12px;color:var(--muted);text-align:center;padding:16px 0">Нет целей</div>';}
 
   drawDashHabChart();
   drawDashFinChart();
   renderDashActivity();
-  // Growth widgets on dashboard
   renderTaskWeekChart();
   renderStreakHeatmap();
-  // Update best week badge
   (function(){
     const weeks=6;const today=t0();let best=0;
     for(let w=0;w<weeks;w++){
       const wStart=new Date(today);wStart.setDate(wStart.getDate()-w*7-6);
       let cnt=0;
-      for(let d=0;d<7;d++){const day=new Date(wStart);day.setDate(day.getDate()+d);const wk=G['w_'+dk(getMon(day))];if(wk){Object.values(wk.days||{}).forEach(dd=>{cnt+=(dd.tasks||[]).filter(t=>t.done).length})}}
+      for(let di=0;di<7;di++){const day=new Date(wStart);day.setDate(day.getDate()+di);const wk=G['w_'+dk(getMon(day))];if(wk){Object.values(wk.days||{}).forEach(dd=>{cnt+=(dd.tasks||[]).filter(t=>t.done).length})}}
       if(cnt>best)best=cnt;
     }
     const el=document.getElementById('dashWeekBest');if(el)el.textContent=`Рекорд: ${best}`;
   })();
 }
+
 
 function drawDashRing(score){
   const svg=document.getElementById('dashRingSvg');if(!svg)return;
