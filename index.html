@@ -10043,37 +10043,42 @@ document.addEventListener('click',e=>{
 <!-- ═══════════════════════════════════════════
      GUIDE MODAL — Интерактивная инструкция
 ═══════════════════════════════════════════ -->
-<div id="guideOverlay" style="display:none;position:fixed;inset:0;z-index:3000;background:rgba(0,0,0,.75);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);animation:fadeOverlay .2s var(--ease)" onclick="if(event.target===this)closeGuideModal()">
-  <div id="guideModal" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:min(780px,96vw);max-height:88vh;background:linear-gradient(160deg,rgba(12,13,28,.99) 0%,rgba(8,9,20,.99) 100%);border:1px solid rgba(155,143,245,.2);border-radius:24px;box-shadow:0 0 0 1px rgba(255,255,255,.04),0 40px 100px rgba(0,0,0,.8),0 0 80px rgba(155,143,245,.08);display:flex;flex-direction:column;overflow:hidden;animation:slideModal .25s var(--ease-spring)">
+<div id="guideOverlay" style="display:none;position:fixed;inset:0;z-index:3000;background:rgba(0,0,0,.8);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);animation:fadeOverlay .2s var(--ease)" onclick="if(event.target===this)closeGuideModal()">
+  <div id="guideModal" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:min(860px,96vw);max-height:90vh;background:linear-gradient(160deg,rgba(10,11,24,.99) 0%,rgba(7,8,18,.99) 100%);border:1px solid rgba(155,143,245,.22);border-radius:24px;box-shadow:0 0 0 1px rgba(255,255,255,.04),0 40px 120px rgba(0,0,0,.9),0 0 100px rgba(155,143,245,.1);display:flex;flex-direction:column;overflow:hidden;animation:slideModal .25s var(--ease-spring)">
     <!-- Modal header -->
-    <div style="display:flex;align-items:center;justify-content:space-between;padding:20px 24px 16px;border-bottom:1px solid rgba(255,255,255,.06);flex-shrink:0;background:linear-gradient(135deg,rgba(155,143,245,.06),transparent)">
-      <div style="display:flex;align-items:center;gap:14px">
-        <div style="width:40px;height:40px;background:linear-gradient(135deg,var(--p),var(--purple));border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:18px;box-shadow:0 0 24px rgba(155,143,245,.4)">📖</div>
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:18px 22px 14px;border-bottom:1px solid rgba(255,255,255,.06);flex-shrink:0;background:linear-gradient(135deg,rgba(155,143,245,.07),transparent)">
+      <div style="display:flex;align-items:center;gap:12px">
+        <div style="width:38px;height:38px;background:linear-gradient(135deg,var(--p),var(--purple));border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:17px;box-shadow:0 0 22px rgba(155,143,245,.45);flex-shrink:0">📖</div>
         <div>
-          <div style="font-family:var(--font-display);font-size:18px;font-weight:800;letter-spacing:-.4px;color:var(--text)">Инструкция по использованию</div>
-          <div style="font-size:11px;color:var(--muted);margin-top:1px">PlannerPro · Полное руководство</div>
+          <div style="font-family:var(--font-display);font-size:17px;font-weight:800;letter-spacing:-.4px;color:var(--text)">Полное руководство</div>
+          <div style="font-size:10.5px;color:var(--muted);margin-top:1px">PlannerPro — всё что нужно знать</div>
         </div>
       </div>
-      <button onclick="closeGuideModal()" style="border:none;background:var(--card2);border:1px solid var(--border2);border-radius:10px;width:32px;height:32px;display:flex;align-items:center;justify-content:center;color:var(--text2);font-size:16px;cursor:pointer;transition:all var(--dur) var(--ease)" onmouseover="this.style.background='var(--reddim)';this.style.color='var(--red)'" onmouseout="this.style.background='var(--card2)';this.style.color='var(--text2)'">✕</button>
+      <button onclick="closeGuideModal()" style="border:1px solid var(--border2);background:var(--card2);border-radius:10px;width:32px;height:32px;display:flex;align-items:center;justify-content:center;color:var(--text2);font-size:15px;cursor:pointer;transition:all var(--dur) var(--ease);flex-shrink:0" onmouseover="this.style.background='var(--reddim)';this.style.color='var(--red)'" onmouseout="this.style.background='var(--card2)';this.style.color='var(--text2)'">✕</button>
+    </div>
+    <!-- Mobile top tabs -->
+    <div id="guideMobileTabs" style="display:none;overflow-x:auto;border-bottom:1px solid rgba(255,255,255,.06);flex-shrink:0;scrollbar-width:none;-webkit-overflow-scrolling:touch">
+      <div id="guideMobileTabItems" style="display:flex;padding:8px 10px;gap:6px;min-width:max-content"></div>
     </div>
     <!-- Content: sidebar + main -->
     <div style="display:flex;flex:1;overflow:hidden">
-      <!-- Section sidebar -->
-      <div style="width:180px;flex-shrink:0;border-right:1px solid rgba(255,255,255,.05);padding:12px 8px;overflow-y:auto;background:rgba(255,255,255,.01)">
+      <!-- Section sidebar (desktop) -->
+      <div id="guideSidebar" style="width:190px;flex-shrink:0;border-right:1px solid rgba(255,255,255,.05);padding:10px 8px;overflow-y:auto;background:rgba(255,255,255,.01)">
         <div id="guideSideItems"></div>
       </div>
       <!-- Section content -->
-      <div style="flex:1;overflow-y:auto;padding:20px 24px" id="guideContent">
-        <!-- Filled by JS -->
-      </div>
+      <div style="flex:1;overflow-y:auto;padding:22px 24px 24px" id="guideContent"></div>
     </div>
     <!-- Footer -->
-    <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 24px;border-top:1px solid rgba(255,255,255,.05);flex-shrink:0;background:rgba(255,255,255,.01)">
-      <div style="font-size:10px;color:var(--muted);display:flex;align-items:center;gap:10px">
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:11px 22px;border-top:1px solid rgba(255,255,255,.05);flex-shrink:0;background:rgba(255,255,255,.01);gap:10px;flex-wrap:wrap">
+      <div style="font-size:10px;color:var(--muted);display:flex;align-items:center;gap:8px">
         <span style="background:var(--card2);border:1px solid var(--border2);border-radius:5px;padding:2px 8px;font-family:var(--font-mono);font-size:9px">?</span>
-        <span>— нажми в любой момент, чтобы открыть это руководство</span>
+        <span>— открыть это руководство в любой момент</span>
       </div>
-      <button onclick="closeGuideModal()" style="border:none;background:linear-gradient(135deg,var(--p),var(--p2));color:#fff;border-radius:10px;padding:7px 20px;font-family:var(--font-body);font-size:12px;font-weight:700;cursor:pointer;box-shadow:0 0 20px rgba(155,143,245,.3)">Понятно!</button>
+      <div style="display:flex;gap:8px">
+        <button id="guidePrevBtn" onclick="guideNavStep(-1)" style="border:1px solid var(--border2);background:var(--card2);border-radius:9px;padding:6px 14px;font-family:var(--font-body);font-size:11px;font-weight:600;cursor:pointer;color:var(--text2);transition:.15s">← Назад</button>
+        <button id="guideNextBtn" onclick="guideNavStep(1)" style="border:none;background:linear-gradient(135deg,var(--p),var(--p2));color:#fff;border-radius:9px;padding:6px 16px;font-family:var(--font-body);font-size:11px;font-weight:700;cursor:pointer;box-shadow:0 0 16px rgba(155,143,245,.3)">Дальше →</button>
+      </div>
     </div>
   </div>
 </div>
@@ -10083,40 +10088,390 @@ document.addEventListener('click',e=>{
 .gSideItem{
   display:flex;align-items:center;gap:8px;
   padding:7px 10px;border-radius:9px;
-  cursor:pointer;font-size:11.5px;font-weight:500;
+  cursor:pointer;font-size:11px;font-weight:500;
   color:var(--text2);transition:all var(--dur) var(--ease);
   margin-bottom:2px;border:1px solid transparent;
-  font-family:var(--font-body);
+  font-family:var(--font-body);line-height:1.3;
 }
 .gSideItem:hover{background:var(--pdim);color:var(--text);border-color:rgba(155,143,245,.15)}
-.gSideItem.active{background:var(--pdim2);color:var(--p);border-color:rgba(155,143,245,.25);font-weight:700}
-.gSideItem .gsIcon{width:26px;height:26px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0;background:rgba(255,255,255,.04)}
-.gSideItem.active .gsIcon{background:rgba(155,143,245,.15)}
+.gSideItem.active{background:var(--pdim2);color:var(--p);border-color:rgba(155,143,245,.28);font-weight:700}
+.gSideItem .gsIcon{width:24px;height:24px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0;background:rgba(255,255,255,.04)}
+.gSideItem.active .gsIcon{background:rgba(155,143,245,.18)}
+.gSideGrp{font-size:8.5px;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:var(--muted);padding:10px 10px 4px;opacity:.7}
 
-/* ── Guide content blocks ── */
+/* ── Guide content ── */
 .gSection{display:none;animation:paneIn .2s var(--ease) both}
 .gSection.active{display:block}
-.gSecTitle{font-family:var(--font-display);font-size:22px;font-weight:800;letter-spacing:-.5px;margin-bottom:4px}
-.gSecSub{font-size:12px;color:var(--text2);margin-bottom:20px;line-height:1.6}
-.gCard{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:12px;padding:14px 16px;margin-bottom:10px;transition:border-color .2s}
-.gCard:hover{border-color:rgba(255,255,255,.12)}
-.gCardTitle{font-size:12px;font-weight:700;color:var(--text);margin-bottom:6px;display:flex;align-items:center;gap:8px}
-.gCardBody{font-size:11.5px;color:var(--text2);line-height:1.7}
-.gTag{display:inline-flex;align-items:center;gap:5px;padding:3px 9px;border-radius:6px;font-size:10px;font-weight:700;letter-spacing:.02em;margin-right:4px;margin-bottom:4px}
+.gSecTitle{font-family:var(--font-display);font-size:21px;font-weight:800;letter-spacing:-.5px;margin-bottom:5px}
+.gSecSub{font-size:12px;color:var(--text2);margin-bottom:18px;line-height:1.65;padding:10px 14px;background:rgba(255,255,255,.03);border-left:2px solid var(--p);border-radius:0 8px 8px 0}
+.gCard{background:rgba(255,255,255,.025);border:1px solid rgba(255,255,255,.07);border-radius:13px;padding:14px 16px;margin-bottom:9px;transition:border-color .2s,background .2s}
+.gCard:hover{border-color:rgba(255,255,255,.13);background:rgba(255,255,255,.035)}
+.gCardTitle{font-size:12.5px;font-weight:700;color:var(--text);margin-bottom:7px;display:flex;align-items:center;gap:9px}
+.gCardIcon{width:28px;height:28px;border-radius:8px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0}
+.gCardBody{font-size:11.5px;color:var(--text2);line-height:1.75}
+.gCardBody b{color:var(--text);font-weight:700}
+.gTag{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:6px;font-size:10px;font-weight:700;letter-spacing:.01em;margin:0 2px 3px;vertical-align:middle;white-space:nowrap}
 .gTagBtn{background:var(--pdim2);color:var(--p);border:1px solid rgba(155,143,245,.25)}
-.gTagKey{background:var(--card2);color:var(--text2);border:1px solid var(--border2);font-family:var(--font-mono)}
-.gTagGreen{background:var(--greendim);color:var(--green);border:1px solid rgba(15,221,170,.2)}
-.gTagOrange{background:var(--golddim);color:var(--gold);border:1px solid rgba(240,171,48,.2)}
-.gTip{background:linear-gradient(135deg,rgba(155,143,245,.08),rgba(15,221,170,.04));border:1px solid rgba(155,143,245,.2);border-radius:10px;padding:10px 14px;font-size:11px;color:var(--text2);line-height:1.6;margin-top:10px}
+.gTagKey{background:var(--card2);color:var(--text2);border:1px solid var(--border2);font-family:var(--font-mono);font-size:9px;padding:2px 7px}
+.gTagGreen{background:var(--greendim);color:var(--green);border:1px solid rgba(15,221,170,.22)}
+.gTagOrange{background:var(--golddim);color:var(--gold);border:1px solid rgba(240,171,48,.22)}
+.gTagRed{background:var(--reddim);color:var(--red);border:1px solid rgba(255,79,114,.22)}
+.gTagCyan{background:var(--cyandim);color:var(--cyan);border:1px solid rgba(34,204,232,.22)}
+.gTagPink{background:var(--pinkdim);color:var(--pink);border:1px solid rgba(240,107,176,.22)}
+.gTip{background:linear-gradient(135deg,rgba(155,143,245,.07),rgba(15,221,170,.04));border:1px solid rgba(155,143,245,.2);border-radius:11px;padding:11px 15px;font-size:11.5px;color:var(--text2);line-height:1.7;margin-top:12px}
 .gTip b{color:var(--p)}
-.gDivider{height:1px;background:linear-gradient(90deg,transparent,rgba(255,255,255,.07),transparent);margin:16px 0}
+.gWarning{background:rgba(240,171,48,.07);border:1px solid rgba(240,171,48,.2);border-radius:11px;padding:10px 14px;font-size:11px;color:var(--gold);line-height:1.65;margin-top:8px}
+.gDivider{height:1px;background:linear-gradient(90deg,transparent,rgba(255,255,255,.07),transparent);margin:14px 0}
+/* Mobile tabs */
+.gMobTab{border:1px solid var(--border2);background:var(--card2);border-radius:20px;padding:5px 13px;font-size:10.5px;font-weight:600;color:var(--text2);cursor:pointer;white-space:nowrap;transition:.15s;font-family:var(--font-body);flex-shrink:0}
+.gMobTab.active{background:var(--pdim2);border-color:rgba(155,143,245,.35);color:var(--p);font-weight:700}
+/* Mobile responsive */
+@media(max-width:640px){
+  #guideSidebar{display:none!important}
+  #guideMobileTabs{display:block!important}
+  #guideModal{border-radius:18px 18px 0 0;top:auto!important;bottom:0!important;left:0!important;right:0!important;transform:none!important;width:100%!important;max-height:92vh!important}
+  #guideContent{padding:16px 16px 20px!important}
+}
 </style>
 
 <script>
 /* ═══════════════════════════════════
-   GUIDE MODAL SYSTEM
+   GUIDE MODAL SYSTEM — полное руководство
 ═══════════════════════════════════ */
 const GUIDE_SECTIONS=[
+  // ─── СТАРТ ───
+  {
+    id:'start', icon:'🚀', label:'С чего начать', color:'var(--p)', group:'СТАРТ',
+    title:'🚀 С чего начать',
+    sub:'PlannerPro — это система управления жизнью. Здесь всё связано: задачи, привычки, финансы, тренировки, цели. Эта инструкция расскажет о каждом разделе подробно.',
+    blocks:[
+      {icon:'🗺️',title:'Как устроено приложение',body:'<b>11 разделов</b>, каждый отвечает за свою область жизни. На десктопе — вкладки вверху. На телефоне — нижняя панель (Дашборд, Задачи, Привычки, Финансы) и кнопка <b>«Ещё»</b> для остальных разделов.'},
+      {icon:'💾',title:'Автосохранение',body:'Все данные сохраняются <b>автоматически</b> — ничего жать не нужно. В шапке есть индикатор синхронизации: 🔄 сохраняется → ✅ сохранено → 🔴 ошибка. Данные хранятся в облаке — доступны с любого устройства.'},
+      {icon:'➕',title:'Быстрое добавление задачи',body:'Кнопка <span class="gTag gTagGreen">＋</span> (плюс) в правом нижнем углу <b>на любой вкладке</b> — мгновенно создаёт новую задачу. Также работает горячая клавиша <span class="gTag gTagKey">N</span>.'},
+      {icon:'⌘',title:'Командная палитра',body:'<span class="gTag gTagKey">⌘K</span> или <span class="gTag gTagKey">Ctrl+K</span> — мощный поиск по всему приложению. Создавай задачи, переключай вкладки, открывай нужные функции без мыши.'},
+      {icon:'🔢',title:'Горячие клавиши навигации',body:'<span class="gTag gTagKey">1</span> Дашборд &nbsp;<span class="gTag gTagKey">2</span> Неделя &nbsp;<span class="gTag gTagKey">3</span> Привычки &nbsp;<span class="gTag gTagKey">4</span> Задачи &nbsp;<span class="gTag gTagKey">5</span> Календарь &nbsp;<span class="gTag gTagKey">6</span> Канбан &nbsp;<span class="gTag gTagKey">7</span> Финансы &nbsp;<span class="gTag gTagKey">8</span> Цели &nbsp;<span class="gTag gTagKey">9</span> Награды — мгновенный переход.'},
+      {icon:'?',title:'Это руководство',body:'Кнопка <span class="gTag gTagBtn">?</span> в правом углу шапки (или клавиша <span class="gTag gTagKey">?</span>) открывает это руководство в любой момент. Выбирай раздел слева — читай подробно.'},
+    ],
+    tip:'💡 <b>Рекомендуемый старт:</b> 1) Создай несколько меток (Учёба, Работа, Здоровье) 2) Добавь 2–3 задачи с временем 3) Настрой привычки 4) Посмотри Аналитику через неделю.'
+  },
+  // ─── МЕТКИ ───
+  {
+    id:'labels', icon:'🏷️', label:'Метки — главное', color:'var(--cyan)', group:'СТАРТ',
+    title:'🏷️ Метки — сердце системы',
+    sub:'Метки — это категории для задач. Они объединяют всё приложение: задачи → аналитика → время по категориям. Потрать 5 минут на настройку меток — и аналитика станет в 10 раз полезнее.',
+    blocks:[
+      {icon:'❓',title:'Что такое метка',body:'Метка — это <b>цветной ярлык</b>, который ты вешаешь на задачу. Например: задача «Лекция по экономике» → метка 🎓 <b>Учёба</b>. Потом в Аналитике видишь: за неделю на учёбу ушло 14 часов.'},
+      {icon:'📂',title:'Что такое группа меток',body:'Группа объединяет похожие метки. Например, группа <b>«Инвестиции»</b> содержит метки: «Инвестиция в деньги», «Инвестиция в учёбу», «Инвестиция в энергию». В аналитике можно фильтровать по группе целиком.'},
+      {icon:'⚙️',title:'Как создать метку',body:'Зайди в <b>Задачи</b> → кнопка <span class="gTag gTagBtn">🏷 Метки</span> → <span class="gTag gTagGreen">+ Группа</span> для новой группы, затем <span class="gTag gTagGreen">+ Метка</span> внутри группы. Выбери название и цвет.'},
+      {icon:'➕',title:'Как назначить метку задаче',body:'При создании или редактировании задачи — поле <b>Метки</b>. Нажми — откроется список всех твоих меток. Можно назначить <b>несколько меток</b> одной задаче (например: Учёба + Инвестиция в учёбу).'},
+      {icon:'📊',title:'Зачем нужны метки (главное)',body:'1) <b>Аналитика:</b> сколько часов потрачено на каждую категорию за период.<br>2) <b>Фильтрация:</b> в Задачах показывай только задачи с нужной меткой.<br>3) <b>Дашборд:</b> блок «По меткам» показывает распределение времени за неделю.<br>4) <b>Приоритизация:</b> видишь куда реально уходит твоё время.'},
+      {icon:'💡',title:'Рекомендуемые метки',body:'Хороший старт: <b>Финансы</b> (розовый), <b>Учёба</b> (синий), <b>Здоровье</b> (зелёный), <b>Работа</b> (оранжевый), <b>Личное</b> (фиолетовый). Не делай больше 10 меток — будет сложно.'},
+    ],
+    tip:'💡 <b>Правило:</b> Каждая задача должна иметь хотя бы одну метку <b>и указанное время</b>. Только тогда аналитика покажет реальную картину твоей жизни.'
+  },
+  // ─── ДАШБОРД ───
+  {
+    id:'dashboard', icon:'🖥️', label:'Дашборд', color:'var(--p)', group:'РАЗДЕЛЫ',
+    title:'🖥️ Дашборд — главный экран',
+    sub:'Дашборд — это командный центр. Открывай его каждое утро. Здесь виден весь день и неделя одним взглядом.',
+    blocks:[
+      {icon:'📅',title:'Шапка: дата и синхронизация',body:'Верхний правый угол — текущая дата и день недели. Рядом — <b>индикатор синхронизации</b>: зелёный = всё сохранено, крутится = идёт сохранение, красный = ошибка связи.'},
+      {icon:'📊',title:'Карточки статистики (4 блока)',body:'Четыре карточки вверху: <b>Задач сегодня</b> — сколько задач на сегодня. <b>Выполнено</b> — сколько закрыто. <b>Баланс времени</b> — % запланированного от доступного (без 8ч сна). <b>Стрик</b> — сколько недель подряд выполняются все задачи.'},
+      {icon:'🎯',title:'Фокус дня',body:'Большой блок с главным приоритетом дня. Показывает следующую невыполненную задачу. Кнопки быстрого перехода: <span class="gTag gTagGreen">Задачи дня</span> и <span class="gTag gTagGreen">Привычки</span>. Это твой «компас» на утро.'},
+      {icon:'🔥',title:'Тепловая карта привычек',body:'Сетка 7 столбцов × 4 недели. Каждая клетка = один день. <b>Яркая розовая</b> = все привычки выполнены. <b>Бледная</b> = частично. <b>Пустая</b> = ничего. Сегодняшний день обведён. Смотришь на паттерны: в какие дни недели ты продуктивен.'},
+      {icon:'🌱',title:'Блок целей',body:'Показывает до 3 активных целей с прогресс-барами. Каждая полоска — процент выполненных этапов (milestones). Нажми на цель — переходишь в раздел Цели. Так цели всегда перед глазами.'},
+      {icon:'🗂️',title:'Канбан пайплайн',body:'Мини-обзор Канбан-доски: сколько карточек в каждой колонке (Идеи / В работе / Ревью / Готово). Нажми — перейдёшь на доску. Виден прогресс по проектам без перехода во вкладку.'},
+      {icon:'📈',title:'График задач по неделям',body:'Столбчатый график: сколько задач выполнено каждую неделю за последние 8 недель. Быстрый способ увидеть — растёт или падает твоя продуктивность.'},
+    ],
+    tip:'💡 <b>Совет:</b> Открывай Дашборд каждое утро — 30 секунд чтобы понять что делать сегодня. Это экономит часы потраченные на «что бы такое сделать».'},
+  // ─── ЗАДАЧИ ───
+  {
+    id:'tasks', icon:'📋', label:'Задачи', color:'var(--green)', group:'РАЗДЕЛЫ',
+    title:'📋 Задачи — планировщик',
+    sub:'Полноценный таск-менеджер. Каждая задача — это единица работы с дедлайном, временем, метками и заметками. Чем точнее заполняешь — тем точнее работает аналитика.',
+    blocks:[
+      {icon:'➕',title:'Создать задачу',body:'Кнопка <span class="gTag gTagGreen">+ Задача</span> вверху, кнопка <span class="gTag gTagGreen">＋</span> внизу справа, или клавиша <span class="gTag gTagKey">N</span>. Открывается модальное окно со всеми полями.'},
+      {icon:'📝',title:'Поля задачи: Название',body:'Главное — конкретное название. <b>Плохо:</b> «Учёба». <b>Хорошо:</b> «Прочитать главу 3 по эконометрике». Конкретика помогает не прокрастинировать.'},
+      {icon:'📅',title:'Поля задачи: Дата дедлайна',body:'Когда задачу нужно выполнить. Задачи без даты — в общем списке. Задачи с датой — появляются в Недельном планере и Календаре. <b>Красный цвет</b> дедлайна = просрочена.'},
+      {icon:'⏱️',title:'Поля задачи: Время начала и конца',body:'Укажи когда планируешь делать задачу. Например: <b>09:30 — 12:00</b>. Это <b>критично для аналитики</b> — только задачи с временем считаются в блоке «Запланировано». Без времени — задача как бы не существует для аналитики.'},
+      {icon:'🏷️',title:'Поля задачи: Метки',body:'Одна или несколько меток. Нажми на поле — выпадет список. Выбери нужные. Метки определяют в какие категории попадёт задача в аналитике.'},
+      {icon:'🔄',title:'Поля задачи: Повтор',body:'«Каждый день», «По будням», «Еженедельно» и т.д. Повторяющаяся задача автоматически создаётся заново при выполнении. Подходит для: ежедневная тренировка, еженедельная проверка финансов.'},
+      {icon:'✅',title:'Отметить задачу выполненной',body:'Чекбокс слева. Выполненная задача <b>зачёркивается</b> и идёт вниз списка. Нажми «Показать готовые» чтобы видеть архив. Данные сохраняются в аналитику.'},
+      {icon:'🔍',title:'Фильтрация и сортировка',body:'Кнопка <span class="gTag gTagBtn">Метки</span> — фильтр по меткам. <span class="gTag gTagBtn">По дате</span> / <span class="gTag gTagBtn">По добавлению</span> — порядок. <span class="gTag gTagBtn">Показать готовые</span> — архив. На десктопе — кликай на заголовок столбца для сортировки.'},
+      {icon:'📊',title:'Статус бар вверху',body:'4 числа: <b>Всего</b> / <b>Просроч.</b> (красный = срочно!) / <b>В работе</b> / <b>Готово</b>. Прогресс-бар показывает % выполнения. Смотри каждое утро — сразу видно ситуацию.'},
+    ],
+    tip:'💡 <b>Золотое правило:</b> Задача должна быть конкретной, иметь дату, время и метку. Только тогда система работает на полную.'
+  },
+  // ─── НЕДЕЛЬНЫЙ ПЛАНЕР ───
+  {
+    id:'weekly', icon:'📅', label:'Недельный планер', color:'var(--blue)', group:'РАЗДЕЛЫ',
+    title:'📅 Недельный планер',
+    sub:'7 колонок — 7 дней. Видишь всю неделю сразу. Добавляй задачи прямо в день, отмечай выполнение, планируй наперёд.',
+    blocks:[
+      {icon:'🗓️',title:'Что такое колонка дня',body:'Каждая колонка = один день недели. Вверху — <b>кольцо прогресса</b> (% выполненных задач), день и дата. Сегодняшний день выделен цветом и подписью <b>«Сегодня»</b>.'},
+      {icon:'➕',title:'Добавить задачу в день',body:'Кнопка <span class="gTag gTagBtn">+ Добавить</span> внизу колонки. Введи название — Enter — задача создана. Для детей: время, метки, заметки — нажми на задачу для полного редактирования.'},
+      {icon:'🎯',title:'Фокус дня',body:'Поле вверху каждой колонки. Пиши <b>главную цель дня</b> — одним предложением. Например: «Сдать лабораторку по 1С». Это помогает не распыляться и держать приоритет.'},
+      {icon:'📝',title:'Заметки дня',body:'Текстовое поле в нижней части колонки. Всё что хочешь: планы, идеи, итоги дня, что было сделано хорошо. Сохраняется автоматически.'},
+      {icon:'✅',title:'Отметить задачу',body:'Чекбокс слева от задачи. Выполненные зачёркиваются. Кольцо прогресса обновляется в реальном времени. Нажми на <b>название задачи</b> — откроется полная карточка с деталями.'},
+      {icon:'◀▶',title:'Навигация по неделям',body:'Стрелки ◀ ▶ в верхней навигации — переключение недель. Кнопка <span class="gTag gTagOrange">Сегодня</span> — возврат к текущей неделе. На мобильном — колонки листаются горизонтально с snap.'},
+    ],
+    tip:'💡 <b>Практика:</b> Каждое воскресенье вечером заполняй следующую неделю. 15 минут планирования = 5 часов сохранённого времени на неделе.'
+  },
+  // ─── ПРИВЫЧКИ ───
+  {
+    id:'habits', icon:'✅', label:'Привычки', color:'var(--pink)', group:'РАЗДЕЛЫ',
+    title:'✅ Трекер привычек',
+    sub:'Ежедневный трекер в виде таблицы: привычки по строкам, дни по столбцам. Видишь весь месяц и свои паттерны.',
+    blocks:[
+      {icon:'➕',title:'Добавить привычку',body:'Кнопка <span class="gTag gTagPink">+ Привычка</span> внизу таблицы. Введи название (например: «Зарядка», «Чтение 30 мин», «Намаз», «Холодный душ»). Привычка появляется как строка в таблице.'},
+      {icon:'☑️',title:'Отметить привычку выполненной',body:'Нажми на чекбокс в ячейке — на пересечении привычки и дня. <b>Сегодняшний день</b> выделен фиолетовым. Нельзя отмечать будущие дни. Прошлые дни — можно исправить.'},
+      {icon:'🎯',title:'Целевые дни в неделю (крайняя колонка)',body:'Последний столбец таблицы — «Цель». Введи число: сколько дней в неделю хочешь выполнять эту привычку. Например: 5 = по будням. Прогресс считается автоматически и показывается в последней колонке.'},
+      {icon:'📊',title:'Статистика месяца',body:'Над таблицей — % выполнения за месяц, лучший стрик, общее число выполнений. Всё считается по данным из таблицы.'},
+      {icon:'◀▶',title:'Навигация по месяцам',body:'Кнопки ◀ ▶ рядом с названием месяца. Можно смотреть историю за любой прошлый месяц — данные не удаляются.'},
+      {icon:'🔥',title:'Стрик в дашборде',body:'Тепловая карта на Дашборде строится по данным привычек. Видишь в какие дни ты «в потоке», а в какие — нет. Это мощная мотивация не ломать серию.'},
+    ],
+    tip:'💡 <b>Правило 2 дней:</b> Никогда не пропускай 2 дня подряд. Один пропуск — случайность. Два — начало новой привычки (плохой).'
+  },
+  // ─── КАЛЕНДАРЬ ───
+  {
+    id:'calendar', icon:'📆', label:'Календарь', color:'var(--cyan)', group:'РАЗДЕЛЫ',
+    title:'📆 Календарь событий',
+    sub:'Полноценный планировщик с видом по дню, неделе и месяцу. Для встреч, событий, дедлайнов, которые привязаны к конкретному времени.',
+    blocks:[
+      {icon:'➕',title:'Добавить событие',body:'Нажми <span class="gTag gTagCyan">+ Событие</span> вверху или кликни на <b>свободный временной слот</b> в сетке. Заполни: название, дата, время начала, время конца, цвет события.'},
+      {icon:'🗓️',title:'Режимы просмотра',body:'Кнопки в правом верхнем углу: <span class="gTag gTagBtn">День</span> — один день детально. <span class="gTag gTagBtn">3 дня</span> — три дня рядом. <span class="gTag gTagBtn">Нед</span> — вся неделя. <span class="gTag gTagBtn">Мес</span> — весь месяц.'},
+      {icon:'◀▶',title:'Навигация по времени',body:'Стрелки ◀ ▶ перемещают вперёд/назад. Кнопка <span class="gTag gTagOrange">Сегодня</span> — возврат к текущей дате. Мини-календарь слева (десктоп) — быстрый переход к любому дню.'},
+      {icon:'🎨',title:'Цвета событий',body:'При создании события выбери цвет. Используй разные цвета для разных типов: синий = учёба, зелёный = здоровье, оранжевый = работа, красный = срочное.'},
+      {icon:'✏️',title:'Редактирование и удаление',body:'Нажми на событие — появится попап. Кнопка редактирования (карандаш) открывает форму. Кнопка корзины — удаляет событие с подтверждением.'},
+    ],
+    tip:'💡 <b>Совет:</b> Задачи из раздела «Задачи» с временем — автоматически появляются в Календаре как события. Не нужно вводить дважды.'
+  },
+  // ─── КАНБАН ───
+  {
+    id:'kanban', icon:'🗂️', label:'Канбан', color:'var(--purple)', group:'РАЗДЕЛЫ',
+    title:'🗂️ Канбан-доска',
+    sub:'Визуальное управление проектами. Карточки движутся слева направо по колонкам: от идеи до готового результата. Для проектов, задач с этапами, командного флоу.',
+    blocks:[
+      {icon:'📋',title:'Что такое колонка',body:'Каждая колонка — это <b>статус</b>. По умолчанию: «Идеи» → «В работе» → «Ревью» → «Готово». Карточка проходит через все колонки слева направо по мере работы над ней.'},
+      {icon:'➕',title:'Добавить карточку',body:'Кнопка <span class="gTag gTagBtn">+ Добавить</span> внизу любой колонки. Заполни: название задачи, описание, приоритет (<span class="gTag gTagRed">Высокий</span> / <span class="gTag gTagOrange">Средний</span> / <span class="gTag gTagGreen">Низкий</span>), дедлайн.'},
+      {icon:'↔️',title:'Переместить карточку',body:'Кнопки ← → на карточке перемещают в соседнюю колонку. Потащи задачу «В работе» — значит взял в работу. В «Готово» — значит сделал.'},
+      {icon:'✏️',title:'Настроить доску',body:'Кнопка <span class="gTag gTagBtn">✏️ Настроить</span> — изменить названия колонок, добавить новые, удалить ненужные. Можно создать <b>несколько досок</b> для разных проектов (кнопка переключения досок вверху).'},
+      {icon:'🗑️',title:'Удалить карточку',body:'Наведи на карточку — появится ✕ в правом верхнем углу. Подтверди удаление. Действие необратимо.'},
+      {icon:'🔗',title:'Связь с задачами',body:'При создании задачи в разделе «Задачи» можно указать «Добавить в Канбан» — задача появится сразу на доске. Так одна задача видна в обоих местах.'},
+    ],
+    tip:'💡 <b>Правило WIP:</b> Не держи в колонке «В работе» больше 3 карточек одновременно. Фокус на малом количестве задач = они делаются быстрее.'
+  },
+  // ─── ФИНАНСЫ ───
+  {
+    id:'finance', icon:'💰', label:'Финансы', color:'var(--gold)', group:'РАЗДЕЛЫ',
+    title:'💰 Финансовый трекер',
+    sub:'Учёт доходов и расходов, бюджет по категориям, графики трат. Веди каждую транзакцию — и через месяц увидишь куда реально уходят деньги.',
+    blocks:[
+      {icon:'➕',title:'Добавить транзакцию',body:'Кнопка <span class="gTag gTagOrange">＋ Транзакция</span>. Выбери тип: <span class="gTag gTagGreen">Доход</span> или <span class="gTag gTagRed">Расход</span>. Заполни сумму, категорию, счёт, дату и заметку. Нажми Сохранить — готово.'},
+      {icon:'🏦',title:'Счета (карта, наличные, депозит)',body:'Кнопка <span class="gTag gTagBtn">🏦 Счета</span>. Создай счета под свои деньги: «Карта Сбер», «Наличные», «Накопления». Каждая транзакция привязывается к конкретному счёту. Баланс считается автоматически.'},
+      {icon:'↔️',title:'Перевод между счетами',body:'Кнопка <span class="gTag gTagBtn">↔ Перевод</span>. Например: перевёл с карты в наличные. Создаёт пару транзакций (расход с одного + доход на другой) — общий баланс не меняется.'},
+      {icon:'🏷️',title:'Категории расходов',body:'Кнопка <span class="gTag gTagBtn">🏷 Категории</span>. Создай свои категории: Еда, Транспорт, Учёба, Одежда, Здоровье. Каждая транзакция относится к категории — в графике видна структура расходов.'},
+      {icon:'⚙️',title:'Лимиты бюджета',body:'Кнопка <span class="gTag gTagBtn">⚙ Лимиты</span>. Установи месячный бюджет на каждую категорию. Прогресс-бар показывает сколько уже потрачено. <span class="gTag gTagOrange">Жёлтый</span> — 75%+, <span class="gTag gTagRed">красный</span> — лимит превышен.'},
+      {icon:'📈',title:'Графики и аналитика',body:'Линейный график — динамика доходов/расходов по месяцам. Круговая диаграмма — структура расходов по категориям. Переключатель периода: неделя / 3 мес / 6 мес / год.'},
+      {icon:'◀▶',title:'Навигация по месяцам',body:'Стрелки ◀ ▶ рядом с названием месяца. История хранится за все месяцы — смотри сколько тратил год назад.'},
+    ],
+    tip:'💡 <b>Привычка:</b> Добавляй транзакцию сразу после траты — 5 секунд пока не забыл. Чек в кармане? Сразу в телефон.'
+  },
+  // ─── ЦЕЛИ И РОСТ ───
+  {
+    id:'goals', icon:'🌱', label:'Цели и рост', color:'var(--gold)', group:'РАЗДЕЛЫ',
+    title:'🌱 Цели и личностный рост',
+    sub:'Раздел для долгосрочного мышления. Три вкладки: Цели (с этапами и прогрессом), Принципы (правила жизни), Дневник роста (ежедневная рефлексия).',
+    blocks:[
+      {icon:'🎯',title:'Вкладка: Цели',body:'Нажми <span class="gTag gTagGreen">+ Новая цель</span>. Заполни: <b>Название</b> (что конкретно хочешь), <b>Зачем</b> (глубокая мотивация), <b>Категория</b> (карьера, здоровье, финансы), <b>Дедлайн</b>, <b>Этапы</b> — конкретные шаги.'},
+      {icon:'✅',title:'Этапы цели (milestones)',body:'Каждая цель разбивается на этапы. В поле «Этапы» пиши каждый с новой строки: «Записаться в зал», «Тренироваться 2 месяца», «Пробежать 5 км». Чекбокс у этапа — отмечаешь выполненное. Прогресс-бар цели считается автоматически.'},
+      {icon:'📷',title:'Фото цели (vision board)',body:'В карточке цели можно добавить фото — визуализацию результата. Фотография сохраняется локально (не в облаке). Мощный инструмент для мотивации — видишь цель каждый день.'},
+      {icon:'⚡',title:'Вкладка: Принципы',body:'Твои личные правила жизни. Примеры: «Никогда не занимай деньги», «Тренируйся утром не зависимо от настроения», «Читай 30 минут каждый день». Добавляй, редактируй, ищи по тексту. Читай регулярно — принципы формируют характер.'},
+      {icon:'🧠',title:'Вкладка: Дневник роста (Кайдзен)',body:'<b>Кайдзен</b> — японская философия маленьких ежедневных улучшений. Вкладка «Кайдзен» — запись дня: что хорошо, что улучшить, оценка дня 1-10. Нажми <span class="gTag gTagBtn">+ Запись</span>.'},
+      {icon:'📓',title:'Вкладка: Дневник',body:'Свободные записи с настроением. Выбери эмодзи настроения (😊/😐/😔/🔥), ответь на вопросы дня (что сделал хорошо, что улучшить) и напиши свободный текст. Накапливается история рефлексии.'},
+    ],
+    tip:'💡 <b>Метод:)</b> Разбивай большие цели на этапы по 1–2 недели каждый. Не «похудеть на 10 кг» а «тренироваться 3×/неделю в течение месяца» — конкретно и измеримо.'
+  },
+  // ─── СИСТЕМА НАГРАД ───
+  {
+    id:'rewards', icon:'🏆', label:'Система наград', color:'var(--gold)', group:'РАЗДЕЛЫ',
+    title:'🏆 Система наград — геймификация',
+    sub:'Зарабатывай баллы за выполнение задач, трать на награды. Стрик, множители и магазин делают продуктивность игрой.',
+    blocks:[
+      {icon:'✅',title:'Вкладка Сегодня — список задач',body:'Все задачи на сегодня разделены на типы: <span class="gTag gTagRed">Обязательное</span> (каждый день), <span class="gTag gTagOrange">Развивающие</span>, <span class="gTag gTagBtn">Дополнительные</span>, <span class="gTag gTagGreen">Главный</span>. Нажми ✓ рядом с выполненной — баллы начисляются мгновенно.'},
+      {icon:'🔥',title:'Стрик и множители баллов',body:'Выполняй <b>все обязательные задачи</b> каждый день — стрик растёт. Чем дольше стрик, тем выше множитель: 0 дней = x1.0, 7 дней = x1.25, 14 дней = x1.5, 30 дней = x1.75, 60+ дней = x2.0. Пропустил — стрик сбрасывается.'},
+      {icon:'🔢',title:'Задачи с счётчиком (квантифицированные)',body:'Некоторые задачи можно выполнять несколько раз в день: кнопки − / +. Например: Намаз = 5 раз, Стаканы воды = 8 раз. Каждое нажатие + добавляет баллы. Настрой максимальное количество в день.'},
+      {icon:'🎁',title:'Вкладка Магазин — награды',body:'Трать накопленные баллы на награды которые сам же придумал: «Сериал 2 часа», «Новые кроссовки», «Ужин в ресторане». Если баллов не хватает — кнопка заблокирована (нельзя уйти в минус без штрафа).'},
+      {icon:'✏️',title:'Вкладка Изменить — настройка',body:'Добавляй свои задачи: укажи название, тип (<span class="gTag gTagRed">Обязательное</span> / <span class="gTag gTagOrange">Развивающее</span> / <span class="gTag gTagBtn">Доп.</span>), баллы за выполнение, максимальное количество в день. Добавляй награды: название, иконка, цена в баллах.'},
+      {icon:'📊',title:'Вкладка Статистика и История',body:'<b>Статистика:</b> всего заработано баллов, лучший стрик, текущий множитель, таблица стрик → множитель. <b>История:</b> лог всех начислений и трат с датами.'},
+    ],
+    tip:'💡 <b>Честность:</b> Система работает только если ты честен с собой. Не отмечай невыполненное. Реальный прогресс важнее виртуальных очков.'
+  },
+  // ─── ТРЕНИРОВКИ ───
+  {
+    id:'gym', icon:'💪', label:'Тренировки', color:'var(--cyan)', group:'РАЗДЕЛЫ',
+    title:'💪 Трекер тренировок',
+    sub:'Создавай программы тренировок, запускай активные сессии с таймером, смотри прогресс по каждому упражнению.',
+    blocks:[
+      {icon:'📋',title:'Вкладка: Программы',body:'Нажми <span class="gTag gTagBtn">+ Программа</span>. Укажи название программы (например «Грудь/Трицепс»). Добавь упражнения: выбери из библиотеки или создай новое. Для каждого упражнения — подходы, повторения, рабочий вес.'},
+      {icon:'▶️',title:'Начать тренировку',body:'На карточке программы нажми <span class="gTag gTagGreen">▶ Старт</span>. Автоматически переходишь во вкладку <b>Тренировка</b>. В шапке появится зелёный баннер с таймером — видно сколько идёт тренировка.'},
+      {icon:'⏱️',title:'Вкладка: Тренировка (активная сессия)',body:'Список упражнений с подходами. Нажми <span class="gTag gTagGreen">✓</span> у подхода — отметил выполненным. Запускается таймер отдыха (кнопка 60с, 90с и т.д.). Можешь отредактировать вес/повторения прямо в сессии. По завершении — нажми <b>Завершить</b>.'},
+      {icon:'⊕',title:'Добавить упражнение в сессию',body:'Кнопка <span class="gTag gTagBtn">+ Упражнение</span> в активной сессии — добавляет любое упражнение из библиотеки к текущей тренировке. Удобно когда хочешь добавить что-то спонтанно.'},
+      {icon:'📈',title:'Вкладка: Прогресс',body:'Выбери упражнение из списка — увидишь <b>график роста веса</b> по времени. Каждая точка = одна завершённая тренировка. Так видно прогрессируешь ли ты.'},
+      {icon:'⚖️',title:'Вкладка: Вес',body:'Записывай свой вес каждый день или после каждой тренировки. Строится линейный график. Видишь тренд: набор, снижение, стагнация. Помогает оценить влияние питания и тренировок.'},
+      {icon:'📚',title:'Вкладка: Библиотека упражнений',body:'Все упражнения которые ты когда-либо создавал. Нажми <span class="gTag gTagBtn">+ Упражнение</span>: название, группа мышц (Грудь, Спина, Ноги...), заметки по технике. Отсюда добавляешь в программы.'},
+      {icon:'🕒',title:'Вкладка: История',body:'Все завершённые тренировки в обратном хронологическом порядке. Дата, программа, время тренировки, объём (кг × повт × подходы). Нажми на запись для деталей.'},
+    ],
+    tip:'💡 <b>Прогрессивная перегрузка:</b> Каждую неделю увеличивай вес или повторения хотя бы в одном упражнении. Без роста нагрузки — нет роста мышц.'
+  },
+  // ─── АНАЛИТИКА ───
+  {
+    id:'analytics', icon:'📊', label:'Аналитика', color:'var(--purple)', group:'РАЗДЕЛЫ',
+    title:'📊 Аналитика времени',
+    sub:'Глубокий анализ выполненных задач. Видишь куда реально уходит твоё время — по категориям, по дням, в сравнении с прошлым периодом.',
+    blocks:[
+      {icon:'⚠️',title:'Главное условие',body:'Аналитика считает только задачи у которых указано <b>время начала и конца</b>. Задача без времени = невидима для аналитики. Поэтому всегда заполняй поля <b>Начало / Конец</b> при создании задачи.'},
+      {icon:'📅',title:'Кнопки периода',body:'<span class="gTag gTagBtn">Сегодня</span> <span class="gTag gTagBtn">Вчера</span> <span class="gTag gTagBtn">3 дня</span> <span class="gTag gTagBtn">7 дней</span> <span class="gTag gTagBtn">2 недели</span> <span class="gTag gTagBtn">30 дней</span> <span class="gTag gTagBtn">Год</span> <span class="gTag gTagBtn">Всё время</span> — переключают период анализа. <span class="gTag gTagBtn">📅 Свой период</span> — задаёшь произвольные даты.'},
+      {icon:'📈',title:'KPI карточки',body:'Четыре числа за период: <b>Выполнено</b> (задач), <b>Запланировано</b> (часов с временем), <b>Фактически</b> (если ты записывал фактическое время), <b>Дней</b> в периоде. Стрелки ↑↓ показывают изменение vs предыдущий период.'},
+      {icon:'⚖️',title:'Баланс времени',body:'Полоска разделена на <b>Запланировано</b> (фиолетовый) и <b>Свободно</b> (синий). Считается из доступного времени (24ч минус 8ч сна). Видишь насколько заполнен твой день делами.'},
+      {icon:'🥧',title:'Распределение по меткам',body:'Круговая диаграмма — какая метка забирает больше всего времени. Список рядом: метка, количество задач, время. Это главный ответ на вопрос «куда уходит моё время».'},
+      {icon:'📊',title:'График по дням',body:'Столбчатый график — активность по каждому дню периода. Сегодняшний день — фиолетовый. Чем выше столбик, тем больше запланировано в тот день. На длинных периодах — листай горизонтально.'},
+      {icon:'🔥',title:'Самые продуктивные дни',body:'Топ-5 дней за период по суммарному времени задач. Медали 🥇🥈🥉 для лидеров. Анализируй: в какие дни недели ты наиболее продуктивен? Планируй важное на эти дни.'},
+      {icon:'🏷️',title:'Фильтр по меткам',body:'Кнопка <span class="gTag gTagBtn">🏷 Фильтр по меткам</span> — показывает статистику только по выбранным меткам. Например: отфильтруй только «Учёба» — увидишь сколько часов потратил на учёбу за месяц.'},
+    ],
+    tip:'💡 <b>Еженедельный ритуал:</b> Каждое воскресенье открывай Аналитику за 7 дней. Задай себе вопрос: «Это то распределение времени которое приблизит меня к целям?»'
+  },
+  // ─── СОВЕТЫ ───
+  {
+    id:'tips', icon:'💡', label:'Лайфхаки', color:'var(--gold)', group:'СОВЕТЫ',
+    title:'💡 Лайфхаки и советы',
+    sub:'Как выжать максимум из PlannerPro. Проверенные практики от опытных пользователей.',
+    blocks:[
+      {icon:'🌅',title:'Утренний ритуал (5 мин)',body:'1. Открой <b>Дашборд</b> — посмотри статистику и фокус дня.<br>2. Проверь <b>Задачи</b> — нет ли просроченных (красный счётчик).<br>3. Открой <b>Награды</b> — напомни себе что сегодня нужно выполнить.<br>Всё. 5 минут — и день начат с ясностью.'},
+      {icon:'🌙',title:'Вечерний ритуал (10 мин)',body:'1. Отметь все выполненные задачи.<br>2. Добавь транзакции в <b>Финансах</b>.<br>3. Напиши запись в <b>Дневнике роста</b> — что хорошо, что улучшить.<br>4. Посмотри завтрашний день в <b>Неделе</b> — всё готово?'},
+      {icon:'🏷️',title:'Система меток (правильно)',body:'Создай <b>2 слоя меток</b>: 1) <b>Сфера жизни</b>: Работа, Учёба, Здоровье, Личное. 2) <b>Тип инвестиции</b>: Инвестиция в деньги, Инвестиция в энергию, Инвестиция в отношения. Каждой задаче — метку из обоих слоёв.'},
+      {icon:'⏱️',title:'Всегда указывай время',body:'Самое важное правило: <b>каждая задача с временем начала и конца</b>. Это занимает 5 секунд. Но через месяц ты увидишь точную картину своего времени. Без этого аналитика пустая.'},
+      {icon:'🔄',title:'Повторяющиеся задачи',body:'Тренировки, лекции, ежедневные ритуалы — создай один раз с повтором. Они будут появляться автоматически каждую неделю. Не нужно создавать заново — система сама добавит.'},
+      {icon:'📊',title:'Еженедельный обзор',body:'Каждое воскресенье: 1) Аналитика за 7 дней — куда ушло время? 2) Цели — продвинулся? 3) Финансы — в бюджете? 4) Следующая неделя — заполни Недельный планер. 30 минут = контроль над жизнью.'},
+    ],
+    tip:'💡 <b>Главный принцип:</b> Инструмент работает только если ты им пользуешься ежедневно. Начни с малого: только задачи и привычки. Остальное добавляй постепенно.'
+  },
+];
+
+let _guideActiveSection='start';
+
+function openGuideModal(){
+  const ov=document.getElementById('guideOverlay');
+  if(!ov)return;
+  ov.style.display='block';
+  _buildGuideSidebar();
+  _buildGuideMobileTabs();
+  _showGuideSection(_guideActiveSection);
+  document.addEventListener('keydown',_guidEscHandler,{once:true});
+}
+
+function closeGuideModal(){
+  const ov=document.getElementById('guideOverlay');
+  if(ov)ov.style.display='none';
+}
+
+function _guidEscHandler(e){if(e.key==='Escape')closeGuideModal();}
+
+function guideNavStep(dir){
+  const idx=GUIDE_SECTIONS.findIndex(s=>s.id===_guideActiveSection);
+  const next=GUIDE_SECTIONS[idx+dir];
+  if(next)_showGuideSection(next.id);
+}
+
+function _buildGuideSidebar(){
+  const side=document.getElementById('guideSideItems');
+  if(!side)return;
+  side.innerHTML='';
+  let lastGroup='';
+  GUIDE_SECTIONS.forEach(s=>{
+    if(s.group&&s.group!==lastGroup){
+      lastGroup=s.group;
+      const grp=document.createElement('div');
+      grp.className='gSideGrp';
+      grp.textContent=s.group;
+      side.appendChild(grp);
+    }
+    const btn=document.createElement('button');
+    btn.className='gSideItem'+(s.id===_guideActiveSection?' active':'');
+    btn.id='gsItem_'+s.id;
+    btn.style.cssText='width:100%;text-align:left;background:none;border-color:transparent;cursor:pointer;';
+    btn.innerHTML=`<div class="gsIcon">${s.icon}</div><span style="line-height:1.3;font-size:10.5px">${s.label}</span>`;
+    btn.onclick=()=>_showGuideSection(s.id);
+    side.appendChild(btn);
+  });
+}
+
+function _buildGuideMobileTabs(){
+  const wrap=document.getElementById('guideMobileTabItems');
+  if(!wrap)return;
+  wrap.innerHTML='';
+  GUIDE_SECTIONS.forEach(s=>{
+    const btn=document.createElement('button');
+    btn.className='gMobTab'+(s.id===_guideActiveSection?' active':'');
+    btn.id='gmTab_'+s.id;
+    btn.textContent=s.icon+' '+s.label;
+    btn.onclick=()=>_showGuideSection(s.id);
+    wrap.appendChild(btn);
+  });
+}
+
+function _showGuideSection(id){
+  _guideActiveSection=id;
+  const sec=GUIDE_SECTIONS.find(s=>s.id===id);if(!sec)return;
+  const idx=GUIDE_SECTIONS.findIndex(s=>s.id===id);
+  // Update sidebar
+  document.querySelectorAll('.gSideItem').forEach(el=>el.classList.toggle('active',el.id==='gsItem_'+id));
+  // Update mobile tabs
+  document.querySelectorAll('.gMobTab').forEach(el=>{
+    el.classList.toggle('active',el.id==='gmTab_'+id);
+  });
+  // Scroll active mobile tab into view
+  const activeTab=document.getElementById('gmTab_'+id);
+  if(activeTab)activeTab.scrollIntoView({behavior:'smooth',block:'nearest',inline:'center'});
+  // Update nav buttons
+  const prev=document.getElementById('guidePrevBtn');
+  const next=document.getElementById('guideNextBtn');
+  if(prev)prev.style.opacity=idx===0?'.3':'1';
+  if(next)next.textContent=idx===GUIDE_SECTIONS.length-1?'Закрыть ✓':'Дальше →';
+  if(next&&idx===GUIDE_SECTIONS.length-1){next.onclick=closeGuideModal;}
+  else if(next){next.onclick=()=>guideNavStep(1);}
+  // Build content
+  const cont=document.getElementById('guideContent');if(!cont)return;
+  let html=`<div class="gSection active">
+    <div class="gSecTitle" style="color:${sec.color||'var(--p)'}">${sec.title}</div>
+    <div class="gSecSub">${sec.sub}</div>`;
+  sec.blocks.forEach((b,i)=>{
+    html+=`<div class="gCard" style="animation:cardIn .22s var(--ease) ${i*35}ms both">
+      <div class="gCardTitle">
+        <div class="gCardIcon">${b.icon}</div>
+        ${b.title}
+      </div>
+      <div class="gCardBody">${b.body}</div>
+    </div>`;
+  });
+  if(sec.tip){html+=`<div class="gTip">${sec.tip}</div>`;}
+  // Progress indicator
+  html+=`<div style="display:flex;align-items:center;gap:8px;margin-top:18px;padding-top:14px;border-top:1px solid rgba(255,255,255,.05)">
+    <div style="flex:1;height:3px;background:rgba(255,255,255,.06);border-radius:2px;overflow:hidden">
+      <div style="height:100%;width:${Math.round((idx+1)/GUIDE_SECTIONS.length*100)}%;background:linear-gradient(90deg,var(--p),var(--cyan));border-radius:2px;transition:width .4s var(--ease)"></div>
+    </div>
+    <span style="font-size:9.5px;color:var(--muted);font-family:var(--font-mono);flex-shrink:0">${idx+1} / ${GUIDE_SECTIONS.length}</span>
+  </div>`;
+  html+='</div>';
+  cont.innerHTML=html;
+  cont.scrollTop=0;
+}
+
+document.addEventListener('keydown',function(e){
+  if(e.target.tagName==='INPUT'||e.target.tagName==='TEXTAREA'||e.target.isContentEditable)return;
+  if(e.key==='?'){openGuideModal();}
+  if(e.key==='Escape'){closeGuideModal();}
+});
   {
     id:'overview',icon:'✦',label:'Быстрый старт',color:'var(--p)',
     title:'Быстрый старт',
@@ -10283,77 +10638,6 @@ const GUIDE_SECTIONS=[
     ],
     tip:'💡 <b>Совет:</b> Попробуй нажать <span class="gTag gTagKey">4</span> чтобы перейти к Задачам, затем <span class="gTag gTagKey">N</span> чтобы создать задачу — всё без мыши!'
   },
-];
-
-let _guideActiveSection='overview';
-
-function openGuideModal(){
-  const ov=document.getElementById('guideOverlay');
-  if(!ov)return;
-  ov.style.display='block';
-  _buildGuideSidebar();
-  _showGuideSection(_guideActiveSection);
-  // Bind Escape
-  document.addEventListener('keydown',_guidEscHandler,{once:true});
-}
-
-function closeGuideModal(){
-  const ov=document.getElementById('guideOverlay');
-  if(ov)ov.style.display='none';
-}
-
-function _guidEscHandler(e){if(e.key==='Escape')closeGuideModal();}
-
-function _buildGuideSidebar(){
-  const side=document.getElementById('guideSideItems');
-  if(!side)return;
-  side.innerHTML='';
-  GUIDE_SECTIONS.forEach(s=>{
-    const btn=document.createElement('button');
-    btn.className='gSideItem'+(s.id===_guideActiveSection?' active':'');
-    btn.id='gsItem_'+s.id;
-    btn.style.cssText='width:100%;text-align:left;background:none;border:none;cursor:pointer;';
-    btn.innerHTML=`<div class="gsIcon">${s.icon}</div><span style="line-height:1.3">${s.label}</span>`;
-    btn.onclick=()=>_showGuideSection(s.id);
-    side.appendChild(btn);
-  });
-}
-
-function _showGuideSection(id){
-  _guideActiveSection=id;
-  const sec=GUIDE_SECTIONS.find(s=>s.id===id);if(!sec)return;
-  // Update sidebar active
-  document.querySelectorAll('.gSideItem').forEach(el=>{
-    el.classList.toggle('active',el.id==='gsItem_'+id);
-  });
-  // Build content
-  const cont=document.getElementById('guideContent');if(!cont)return;
-  let html=`<div class="gSection active">
-    <div class="gSecTitle" style="color:${sec.color||'var(--p)'}">${sec.title}</div>
-    <div class="gSecSub">${sec.sub}</div>`;
-  sec.blocks.forEach((b,i)=>{
-    html+=`<div class="gCard" style="animation-delay:${i*40}ms;animation:paneIn .25s var(--ease) ${i*40}ms both">
-      <div class="gCardTitle">
-        <div style="width:30px;height:30px;border-radius:8px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0">${b.icon}</div>
-        ${b.title}
-      </div>
-      <div class="gCardBody">${b.body}</div>
-    </div>`;
-  });
-  if(sec.tip){
-    html+=`<div class="gTip">${sec.tip}</div>`;
-  }
-  html+='</div>';
-  cont.innerHTML=html;
-  cont.scrollTop=0;
-}
-
-// Also open guide on '?' key (not inside inputs)
-document.addEventListener('keydown',function(e){
-  if(e.target.tagName==='INPUT'||e.target.tagName==='TEXTAREA'||e.target.isContentEditable)return;
-  if(e.key==='?'){openGuideModal();}
-  if(e.key==='Escape'){closeGuideModal();}
-});
 
 /* ═══════════════════════════════════════════════════
    📱 MOBILE UX ENHANCEMENTS
