@@ -2716,6 +2716,7 @@ select.inp option{background:var(--card2);color:var(--text)}
     <button class="rwSubTab on" onclick="goalSubTab('goals',this)">🌱 Цели</button>
     <button class="rwSubTab" onclick="goalSubTab('principles',this)">⚡ Принципы</button>
     <button class="rwSubTab" onclick="goalSubTab('kaizen',this)">🧠 Дневник роста</button>
+    <button class="rwSubTab" onclick="goalSubTab('sleep',this)">🌙 Трекер сна</button>
   </div>
 
   <!-- GOALS tab -->
@@ -2820,7 +2821,10 @@ select.inp option{background:var(--card2);color:var(--text)}
     </div>
   </div>
 
-  <!-- CHARTS tab REMOVED - moved to dashboard -->
+  <!-- SLEEP TRACKER tab -->
+  <div id="gst-sleep" style="display:none">
+    <div id="sleepTrackerRoot2"></div>
+  </div>
 
 </div>
 
@@ -7236,15 +7240,13 @@ function renderDash(){
   const tasks=tpD();
   let taskFiltered,over=0,dueToday=0,done=0,tot=0;
   if(p==='day'){
-    taskFiltered=tasks.filter(t=>t.deadline===todK||(t.done&&t.deadline===todK));
-    tasks.forEach(t=>{
-      if(t.done){if(t.deadline===todK)done++;return}
-      if(!t.deadline)return;
-      const dl=new Date(t.deadline+'T00:00:00');dl.setHours(0,0,0,0);
-      const diff=Math.floor((dl-td)/86400000);
-      if(diff<0)over++;else if(diff===0)dueToday++;
-    });
-    tot=tasks.length;done=tasks.filter(t=>t.done).length;
+    // Tasks due today only
+    taskFiltered=tasks.filter(t=>t.deadline===todK);
+    tot=taskFiltered.length;
+    done=taskFiltered.filter(t=>t.done).length;
+    dueToday=taskFiltered.filter(t=>!t.done).length;
+    // Overdue = not done, deadline before today
+    over=tasks.filter(t=>!t.done&&t.deadline&&t.deadline<todK).length;
   } else {
     taskFiltered=tasks.filter(t=>inPeriod(t.deadline)||(p!=='day'&&!t.deadline));
     done=taskFiltered.filter(t=>t.done).length;
@@ -7257,6 +7259,11 @@ function renderDash(){
   if(document.getElementById('stot'))document.getElementById('stot').textContent=tot;
   if(document.getElementById('sdone'))document.getElementById('sdone').textContent=done;
   if(document.getElementById('sover'))document.getElementById('sover').textContent=over;
+  // Update pill labels to reflect current period
+  const stotLbl=document.querySelector('#stot')?.closest('.dashStatPill')?.querySelector('.dashStatPillLbl');
+  const sdoneLbl=document.querySelector('#sdone')?.closest('.dashStatPill')?.querySelector('.dashStatPillLbl');
+  if(stotLbl)stotLbl.textContent=p==='day'?'На сегодня':p==='week'?'За неделю':'За месяц';
+  if(sdoneLbl)sdoneLbl.textContent=p==='day'?'Выполнено сегодня':'Выполнено';
   const dOverEl=document.getElementById('dOverdue');if(dOverEl)dOverEl.textContent=over;
   const dTodEl=document.getElementById('dDueToday');if(dTodEl)dTodEl.textContent=dueToday;
   const dDoneEl=document.getElementById('dDone');if(dDoneEl)dDoneEl.textContent=done;
@@ -7360,17 +7367,22 @@ function renderDash(){
   const taskScore=tot?Math.round(done/tot*100):0;
   const score=Math.round(taskScore*0.5+habPct*0.5);
   const scEl=document.getElementById('dashScoreVal');if(scEl)scEl.textContent=score+'%';
+  // Update ring label based on period
+  const ringLbl=document.querySelector('.scoreRingLbl');
+  if(ringLbl)ringLbl.textContent=p==='day'?'балл дня':p==='week'?'балл недели':'балл месяца';
   drawDashRing(score);
   const sbEl=document.getElementById('dashScoreBreak');
+  const periodNote=p==='day'?`(${taskFiltered.length} задач на сегодня)`:p==='week'?'(эта неделя)':'(этот месяц)';
   if(sbEl)sbEl.innerHTML=`
     <div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid var(--border);font-size:11.5px">
       <span style="color:var(--text2)">Задачи</span>
       <span style="color:var(--green);font-weight:700;font-family:var(--font-display)">${taskScore}%</span>
     </div>
-    <div style="display:flex;justify-content:space-between;padding:4px 0;font-size:11.5px">
+    <div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid var(--border);font-size:11.5px">
       <span style="color:var(--text2)">Привычки</span>
       <span style="color:var(--pink);font-weight:700;font-family:var(--font-display)">${habPct}%</span>
-    </div>`;
+    </div>
+    <div style="font-size:10px;color:var(--muted);padding-top:3px">${periodNote}</div>`;
 
   // ── Kanban pipeline ──
   kbMigrate();
@@ -9735,13 +9747,27 @@ function goalSubTab(name,btn){
   const tabs=document.querySelectorAll('#tab-goals > div:first-child .rwSubTab');
   tabs.forEach(b=>b.classList.remove('on'));
   if(btn)btn.classList.add('on');
-  ['goals','mission','principles','kaizen'].forEach(n=>{
+  ['goals','mission','principles','kaizen','sleep'].forEach(n=>{
     const el=document.getElementById('gst-'+n);
     if(el)el.style.display=n===name?'block':'none';
   });
   if(name==='kaizen'){kzRenderList();renderJournal();}
   if(name==='goals')renderGoals();
   if(name==='principles')princRenderList();
+  if(name==='sleep'){
+    // Render sleep tracker directly into gst-sleep
+    const r2=document.getElementById('sleepTrackerRoot2');
+    if(r2){
+      // Save original root id, swap, render, restore
+      const orig=document.getElementById('sleepTrackerRoot');
+      const origKz=document.getElementById('kzInner-sleepPane');
+      if(orig)orig.id='_slpRoot_bak';
+      r2.id='sleepTrackerRoot';
+      renderSleepTracker();
+      r2.id='sleepTrackerRoot2';
+      if(orig)orig.id='sleepTrackerRoot';
+    }
+  }
 }
 
 /* ═══════════════════════════════════════
