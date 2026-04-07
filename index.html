@@ -2715,7 +2715,8 @@ select.inp option{background:var(--card2);color:var(--text)}
   <div style="display:flex;gap:4px;border-bottom:1px solid var(--border);margin-bottom:16px;overflow-x:auto">
     <button class="rwSubTab on" onclick="goalSubTab('goals',this)">🌱 Цели</button>
     <button class="rwSubTab" onclick="goalSubTab('principles',this)">⚡ Принципы</button>
-    <button class="rwSubTab" onclick="goalSubTab('kaizen',this)">🧠 Дневник роста</button>
+    <button class="rwSubTab" onclick="goalSubTab('kaizen',this)">🧠 Кайдзен</button>
+    <button class="rwSubTab" onclick="goalSubTab('diary',this)">📓 Дневник</button>
     <button class="rwSubTab" onclick="goalSubTab('sleep',this)">🌙 Трекер сна</button>
   </div>
 
@@ -2788,32 +2789,34 @@ select.inp option{background:var(--card2);color:var(--text)}
     <div id="princList"></div>
   </div>
 
-  <!-- KAIZEN + GROWTH DIARY — combined tab -->
+  <!-- KAIZEN tab -->
   <div id="gst-kaizen" style="display:none">
-    <!-- Kaizen daily entries -->
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px">
       <div>
-        <div style="font-family:var(--font-display);font-size:20px;font-weight:700;letter-spacing:-.4px;color:var(--p)">🧠 Кайдзен · Дневник роста</div>
+        <div style="font-family:var(--font-display);font-size:20px;font-weight:700;letter-spacing:-.4px;color:var(--p)">🧠 Кайдзен</div>
         <div style="font-size:12px;color:var(--text2);margin-top:2px">1% улучшений каждый день = 37× за год</div>
       </div>
       <div style="display:flex;gap:8px;flex-wrap:wrap">
         <button class="btn btnG" style="font-size:11px" onclick="kzOpenQuestions()">⚙ Кайдзен вопросы</button>
-        <button class="btn btnG" style="font-size:11px" onclick="openJournalQuestionsEditor()">📝 Вопросы дневника</button>
-        <button class="btn btnP" onclick="openJournalModal()">+ Дневник</button>
         <button class="btn btnB" onclick="kzOpenModal(null)">+ Кайдзен</button>
       </div>
     </div>
-    <!-- Unified sub-tabs inside kaizen -->
-    <div style="display:flex;gap:4px;margin-bottom:14px;overflow-x:auto">
-      <button class="rwSubTab on" id="kzInner-kz" onclick="kzInnerTab('kz',this)">📈 Кайдзен</button>
-      <button class="rwSubTab" id="kzInner-journal" onclick="kzInnerTab('journal',this)">📓 Дневник</button>
+    <div id="kzList"></div>
+  </div>
+
+  <!-- DIARY tab -->
+  <div id="gst-diary" style="display:none">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px">
+      <div>
+        <div style="font-family:var(--font-display);font-size:20px;font-weight:700;letter-spacing:-.4px;color:var(--purple)">📓 Дневник роста</div>
+        <div style="font-size:12px;color:var(--text2);margin-top:2px">Ежедневные размышления и рефлексия</div>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button class="btn btnG" style="font-size:11px" onclick="openJournalQuestionsEditor()">📝 Вопросы дневника</button>
+        <button class="btn btnP" onclick="openJournalModal()">+ Запись</button>
+      </div>
     </div>
-    <div id="kzInner-kzPane">
-      <div id="kzList"></div>
-    </div>
-    <div id="kzInner-journalPane" style="display:none">
-      <div id="journalList"></div>
-    </div>
+    <div id="journalList"></div>
   </div>
 
   <!-- SLEEP TRACKER tab -->
@@ -4529,6 +4532,45 @@ function tpSortTasks(tasks, td){
   return sorted;
 }
 
+/* ── Compute effective due date for a task (handles recurring) ──
+   Returns {dstr, diff, done} where diff = days from today (negative = overdue)
+   For recurring tasks: finds the most recent occurrence ≤ today,
+   skips exceptions/repeatEnd, checks doneDates.                    */
+function getEffectiveDueInfo(t, today){
+  const todayMs=today.getTime();
+  function _diff(ds){
+    const d=new Date(ds+'T00:00:00');d.setHours(0,0,0,0);
+    return Math.floor((d-today)/86400000);
+  }
+  if(!t.repeat){
+    if(!t.deadline)return null;
+    return{dstr:t.deadline,diff:_diff(t.deadline),done:!!t.done};
+  }
+  // Recurring: walk back from today up to 366 days to find last valid occurrence
+  const orig=t.deadline?new Date(t.deadline+'T00:00:00'):null;
+  if(!orig)return null;
+  orig.setHours(0,0,0,0);
+  const cap=new Date(today);cap.setHours(0,0,0,0);
+  for(let i=0;i<=366;i++){
+    const cur=new Date(cap);cur.setDate(cap.getDate()-i);
+    if(cur<orig)break; // don't go before task creation
+    const ds=cur.getFullYear()+'-'+String(cur.getMonth()+1).padStart(2,'0')+'-'+String(cur.getDate()).padStart(2,'0');
+    if(t.repeatEnd && ds>t.repeatEnd)continue;
+    if(t.exceptions && t.exceptions.includes(ds))continue; // this date was deleted — skip
+    const dow=cur.getDay(),day=cur.getDate();
+    let hit=false;
+    if(t.repeat==='daily')hit=true;
+    else if(t.repeat==='weekdays')hit=dow>=1&&dow<=5;
+    else if(t.repeat==='weekly')hit=orig.getDay()===dow;
+    else if(t.repeat==='monthly')hit=orig.getDate()===day;
+    if(hit){
+      const done=(t.doneDates||[]).includes(ds);
+      return{dstr:ds,diff:_diff(ds),done};
+    }
+  }
+  return null;
+}
+
 function renderTP(){
   const tasks=tpD(),td=t0();
   const dws=['вс','пн','вт','ср','чт','пт','сб'];
@@ -4537,10 +4579,10 @@ function renderTP(){
   document.getElementById('tpTodayLbl').textContent=`${td.getDate()} ${MG[td.getMonth()]}`;
   let tot=tasks.length,done=0,over=0,inp=0;
   tasks.forEach(t=>{
-    if(t.done){done++;return}
-    if(!t.deadline){inp++;return}
-    const dl=new Date(t.deadline+'T00:00:00');dl.setHours(0,0,0,0);
-    Math.floor((dl-td)/86400000)<0?over++:inp++;
+    const info=getEffectiveDueInfo(t,td);
+    if(!info){inp++;return;}
+    if(info.done){done++;return;}
+    info.diff<0?over++:inp++;
   });
   document.getElementById('stot').textContent=tot;
   document.getElementById('sover').textContent=over;
@@ -4573,24 +4615,25 @@ function renderTP(){
     filtered.forEach((t,i)=>{
       const realIdx=tasks.indexOf(t);
       const tr=document.createElement('tr');
+      // Use effective due info (handles recurring correctly)
+      const effInfo=getEffectiveDueInfo(t,td);
+      const effDstr=effInfo?effInfo.dstr:(t.deadline||'');
+      const effDiff=effInfo?effInfo.diff:null;
+      const effDone=effInfo?effInfo.done:!!t.done;
       let rc='';
-      if(t.done)rc='trDn';
-      else if(t.deadline){
-        const dl=new Date(t.deadline+'T00:00:00');dl.setHours(0,0,0,0);
-        const diff=Math.floor((dl-td)/86400000);
-        if(diff<0)rc='trOv';else if(diff===0)rc='trTd';else if(diff<=3)rc='trSo';
+      if(effDone)rc='trDn';
+      else if(effDstr){
+        if(effDiff<0)rc='trOv';else if(effDiff===0)rc='trTd';else if(effDiff<=3)rc='trSo';
       }
       tr.className=rc;
       let dlHtml='<span style="color:var(--border3)">—</span>';
-      if(t.done)dlHtml='<span style="color:var(--green);font-size:15px">✓</span>';
-      else if(t.deadline){
-        const dl=new Date(t.deadline+'T00:00:00');dl.setHours(0,0,0,0);
-        const diff=Math.floor((dl-td)/86400000);
-        const cls=diff<0?'dlNeg':diff===0?'dlZero':diff<=3?'dlSoon':'dlOk';
-        dlHtml=`<span class="${cls}">${diff>0?'+':''}${diff}д</span>`;
+      if(effDone)dlHtml='<span style="color:var(--green);font-size:15px">✓</span>';
+      else if(effDstr&&effDiff!==null){
+        const cls=effDiff<0?'dlNeg':effDiff===0?'dlZero':effDiff<=3?'dlSoon':'dlOk';
+        dlHtml=`<span class="${cls}">${effDiff>0?'+':''}${effDiff}д</span>`;
       }
       let dlLabel='';
-      if(t.deadline){const dl=new Date(t.deadline+'T00:00:00');dlLabel=`${dws[dl.getDay()]}, ${dl.getDate()} ${mons[dl.getMonth()]}.`}
+      if(effDstr){const dl=new Date(effDstr+'T00:00:00');dlLabel=`${dws[dl.getDay()]}, ${dl.getDate()} ${mons[dl.getMonth()]}.`}
       const taskLabelsDesk=getTaskLabels(t);
       const dotsHtml=taskLabelsDesk.map(l=>`<span style="width:8px;height:8px;border-radius:50%;background:${l.color};display:inline-block;flex-shrink:0;box-shadow:0 0 4px ${l.color}55"></span>`).join('');
       const pillsHtml=taskLabelsDesk.map(l=>`<span class="labelPill" style="background:${hexA(l.color,0.15)};color:${l.color};border:1px solid ${hexA(l.color,0.35)}">${esc(l.name)}</span>`).join('');
@@ -4604,15 +4647,15 @@ function renderTP(){
       const timeDisplay=t.time?`<span style="font-family:var(--font-mono);font-size:10.5px;color:var(--p);font-weight:600">${t.time}${t.endTime?' – '+t.endTime:''}</span>`:'<span style="color:var(--border3)">—</span>';
       tr.innerHTML=`
         <td style="color:var(--muted);font-size:10px;padding-left:10px">${i+1}</td>
-        <td><input type="checkbox" class="tCb" ${t.done?'checked':''} onchange="toggleTById('${t.id}',this.checked,this)"></td>
+        <td><input type="checkbox" class="tCb" ${effDone?'checked':''} onchange="toggleTById('${t.id}',this.checked,this)"></td>
         <td style="cursor:pointer" onclick="openTaskModal('${t.id}')">
-          <span style="font-size:12px;font-weight:600;color:var(--text);${t.done?'text-decoration:line-through;opacity:.65':''}">${esc(t.text)||'<em style="color:var(--muted)">Нет названия</em>'}</span>${repeatBadge}
+          <span style="font-size:12px;font-weight:600;color:var(--text);${effDone?'text-decoration:line-through;opacity:.65':''}">${esc(t.text)||'<em style="color:var(--muted)">Нет названия</em>'}</span>${repeatBadge}
         </td>
         <td>${labelHtml}</td>
         <td><input type="date" class="tDateInp" value="${t.deadline||''}" onchange="updTFieldById('${t.id}','deadline',this.value)" title="${dlLabel}" style="color-scheme:dark;font-size:11px"></td>
         <td>${timeDisplay}</td>
         <td style="text-align:center;font-weight:700;font-size:11px">${dlHtml}</td>
-        <td><button class="tDelBtn" onclick="delRecurringTask('${t.id}','')">×</button></td>`;
+        <td><button class="tDelBtn" onclick="delRecurringTask('${t.id}','${effDstr}')">×</button></td>`;
       tbody.appendChild(tr);
     });
   } else {
@@ -4623,35 +4666,37 @@ function renderTP(){
       const taskLbls=getTaskLabels(t);
       const label=taskLbls[0]||null;
       const col=label?label.color:'transparent';
+      // Use effective due info (handles recurring correctly)
+      const effInfoM=getEffectiveDueInfo(t,td);
+      const effDstrM=effInfoM?effInfoM.dstr:(t.deadline||'');
+      const effDiffM=effInfoM?effInfoM.diff:null;
+      const effDoneM=effInfoM?effInfoM.done:!!t.done;
       let cls='mTaskCard';
-      if(t.done)cls+=' mDone';
-      else if(t.deadline){
-        const dl=new Date(t.deadline+'T00:00:00');dl.setHours(0,0,0,0);
-        const diff=Math.floor((dl-td)/86400000);
-        if(diff<0)cls+=' mOv';else if(diff===0)cls+=' mTd';else if(diff<=3)cls+=' mSoon';
+      if(effDoneM)cls+=' mDone';
+      else if(effDstrM&&effDiffM!==null){
+        if(effDiffM<0)cls+=' mOv';else if(effDiffM===0)cls+=' mTd';else if(effDiffM<=3)cls+=' mSoon';
       }
       const div=document.createElement('div');
       div.className=cls;
       div.style.borderLeft=`3px solid ${col||'var(--border)'}`;
       // date display
       let dateStr='';
-      if(t.deadline){
-        const dl=new Date(t.deadline+'T00:00:00');
+      if(effDstrM&&effDiffM!==null){
+        const dl=new Date(effDstrM+'T00:00:00');
         dateStr=`${dl.getDate()} ${mons[dl.getMonth()]}`;
-        const diff=Math.floor((dl-td)/86400000);
-        if(diff<0)dateStr+=` <span style="color:var(--red);font-weight:700">просроч.</span>`;
-        else if(diff===0)dateStr+=` <span style="color:var(--orange);font-weight:700">сегодня</span>`;
+        if(effDiffM<0)dateStr+=` <span style="color:var(--red);font-weight:700">просроч.</span>`;
+        else if(effDiffM===0)dateStr+=` <span style="color:var(--orange);font-weight:700">сегодня</span>`;
       }
       const repeatBadge=t.repeat?`<span class="mTaskRepeatBadge">↻ ${{'daily':'ежедн','weekly':'еженед','weekdays':'будни','monthly':'ежемес'}[t.repeat]||t.repeat}</span>`:'';
       div.innerHTML=`
         <div class="mTaskTop">
-          <input class="mTaskCb" type="checkbox" ${t.done?'checked':''} onchange="toggleTById('${t.id}',this.checked);event.stopPropagation()">
-          <span class="mTaskName${t.done?' done':''}" onclick="openTaskModal('${t.id}')">${esc(t.text)||'Без названия'}</span>
-          <button style="border:none;background:none;color:var(--border3);font-size:18px;padding:0 4px;cursor:pointer;flex-shrink:0" onclick="delRecurringTask('${t.id}','');event.stopPropagation()">×</button>
+          <input class="mTaskCb" type="checkbox" ${effDoneM?'checked':''} onchange="toggleTById('${t.id}',this.checked);event.stopPropagation()">
+          <span class="mTaskName${effDoneM?' done':''}" onclick="openTaskModal('${t.id}')">${esc(t.text)||'Без названия'}</span>
+          <button style="border:none;background:none;color:var(--border3);font-size:18px;padding:0 4px;cursor:pointer;flex-shrink:0" onclick="delRecurringTask('${t.id}','${effDstrM}');event.stopPropagation()">×</button>
         </div>
         <div class="mTaskMeta">
           ${taskLbls.map(l=>`<span class="mTaskMetaChip" style="background:${hexA(l.color,.14)};color:${l.color}"><span style="width:6px;height:6px;border-radius:50%;background:${l.color}"></span>${esc(l.name)}</span>`).join('')}
-          ${t.deadline?`<span class="mTaskMetaChip" style="background:var(--card2);color:var(--text2)">📅 ${dateStr}</span>`:''}
+          ${effDstrM?`<span class="mTaskMetaChip" style="background:var(--card2);color:var(--text2)">📅 ${dateStr}</span>`:''}
           ${t.time?`<span class="mTaskMetaChip" style="background:var(--pdim);color:var(--p);font-family:var(--font-mono)">⏱ ${t.time}${t.endTime?' – '+t.endTime:''}</span>`:''}
           ${repeatBadge}
         </div>`;
@@ -9742,16 +9787,15 @@ function goalSubTab(name,btn){
   const tabs=document.querySelectorAll('#tab-goals > div:first-child .rwSubTab');
   tabs.forEach(b=>b.classList.remove('on'));
   if(btn)btn.classList.add('on');
-  ['goals','mission','principles','kaizen','sleep'].forEach(n=>{
+  ['goals','mission','principles','kaizen','diary','sleep'].forEach(n=>{
     const el=document.getElementById('gst-'+n);
     if(el)el.style.display=n===name?'block':'none';
   });
-  if(name==='kaizen'){kzRenderList();renderJournal();}
+  if(name==='kaizen')kzRenderList();
+  if(name==='diary')renderJournal();
   if(name==='goals')renderGoals();
   if(name==='principles')princRenderList();
-  if(name==='sleep'){
-    renderSleepTracker();
-  }
+  if(name==='sleep')renderSleepTracker();
 }
 
 /* ═══════════════════════════════════════
@@ -9840,12 +9884,7 @@ function missionHandlePhoto(id,input){
 }
 
 function kzInnerTab(name,btn){
-  document.querySelectorAll('#gst-kaizen .rwSubTab').forEach(b=>b.classList.remove('on'));
-  if(btn)btn.classList.add('on');
-  document.getElementById('kzInner-kzPane').style.display=name==='kz'?'block':'none';
-  document.getElementById('kzInner-journalPane').style.display=name==='journal'?'block':'none';
-  if(name==='kz')kzRenderList();
-  if(name==='journal')renderJournal();
+  // Legacy stub — inner tabs removed, each section is now a top-level subtab
 }
 
 function renderGrowth(){
