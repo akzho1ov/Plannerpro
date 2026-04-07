@@ -6544,12 +6544,8 @@ function renderAccountList(){
       </div>
       <div class="acctEditRow-fields">
         <div style="flex:1;min-width:150px">
-          <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);margin-bottom:4px">Начальный баланс</div>
-          <input type="number" class="inp" value="${a.initialBalance||0}" style="font-size:12px" oninput="finAccountsD()[${i}].initialBalance=Number(this.value)||0;saveD()">
-        </div>
-        <div style="text-align:right;flex-shrink:0">
           <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);margin-bottom:4px">Текущий баланс</div>
-          <div style="font-family:var(--font-display);font-size:16px;font-weight:800;color:${realBal>=0?'var(--cyan)':'var(--red)'}">${fmtMoney(realBal)}</div>
+          <input type="number" class="inp" value="${realBal}" style="font-size:13px;font-weight:800;color:${realBal>=0?'var(--cyan)':'var(--red)'}" oninput="(function(v,idx){var a=finAccountsD()[idx];var aInc=finTxD().filter(function(t){return t.type==='in'&&t.acctId===a.id;}).reduce(function(s,t){return s+Number(t.amount);},0);var aExp=finTxD().filter(function(t){return t.type==='out'&&t.acctId===a.id;}).reduce(function(s,t){return s+Number(t.amount);},0);a.initialBalance=(Number(v)||0)-aInc+aExp;saveD();})(this.value,${i})">
         </div>
       </div>
     </div>`;
@@ -7353,16 +7349,17 @@ function renderDash(){
   const tasks=tpD();
   let taskFiltered,over=0,dueToday=0,done=0,tot=0;
   if(p==='day'){
-    // Tasks due today only
-    taskFiltered=tasks.filter(t=>t.deadline===todK);
+    // Tasks due today — use taskAppearsOnDate to correctly include recurring tasks
+    taskFiltered=tasks.filter(t=>taskAppearsOnDate(t,todK));
     tot=taskFiltered.length;
-    done=taskFiltered.filter(t=>t.done).length;
-    dueToday=taskFiltered.filter(t=>!t.done).length;
+    // For recurring tasks, use doneDates to check if done today
+    done=taskFiltered.filter(t=>t.repeat?(t.doneDates||[]).includes(todK):t.done).length;
+    dueToday=tot-done;
   } else {
     taskFiltered=tasks.filter(t=>inPeriod(t.deadline)||(p!=='day'&&!t.deadline));
     done=taskFiltered.filter(t=>t.done).length;
     tot=taskFiltered.length;
-    dueToday=taskFiltered.filter(t=>!t.done&&t.deadline===todK).length;
+    dueToday=taskFiltered.filter(t=>!t.done&&taskAppearsOnDate(t,todK)).length;
   }
   // Overdue = not done, deadline before today, never count recurring tasks
   // (recurring tasks track completion via doneDates, not t.done)
@@ -7453,7 +7450,7 @@ function renderDash(){
   const focusSub=document.getElementById('dashFocusSub');
   const bigTxt=document.getElementById('dashGreetBig');
   if(focusSub&&bigTxt){
-    const pending=tasks.filter(t=>!t.done&&t.deadline===todK);
+    const pending=tasks.filter(t=>taskAppearsOnDate(t,todK)&&!(t.repeat?(t.doneDates||[]).includes(todK):t.done));
     const topTask=tasks.find(t=>!t.done&&!t.deadline)||tasks.find(t=>!t.done);
     if(pending.length){
       bigTxt.textContent=`${pending.length} ${pending.length===1?'задача':(pending.length<5?'задачи':'задач')} на сегодня`;
