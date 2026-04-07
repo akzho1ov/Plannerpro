@@ -2807,7 +2807,6 @@ select.inp option{background:var(--card2);color:var(--text)}
     <div style="display:flex;gap:4px;margin-bottom:14px;overflow-x:auto">
       <button class="rwSubTab on" id="kzInner-kz" onclick="kzInnerTab('kz',this)">📈 Кайдзен</button>
       <button class="rwSubTab" id="kzInner-journal" onclick="kzInnerTab('journal',this)">📓 Дневник</button>
-      <button class="rwSubTab" id="kzInner-sleep" onclick="kzInnerTab('sleep',this)">🌙 Трекер сна</button>
     </div>
     <div id="kzInner-kzPane">
       <div id="kzList"></div>
@@ -2815,15 +2814,11 @@ select.inp option{background:var(--card2);color:var(--text)}
     <div id="kzInner-journalPane" style="display:none">
       <div id="journalList"></div>
     </div>
-    <!-- SLEEP TRACKER PANE -->
-    <div id="kzInner-sleepPane" style="display:none">
-      <div id="sleepTrackerRoot"></div>
-    </div>
   </div>
 
   <!-- SLEEP TRACKER tab -->
   <div id="gst-sleep" style="display:none">
-    <div id="sleepTrackerRoot2"></div>
+    <div id="sleepTrackerRoot"></div>
   </div>
 
 </div>
@@ -9755,18 +9750,7 @@ function goalSubTab(name,btn){
   if(name==='goals')renderGoals();
   if(name==='principles')princRenderList();
   if(name==='sleep'){
-    // Render sleep tracker directly into gst-sleep
-    const r2=document.getElementById('sleepTrackerRoot2');
-    if(r2){
-      // Save original root id, swap, render, restore
-      const orig=document.getElementById('sleepTrackerRoot');
-      const origKz=document.getElementById('kzInner-sleepPane');
-      if(orig)orig.id='_slpRoot_bak';
-      r2.id='sleepTrackerRoot';
-      renderSleepTracker();
-      r2.id='sleepTrackerRoot2';
-      if(orig)orig.id='sleepTrackerRoot';
-    }
+    renderSleepTracker();
   }
 }
 
@@ -9860,10 +9844,8 @@ function kzInnerTab(name,btn){
   if(btn)btn.classList.add('on');
   document.getElementById('kzInner-kzPane').style.display=name==='kz'?'block':'none';
   document.getElementById('kzInner-journalPane').style.display=name==='journal'?'block':'none';
-  const slp=document.getElementById('kzInner-sleepPane');if(slp)slp.style.display=name==='sleep'?'block':'none';
   if(name==='kz')kzRenderList();
   if(name==='journal')renderJournal();
-  if(name==='sleep')renderSleepTracker();
 }
 
 function renderGrowth(){
