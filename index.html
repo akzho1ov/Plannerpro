@@ -4505,21 +4505,24 @@ function tpToggleDone(){
 }
 
 function tpSortTasks(tasks, td){
-  const active=tasks.filter(t=>!t.done);
-  const done=tasks.filter(t=>t.done);
+  // For sort purposes, get the effective display date (next occurrence for recurring)
+  function effDate(t){const i=getTaskListDueInfo(t,td);return i?i.dstr:t.deadline||'';}
+  const active=tasks.filter(t=>{const i=getTaskListDueInfo(t,td);return !(i&&i.done)&&!t.done;});
+  const done=tasks.filter(t=>{const i=getTaskListDueInfo(t,td);return (i&&i.done)||t.done;});
   function byDate(a,b){
-    if(!a.deadline&&!b.deadline)return 0;
-    if(!a.deadline)return 1;
-    if(!b.deadline)return -1;
-    return a.deadline.localeCompare(b.deadline);
+    const da=effDate(a),db=effDate(b);
+    if(!da&&!db)return 0;
+    if(!da)return 1;
+    if(!db)return -1;
+    return da.localeCompare(db);
   }
   function byStatus(a,b){
     function score(t){
-      if(!t.deadline)return 2;
-      const diff=Math.floor((new Date(t.deadline+'T00:00:00')-td)/86400000);
-      if(diff<0)return 0;
-      if(diff===0)return 1;
-      if(diff<=3)return 2;
+      const i=getTaskListDueInfo(t,td);
+      if(!i||!i.dstr)return 3;
+      if(i.diff<0)return 0;
+      if(i.diff===0)return 1;
+      if(i.diff<=3)return 2;
       return 3;
     }
     return score(a)-score(b)||byDate(a,b);
@@ -4535,7 +4538,8 @@ function tpSortTasks(tasks, td){
 /* ── Compute effective due date for a task (handles recurring) ──
    Returns {dstr, diff, done} where diff = days from today (negative = overdue)
    For recurring tasks: finds the most recent occurrence ≤ today,
-   skips exceptions/repeatEnd, checks doneDates.                    */
+   skips exceptions/repeatEnd, checks doneDates.
+   Used by: weekly view, calendar.                                    */
 function getEffectiveDueInfo(t, today){
   const todayMs=today.getTime();
   function _diff(ds){
@@ -4571,6 +4575,51 @@ function getEffectiveDueInfo(t, today){
   return null;
 }
 
+/* ── Task LIST due info: for recurring tasks always shows NEXT upcoming
+   occurrence (≥ today). Never shows overdue for recurring tasks.
+   Logic: complete current → next appears automatically.
+   Used by: Tasks tab only.                                           */
+function getTaskListDueInfo(t, today){
+  function _dsOf(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
+  function _diff(ds){const d=new Date(ds+'T00:00:00');d.setHours(0,0,0,0);return Math.floor((d-today)/86400000);}
+  if(!t.repeat){
+    if(!t.deadline)return null;
+    return{dstr:t.deadline,diff:_diff(t.deadline),done:!!t.done};
+  }
+  const orig=t.deadline?new Date(t.deadline+'T00:00:00'):null;
+  if(!orig)return null;
+  orig.setHours(0,0,0,0);
+  const base=new Date(today);base.setHours(0,0,0,0);
+  function isValidHit(cur){
+    if(cur<orig)return false;
+    const ds=_dsOf(cur);
+    if(t.repeatEnd && ds>t.repeatEnd)return false;
+    if(t.exceptions && t.exceptions.includes(ds))return false;
+    const dow=cur.getDay(),day=cur.getDate();
+    if(t.repeat==='daily')return true;
+    if(t.repeat==='weekdays')return dow>=1&&dow<=5;
+    if(t.repeat==='weekly')return orig.getDay()===dow;
+    if(t.repeat==='monthly')return orig.getDate()===day;
+    return false;
+  }
+  // Check today first
+  if(isValidHit(base)){
+    const ds=_dsOf(base);
+    const done=(t.doneDates||[]).includes(ds);
+    return{dstr:ds,diff:0,done};
+  }
+  // Find next occurrence from tomorrow onwards
+  for(let i=1;i<=366;i++){
+    const cur=new Date(base);cur.setDate(base.getDate()+i);
+    if(!isValidHit(cur))continue;
+    const ds=_dsOf(cur);
+    const done=(t.doneDates||[]).includes(ds);
+    if(!done)return{dstr:ds,diff:i,done:false};
+  }
+  return null; // No upcoming occurrence — recurring series ended or fully deleted
+}
+
+
 function renderTP(){
   const tasks=tpD(),td=t0();
   const dws=['вс','пн','вт','ср','чт','пт','сб'];
@@ -4579,7 +4628,7 @@ function renderTP(){
   document.getElementById('tpTodayLbl').textContent=`${td.getDate()} ${MG[td.getMonth()]}`;
   let tot=tasks.length,done=0,over=0,inp=0;
   tasks.forEach(t=>{
-    const info=getEffectiveDueInfo(t,td);
+    const info=getTaskListDueInfo(t,td);
     if(!info){inp++;return;}
     if(info.done){done++;return;}
     info.diff<0?over++:inp++;
@@ -4616,7 +4665,7 @@ function renderTP(){
       const realIdx=tasks.indexOf(t);
       const tr=document.createElement('tr');
       // Use effective due info (handles recurring correctly)
-      const effInfo=getEffectiveDueInfo(t,td);
+      const effInfo=getTaskListDueInfo(t,td);
       const effDstr=effInfo?effInfo.dstr:(t.deadline||'');
       const effDiff=effInfo?effInfo.diff:null;
       const effDone=effInfo?effInfo.done:!!t.done;
@@ -4667,7 +4716,7 @@ function renderTP(){
       const label=taskLbls[0]||null;
       const col=label?label.color:'transparent';
       // Use effective due info (handles recurring correctly)
-      const effInfoM=getEffectiveDueInfo(t,td);
+      const effInfoM=getTaskListDueInfo(t,td);
       const effDstrM=effInfoM?effInfoM.dstr:(t.deadline||'');
       const effDiffM=effInfoM?effInfoM.diff:null;
       const effDoneM=effInfoM?effInfoM.done:!!t.done;
@@ -4759,7 +4808,31 @@ function delT(i){
 function findTaskIdxById(id){return tpD().findIndex(t=>t.id===id);}
 function delTById(id){const i=findTaskIdxById(id);if(i>=0)delT(i);}
 function updTFieldById(id,f,v){const i=findTaskIdxById(id);if(i>=0)updTField(i,f,v);}
-function toggleTById(id,checked,evtTarget){const i=findTaskIdxById(id);if(i>=0)toggleT(i,checked,evtTarget);}
+function toggleTById(id,checked,evtTarget){
+  const tasks=tpD();
+  const t=tasks.find(x=>x.id===id);
+  if(!t)return;
+  if(t.repeat){
+    // For recurring tasks, toggle the effective next occurrence date
+    const td=t0();
+    const info=getTaskListDueInfo(t,td);
+    const dstr=info?info.dstr:'';
+    if(dstr){
+      if(!t.doneDates)t.doneDates=[];
+      if(checked){if(!t.doneDates.includes(dstr))t.doneDates.push(dstr);}
+      else{t.doneDates=t.doneDates.filter(d=>d!==dstr);}
+      saveD();
+      if(checked&&evtTarget){
+        const row=evtTarget.closest('tr')||evtTarget.closest('.mTaskCard');
+        if(row){row.style.transition='opacity .3s';row.style.opacity='.6';setTimeout(()=>{row.style.opacity='';},400);}
+      }
+      _refreshAllTaskViews();
+    }
+  } else {
+    const i=findTaskIdxById(id);
+    if(i>=0)toggleT(i,checked,evtTarget);
+  }
+}
 function openLabelPickerById(id,el){const i=findTaskIdxById(id);if(i>=0)openLabelPicker(i,el);}
 function onNewTask(e){
   if(e.key==='Enter'&&e.target.value.trim()){
