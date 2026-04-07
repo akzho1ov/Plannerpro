@@ -7358,15 +7358,15 @@ function renderDash(){
     tot=taskFiltered.length;
     done=taskFiltered.filter(t=>t.done).length;
     dueToday=taskFiltered.filter(t=>!t.done).length;
-    // Overdue = not done, deadline before today
-    over=tasks.filter(t=>!t.done&&t.deadline&&t.deadline<todK).length;
   } else {
     taskFiltered=tasks.filter(t=>inPeriod(t.deadline)||(p!=='day'&&!t.deadline));
     done=taskFiltered.filter(t=>t.done).length;
     tot=taskFiltered.length;
-    over=taskFiltered.filter(t=>!t.done&&t.deadline&&t.deadline<todK).length;
     dueToday=taskFiltered.filter(t=>!t.done&&t.deadline===todK).length;
   }
+  // Overdue = not done, deadline before today, never count recurring tasks
+  // (recurring tasks track completion via doneDates, not t.done)
+  over=tasks.filter(t=>!t.repeat&&!t.done&&t.deadline&&t.deadline<todK).length;
 
   // Update quick stats
   if(document.getElementById('stot'))document.getElementById('stot').textContent=tot;
