@@ -3925,9 +3925,6 @@ function subscribeCloud(){
       _appReady=true;
       hideLoader();
       initApp();
-    } else {
-      // Already running — just re-render current tab with whatever data we have
-      try{ reRenderCurrentTab(); }catch(e){}
     }
     // Subtle dot indicator only — no scary red banner
     setSyncDot('error');
@@ -3971,9 +3968,6 @@ function subscribeCloud(){
       hideLoader();
       initApp();
     } else if(!isOwnEcho){
-      // Data from server arrived — update G and re-render current tab
-      G=incoming;
-      restorePhotosFromLocal();
       reRenderCurrentTab();
       showSaveStatus('saved','↓ Синхронизировано');
     }
@@ -4111,18 +4105,8 @@ auth.onAuthStateChanged(async(user)=>{
         _appReady=true;
         hideLoader();
         initApp();
-      } else {
-        // No cache — show empty app immediately, Firebase will fill it in
-        _appReady=true;
-        hideLoader();
-        initApp();
       }
-    }catch{
-      // Cache parse error — show app anyway
-      _appReady=true;
-      hideLoader();
-      initApp();
-    }
+    }catch{}
 
     // Migrate old localStorage data
     const oldData=localStorage.getItem(SKEY);
@@ -4152,20 +4136,8 @@ function initApp(){
   // Migrate old tasks (ensure they have IDs)
   if(G.tasks)G.tasks=G.tasks.map(t=>t.id?t:{...t,id:uid()});
   kbMigrate();
-  try{ renderDash(); }catch(e){ console.error('renderDash error:',e); }
+  renderDash();
   initMobileNav();
-}
-
-function switchTab(name,btn){
-  document.querySelectorAll('.pane').forEach(e=>e.classList.remove('on'));
-  document.querySelectorAll('.hTab').forEach(e=>e.classList.remove('on'));
-  const pane=document.getElementById('tab-'+name);
-  if(!pane){ console.error('Tab not found: tab-'+name); return; }
-  pane.classList.add('on');
-  if(btn)btn.classList.add('on');
-  window.scrollTo({top:0,behavior:'instant'});
-  const renders={dash:renderDash,weekly:renderWP,habits:renderHT,tasks:renderTP,routine:renderRoutine,calendar:renderCal,kanban:renderKanban,finance:renderFin,goals:renderGrowth,rewards:rwRender,gym:gymRender,analytics:renderAnalytics};
-  if(renders[name]){ try{ renders[name](); }catch(e){ console.error('Render error ['+name+']:',e); pane.innerHTML='<div style="padding:40px;text-align:center;color:var(--red)">Ошибка рендера: '+e.message+'</div>'; } }
 }
 
 /* ─────────────────────────
@@ -10492,13 +10464,7 @@ function switchTabMob(name,btn){
   if(btn)btn.classList.add('on');
   // Render
   const renders={dash:renderDash,weekly:renderWP,habits:renderHT,tasks:renderTP,routine:renderRoutine,calendar:renderCal,kanban:renderKanban,finance:renderFin,goals:renderGrowth,rewards:rwRender,gym:gymRender,analytics:renderAnalytics};
-  if(renders[name]){
-    try{ renders[name](); }
-    catch(e){
-      console.error('Render error ['+name+']:',e);
-      if(pane) pane.innerHTML='<div style="padding:40px 20px;text-align:center"><div style="color:var(--red);font-size:13px;font-weight:700;margin-bottom:8px">⚠ Ошибка загрузки раздела</div><div style="color:var(--muted);font-size:11px">'+e.message+'</div></div>';
-    }
-  }
+  if(renders[name])renders[name]();
   window.scrollTo(0,0);
 }
 
