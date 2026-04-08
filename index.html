@@ -1331,6 +1331,7 @@ select.inp option{background:var(--card2);color:var(--text)}
 /* ── Dashboard growth widgets ── */
 .dashGrowthRow{margin-top:14px}
 @media(max-width:900px){.dashGrowthRow{grid-template-columns:1fr!important}}
+@media(max-width:600px){#heatmapStatsPanel{display:none!important}}
 .dashGrowthCard{transition:border-color var(--dur2) var(--ease),box-shadow var(--dur2) var(--ease),transform var(--dur) var(--ease)}
 .dashGrowthCard:hover{transform:translateY(-2px);box-shadow:0 8px 32px rgba(0,0,0,.6),0 0 0 1px rgba(255,255,255,.06)}
 .moodTlItem{display:flex;flex-direction:column;align-items:center;gap:2px;min-width:26px}
@@ -1339,25 +1340,23 @@ select.inp option{background:var(--card2);color:var(--text)}
 .moodTlDate{font-size:7.5px;color:var(--muted);writing-mode:vertical-rl;transform:rotate(180deg);white-space:nowrap}
 .streakHeatmap{
   display:grid;
-  grid-template-columns:repeat(16,11px);
-  grid-template-rows:repeat(7,11px);
   grid-auto-flow:column;
   gap:3px;
-  margin-top:4px;
+  margin-top:0px;
   width:fit-content;
   isolation:isolate;
 }
 .shCell{
-  width:11px;
-  height:11px;
+  width:12px;
+  height:12px;
   border-radius:2px;
-  background:rgba(255,255,255,.06);
-  border:1px solid rgba(0,0,0,.4);
+  background:rgba(255,255,255,.07);
+  border:1px solid rgba(0,0,0,.45);
   cursor:default;
   flex-shrink:0;
   box-sizing:border-box;
   display:block;
-  position:relative;
+  transition:transform .1s;
 }
 .shCell:hover{transform:scale(1.2);z-index:10;border-color:rgba(255,255,255,.3);position:relative}
 .shCell.s1{background:rgba(240,107,176,.25);border-color:rgba(0,0,0,.5)}
@@ -2434,41 +2433,74 @@ select.inp option{background:var(--card2);color:var(--text)}
       <canvas id="taskWeekChart" height="90" style="width:100%;display:block;position:relative"></canvas>
     </div>
 
-    <!-- Habit Streak Heatmap -->
-    <div class="dashCard dashGrowthCard" style="position:relative;overflow:hidden">
-      <div style="position:absolute;inset:0;background:linear-gradient(135deg,rgba(240,107,176,.05) 0%,transparent 60%);pointer-events:none;border-radius:inherit"></div>
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;position:relative">
+    <!-- Habit Streak Heatmap — redesigned -->
+    <div class="dashCard dashGrowthCard" id="habitHeatmapCard" style="position:relative;overflow:hidden;display:flex;flex-direction:column;gap:0">
+      <div style="position:absolute;inset:0;background:linear-gradient(135deg,rgba(240,107,176,.07) 0%,rgba(155,143,245,.04) 50%,transparent 80%);pointer-events:none;border-radius:inherit"></div>
+      <!-- Header -->
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;position:relative">
         <div>
-          <div class="dashCardLbl" style="margin-bottom:1px">🔥 Тепловая карта привычек</div>
-          <div style="font-size:10px;color:var(--muted)">Активность за 28 дней</div>
+          <div class="dashCardLbl" style="margin-bottom:2px">🔥 Тепловая карта привычек</div>
+          <div style="font-size:10px;color:var(--muted)" id="heatmapSubLbl">Активность за 16 недель</div>
         </div>
-        <div style="display:flex;align-items:center;gap:5px">
-          <div style="display:flex;gap:3px;align-items:center">
-            <div style="width:9px;height:9px;border-radius:2px;background:rgba(255,255,255,.06)"></div>
-            <div style="width:9px;height:9px;border-radius:2px;background:rgba(240,107,176,.25)"></div>
-            <div style="width:9px;height:9px;border-radius:2px;background:rgba(240,107,176,.5)"></div>
-            <div style="width:9px;height:9px;border-radius:2px;background:rgba(240,107,176,.8)"></div>
-            <div style="width:9px;height:9px;border-radius:2px;background:var(--pink);box-shadow:0 0 6px rgba(240,107,176,.6)"></div>
-          </div>
+        <!-- Legend -->
+        <div style="display:flex;align-items:center;gap:4px">
+          <span style="font-size:8px;color:var(--muted)">меньше</span>
+          <div style="width:8px;height:8px;border-radius:2px;background:rgba(255,255,255,.07);border:1px solid rgba(0,0,0,.4)"></div>
+          <div style="width:8px;height:8px;border-radius:2px;background:rgba(240,107,176,.25);border:1px solid rgba(0,0,0,.4)"></div>
+          <div style="width:8px;height:8px;border-radius:2px;background:rgba(240,107,176,.5);border:1px solid rgba(0,0,0,.4)"></div>
+          <div style="width:8px;height:8px;border-radius:2px;background:rgba(240,107,176,.8);border:1px solid rgba(0,0,0,.4)"></div>
+          <div style="width:8px;height:8px;border-radius:2px;background:var(--pink);border:1px solid rgba(0,0,0,.3);box-shadow:0 0 5px rgba(240,107,176,.5)"></div>
+          <span style="font-size:8px;color:var(--muted)">больше</span>
         </div>
       </div>
-      <div style="position:relative">
-        <!-- GitHub-style heatmap with day labels on left -->
-        <div style="display:flex;gap:4px;align-items:flex-start">
-          <!-- Day labels -->
-          <div style="display:flex;flex-direction:column;gap:3px;flex-shrink:0;padding-top:17px">
-            <div style="font-size:7px;color:var(--muted);font-weight:700;height:11px;line-height:11px">Пн</div>
-            <div style="height:11px"></div>
-            <div style="font-size:7px;color:var(--muted);font-weight:700;height:11px;line-height:11px">Ср</div>
-            <div style="height:11px"></div>
-            <div style="font-size:7px;color:var(--muted);font-weight:700;height:11px;line-height:11px">Пт</div>
-            <div style="height:11px"></div>
-            <div style="font-size:7px;color:var(--pink);font-weight:700;height:11px;line-height:11px">Вс</div>
+      <!-- Body: heatmap + right stats panel -->
+      <div style="display:flex;gap:14px;align-items:stretch;flex:1;position:relative">
+        <!-- Heatmap grid area -->
+        <div style="flex:1;min-width:0;display:flex;flex-direction:column">
+          <div style="display:flex;gap:4px;align-items:flex-start;flex:1">
+            <!-- Day labels -->
+            <div style="display:flex;flex-direction:column;gap:3px;flex-shrink:0;padding-top:17px">
+              <div style="font-size:7px;color:var(--muted);font-weight:700;height:12px;line-height:12px">Пн</div>
+              <div style="height:12px"></div>
+              <div style="font-size:7px;color:var(--muted);font-weight:700;height:12px;line-height:12px">Ср</div>
+              <div style="height:12px"></div>
+              <div style="font-size:7px;color:var(--muted);font-weight:700;height:12px;line-height:12px">Пт</div>
+              <div style="height:12px"></div>
+              <div style="font-size:7px;color:var(--pink);font-weight:700;height:12px;line-height:12px">Вс</div>
+            </div>
+            <!-- Grid + month labels -->
+            <div style="flex:1;min-width:0;overflow:hidden">
+              <div id="heatmapMonthLabels" style="margin-bottom:3px"></div>
+              <div class="streakHeatmap" id="streakHeatmap"></div>
+            </div>
           </div>
-          <div style="flex:1;min-width:0;overflow-x:auto;-webkit-overflow-scrolling:touch">
-            <!-- Month labels -->
-            <div id="heatmapMonthLabels" style="margin-bottom:3px;display:flex;gap:0"></div>
-            <div class="streakHeatmap" id="streakHeatmap"></div>
+        </div>
+        <!-- Right stats panel -->
+        <div style="display:flex;flex-direction:column;gap:8px;flex-shrink:0;width:90px;border-left:1px solid var(--border);padding-left:14px;justify-content:space-between" id="heatmapStatsPanel">
+          <!-- streak -->
+          <div>
+            <div style="font-size:8px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.6px;margin-bottom:2px">Стрик</div>
+            <div style="display:flex;align-items:baseline;gap:3px">
+              <div style="font-family:var(--font-display);font-size:26px;font-weight:800;color:var(--pink);line-height:1" id="hmStreak">0</div>
+              <div style="font-size:9px;color:var(--muted)">дн</div>
+            </div>
+          </div>
+          <!-- divider -->
+          <div style="height:1px;background:var(--border)"></div>
+          <!-- this week -->
+          <div>
+            <div style="font-size:8px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.6px;margin-bottom:4px">Эта неделя</div>
+            <div style="display:flex;flex-direction:column;gap:3px" id="hmWeekDots">
+              <!-- filled by JS -->
+            </div>
+          </div>
+          <!-- divider -->
+          <div style="height:1px;background:var(--border)"></div>
+          <!-- completion -->
+          <div>
+            <div style="font-size:8px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.6px;margin-bottom:4px">За 30 дней</div>
+            <div style="font-family:var(--font-display);font-size:18px;font-weight:800;color:var(--p);line-height:1;margin-bottom:3px" id="hmPct30">—</div>
+            <div style="height:4px;background:rgba(255,255,255,.07);border-radius:4px;overflow:hidden"><div id="hmPctBar" style="height:100%;border-radius:4px;background:linear-gradient(90deg,var(--pink),var(--p));width:0%;transition:.6s"></div></div>
           </div>
         </div>
       </div>
@@ -5935,8 +5967,8 @@ function _kbDropToCol(cardId,colId){
   if(task){
     if(newColDef.isDone){task.done=true;cards[idx].done=true;}
     else{task.done=false;cards[idx].done=false;}
-    if(colId==='today'&&!task.deadline)task.deadline=dk(t0());
-    if(colId==='tomorrow'&&!task.deadline){const tm=new Date(t0());tm.setDate(tm.getDate()+1);task.deadline=dk(tm);}
+    if(colId==='today'){if(!task.deadline)task.deadline=dk(t0());}
+    if(colId==='tomorrow'){if(!task.deadline){const tm=new Date(t0());tm.setDate(tm.getDate()+1);task.deadline=dk(tm);}}
     cards[idx].deadline=task.deadline||'';
     if(task.repeat&&colId!=='done')cards[idx].isRepeat=true;
   }
@@ -5961,7 +5993,15 @@ function openKbModal(colId,cardId){
   document.getElementById('kbModalTitle').textContent=c?'Редактировать':'Новая карточка';
   document.getElementById('kbCardTitle').value=src?(linkedTask?linkedTask.text:c.title):'';
   document.getElementById('kbCardDesc').value=src?(linkedTask?linkedTask.notes:c.desc):'';
-  document.getElementById('kbCardDl').value=src?(linkedTask?linkedTask.deadline:c.deadline)||'':'';
+  // Auto-set deadline based on column when creating new card
+  let autoDeadline='';
+  if(!cardId){
+    if(colId==='today') autoDeadline=dk(t0());
+    else if(colId==='tomorrow'){const tm=new Date(t0());tm.setDate(tm.getDate()+1);autoDeadline=dk(tm);}
+    else if(colId==='week'){const mon=new Date(t0());const dow=mon.getDay();mon.setDate(mon.getDate()+(dow===0?1:8-dow));autoDeadline=dk(mon);}
+    else if(colId==='next'){const mon=new Date(t0());const dow=mon.getDay();mon.setDate(mon.getDate()+(dow===0?8:15-dow));autoDeadline=dk(mon);}
+  }
+  document.getElementById('kbCardDl').value=src?(linkedTask?linkedTask.deadline:c.deadline)||'':autoDeadline;
   document.getElementById('kbCardTime').value=src?(linkedTask?linkedTask.time:c.time)||'':'';
   document.getElementById('kbCardEndTime').value=src?(linkedTask?linkedTask.endTime:c.endTime)||'':'';
   document.getElementById('kb-actualDuration').value=linkedTask?.actualDuration||c?.actualDuration||'';
@@ -5988,7 +6028,16 @@ function openKbModal(colId,cardId){
   // Populate column select
   const board=kbBoardsD().find(b=>b.id===kbActiveBoardId);
   const sel=document.getElementById('kbCardCol');sel.innerHTML='';
-  if(board)board.cols.forEach(col=>{const o=document.createElement('option');o.value=col.id;o.textContent=col.title;if((c?c.col:colId)===col.id)o.selected=true;sel.appendChild(o)});
+  if(board)board.cols.forEach(col=>{const o=document.createElement('option');o.value=col.id;o.textContent=col.title;if((c?c.col:colId)===col.id)o.selected=true;sel.appendChild(o);});
+  // When user changes column, auto-fill deadline if empty
+  sel.onchange=function(){
+    const dlInp=document.getElementById('kbCardDl');
+    if(dlInp.value) return; // don't override existing
+    const v=this.value;
+    if(v==='today') dlInp.value=dk(t0());
+    else if(v==='tomorrow'){const tm=new Date(t0());tm.setDate(tm.getDate()+1);dlInp.value=dk(tm);}
+    else if(v==='week'){const d=new Date(t0());const dw=d.getDay();d.setDate(d.getDate()+(dw===0?1:8-dw));dlInp.value=dk(d);}
+  };
 
   document.getElementById('kbOverlay').style.display='flex';
 }
@@ -6035,7 +6084,13 @@ function saveKbCard(){
   const done=document.getElementById('kb-done').checked;
   const labelId=_kbLabelSel;
   const labelIds=labelId?[labelId]:[];
-  const data={title,desc,priority:kbSelPri,deadline,time,endTime,col,boardId:kbActiveBoardId,labelId,done,actualDuration};
+  // If deadline still empty but col implies a date, auto-set
+  let finalDeadline=deadline;
+  if(!finalDeadline){
+    if(col==='today') finalDeadline=dk(t0());
+    else if(col==='tomorrow'){const tm=new Date(t0());tm.setDate(tm.getDate()+1);finalDeadline=dk(tm);}
+  }
+  const data={title,desc,priority:kbSelPri,deadline:finalDeadline,time,endTime,col,boardId:kbActiveBoardId,labelId,done,actualDuration};
   if(kbEditId){
     const idx=kbD().findIndex(x=>x.id===kbEditId);
     if(idx>=0){
@@ -6061,7 +6116,17 @@ function moveCard(id,dir){
   if(ni<0||ni>=board.cols.length)return;
   _kbDropToCol(id,board.cols[ni].id);
 }
-function delCard(id){if(!confirm('Удалить карточку?'))return;const i=kbD().findIndex(c=>c.id===id);if(i>=0){kbD().splice(i,1);saveD();renderKanban();}}
+function delCard(id){
+  if(!confirm('Удалить карточку?'))return;
+  const i=kbD().findIndex(c=>c.id===id);
+  if(i>=0){
+    const card=kbD()[i];
+    // Remove linked task from task list
+    if(card.taskId){const ti=tpD().findIndex(t=>t.id===card.taskId);if(ti>=0)tpD().splice(ti,1);}
+    kbD().splice(i,1);
+    saveD();_refreshAllTaskViews();
+  }
+}
 
 /* Board Editor */
 let boardEditTmpId=null,boardEditTmpCols=[];
@@ -7678,21 +7743,26 @@ function renderStreakHeatmap(){
   const MN_SHORT=['янв','фев','мар','апр','май','июн','июл','авг','сен','окт','ноя','дек'];
   const htd=htD(),habits=htd.habits||[];
   if(!habits.length){
-    el.innerHTML='<div style="font-size:11px;color:var(--muted)">Нет привычек — добавь их в разделе Привычки</div>';
+    el.innerHTML='<div style="font-size:11px;color:var(--muted);padding:8px 0">Нет привычек — добавь их в разделе Привычки</div>';
     return;
   }
-  // 16 weeks = 112 days, GitHub-style column-first layout
-  const WEEKS=16,TOTAL=WEEKS*7;
   const today=t0();
-  // Find start: go back so grid starts on Monday
-  const todayDow=today.getDay(); // 0=Sun
+  const todayDow=today.getDay();
   const daysToMon=todayDow===0?6:todayDow-1;
-  // startDate = Monday of (today - (WEEKS-1) weeks)
+
+  // Dynamically calculate WEEKS based on container width
+  const container=el.closest('.streakHeatmap')?.parentElement||el.parentElement;
+  const availW=container?container.offsetWidth-2:220;
+  const CELL=12,GAP=3,STEP=CELL+GAP;
+  const WEEKS=Math.max(10,Math.min(26,Math.floor(availW/STEP)));
+  const TOTAL=WEEKS*7;
+
   const startDate=new Date(today);
   startDate.setDate(today.getDate()-daysToMon-(WEEKS-1)*7);
 
-  // Build cells array: TOTAL days from startDate
+  // Build cells
   const cells=[];
+  let totalDone=0,totalPossible=0;
   for(let i=0;i<TOTAL;i++){
     const d=new Date(startDate);d.setDate(startDate.getDate()+i);
     const isFuture=d>today;
@@ -7703,34 +7773,83 @@ function renderStreakHeatmap(){
     const done2=hn?hdata.habits.filter((_,hi)=>hdata.checks&&hdata.checks[`${hi}_${d.getDate()}`]).length:0;
     const level=hn?Math.ceil(done2/hn*4):0;
     const isToday=dk(d)===dk(today);
+    // count last 30 days for stats
+    const daysAgo=Math.round((today-d)/(1000*60*60*24));
+    if(daysAgo<30&&hn){totalDone+=done2;totalPossible+=hn;}
     cells.push({d,level,done:done2,total:hn,isToday,isFuture:false});
   }
 
-  // CSS grid: 16 cols (weeks) × 7 rows (days), auto-flow column
-  // cells[0]=Mon week0, cells[1]=Tue week0 ... cells[6]=Sun week0, cells[7]=Mon week1 ...
-  el.style.cssText='display:grid;grid-template-columns:repeat(16,11px);grid-template-rows:repeat(7,11px);grid-auto-flow:column;gap:3px;width:fit-content;overflow:visible;isolation:isolate;';
+  // Render grid
+  el.style.cssText=`display:grid;grid-template-columns:repeat(${WEEKS},${CELL}px);grid-template-rows:repeat(7,${CELL}px);grid-auto-flow:column;gap:${GAP}px;width:fit-content;isolation:isolate;`;
   let html='';
   cells.forEach(c=>{
-    if(c.isFuture){html+=`<div class="shCell" style="opacity:.15"></div>`;return;}
+    if(c.isFuture){html+=`<div class="shCell" style="opacity:.12;width:${CELL}px;height:${CELL}px"></div>`;return;}
+    const todayStyle=c.isToday?'box-shadow:0 0 0 2px rgba(240,107,176,.9),inset 0 0 0 1px rgba(240,107,176,.3);z-index:1;position:relative;':'';
     const tooltip=`${c.d.toLocaleDateString('ru-RU',{weekday:'short',day:'numeric',month:'short'})} — ${c.done}/${c.total} привычек`;
-    const todayCls=c.isToday?' today-cell':'';
-    html+=`<div class="shCell${c.level>0?' s'+Math.min(4,c.level):''}" title="${tooltip}"></div>`;
+    html+=`<div class="shCell${c.level>0?' s'+Math.min(4,c.level):''}" style="width:${CELL}px;height:${CELL}px;${todayStyle}" title="${tooltip}"></div>`;
   });
   el.innerHTML=html;
 
   // Month labels
   const lblEl=document.getElementById('heatmapMonthLabels');
   if(lblEl){
-    // For each week column, check if the Monday of that week starts a new month
     const weekLabels=Array.from({length:WEEKS},(_,wi)=>{
       const mon=new Date(startDate);mon.setDate(startDate.getDate()+wi*7);
       const prevMon=wi>0?new Date(startDate):null;if(prevMon)prevMon.setDate(startDate.getDate()+(wi-1)*7);
       const isNewMonth=wi===0||mon.getMonth()!==(prevMon?.getMonth());
       return isNewMonth?MN_SHORT[mon.getMonth()]:'';
     });
-    lblEl.style.cssText='display:grid;grid-template-columns:repeat(16,11px);gap:3px;margin-bottom:3px;width:fit-content;';
+    lblEl.style.cssText=`display:grid;grid-template-columns:repeat(${WEEKS},${CELL}px);gap:${GAP}px;margin-bottom:3px;width:fit-content;`;
     lblEl.innerHTML=weekLabels.map(l=>`<div style="font-size:7.5px;color:var(--muted);font-weight:700;text-align:center;white-space:nowrap;overflow:hidden">${l}</div>`).join('');
   }
+
+  // ── Stats panel ──
+  // Streak
+  const hmStreak=document.getElementById('hmStreak');
+  if(hmStreak){
+    let streak=0;
+    for(let i=0;i<90;i++){
+      const d=new Date(today);d.setDate(d.getDate()-i);
+      const key2=`ht_${d.getFullYear()}_${d.getMonth()}`;
+      const hd2=G[key2]||{habits:[],checks:{}};
+      const hn2=hd2.habits?hd2.habits.length:0;
+      if(!hn2)break;
+      const done3=hd2.habits.filter((_,hi)=>hd2.checks&&hd2.checks[`${hi}_${d.getDate()}`]).length;
+      if(done3===hn2)streak++;else break;
+    }
+    hmStreak.textContent=streak;
+  }
+
+  // This week dots (Mon–today)
+  const hmWeekDots=document.getElementById('hmWeekDots');
+  if(hmWeekDots){
+    const DOW_RU=['Вс','Пн','Вт','Ср','Чт','Пт','Сб'];
+    let wHtml='';
+    for(let di=0;di<7;di++){
+      const wd=new Date(today);wd.setDate(today.getDate()-daysToMon+di);
+      if(wd>today){wHtml+=`<div style="display:flex;align-items:center;gap:4px"><div style="width:7px;height:7px;border-radius:2px;background:rgba(255,255,255,.06);border:1px solid rgba(0,0,0,.4);flex-shrink:0"></div><div style="font-size:8px;color:rgba(255,255,255,.2)">${DOW_RU[wd.getDay()]}</div></div>`;continue;}
+      const key2=`ht_${wd.getFullYear()}_${wd.getMonth()}`;
+      const hd2=G[key2]||{habits:[],checks:{}};
+      const hn2=hd2.habits?hd2.habits.length:0;
+      const done3=hn2?hd2.habits.filter((_,hi)=>hd2.checks&&hd2.checks[`${hi}_${wd.getDate()}`]).length:0;
+      const pct2=hn2?done3/hn2:0;
+      const col=pct2===0?'rgba(255,255,255,.06)':pct2<0.5?'rgba(240,107,176,.35)':pct2<1?'rgba(240,107,176,.7)':'var(--pink)';
+      const isTod=dk(wd)===dk(today);
+      wHtml+=`<div style="display:flex;align-items:center;gap:4px"><div style="width:7px;height:7px;border-radius:2px;background:${col};border:1px solid rgba(0,0,0,.4);flex-shrink:0;${isTod?'box-shadow:0 0 0 1px rgba(240,107,176,.6)':''}"></div><div style="font-size:8px;color:${isTod?'var(--text)':'var(--muted)'};font-weight:${isTod?700:500}">${DOW_RU[wd.getDay()]}${hn2?` ${done3}/${hn2}`:''}</div></div>`;
+    }
+    hmWeekDots.innerHTML=wHtml;
+  }
+
+  // 30-day completion
+  const hmPct30=document.getElementById('hmPct30');
+  const hmPctBar=document.getElementById('hmPctBar');
+  const pct30=totalPossible?Math.round(totalDone/totalPossible*100):0;
+  if(hmPct30)hmPct30.textContent=pct30+'%';
+  if(hmPctBar)setTimeout(()=>hmPctBar.style.width=pct30+'%',100);
+
+  // Sub label
+  const subLbl=document.getElementById('heatmapSubLbl');
+  if(subLbl)subLbl.textContent=`Активность за ${WEEKS} недель`;
 }
 
 /* ─────────────────────────
