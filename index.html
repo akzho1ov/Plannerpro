@@ -3,18 +3,11 @@
 <head>
 <meta charset="UTF-8">
 <script>
-/* ── CACHE BUSTER: удаляем старые Service Worker и кеши ── */
 (function(){
   if('serviceWorker' in navigator){
-    navigator.serviceWorker.getRegistrations().then(function(regs){
-      regs.forEach(function(r){ r.unregister(); });
-    });
+    navigator.serviceWorker.getRegistrations().then(function(r){r.forEach(function(sw){sw.unregister();});});
   }
-  if('caches' in window){
-    caches.keys().then(function(keys){
-      keys.forEach(function(k){ caches.delete(k); });
-    });
-  }
+  if('caches' in window){caches.keys().then(function(k){k.forEach(function(c){caches.delete(c);});});}
 })();
 </script>
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
@@ -2520,6 +2513,7 @@ select.inp option{background:var(--card2);color:var(--text)}
     </div>
   </div>
 </div>
+</div><!-- /tab-dash FIX: missing closing tag -->
 
 <!-- ═══ 1. WEEKLY PLANNER ═══ -->
 <div id="tab-weekly" class="pane hInner">
