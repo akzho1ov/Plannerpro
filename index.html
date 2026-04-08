@@ -2421,7 +2421,7 @@ select.inp option{background:var(--card2);color:var(--text)}
   <!-- Growth Widgets Row -->
   <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:14px" class="dashGrowthRow">
     <!-- Weekly Tasks Bar Chart -->
-    <div class="dashCard dashGrowthCard" style="position:relative;overflow:hidden">
+    <div class="dashCard dashGrowthCard" style="position:relative;overflow:hidden;align-self:start">
       <div style="position:absolute;inset:0;background:linear-gradient(135deg,rgba(91,149,255,.06) 0%,transparent 60%);pointer-events:none;border-radius:inherit"></div>
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;position:relative">
         <div>
@@ -2434,7 +2434,7 @@ select.inp option{background:var(--card2);color:var(--text)}
     </div>
 
     <!-- Habit Streak Heatmap — redesigned -->
-    <div class="dashCard dashGrowthCard" id="habitHeatmapCard" style="position:relative;overflow:hidden;display:flex;flex-direction:column;gap:0">
+    <div class="dashCard dashGrowthCard" id="habitHeatmapCard" style="position:relative;overflow:hidden;display:flex;flex-direction:column;gap:0;align-self:start">
       <div style="position:absolute;inset:0;background:linear-gradient(135deg,rgba(240,107,176,.07) 0%,rgba(155,143,245,.04) 50%,transparent 80%);pointer-events:none;border-radius:inherit"></div>
       <!-- Header -->
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;position:relative">
@@ -7586,7 +7586,7 @@ function renderDash(){
   drawDashFinChart();
   renderDashActivity();
   renderTaskWeekChart();
-  renderStreakHeatmap();
+  requestAnimationFrame(()=>renderStreakHeatmap());
   renderDashSleepWidget();
   (function(){
     const weeks=6;const today=t0();let best=0;
@@ -7751,8 +7751,9 @@ function renderStreakHeatmap(){
   const daysToMon=todayDow===0?6:todayDow-1;
 
   // Dynamically calculate WEEKS based on container width
-  const container=el.closest('.streakHeatmap')?.parentElement||el.parentElement;
-  const availW=container?container.offsetWidth-2:220;
+  // el is the grid itself; its parent is the scrollable wrapper; grandparent has the true width
+  const wrapper=el.parentElement;
+  const availW=wrapper?Math.max(wrapper.offsetWidth-2,120):220;
   const CELL=12,GAP=3,STEP=CELL+GAP;
   const WEEKS=Math.max(10,Math.min(26,Math.floor(availW/STEP)));
   const TOTAL=WEEKS*7;
@@ -11535,16 +11536,16 @@ function renderSleepTracker(){
   html+='<div><div style="font-size:12px;font-weight:700;color:var(--text)">🔥 Тепловая карта сна</div><div style="font-size:10px;color:var(--muted);margin-top:1px">Регулярность за 16 недель</div></div>';
   html+='<div style="display:flex;gap:4px;align-items:center"><span style="font-size:8px;color:var(--muted)">меньше</span>'+heatLegend+'<span style="font-size:8px;color:var(--muted)">больше</span></div></div>';
   html+='<div style="display:flex;gap:5px;align-items:flex-start">';
-  html+='<div style="display:flex;flex-direction:column;gap:3px;flex-shrink:0;padding-top:16px">';
-  html+='<div style="font-size:7px;color:var(--muted);font-weight:700;height:11px;line-height:11px">Пн</div>';
-  html+='<div style="height:11px"></div>';
-  html+='<div style="font-size:7px;color:var(--muted);font-weight:700;height:11px;line-height:11px">Ср</div>';
-  html+='<div style="height:11px"></div>';
-  html+='<div style="font-size:7px;color:var(--muted);font-weight:700;height:11px;line-height:11px">Пт</div>';
-  html+='<div style="height:11px"></div>';
-  html+='<div style="font-size:7px;color:var(--muted);font-weight:700;height:11px;line-height:11px">Вс</div>';
+  html+='<div style="display:flex;flex-direction:column;gap:3px;flex-shrink:0;padding-top:17px">';
+  html+='<div style="font-size:7px;color:var(--muted);font-weight:700;height:12px;line-height:12px">Пн</div>';
+  html+='<div style="height:12px"></div>';
+  html+='<div style="font-size:7px;color:var(--muted);font-weight:700;height:12px;line-height:12px">Ср</div>';
+  html+='<div style="height:12px"></div>';
+  html+='<div style="font-size:7px;color:var(--muted);font-weight:700;height:12px;line-height:12px">Пт</div>';
+  html+='<div style="height:12px"></div>';
+  html+='<div style="font-size:7px;color:var(--cyan);font-weight:700;height:12px;line-height:12px">Вс</div>';
   html+='</div>';
-  html+='<div style="flex:1;min-width:0;overflow-x:auto;-webkit-overflow-scrolling:touch"><div id="slp-heatmap-months" style="margin-bottom:3px"></div>';
+  html+='<div style="flex:1;min-width:0;overflow:hidden"><div id="slp-heatmap-months" style="margin-bottom:3px"></div>';
   html+='<div id="slp-heatmap" style="display:grid;grid-template-columns:repeat(16,11px);grid-template-rows:repeat(7,11px);grid-auto-flow:column;gap:3px;width:fit-content"></div>';
   html+='</div></div></div>';
 
@@ -11573,7 +11574,7 @@ function renderSleepTracker(){
     slpDrawMainChart(entries);
     slpDrawDurChart(entries);
     slpDrawScoreChart(entries);
-    slpRenderHeatmap(entries);
+    requestAnimationFrame(()=>slpRenderHeatmap(entries));
     slpRenderAnalysis(entries);
     slpRenderHistory(entries);
     if(entries.length>=3) slpRenderTagStats(entries);
@@ -11808,21 +11809,28 @@ function slpDrawScoreChart(entries){
 /* ── Sleep heatmap (GitHub-style) ── */
 function slpRenderHeatmap(entries){
   const el=document.getElementById('slp-heatmap');if(!el)return;
-  const WEEKS=16,TOTAL=WEEKS*7;
+  const MN_S=['янв','фев','мар','апр','май','июн','июл','авг','сен','окт','ноя','дек'];
   const today=t0();
   const todayDow=today.getDay();
   const daysToMon=todayDow===0?6:todayDow-1;
-  const startDate=new Date(today);
-  startDate.setDate(today.getDate()-daysToMon-(WEEKS-1)*7);
 
   // Build date→entry map
   const entryMap={};
   entries.forEach(e=>entryMap[e.date]=e);
 
-  el.style.cssText='display:grid;grid-template-columns:repeat(16,11px);grid-template-rows:repeat(7,11px);grid-auto-flow:column;gap:3px;width:fit-content;overflow:visible;isolation:isolate;';
+  // Dynamically calculate WEEKS — el.parentElement is the flex:1 wrapper
+  const wrapper=el.parentElement;
+  const availW=wrapper?Math.max(wrapper.offsetWidth-2,120):200;
+  const CELL=12,GAP=3,STEP=CELL+GAP;
+  const WEEKS=Math.max(10,Math.min(30,Math.floor(availW/STEP)));
+  const TOTAL=WEEKS*7;
+
+  const startDate=new Date(today);
+  startDate.setDate(today.getDate()-daysToMon-(WEEKS-1)*7);
+
+  el.style.cssText=`display:grid;grid-template-columns:repeat(${WEEKS},${CELL}px);grid-template-rows:repeat(7,${CELL}px);grid-auto-flow:column;gap:${GAP}px;width:fit-content;isolation:isolate;`;
 
   let html='';
-  const monthsData=[];
   for(let i=0;i<TOTAL;i++){
     const d=new Date(startDate);d.setDate(startDate.getDate()+i);
     const key=dk(d);
@@ -11830,7 +11838,7 @@ function slpRenderHeatmap(entries){
     const entry=entryMap[key];
     const isToday=key===dk(today);
 
-    if(isFuture){html+=`<div style="width:11px;height:11px;border-radius:2px;background:rgba(255,255,255,.03);border:1px solid rgba(0,0,0,.3);box-sizing:border-box;display:block;flex-shrink:0"></div>`;continue;}
+    if(isFuture){html+=`<div style="width:${CELL}px;height:${CELL}px;border-radius:2px;background:rgba(255,255,255,.03);border:1px solid rgba(0,0,0,.3);box-sizing:border-box"></div>`;continue;}
 
     let bg,tooltip;
     if(!entry){
@@ -11838,28 +11846,28 @@ function slpRenderHeatmap(entries){
     } else {
       const q=entry.quality||3;
       const colors=['rgba(255,255,255,.05)','rgba(34,204,232,.15)','rgba(34,204,232,.3)','rgba(34,204,232,.55)','rgba(34,204,232,.75)','var(--cyan)'];
-      bg=colors[q];
+      bg=colors[Math.min(q,5)];
       tooltip=`${d.toLocaleDateString('ru-RU',{weekday:'short',day:'numeric',month:'short'})} — ${fmtSleep(entry.dur)}, качество: ${sleepQLabel(q)}`;
     }
-    const outline=isToday?'box-shadow:0 0 0 2px rgba(34,204,232,.9),inset 0 0 0 1px rgba(34,204,232,.3);z-index:1;position:relative;':'';
-    html+=`<div style="width:11px;height:11px;box-sizing:border-box;border-radius:2px;background:${bg};border:1px solid rgba(0,0,0,.35);${outline}cursor:default;flex-shrink:0;display:block" title="${tooltip}" onmouseover="this.style.transform='scale(1.25)';this.style.zIndex='10';this.style.position='relative'" onmouseout="this.style.transform='';this.style.zIndex='';this.style.position=''"></div>`;
-
-    // track months for labels
-    if(i%7===0){const wi=i/7;if(wi===0||d.getDate()<=7)monthsData.push({wi,m:d.getMonth()});}
+    const todayStyle=isToday?`box-shadow:0 0 0 2px rgba(34,204,232,.9);z-index:1;position:relative;`:'';
+    html+=`<div style="width:${CELL}px;height:${CELL}px;box-sizing:border-box;border-radius:2px;background:${bg};border:1px solid rgba(0,0,0,.35);${todayStyle}cursor:default" title="${tooltip}" onmouseover="this.style.transform='scale(1.2)';this.style.zIndex='5';this.style.position='relative'" onmouseout="this.style.transform='';this.style.zIndex='';this.style.position=''"></div>`;
   }
   el.innerHTML=html;
+
+  // Update subtitle with actual weeks
+  const subEl=document.querySelector('#slp-heatmap')?.closest('[style*="border-radius:20px"]')?.querySelector('[style*="Регулярность"]');
+  if(subEl)subEl.textContent=`Регулярность за ${WEEKS} недель`;
 
   // Month labels
   const mlEl=document.getElementById('slp-heatmap-months');
   if(mlEl){
-    const MN_S=['янв','фев','мар','апр','май','июн','июл','авг','сен','окт','ноя','дек'];
     const labels=Array.from({length:WEEKS},(_,wi)=>{
       const d=new Date(startDate);d.setDate(startDate.getDate()+wi*7);
       const prev=wi>0?new Date(startDate):null;if(prev)prev.setDate(startDate.getDate()+(wi-1)*7);
       const isNew=wi===0||d.getMonth()!==(prev?.getMonth());
       return isNew?MN_S[d.getMonth()]:'';
     });
-    mlEl.style.cssText='display:grid;grid-template-columns:repeat(16,11px);gap:3px;margin-bottom:3px;width:fit-content;';
+    mlEl.style.cssText=`display:grid;grid-template-columns:repeat(${WEEKS},${CELL}px);gap:${GAP}px;margin-bottom:3px;width:fit-content;`;
     mlEl.innerHTML=labels.map(l=>`<div style="font-size:7.5px;color:var(--muted);font-weight:700;text-align:center;white-space:nowrap;overflow:hidden">${l}</div>`).join('');
   }
 }
