@@ -2,6 +2,21 @@
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
+<script>
+/* ── CACHE BUSTER: удаляем старые Service Worker и кеши ── */
+(function(){
+  if('serviceWorker' in navigator){
+    navigator.serviceWorker.getRegistrations().then(function(regs){
+      regs.forEach(function(r){ r.unregister(); });
+    });
+  }
+  if('caches' in window){
+    caches.keys().then(function(keys){
+      keys.forEach(function(k){ caches.delete(k); });
+    });
+  }
+})();
+</script>
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <meta name="theme-color" content="#0a0c16">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -10474,8 +10489,8 @@ function closeMoreMenu(){document.getElementById('moreMenuOverlay').style.displa
 /* ─── SERVICE WORKER (offline support) ─── */
 if('serviceWorker' in navigator){
   const swCode=`
-self.addEventListener('install',e=>{e.waitUntil(caches.open('pp-v2').then(c=>c.addAll([location.pathname,location.pathname.replace(/\\/[^/]*$/,'/')])));});
-self.addEventListener('fetch',e=>{e.respondWith(caches.match(e.request).then(r=>r||fetch(e.request).then(res=>{const cl=res.clone();caches.open('pp-v2').then(c=>c.put(e.request,cl));return res;})));});`;
+self.addEventListener('install',e=>{self.skipWaiting();e.waitUntil(caches.open('pp-v3').then(c=>c.addAll([location.pathname,location.pathname.replace(/\\/[^/]*$/,'/')])));});
+self.addEventListener('fetch',e=>{e.respondWith(caches.match(e.request).then(r=>r||fetch(e.request).then(res=>{const cl=res.clone();caches.open('pp-v3').then(c=>c.put(e.request,cl));return res;})));});`;
   const blob=new Blob([swCode],{type:'application/javascript'});
   const url=URL.createObjectURL(blob);
   navigator.serviceWorker.register(url,{scope:'/'}).catch(()=>{});
