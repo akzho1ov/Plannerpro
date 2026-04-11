@@ -125,67 +125,232 @@ let currentUser = null;
 }
 
 /* ═══════════════════════════════════════════════════
-   LIGHT THEME
+   LIGHT THEME — Clean, professional, easy on the eyes
+   Inspired by Linear / Notion / Vercel light
 ═══════════════════════════════════════════════════ */
 body.light-mode{
-  --bg:#F4F5FA;
-  --bg2:#ECEDF5;
+  /* ── Backgrounds ── */
+  --bg:#F0F2F7;
+  --bg2:#E8EBF2;
   --card:#FFFFFF;
-  --card2:#F0F1F8;
-  --card3:#E8EAF2;
-  --card-glass:rgba(255,255,255,.9);
-  --border:rgba(0,0,0,.08);
-  --border2:rgba(0,0,0,.13);
-  --border3:rgba(0,0,0,.22);
-  --border-glow:rgba(139,122,240,.3);
-  --text:#1A1B2E;
-  --text2:#4A5072;
-  --muted:#8A91B0;
-  --shadow:0 1px 3px rgba(0,0,0,.08),0 4px 16px rgba(0,0,0,.06);
-  --shadow2:0 2px 8px rgba(0,0,0,.1),0 12px 32px rgba(0,0,0,.08);
-  --shadow3:0 0 0 1px rgba(139,122,240,.15),0 4px 20px rgba(0,0,0,.1);
-  --glow:0 0 40px rgba(139,122,240,.12);
-  --glow2:0 0 30px rgba(18,232,172,.08);
-  --pdim:rgba(155,143,245,.12);
-  --pdim2:rgba(155,143,245,.2);
-  --sdim:rgba(15,221,170,.1);
-  --reddim:rgba(255,79,114,.1);
-  --golddim:rgba(240,171,48,.1);
-  --bluedim:rgba(91,149,255,.1);
-  --purpledim:rgba(168,124,248,.1);
-  --pinkdim:rgba(240,107,176,.1);
-  --greendim:rgba(15,221,170,.1);
-  --cyandim:rgba(34,204,232,.1);
-  --orangedim:rgba(255,128,48,.1);
+  --card2:#F5F6FC;
+  --card3:#ECEEF6;
+  --card-glass:rgba(255,255,255,.92);
+
+  /* ── Borders ── */
+  --border:rgba(60,70,120,.09);
+  --border2:rgba(60,70,120,.15);
+  --border3:rgba(60,70,120,.28);
+  --border-glow:rgba(109,89,217,.3);
+
+  /* ── Typography ── */
+  --text:#18192A;
+  --text2:#4B5280;
+  --muted:#8B93B8;
+
+  /* ── Shadows ── */
+  --shadow:0 1px 3px rgba(30,40,90,.07),0 4px 14px rgba(30,40,90,.05);
+  --shadow2:0 2px 8px rgba(30,40,90,.09),0 12px 30px rgba(30,40,90,.07);
+  --shadow3:0 0 0 1px rgba(109,89,217,.18),0 4px 20px rgba(30,40,90,.1);
+  --glow:0 0 32px rgba(109,89,217,.1);
+  --glow2:0 0 24px rgba(15,207,155,.08);
+
+  /* ── Primary ── */
+  --p:#6B59E8;
+  --p2:#5B49D8;
+  --p3:#4B39C8;
+  --pdim:rgba(107,89,232,.1);
+  --pdim2:rgba(107,89,232,.18);
+  --pglow:rgba(107,89,232,.3);
+  --pglow2:rgba(107,89,232,.12);
+
+  /* ── Secondary ── */
+  --s:#0BC49A;
+  --sdim:rgba(11,196,154,.1);
+
+  /* ── Semantic (slightly adjusted for light bg) ── */
+  --red:#D93B5A;
+  --reddim:rgba(217,59,90,.1);
+  --gold:#C98A00;
+  --golddim:rgba(201,138,0,.1);
+  --blue:#3E7FE8;
+  --bluedim:rgba(62,127,232,.1);
+  --purple:#7C5CEF;
+  --purpledim:rgba(124,92,239,.1);
+  --pink:#D9539D;
+  --pinkdim:rgba(217,83,157,.1);
+  --green:#0BA87A;
+  --greendim:rgba(11,168,122,.1);
+  --cyan:#0999C4;
+  --cyandim:rgba(9,153,196,.1);
+  --orange:#D97230;
+  --orangedim:rgba(217,114,48,.1);
 }
-body.light-mode #hdr{background:rgba(244,245,250,.95);border-bottom:1px solid rgba(0,0,0,.08);box-shadow:0 1px 0 rgba(255,255,255,.8),0 2px 12px rgba(0,0,0,.06)}
-body.light-mode .hTab:hover{background:rgba(0,0,0,.04)}
-body.light-mode .hTab.on{background:rgba(155,143,245,.1)}
-body.light-mode #mobileNav{background:rgba(244,245,250,.97);border-top:1px solid rgba(0,0,0,.08)}
-body.light-mode .dashCard{background:linear-gradient(170deg,#fff 0%,#fafbff 100%);box-shadow:0 1px 3px rgba(0,0,0,.07),0 4px 16px rgba(0,0,0,.05)}
-body.light-mode .card{background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.07),0 4px 16px rgba(0,0,0,.05)}
-body.light-mode .shCell{background:rgba(0,0,0,.07);border-color:rgba(0,0,0,.1)}
-body.light-mode .shCell.s1{background:rgba(240,107,176,.2);border-color:rgba(240,107,176,.25)}
-body.light-mode .shCell.s2{background:rgba(240,107,176,.42);border-color:rgba(240,107,176,.35)}
-body.light-mode .shCell.s3{background:rgba(240,107,176,.65);border-color:rgba(240,107,176,.5)}
-body.light-mode .shCell.s4{background:var(--pink);border-color:rgba(240,107,176,.6)}
-body.light-mode body::before{opacity:.015}
-body.light-mode .bg-glow::before{background:radial-gradient(circle at 30% 30%,rgba(155,143,245,.06) 0%,transparent 70%)}
-body.light-mode .bg-glow::after{background:radial-gradient(circle at 70% 70%,rgba(15,221,170,.04) 0%,transparent 70%)}
-body.light-mode ::-webkit-scrollbar-thumb{background:rgba(155,143,245,.35)}
+
+/* Background grid — lighter on light bg */
+body.light-mode{
+  background-image:
+    linear-gradient(rgba(107,89,232,.025) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(107,89,232,.025) 1px,transparent 1px);
+  background-size:60px 60px;
+}
+
+/* Film grain — softer on light */
+body.light-mode::before{opacity:.02}
+
+/* Aurora bg — barely visible on light */
+body.light-mode .bg-glow::before{background:radial-gradient(circle at 30% 30%,rgba(107,89,232,.04) 0%,transparent 65%)}
+body.light-mode .bg-glow::after{background:radial-gradient(circle at 70% 70%,rgba(15,196,154,.03) 0%,transparent 65%)}
+
+/* Header */
+body.light-mode #hdr{
+  background:rgba(250,251,255,.95);
+  border-bottom:1px solid rgba(60,70,120,.1);
+  box-shadow:0 1px 0 rgba(255,255,255,.9),0 2px 16px rgba(30,40,90,.06);
+}
+body.light-mode .hTab{color:var(--text2)}
+body.light-mode .hTab:hover{background:rgba(107,89,232,.06);color:var(--text)}
+body.light-mode .hTab.on{color:var(--p);border-bottom-color:var(--p);background:var(--pdim)}
+body.light-mode .hLogoText{color:var(--text)}
+
+/* Mobile nav */
+body.light-mode #mobileNav{
+  background:rgba(250,251,255,.97);
+  border-top:1px solid rgba(60,70,120,.1);
+  box-shadow:0 -2px 16px rgba(30,40,90,.07);
+}
+body.light-mode .mNavBtn{color:var(--muted)}
+body.light-mode .mNavBtn.on{color:var(--p)}
+
+/* Cards */
+body.light-mode .dashCard,
+body.light-mode .card,
+body.light-mode .chartCard{
+  background:#FFFFFF;
+  border:1px solid rgba(60,70,120,.09);
+  box-shadow:0 1px 3px rgba(30,40,90,.06),0 4px 16px rgba(30,40,90,.04);
+}
+body.light-mode .dashCard:hover{box-shadow:0 2px 8px rgba(30,40,90,.09),0 8px 28px rgba(30,40,90,.07)}
+body.light-mode .dCard{background:linear-gradient(160deg,#fff 0%,#F8F9FF 100%);border:1px solid rgba(60,70,120,.09)}
+
+/* Scrollbar */
+body.light-mode ::-webkit-scrollbar-thumb{background:rgba(107,89,232,.22)}
+body.light-mode ::-webkit-scrollbar-thumb:hover{background:rgba(107,89,232,.38)}
+
+/* Inputs */
+body.light-mode .inp,
+body.light-mode .sel,
+body.light-mode .kbTxtarea{
+  background:var(--card2);
+  color:var(--text);
+  border-color:var(--border2);
+}
+body.light-mode .inp:focus,
+body.light-mode .kbTxtarea:focus{
+  border-color:var(--p);
+  background:#fff;
+}
+body.light-mode .inp::placeholder,
+body.light-mode .kbTxtarea::placeholder{color:var(--muted);opacity:.8}
+body.light-mode .tDateInp{background:var(--card2);color:var(--text);border-color:var(--border2);color-scheme:light}
+body.light-mode input[type=date]{color-scheme:light}
+
+/* Task table */
+body.light-mode .tTbl th{background:rgba(240,242,248,.9);color:var(--muted)}
+body.light-mode .tTbl td{border-bottom-color:rgba(60,70,120,.05)}
+body.light-mode .tTbl tbody tr:hover{background:rgba(107,89,232,.04)}
+body.light-mode .tNameInp{color:var(--text)}
+body.light-mode .tAddInp{border-color:var(--border2);color:var(--text2)}
+body.light-mode .tAddInp:focus{border-color:var(--p);background:#fff;color:var(--text)}
+body.light-mode .taskCard{background:#fff;border-color:var(--border)}
+
+/* Mobile task cards */
+body.light-mode .mTaskCard{background:#fff;border-color:var(--border);box-shadow:0 1px 4px rgba(30,40,90,.05)}
+body.light-mode .mTaskCard:hover{border-color:var(--border2);box-shadow:0 2px 8px rgba(30,40,90,.08)}
+body.light-mode .mTaskName{color:var(--text)}
+
+/* Buttons */
+body.light-mode .btn{border-color:var(--border2)}
+body.light-mode .btnG{background:var(--card2);color:var(--text2);border-color:var(--border2)}
+body.light-mode .btnG:hover{background:var(--card3);color:var(--text)}
+
+/* Modal */
+body.light-mode .modalOverlay,
+body.light-mode .overlay,
+body.light-mode #taskModal,
+body.light-mode #kbOverlay{background:rgba(20,25,60,.45);backdrop-filter:blur(12px)}
+body.light-mode .modalBox,
+body.light-mode #taskModalBox{
+  background:#fff;
+  border:1px solid rgba(60,70,120,.12);
+  box-shadow:0 8px 40px rgba(30,40,90,.15),0 0 0 1px rgba(255,255,255,.9);
+}
+body.light-mode .modalTitle{color:var(--text)}
+body.light-mode .modalClose{color:var(--muted)}
+body.light-mode .modalClose:hover{color:var(--text);background:var(--card2)}
+body.light-mode .tmLabel{color:var(--muted)}
+
+/* Kanban */
+body.light-mode .kbCol{background:var(--card2);border-color:var(--border)}
+body.light-mode .kbCard{background:#fff;border-color:var(--border);box-shadow:0 1px 4px rgba(30,40,90,.05)}
+body.light-mode .kbCard:hover{border-color:var(--border2);box-shadow:0 3px 12px rgba(30,40,90,.09)}
+body.light-mode .kbColHead{border-bottom-color:var(--border)}
+body.light-mode .kbColTitle{color:var(--text)}
+
+/* Heatmap */
+body.light-mode .shCell{background:rgba(60,70,120,.08);border-color:rgba(60,70,120,.1)}
+body.light-mode .shCell.s1{background:rgba(217,83,157,.18);border-color:rgba(217,83,157,.2)}
+body.light-mode .shCell.s2{background:rgba(217,83,157,.38);border-color:rgba(217,83,157,.3)}
+body.light-mode .shCell.s3{background:rgba(217,83,157,.62);border-color:rgba(217,83,157,.45)}
+body.light-mode .shCell.s4{background:var(--pink);border-color:rgba(217,83,157,.6)}
+
+/* Dashboard widgets */
+body.light-mode .dashFocus{
+  background:linear-gradient(135deg,rgba(107,89,232,.08) 0%,rgba(217,83,157,.05) 100%);
+  border-color:rgba(107,89,232,.18);
+}
+body.light-mode .dashFocusTitle{color:var(--text)}
+body.light-mode .dashFocusSub{color:var(--text2)}
+body.light-mode .dashStatPill{
+  background:#fff;
+  border:1px solid var(--border);
+  box-shadow:0 1px 4px rgba(30,40,90,.05);
+}
+body.light-mode .dashStatPillVal{color:var(--text)}
+body.light-mode .dashStatPillLbl{color:var(--muted)}
+body.light-mode .dashBigNum{color:var(--text)}
+body.light-mode .scoreRingVal{color:var(--text)}
+body.light-mode .scoreRingLbl{color:var(--muted)}
+
+/* Section labels */
+body.light-mode .secLbl,
+body.light-mode .dashCardLbl{color:var(--text);font-weight:700}
+
+/* Week day cards */
+body.light-mode .dCard:hover{box-shadow:0 0 0 1.5px var(--CC),0 4px 20px rgba(30,40,90,.1)}
+body.light-mode .dCard.dToday{box-shadow:0 0 0 2px var(--CC),0 4px 20px rgba(30,40,90,.1)}
+
+/* Subtask items */
+body.light-mode .stItem{background:var(--card2);border-color:var(--border)}
+body.light-mode .stItem:hover{background:var(--card3);border-color:var(--border2)}
+body.light-mode .stText{color:var(--text)}
+body.light-mode .stAddInp{border-color:var(--border2);color:var(--text)}
+body.light-mode .stAddInp:focus{border-color:var(--p);background:#fff}
+
+/* More menu */
 body.light-mode .mMoreBtn{background:var(--card2);border-color:var(--border2);color:var(--text2)}
 body.light-mode .mMoreBtn:hover{background:var(--card3);color:var(--text)}
-body.light-mode .inp,body.light-mode .sel{background:var(--card2);color:var(--text);border-color:var(--border2)}
-body.light-mode .modalBox{background:var(--card);box-shadow:0 8px 40px rgba(0,0,0,.15)}
-body.light-mode .dCard{background:linear-gradient(170deg,#fff 0%,#f8f9ff 100%)}
-body.light-mode .chartCard{background:var(--card);border-color:var(--border)}
-body.light-mode .rwTask{background:var(--card);border-color:var(--border)}
-body.light-mode .rwProgWrap{background:var(--card)}
-body.light-mode .kbCard{background:var(--card2)}
-body.light-mode .kbCol{background:var(--card);border-color:var(--border)}
-body.light-mode .dashFocus{background:linear-gradient(135deg,var(--pdim) 0%,rgba(240,107,176,.06) 100%);border-color:rgba(155,143,245,.2)}
-body.light-mode .dashStatPill{background:var(--card);border-color:var(--border);box-shadow:0 1px 4px rgba(0,0,0,.06)}
-body.light-mode .hLogo .hLogoText{color:var(--text)}
+
+/* Reward / progress bars */
+body.light-mode .rwProgWrap{background:#fff;border-color:var(--border)}
+body.light-mode .rwTask{background:#fff;border-color:var(--border)}
+body.light-mode .rwTask:hover{border-color:var(--border2)}
+
+/* Goals */
+body.light-mode .goalCard{background:#fff;border-color:var(--border)}
+
+/* Auth */
+body.light-mode .authCard{background:#fff;box-shadow:0 8px 32px rgba(30,40,90,.12)}
 
 /* Theme toggle button */
 .themeToggleBtn{
@@ -3651,6 +3816,22 @@ select.inp option{background:var(--card2);color:var(--text)}
       <textarea class="kbTxtarea" id="kbCardDesc" placeholder="Заметки к задаче..." style="min-height:56px;resize:none"></textarea>
     </div>
 
+    <!-- Subtask Checklist -->
+    <div class="tmField">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+        <label class="tmLabel" style="margin-bottom:0">☑️ Чеклист</label>
+        <div class="stProgress" id="kb-st-progress" style="display:none;flex:1;margin:0 0 0 12px">
+          <div class="stProgressBar"><div class="stProgressFill" id="kb-st-bar" style="width:0%"></div></div>
+          <span class="stProgressLbl" id="kb-st-lbl">0/0</span>
+        </div>
+      </div>
+      <div class="stList" id="kb-st-list"></div>
+      <div class="stAddRow">
+        <input class="stAddInp" id="kb-st-inp" placeholder="Добавить пункт..." onkeydown="if(event.key==='Enter'){event.preventDefault();kbAddSubtask()}">
+        <button class="stAddBtn" onclick="kbAddSubtask()" title="Добавить">＋</button>
+      </div>
+    </div>
+
     <!-- Done toggle -->
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">
       <input type="checkbox" id="kb-done" style="width:16px;height:16px;accent-color:var(--green);cursor:pointer">
@@ -6162,10 +6343,23 @@ function renderKanban(){
       if(lbl)card.style.borderLeft=`3px solid ${lbl.color}`;
       const lblHtml=lbl?`<span style="display:inline-flex;align-items:center;gap:3px;font-size:9px;font-weight:700;color:${lbl.color};background:${hexA(lbl.color,.12)};padding:2px 6px;border-radius:20px">${esc(lbl.name)}</span>`:'';
       const repeatBadge=c.isRepeat?`<span style="font-size:8px;color:var(--cyan);background:var(--cyandim);padding:1px 5px;border-radius:4px;font-weight:700;margin-left:4px">↻</span>`:'';
+      const kbStPill=stMiniHtml(c);
       let dlHtml='';
       if(c.deadline){const diff=Math.floor((new Date(c.deadline+'T00:00:00')-t0())/86400000);const dlColor=diff<0?'var(--red)':diff===0?'var(--gold)':diff===1?'var(--orange)':'var(--muted)';const dlLabel=diff<0?`${-diff}д просроч.`:diff===0?'сегодня':diff===1?'завтра':`+${diff}д`;dlHtml=`<div style="font-size:9px;color:${dlColor};font-weight:600;margin-top:6px">📅 ${c.deadline} <span style="opacity:.7">(${dlLabel})</span></div>`;}
       const priDotColors={1:'var(--red)',2:'var(--gold)',3:'var(--green)'};
       const priDot=`<span style="width:7px;height:7px;border-radius:50%;background:${priDotColors[c.priority]||'var(--border2)'};display:inline-block;flex-shrink:0"></span>`;
+      // Build subtask mini progress bar for card body
+      const subs=c.subtasks||[];
+      const subsDone=subs.filter(s=>s.done).length;
+      const subsHtml=subs.length?`
+        <div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--border)">
+          <div style="display:flex;align-items:center;gap:7px;margin-bottom:4px">
+            ${kbStPill}
+          </div>
+          <div style="height:3px;background:var(--border2);border-radius:4px;overflow:hidden">
+            <div style="height:100%;width:${subs.length?subsDone/subs.length*100:0}%;background:linear-gradient(90deg,var(--green),var(--cyan));border-radius:4px;transition:.4s"></div>
+          </div>
+        </div>`:'';
       card.innerHTML=`
         <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:6px;margin-bottom:${c.desc?'6px':'0'}">
           <div style="display:flex;align-items:flex-start;gap:7px;flex:1;min-width:0">
@@ -6178,6 +6372,7 @@ function renderKanban(){
           <button onclick="event.stopPropagation();delCard('${c.id}')" class="kbDelBtn" style="border:none;background:none;cursor:pointer;color:var(--border2);font-size:16px;padding:0;line-height:1;flex-shrink:0;opacity:0;transition:opacity .15s">×</button>
         </div>
         ${(lblHtml||priDot||repeatBadge||dlHtml)?`<div style="display:flex;align-items:center;gap:5px;flex-wrap:wrap;margin-top:8px;padding-top:8px;border-top:1px solid var(--border)">${priDot}${lblHtml}${repeatBadge}${dlHtml}</div>`:''}
+        ${subsHtml}
         <div style="display:flex;gap:5px;margin-top:8px;justify-content:flex-end">
           ${ci>0?`<button class="kbMoveBtn" onclick="event.stopPropagation();moveCard('${c.id}',-1)">◀</button>`:''}
           ${!col.isDone?`<button onclick="event.stopPropagation();kbMarkDone('${c.id}')" style="background:var(--greendim);color:var(--green);border:1px solid rgba(18,232,172,.3);border-radius:6px;padding:2px 9px;font-size:10px;font-weight:700;cursor:pointer">✓ Готово</button>`:''}
@@ -6273,6 +6468,9 @@ function openKbModal(colId,cardId){
   };
 
   document.getElementById('kbOverlay').style.display='flex';
+  // Load subtasks (from linked task if synced, else from card)
+  const stSrc=linkedTask||c;
+  kbLoadSubtasks(stSrc);
 }
 function _renderKbLabels(){
   const el=document.getElementById('kbLabelsList');if(!el)return;
@@ -6293,6 +6491,52 @@ function _renderKbLabels(){
   if(dot)dot.style.background=selLabel?selLabel.color:'var(--border2)';
 }
 function closeKbModal(){document.getElementById('kbOverlay').style.display='none';kbEditId=null;}
+
+/* ── Kanban checklist ── */
+let _kbSubtasks=[];
+
+function kbLoadSubtasks(src){
+  _kbSubtasks=src?.subtasks?JSON.parse(JSON.stringify(src.subtasks)):[];
+  kbRenderSubtasks();
+}
+
+function kbRenderSubtasks(){
+  const list=document.getElementById('kb-st-list');
+  const prog=document.getElementById('kb-st-progress');
+  const bar=document.getElementById('kb-st-bar');
+  const lbl=document.getElementById('kb-st-lbl');
+  if(!list)return;
+  const total=_kbSubtasks.length;
+  const done=_kbSubtasks.filter(s=>s.done).length;
+  if(total>0){
+    prog.style.display='flex';
+    bar.style.width=(done/total*100)+'%';
+    lbl.textContent=`${done}/${total}`;
+  } else {
+    prog.style.display='none';
+  }
+  list.innerHTML=_kbSubtasks.map((s,i)=>`
+    <div class="stItem">
+      <input class="stCb" type="checkbox" ${s.done?'checked':''} onchange="kbToggleSub(${i},this.checked)">
+      <input class="stText${s.done?' stDone':''}" value="${esc(s.text)}" placeholder="Пункт…"
+        onchange="kbEditSub(${i},this.value)"
+        onkeydown="if(event.key==='Enter'){event.preventDefault();document.getElementById('kb-st-inp').focus()}"
+        style="${s.done?'text-decoration:line-through;opacity:.55':''}">
+      <button class="stDel" onclick="kbDelSub(${i})">×</button>
+    </div>`).join('');
+}
+
+function kbAddSubtask(){
+  const inp=document.getElementById('kb-st-inp');
+  const text=(inp?.value||'').trim();
+  if(!text)return;
+  _kbSubtasks.push({id:uid(),text,done:false});
+  inp.value='';
+  kbRenderSubtasks();
+}
+function kbToggleSub(i,v){if(_kbSubtasks[i])_kbSubtasks[i].done=v;kbRenderSubtasks();}
+function kbEditSub(i,v){if(_kbSubtasks[i])_kbSubtasks[i].text=v.trim()||_kbSubtasks[i].text;}
+function kbDelSub(i){_kbSubtasks.splice(i,1);kbRenderSubtasks();}
 function selKbPri(p){kbSelPri=p;document.querySelectorAll('.kbPriBtn').forEach(b=>{b.classList.toggle('sel',parseInt(b.dataset.p)===p)});}
 function delKbCardFromModal(){
   if(!kbEditId)return;
@@ -6323,21 +6567,21 @@ function saveKbCard(){
     if(col==='today') finalDeadline=dk(t0());
     else if(col==='tomorrow'){const tm=new Date(t0());tm.setDate(tm.getDate()+1);finalDeadline=dk(tm);}
   }
-  const data={title,desc,priority:kbSelPri,deadline:finalDeadline,time,endTime,col,boardId:kbActiveBoardId,labelId,done,actualDuration};
+  const data={title,desc,priority:kbSelPri,deadline:finalDeadline,time,endTime,col,boardId:kbActiveBoardId,labelId,done,actualDuration,subtasks:JSON.parse(JSON.stringify(_kbSubtasks))};
   if(kbEditId){
     const idx=kbD().findIndex(x=>x.id===kbEditId);
     if(idx>=0){
       kbD()[idx]={...kbD()[idx],...data};
       const linkedTask=kbD()[idx].taskId?tpD().find(t=>t.id===kbD()[idx].taskId):null;
       if(linkedTask){
-        Object.assign(linkedTask,{text:title,deadline,time,endTime,notes:desc,labelId,labelIds,done,actualDuration});
+        Object.assign(linkedTask,{text:title,deadline,time,endTime,notes:desc,labelId,labelIds,done,actualDuration,subtasks:JSON.parse(JSON.stringify(_kbSubtasks))});
       }
       saveD();closeKbModal();_refreshAllTaskViews();return;
     }
   } else {
     const newCard={...data,id:uid()};kbD().push(newCard);
     const taskId=uid();
-    tpD().push({id:taskId,text:title,deadline,time,endTime,notes:desc,done,actualDuration,labelId,labelIds,priority:kbSelPri});
+    tpD().push({id:taskId,text:title,deadline,time,endTime,notes:desc,done,actualDuration,labelId,labelIds,priority:kbSelPri,subtasks:JSON.parse(JSON.stringify(_kbSubtasks))});
     newCard.taskId=taskId;
   }
   saveD();closeKbModal();_refreshAllTaskViews();
