@@ -124,6 +124,84 @@ let currentUser = null;
   --dur2:280ms;
 }
 
+/* ═══════════════════════════════════════════════════
+   LIGHT THEME
+═══════════════════════════════════════════════════ */
+body.light-mode{
+  --bg:#F4F5FA;
+  --bg2:#ECEDF5;
+  --card:#FFFFFF;
+  --card2:#F0F1F8;
+  --card3:#E8EAF2;
+  --card-glass:rgba(255,255,255,.9);
+  --border:rgba(0,0,0,.08);
+  --border2:rgba(0,0,0,.13);
+  --border3:rgba(0,0,0,.22);
+  --border-glow:rgba(139,122,240,.3);
+  --text:#1A1B2E;
+  --text2:#4A5072;
+  --muted:#8A91B0;
+  --shadow:0 1px 3px rgba(0,0,0,.08),0 4px 16px rgba(0,0,0,.06);
+  --shadow2:0 2px 8px rgba(0,0,0,.1),0 12px 32px rgba(0,0,0,.08);
+  --shadow3:0 0 0 1px rgba(139,122,240,.15),0 4px 20px rgba(0,0,0,.1);
+  --glow:0 0 40px rgba(139,122,240,.12);
+  --glow2:0 0 30px rgba(18,232,172,.08);
+  --pdim:rgba(155,143,245,.12);
+  --pdim2:rgba(155,143,245,.2);
+  --sdim:rgba(15,221,170,.1);
+  --reddim:rgba(255,79,114,.1);
+  --golddim:rgba(240,171,48,.1);
+  --bluedim:rgba(91,149,255,.1);
+  --purpledim:rgba(168,124,248,.1);
+  --pinkdim:rgba(240,107,176,.1);
+  --greendim:rgba(15,221,170,.1);
+  --cyandim:rgba(34,204,232,.1);
+  --orangedim:rgba(255,128,48,.1);
+}
+body.light-mode #hdr{background:rgba(244,245,250,.95);border-bottom:1px solid rgba(0,0,0,.08);box-shadow:0 1px 0 rgba(255,255,255,.8),0 2px 12px rgba(0,0,0,.06)}
+body.light-mode .hTab:hover{background:rgba(0,0,0,.04)}
+body.light-mode .hTab.on{background:rgba(155,143,245,.1)}
+body.light-mode #mobileNav{background:rgba(244,245,250,.97);border-top:1px solid rgba(0,0,0,.08)}
+body.light-mode .dashCard{background:linear-gradient(170deg,#fff 0%,#fafbff 100%);box-shadow:0 1px 3px rgba(0,0,0,.07),0 4px 16px rgba(0,0,0,.05)}
+body.light-mode .card{background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.07),0 4px 16px rgba(0,0,0,.05)}
+body.light-mode .shCell{background:rgba(0,0,0,.07);border-color:rgba(0,0,0,.1)}
+body.light-mode .shCell.s1{background:rgba(240,107,176,.2);border-color:rgba(240,107,176,.25)}
+body.light-mode .shCell.s2{background:rgba(240,107,176,.42);border-color:rgba(240,107,176,.35)}
+body.light-mode .shCell.s3{background:rgba(240,107,176,.65);border-color:rgba(240,107,176,.5)}
+body.light-mode .shCell.s4{background:var(--pink);border-color:rgba(240,107,176,.6)}
+body.light-mode body::before{opacity:.015}
+body.light-mode .bg-glow::before{background:radial-gradient(circle at 30% 30%,rgba(155,143,245,.06) 0%,transparent 70%)}
+body.light-mode .bg-glow::after{background:radial-gradient(circle at 70% 70%,rgba(15,221,170,.04) 0%,transparent 70%)}
+body.light-mode ::-webkit-scrollbar-thumb{background:rgba(155,143,245,.35)}
+body.light-mode .mMoreBtn{background:var(--card2);border-color:var(--border2);color:var(--text2)}
+body.light-mode .mMoreBtn:hover{background:var(--card3);color:var(--text)}
+body.light-mode .inp,body.light-mode .sel{background:var(--card2);color:var(--text);border-color:var(--border2)}
+body.light-mode .modalBox{background:var(--card);box-shadow:0 8px 40px rgba(0,0,0,.15)}
+body.light-mode .dCard{background:linear-gradient(170deg,#fff 0%,#f8f9ff 100%)}
+body.light-mode .chartCard{background:var(--card);border-color:var(--border)}
+body.light-mode .rwTask{background:var(--card);border-color:var(--border)}
+body.light-mode .rwProgWrap{background:var(--card)}
+body.light-mode .kbCard{background:var(--card2)}
+body.light-mode .kbCol{background:var(--card);border-color:var(--border)}
+body.light-mode .dashFocus{background:linear-gradient(135deg,var(--pdim) 0%,rgba(240,107,176,.06) 100%);border-color:rgba(155,143,245,.2)}
+body.light-mode .dashStatPill{background:var(--card);border-color:var(--border);box-shadow:0 1px 4px rgba(0,0,0,.06)}
+body.light-mode .hLogo .hLogoText{color:var(--text)}
+
+/* Theme toggle button */
+.themeToggleBtn{
+  display:flex;align-items:center;justify-content:center;
+  width:32px;height:32px;
+  border:1px solid var(--border2);
+  border-radius:9px;
+  background:var(--card2);
+  color:var(--text2);
+  cursor:pointer;
+  font-size:15px;
+  transition:all var(--dur) var(--ease);
+  flex-shrink:0;
+}
+.themeToggleBtn:hover{background:var(--card3);color:var(--text);border-color:var(--border3);transform:scale(1.05)}
+
 html{font-size:13px;scroll-behavior:smooth}
 body{
   font-family:var(--font-body);
@@ -737,8 +815,34 @@ select.inp option{background:var(--card2);color:var(--text)}
 .mTaskMetaChip{display:inline-flex;align-items:center;gap:3px;font-size:10px;font-weight:600;padding:2px 8px;border-radius:20px;white-space:nowrap}
 .mTaskRepeatBadge{background:var(--pdim);color:var(--p);font-size:9px;font-weight:700;padding:2px 7px;border-radius:20px;display:inline-flex;align-items:center;gap:3px}
 
-/* Repeat indicator */
-.repeatDot{width:6px;height:6px;border-radius:50%;background:var(--p);display:inline-block;box-shadow:0 0 6px var(--p)}
+/* ══════════════════════════════
+   SUBTASK CHECKLIST
+══════════════════════════════ */
+.stList{display:flex;flex-direction:column;gap:4px;margin-top:6px}
+.stItem{display:flex;align-items:center;gap:8px;padding:6px 10px;border-radius:9px;background:var(--card2);border:1px solid var(--border);transition:border-color .15s,background .15s;group:hover}
+.stItem:hover{border-color:var(--border2);background:var(--card3)}
+.stCb{width:15px;height:15px;flex-shrink:0;accent-color:var(--green);cursor:pointer;border-radius:4px}
+.stText{flex:1;border:none;background:transparent;font-family:var(--font-body);font-size:12px;color:var(--text);outline:none;min-width:0}
+.stText.stDone{text-decoration:line-through;color:var(--muted)}
+.stText::placeholder{color:var(--muted);opacity:.7}
+.stDel{border:none;background:none;cursor:pointer;color:var(--border2);font-size:16px;padding:0 2px;transition:color .15s;flex-shrink:0;line-height:1;opacity:0;transition:opacity .15s}
+.stItem:hover .stDel{opacity:1}
+.stDel:hover{color:var(--red)}
+.stProgress{display:flex;align-items:center;gap:7px;margin-top:4px;margin-bottom:2px}
+.stProgressBar{flex:1;height:4px;background:var(--border2);border-radius:4px;overflow:hidden}
+.stProgressFill{height:100%;background:linear-gradient(90deg,var(--green),var(--cyan));border-radius:4px;transition:.4s}
+.stProgressLbl{font-size:10px;font-weight:700;color:var(--muted);white-space:nowrap;font-family:var(--font-mono)}
+.stAddRow{display:flex;align-items:center;gap:6px;margin-top:6px}
+.stAddInp{flex:1;border:1px dashed var(--border2);border-radius:9px;padding:7px 11px;font-family:var(--font-body);font-size:12px;background:transparent;color:var(--text);outline:none;transition:border-color .15s,background .15s}
+.stAddInp:focus{border-color:var(--p);background:var(--card2);border-style:solid}
+.stAddInp::placeholder{color:var(--muted);opacity:.6}
+.stAddBtn{flex-shrink:0;border:none;background:var(--pdim);color:var(--p);border-radius:8px;width:28px;height:28px;font-size:18px;font-weight:300;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s;line-height:1}
+.stAddBtn:hover{background:var(--p);color:#fff;transform:scale(1.05)}
+
+/* Mini checklist pill shown in task row / mobile card */
+.stMiniPill{display:inline-flex;align-items:center;gap:4px;font-size:9.5px;font-weight:700;padding:2px 8px;border-radius:20px;background:var(--greendim);color:var(--green);border:1px solid rgba(15,221,170,.22);white-space:nowrap}
+.stMiniPill.partial{background:var(--golddim);color:var(--gold);border-color:rgba(240,171,48,.22)}
+.stMiniPill.empty{background:var(--border);color:var(--muted);border-color:var(--border2)}
 
 /* ══════════════════════════════
    KAIZEN JOURNAL
@@ -2200,6 +2304,7 @@ select.inp option{background:var(--card2);color:var(--text)}
           <span style="letter-spacing:-.01em">Поиск</span>
           <span style="font-family:var(--font-mono);font-size:9px;opacity:.5;background:var(--card3);padding:1px 5px;border-radius:4px">⌘K</span>
         </button>
+        <button class="themeToggleBtn" id="themeToggleBtn" onclick="toggleTheme()" title="Сменить тему"></button>
         <div class="syncDot" id="syncDot" title="● Синхронизировано" style="cursor:default"></div>
         <div class="hUserBtn" onclick="showUserMenu()">
           <img class="hUserAvatar" id="hUserAvatar" src="" onerror="this.style.display='none'" style="display:none">
@@ -2216,7 +2321,10 @@ select.inp option{background:var(--card2);color:var(--text)}
           <div class="hMobileLogoMark">✦</div>
           <div class="hMobileLogoText">PlannerPro</div>
         </div>
-        <div class="hMobileDate" id="hMobileDate"></div>
+        <div style="display:flex;align-items:center;gap:8px">
+          <button class="themeToggleBtn" id="themeToggleBtnMob" onclick="toggleTheme()" title="Сменить тему" style="width:28px;height:28px;font-size:14px"></button>
+          <div class="hMobileDate" id="hMobileDate"></div>
+        </div>
       </div>
     </div>
   </div>
@@ -2454,11 +2562,11 @@ select.inp option{background:var(--card2);color:var(--text)}
         <!-- Legend -->
         <div style="display:flex;align-items:center;gap:4px">
           <span style="font-size:8px;color:var(--muted)">меньше</span>
-          <div style="width:8px;height:8px;border-radius:2px;background:rgba(255,255,255,.07);border:1px solid rgba(0,0,0,.4)"></div>
-          <div style="width:8px;height:8px;border-radius:2px;background:rgba(240,107,176,.25);border:1px solid rgba(0,0,0,.4)"></div>
-          <div style="width:8px;height:8px;border-radius:2px;background:rgba(240,107,176,.5);border:1px solid rgba(0,0,0,.4)"></div>
-          <div style="width:8px;height:8px;border-radius:2px;background:rgba(240,107,176,.8);border:1px solid rgba(0,0,0,.4)"></div>
-          <div style="width:8px;height:8px;border-radius:2px;background:var(--pink);border:1px solid rgba(0,0,0,.3);box-shadow:0 0 5px rgba(240,107,176,.5)"></div>
+          <div style="width:8px;height:8px;border-radius:2px;background:var(--border);border:1px solid var(--border2)"></div>
+          <div style="width:8px;height:8px;border-radius:2px;background:rgba(240,107,176,.2);border:1px solid rgba(240,107,176,.2)"></div>
+          <div style="width:8px;height:8px;border-radius:2px;background:rgba(240,107,176,.45);border:1px solid rgba(240,107,176,.3)"></div>
+          <div style="width:8px;height:8px;border-radius:2px;background:rgba(240,107,176,.72);border:1px solid rgba(240,107,176,.4)"></div>
+          <div style="width:8px;height:8px;border-radius:2px;background:var(--pink);border:1px solid rgba(240,107,176,.5);box-shadow:0 0 5px rgba(240,107,176,.4)"></div>
           <span style="font-size:8px;color:var(--muted)">больше</span>
         </div>
       </div>
@@ -2483,6 +2591,7 @@ select.inp option{background:var(--card2);color:var(--text)}
               <div class="streakHeatmap" id="streakHeatmap"></div>
             </div>
           </div>
+        </div>
         <!-- Right stats panel -->
         <div style="display:flex;flex-direction:column;gap:8px;flex-shrink:0;width:90px;border-left:1px solid var(--border);padding-left:14px;justify-content:space-between" id="heatmapStatsPanel">
           <!-- streak -->
@@ -2508,7 +2617,7 @@ select.inp option{background:var(--card2);color:var(--text)}
           <div>
             <div style="font-size:8px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.6px;margin-bottom:4px">За 30 дней</div>
             <div style="font-family:var(--font-display);font-size:18px;font-weight:800;color:var(--p);line-height:1;margin-bottom:3px" id="hmPct30">—</div>
-            <div style="height:4px;background:rgba(255,255,255,.07);border-radius:4px;overflow:hidden"><div id="hmPctBar" style="height:100%;border-radius:4px;background:linear-gradient(90deg,var(--pink),var(--p));width:0%;transition:.6s"></div></div>
+            <div style="height:4px;background:var(--border2);border-radius:4px;overflow:hidden"><div id="hmPctBar" style="height:100%;border-radius:4px;background:linear-gradient(90deg,var(--pink),var(--p));width:0%;transition:.6s"></div></div>
           </div>
         </div>
       </div>
@@ -3364,6 +3473,22 @@ select.inp option{background:var(--card2);color:var(--text)}
       <textarea class="kbTxtarea" id="tm-notes" placeholder="Заметки к задаче..." style="min-height:56px;resize:none"></textarea>
     </div>
 
+    <!-- Subtask Checklist -->
+    <div class="tmField">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+        <label class="tmLabel" style="margin-bottom:0">☑️ Чеклист</label>
+        <div class="stProgress" id="tm-st-progress" style="display:none;flex:1;margin:0 0 0 12px">
+          <div class="stProgressBar"><div class="stProgressFill" id="tm-st-bar" style="width:0%"></div></div>
+          <span class="stProgressLbl" id="tm-st-lbl">0/0</span>
+        </div>
+      </div>
+      <div class="stList" id="tm-st-list"></div>
+      <div class="stAddRow">
+        <input class="stAddInp" id="tm-st-inp" placeholder="Добавить пункт..." onkeydown="if(event.key==='Enter'){event.preventDefault();tmAddSubtask()}">
+        <button class="stAddBtn" onclick="tmAddSubtask()" title="Добавить">＋</button>
+      </div>
+    </div>
+
     <!-- Done toggle -->
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">
       <input type="checkbox" id="tm-done" style="width:16px;height:16px;accent-color:var(--green);cursor:pointer">
@@ -4169,6 +4294,22 @@ function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2
 function fmtMoney(n){return Number(n||0).toLocaleString('ru-RU',{minimumFractionDigits:0,maximumFractionDigits:0})}
 function hexA(hex,a){try{const r=parseInt(hex.slice(1,3),16),g2=parseInt(hex.slice(3,5),16),b=parseInt(hex.slice(5,7),16);return `rgba(${r},${g2},${b},${a})`}catch{return hex}}
 
+/* ── THEME TOGGLE ── */
+function toggleTheme(){
+  const isLight=document.body.classList.toggle('light-mode');
+  localStorage.setItem('pp_theme',isLight?'light':'dark');
+  updateThemeBtn();
+}
+function updateThemeBtn(){
+  const isLight=document.body.classList.contains('light-mode');
+  const icon=isLight?'🌙':'☀️';
+  document.querySelectorAll('#themeToggleBtn,#themeToggleBtnMob').forEach(b=>{if(b)b.textContent=icon;});
+}
+(function(){
+  if(localStorage.getItem('pp_theme')==='light'){document.body.classList.add('light-mode');}
+  updateThemeBtn();
+})();
+
 /* ─────────────────────────
    TABS
 ───────────────────────── */
@@ -4739,12 +4880,16 @@ function renderTP(){
       const barColor=taskLabelsDesk.length?taskLabelsDesk[0].color:'transparent';
       tr.style.borderLeft=`3px solid ${barColor}`;
       const repeatBadge=t.repeat?`<span class="mTaskRepeatBadge" style="font-size:8px;margin-left:4px">↻</span>`:'';
+      const stPill=stMiniHtml(t);
       const timeDisplay=t.time?`<span style="font-family:var(--font-mono);font-size:10.5px;color:var(--p);font-weight:600">${t.time}${t.endTime?' – '+t.endTime:''}</span>`:'<span style="color:var(--border3)">—</span>';
       tr.innerHTML=`
         <td style="color:var(--muted);font-size:10px;padding-left:10px">${i+1}</td>
         <td><input type="checkbox" class="tCb" ${effDone?'checked':''} onchange="toggleTById('${t.id}',this.checked,this)"></td>
         <td style="cursor:pointer" onclick="openTaskModal('${t.id}')">
-          <span style="font-size:12px;font-weight:600;color:var(--text);${effDone?'text-decoration:line-through;opacity:.65':''}">${esc(t.text)||'<em style="color:var(--muted)">Нет названия</em>'}</span>${repeatBadge}
+          <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
+            <span style="font-size:12px;font-weight:600;color:var(--text);${effDone?'text-decoration:line-through;opacity:.65':''}">${esc(t.text)||'<em style="color:var(--muted)">Нет названия</em>'}</span>${repeatBadge}
+            ${stPill}
+          </div>
         </td>
         <td>${labelHtml}</td>
         <td><input type="date" class="tDateInp" value="${t.deadline||''}" onchange="updTFieldById('${t.id}','deadline',this.value)" title="${dlLabel}" style="color-scheme:dark;font-size:11px"></td>
@@ -4783,6 +4928,7 @@ function renderTP(){
         else if(effDiffM===0)dateStr+=` <span style="color:var(--orange);font-weight:700">сегодня</span>`;
       }
       const repeatBadge=t.repeat?`<span class="mTaskRepeatBadge">↻ ${{'daily':'ежедн','weekly':'еженед','weekdays':'будни','monthly':'ежемес'}[t.repeat]||t.repeat}</span>`:'';
+      const stPillM=stMiniHtml(t);
       div.innerHTML=`
         <div class="mTaskTop">
           <input class="mTaskCb" type="checkbox" ${effDoneM?'checked':''} onchange="toggleTById('${t.id}',this.checked);event.stopPropagation()">
@@ -4794,6 +4940,7 @@ function renderTP(){
           ${effDstrM?`<span class="mTaskMetaChip" style="background:var(--card2);color:var(--text2)">📅 ${dateStr}</span>`:''}
           ${t.time?`<span class="mTaskMetaChip" style="background:var(--pdim);color:var(--p);font-family:var(--font-mono)">⏱ ${t.time}${t.endTime?' – '+t.endTime:''}</span>`:''}
           ${repeatBadge}
+          ${stPillM}
         </div>`;
       div.addEventListener('click',e=>{if(e.target.classList.contains('mTaskCb')||e.target.tagName==='BUTTON')return;openTaskModal(t.id);});
       mob.appendChild(div);
@@ -5098,6 +5245,7 @@ function openTaskModal(idx,prefillDate,dstr){
   _tmRepeatVal=t?.repeat||'';
   tmSelRepeat(_tmRepeatVal);
   _updateModalLabelDots(initIds);
+  tmLoadSubtasks(t);
   document.getElementById('taskModal').classList.add('open');
   setTimeout(()=>document.getElementById('tm-text').focus(),60);
 }
@@ -5122,6 +5270,7 @@ function taskModalSave(){
     done:document.getElementById('tm-done').checked,
     labelId,labelIds,
     repeat:_tmRepeatVal,
+    subtasks:JSON.parse(JSON.stringify(_tmSubtasks)),
   };
 
   // ← FIX: find task by id at save-time (immune to reorder/sync)
@@ -5186,6 +5335,81 @@ async function _doSaveRecurring(existingTask, data, dstr){
 }
 
 function closeTaskModal(){document.getElementById('taskModal').classList.remove('open');}
+
+/* ═══════════════════════════════════
+   SUBTASK / CHECKLIST FUNCTIONS
+═══════════════════════════════════ */
+let _tmSubtasks=[]; // working copy while modal is open
+
+function tmLoadSubtasks(t){
+  _tmSubtasks=t?.subtasks?JSON.parse(JSON.stringify(t.subtasks)):[];
+  tmRenderSubtasks();
+}
+
+function tmRenderSubtasks(){
+  const list=document.getElementById('tm-st-list');
+  const prog=document.getElementById('tm-st-progress');
+  const bar=document.getElementById('tm-st-bar');
+  const lbl=document.getElementById('tm-st-lbl');
+  if(!list)return;
+  const total=_tmSubtasks.length;
+  const done=_tmSubtasks.filter(s=>s.done).length;
+  // Progress bar
+  if(total>0){
+    prog.style.display='flex';
+    bar.style.width=(done/total*100)+'%';
+    lbl.textContent=`${done}/${total}`;
+  } else {
+    prog.style.display='none';
+  }
+  list.innerHTML=_tmSubtasks.map((s,i)=>`
+    <div class="stItem" id="stItem-${i}">
+      <input class="stCb" type="checkbox" ${s.done?'checked':''} onchange="tmToggleSubtask(${i},this.checked)">
+      <input class="stText${s.done?' stDone':''}" value="${esc(s.text)}" placeholder="Пункт…"
+        onchange="tmEditSubtask(${i},this.value)"
+        onkeydown="if(event.key==='Enter'){event.preventDefault();document.getElementById('tm-st-inp').focus()}"
+        style="${s.done?'text-decoration:line-through;opacity:.55':''}">
+      <button class="stDel" onclick="tmDelSubtask(${i})" title="Удалить">×</button>
+    </div>`).join('');
+}
+
+function tmAddSubtask(){
+  const inp=document.getElementById('tm-st-inp');
+  const text=(inp?.value||'').trim();
+  if(!text)return;
+  _tmSubtasks.push({id:uid(),text,done:false});
+  inp.value='';
+  tmRenderSubtasks();
+  // Scroll list into view
+  const list=document.getElementById('tm-st-list');
+  if(list)list.lastElementChild?.scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+
+function tmToggleSubtask(i,checked){
+  if(!_tmSubtasks[i])return;
+  _tmSubtasks[i].done=checked;
+  tmRenderSubtasks();
+}
+
+function tmEditSubtask(i,text){
+  if(!_tmSubtasks[i])return;
+  _tmSubtasks[i].text=text.trim()||_tmSubtasks[i].text;
+}
+
+function tmDelSubtask(i){
+  _tmSubtasks.splice(i,1);
+  tmRenderSubtasks();
+}
+
+function stMiniHtml(task){
+  const subs=task?.subtasks||[];
+  if(!subs.length)return '';
+  const done=subs.filter(s=>s.done).length;
+  const allDone=done===subs.length;
+  const none=done===0;
+  const pillCls=allDone?'stMiniPill':none?'stMiniPill empty':'stMiniPill partial';
+  return `<span class="${pillCls}">☑ ${done}/${subs.length}</span>`;
+}
 
 function _renderTaskModalLabels(selectedIds){
   const el=document.getElementById('tm-labels-list');if(!el)return;
@@ -7789,7 +8013,7 @@ function renderStreakHeatmap(){
   el.style.cssText=`display:grid;grid-template-columns:repeat(${WEEKS},1fr);grid-template-rows:repeat(7,${ROW}px);grid-auto-flow:column;gap:${GAP}px;width:100%;isolation:isolate;`;
   let html='';
   cells.forEach(c=>{
-    if(c.isFuture){html+=`<div class="shCell" style="opacity:.12"></div>`;return;}
+    if(c.isFuture){html+=`<div class="shCell" style="opacity:.2"></div>`;return;}
     const todayStyle=c.isToday?'box-shadow:0 0 0 2px rgba(240,107,176,.9),inset 0 0 0 1px rgba(240,107,176,.3);z-index:1;position:relative;':'';
     const tooltip=`${c.d.toLocaleDateString('ru-RU',{weekday:'short',day:'numeric',month:'short'})} — ${c.done}/${c.total} привычек`;
     html+=`<div class="shCell${c.level>0?' s'+Math.min(4,c.level):''}" style="${todayStyle}" title="${tooltip}"></div>`;
@@ -7833,15 +8057,15 @@ function renderStreakHeatmap(){
     let wHtml='';
     for(let di=0;di<7;di++){
       const wd=new Date(today);wd.setDate(today.getDate()-daysToMon+di);
-      if(wd>today){wHtml+=`<div style="display:flex;align-items:center;gap:4px"><div style="width:7px;height:7px;border-radius:2px;background:rgba(255,255,255,.06);border:1px solid rgba(0,0,0,.4);flex-shrink:0"></div><div style="font-size:8px;color:rgba(255,255,255,.2)">${DOW_RU[wd.getDay()]}</div></div>`;continue;}
+      if(wd>today){wHtml+=`<div style="display:flex;align-items:center;gap:4px"><div style="width:7px;height:7px;border-radius:2px;background:var(--border);border:1px solid var(--border2);flex-shrink:0"></div><div style="font-size:8px;color:var(--muted)">${DOW_RU[wd.getDay()]}</div></div>`;continue;}
       const key2=`ht_${wd.getFullYear()}_${wd.getMonth()}`;
       const hd2=G[key2]||{habits:[],checks:{}};
       const hn2=hd2.habits?hd2.habits.length:0;
       const done3=hn2?hd2.habits.filter((_,hi)=>hd2.checks&&hd2.checks[`${hi}_${wd.getDate()}`]).length:0;
       const pct2=hn2?done3/hn2:0;
-      const col=pct2===0?'rgba(255,255,255,.06)':pct2<0.5?'rgba(240,107,176,.35)':pct2<1?'rgba(240,107,176,.7)':'var(--pink)';
+      const col=pct2===0?'var(--border)':pct2<0.5?'rgba(240,107,176,.35)':pct2<1?'rgba(240,107,176,.7)':'var(--pink)';
       const isTod=dk(wd)===dk(today);
-      wHtml+=`<div style="display:flex;align-items:center;gap:4px"><div style="width:7px;height:7px;border-radius:2px;background:${col};border:1px solid rgba(0,0,0,.4);flex-shrink:0;${isTod?'box-shadow:0 0 0 1px rgba(240,107,176,.6)':''}"></div><div style="font-size:8px;color:${isTod?'var(--text)':'var(--muted)'};font-weight:${isTod?700:500}">${DOW_RU[wd.getDay()]}${hn2?` ${done3}/${hn2}`:''}</div></div>`;
+      wHtml+=`<div style="display:flex;align-items:center;gap:4px"><div style="width:7px;height:7px;border-radius:2px;background:${col};border:1px solid var(--border2);flex-shrink:0;${isTod?'box-shadow:0 0 0 1.5px rgba(240,107,176,.7)':''}"></div><div style="font-size:8px;color:${isTod?'var(--text)':'var(--muted)'};font-weight:${isTod?700:500}">${DOW_RU[wd.getDay()]}${hn2?` ${done3}/${hn2}`:''}</div></div>`;
     }
     hmWeekDots.innerHTML=wHtml;
   }
