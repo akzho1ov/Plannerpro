@@ -18,8 +18,11 @@
 <title>PlannerPro — Центр управления</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,300;12..96,400;12..96,500;12..96,600;12..96,700;12..96,800&family=Instrument+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
-<!-- Firebase -->
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<!-- Security: Content-Security-Policy -->
+<meta http-equiv="Content-Security-Policy"
+  content="default-src 'self' 'unsafe-inline' https:; script-src 'self' 'unsafe-inline' https://www.gstatic.com https://cdnjs.cloudflare.com; connect-src 'self' https://*.firebaseio.com https://*.googleapis.com wss://*.firebaseio.com; img-src 'self' data: https:; font-src 'self' https://fonts.gstatic.com;">
+<!-- DOMPurify — sanitizes all innerHTML injections -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.1.5/purify.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 <script>
@@ -37,6 +40,25 @@ firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
 let currentUser = null;
+
+// ── Offline persistence — data available without internet ──
+db.enablePersistence({synchronizeTabs:true}).catch(e=>{
+  if(e.code==='failed-precondition'){
+    // Multiple tabs open — only one can use persistence at a time, acceptable
+    console.warn('Firestore persistence: multiple tabs open');
+  } else if(e.code==='unimplemented'){
+    // Browser does not support it
+    console.warn('Firestore persistence not supported');
+  }
+});
+
+// ── Safe innerHTML helper — sanitizes all HTML injections ──
+function safeHTML(el, html){
+  if(!el)return;
+  el.innerHTML = typeof DOMPurify !== 'undefined'
+    ? DOMPurify.sanitize(html, {ADD_ATTR:['onclick','data-tab','data-id','data-idx','data-gid']})
+    : html; // fallback if CDN fails
+}
 </script>
 <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'%3E%3Crect width='180' height='180' rx='40' fill='%230a0c16'/%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%23f59e0b'/%3E%3Cstop offset='.5' stop-color='%239b7cf4'/%3E%3Cstop offset='1' stop-color='%23f472b6'/%3E%3C/linearGradient%3E%3C/defs%3E%3Ctext x='90' y='115' text-anchor='middle' font-size='90' font-family='serif'%3E✦%3C/text%3E%3Crect x='30' y='130' width='120' height='3' rx='2' fill='url(%23g)'/%3E%3C/svg%3E">
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%230a0c16'/%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%23f59e0b'/%3E%3Cstop offset='.5' stop-color='%239b7cf4'/%3E%3Cstop offset='1' stop-color='%23f472b6'/%3E%3C/linearGradient%3E%3C/defs%3E%3Ctext x='16' y='22' text-anchor='middle' font-size='18' font-family='serif' fill='url(%23g)'%3E✦%3C/text%3E%3C/svg%3E">
@@ -1657,11 +1679,12 @@ select.inp option{background:var(--card2);color:var(--text)}
 .rwProgRow{display:flex;justify-content:space-between;font-size:11px;margin-bottom:6px;color:var(--text2);font-weight:600}
 .rwProgTrack{height:6px;background:var(--border2);border-radius:4px;overflow:hidden}
 .rwProgFill{height:100%;background:linear-gradient(90deg,var(--green),#34d399);border-radius:4px;transition:.4s}
-.rwSubTabs{display:flex;gap:4px;margin-bottom:14px;border-bottom:1px solid var(--border);overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;-ms-overflow-style:none;padding:0 0 0 0}
+/* rwSubTabs → unified .subTabs (see Stage-2 system) */
+.rwSubTabs{display:flex;gap:2px;margin-bottom:16px;border-bottom:1px solid var(--border);overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;-ms-overflow-style:none}
 .rwSubTabs::-webkit-scrollbar{display:none;height:0}
-.rwSubTab{padding:7px 14px 9px;border:none;background:none;font-family:var(--font-body);font-size:11px;font-weight:600;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;white-space:nowrap;transition:.15s;flex-shrink:0}
+.rwSubTab{padding:8px 15px 10px;border:none;background:none;font-family:var(--font-body);font-size:11.5px;font-weight:600;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;white-space:nowrap;transition:.14s;flex-shrink:0;border-radius:6px 6px 0 0}
 .rwSubTab.on{color:var(--gold);border-bottom-color:var(--gold)}
-.rwSubTab:hover:not(.on){color:var(--text2)}
+.rwSubTab:hover:not(.on){color:var(--text2);background:rgba(255,255,255,.04)}
 .rwPane{display:none}.rwPane.on{display:block}
 .rwTask{display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--card);border-radius:var(--r2);border:1px solid var(--border);margin-bottom:6px;cursor:pointer;transition:.15s;user-select:none}
 .rwTask:hover{border-color:var(--border3)}
@@ -1735,11 +1758,12 @@ select.inp option{background:var(--card2);color:var(--text)}
 /* ══════════════════════════════
    GYM / WORKOUT SYSTEM
 ══════════════════════════════ */
-.gymSubTabs{display:flex;gap:4px;margin-bottom:14px;border-bottom:1px solid var(--border);overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;-ms-overflow-style:none}
+/* gymSubTabs → unified .subTabs (see Stage-2 system) */
+.gymSubTabs{display:flex;gap:2px;margin-bottom:16px;border-bottom:1px solid var(--border);overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;-ms-overflow-style:none}
 .gymSubTabs::-webkit-scrollbar{display:none;height:0}
-.gymSubTab{padding:7px 14px 9px;border:none;background:none;font-family:var(--font-body);font-size:11px;font-weight:600;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;white-space:nowrap;transition:.15s;flex-shrink:0}
+.gymSubTab{padding:8px 15px 10px;border:none;background:none;font-family:var(--font-body);font-size:11.5px;font-weight:600;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;white-space:nowrap;transition:.14s;flex-shrink:0;border-radius:6px 6px 0 0}
 .gymSubTab.on{color:var(--cyan);border-bottom-color:var(--cyan)}
-.gymSubTab:hover:not(.on){color:var(--text2)}
+.gymSubTab:hover:not(.on){color:var(--text2);background:rgba(255,255,255,.04)}
 .gymPane{display:none}.gymPane.on{display:block}
 
 /* Active session banner */
@@ -2015,6 +2039,433 @@ select.inp option{background:var(--card2);color:var(--text)}
   .tpLayout{display:block}
 }
 
+/* ═══════════════════════════════════════════════════
+   GROUPED NAV — Stage 1 Refactor
+   5 groups with dropdowns · ARIA-ready · Hash routing
+═══════════════════════════════════════════════════ */
+
+/* ── Nav wrap ── */
+.hNavWrap{flex:1;overflow:hidden;display:flex;align-items:stretch}
+.hNav{display:flex;align-items:stretch;gap:2px;border-bottom:1px solid var(--border);flex:1;padding-bottom:0}
+
+/* ── Group container ── */
+.navGroup{position:relative;display:flex;align-items:stretch}
+
+/* ── Group trigger button ── */
+.navGroupBtn{
+  display:flex;align-items:center;gap:6px;
+  padding:8px 13px 12px;
+  border:none;background:none;
+  font-family:var(--font-body);font-size:12px;font-weight:500;
+  color:var(--text2);cursor:pointer;
+  border-bottom:2px solid transparent;margin-bottom:-1px;
+  border-radius:6px 6px 0 0;
+  transition:color var(--dur) var(--ease),background var(--dur) var(--ease),border-color var(--dur) var(--ease);
+  white-space:nowrap;letter-spacing:-.01em;
+  position:relative;user-select:none;
+}
+.navGroupBtn:hover{color:var(--text);background:rgba(255,255,255,.05)}
+.navGroupBtn.on{color:var(--p);border-bottom-color:var(--p);background:var(--pdim);font-weight:600}
+.navGroupBtn.on::after{
+  content:'';position:absolute;bottom:-1px;left:50%;
+  transform:translateX(-50%);width:80%;height:2px;
+  background:linear-gradient(90deg,transparent,var(--p),transparent);
+}
+.navGroupBtn.group-open{color:var(--text);background:rgba(255,255,255,.06)}
+
+/* ── Group icon ── */
+.navGroupIcon{width:14px;height:14px;flex-shrink:0;opacity:.75;transition:opacity .15s}
+.navGroupBtn:hover .navGroupIcon,.navGroupBtn.on .navGroupIcon{opacity:1}
+
+/* ── Chevron ── */
+.navChevron{
+  width:10px;height:10px;flex-shrink:0;margin-left:-2px;
+  transition:transform 200ms var(--ease);opacity:.5;
+}
+.navGroup.open .navChevron{transform:rotate(180deg)}
+
+/* ── Active sub-indicator pill inside button ── */
+.navActiveSub{
+  font-size:9px;font-weight:700;
+  padding:1px 6px;border-radius:10px;
+  background:var(--pdim2);color:var(--p);
+  letter-spacing:0;
+  transition:all .15s;
+}
+
+/* ── Dropdown panel ── */
+.navDropdown{
+  position:absolute;top:calc(100% + 8px);left:0;
+  min-width:196px;
+  background:var(--card);
+  border:1px solid var(--border2);
+  border-radius:12px;
+  padding:6px;
+  box-shadow:0 4px 24px rgba(0,0,0,.55),0 1px 4px rgba(0,0,0,.4),0 0 0 1px rgba(255,255,255,.04);
+  z-index:800;
+  opacity:0;visibility:hidden;pointer-events:none;
+  transform:translateY(-6px) scale(.97);
+  transform-origin:top left;
+  transition:opacity 160ms var(--ease),transform 160ms var(--ease),visibility 160ms;
+}
+.navGroup.open .navDropdown{
+  opacity:1;visibility:visible;pointer-events:all;
+  transform:translateY(0) scale(1);
+}
+
+/* ── Dropdown item ── */
+.navDropItem{
+  display:flex;align-items:center;gap:10px;
+  width:100%;padding:8px 10px;
+  border:none;background:none;
+  border-radius:8px;
+  font-family:var(--font-body);font-size:12px;font-weight:500;
+  color:var(--text2);cursor:pointer;text-align:left;
+  transition:background .12s,color .12s;
+  position:relative;
+}
+.navDropItem:hover{background:rgba(255,255,255,.06);color:var(--text)}
+.navDropItem.on{
+  background:var(--pdim);color:var(--p);font-weight:600;
+}
+.navDropItem.on::before{
+  content:'';position:absolute;left:0;top:50%;transform:translateY(-50%);
+  width:3px;height:60%;background:var(--p);border-radius:0 3px 3px 0;
+}
+
+/* ── Drop item icon ── */
+.navDropIcon{
+  width:28px;height:28px;border-radius:8px;
+  display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;font-size:13px;
+  background:var(--card2);
+  transition:background .12s;
+}
+.navDropItem:hover .navDropIcon{background:var(--card3)}
+.navDropItem.on .navDropIcon{background:var(--pdim2)}
+
+/* ── Drop item text ── */
+.navDropLabel{font-size:12px;font-weight:500;line-height:1.1}
+.navDropSub{font-size:10px;color:var(--muted);margin-top:1px;font-weight:400}
+
+/* ── Drop section divider ── */
+.navDropDivider{height:1px;background:var(--border);margin:4px 0}
+
+/* ── Group color variants ── */
+.navGroup[data-group="planning"] .navGroupBtn.on{color:var(--blue);border-bottom-color:var(--blue);background:rgba(91,149,255,.1)}
+.navGroup[data-group="planning"] .navGroupBtn.on::after{background:linear-gradient(90deg,transparent,var(--blue),transparent)}
+.navGroup[data-group="planning"] .navActiveSub{background:rgba(91,149,255,.15);color:var(--blue)}
+.navGroup[data-group="planning"] .navDropItem.on{background:rgba(91,149,255,.1);color:var(--blue)}
+.navGroup[data-group="planning"] .navDropItem.on::before{background:var(--blue)}
+
+.navGroup[data-group="health"] .navGroupBtn.on{color:var(--green);border-bottom-color:var(--green);background:rgba(15,221,170,.08)}
+.navGroup[data-group="health"] .navGroupBtn.on::after{background:linear-gradient(90deg,transparent,var(--green),transparent)}
+.navGroup[data-group="health"] .navActiveSub{background:rgba(15,221,170,.12);color:var(--green)}
+.navGroup[data-group="health"] .navDropItem.on{background:rgba(15,221,170,.08);color:var(--green)}
+.navGroup[data-group="health"] .navDropItem.on::before{background:var(--green)}
+
+.navGroup[data-group="finance"] .navGroupBtn.on{color:var(--gold);border-bottom-color:var(--gold);background:rgba(240,171,48,.08)}
+.navGroup[data-group="finance"] .navGroupBtn.on::after{background:linear-gradient(90deg,transparent,var(--gold),transparent)}
+.navGroup[data-group="finance"] .navActiveSub{background:rgba(240,171,48,.12);color:var(--gold)}
+.navGroup[data-group="finance"] .navDropItem.on{background:rgba(240,171,48,.08);color:var(--gold)}
+.navGroup[data-group="finance"] .navDropItem.on::before{background:var(--gold)}
+
+.navGroup[data-group="progress"] .navGroupBtn.on{color:var(--purple);border-bottom-color:var(--purple);background:rgba(168,124,248,.08)}
+.navGroup[data-group="progress"] .navGroupBtn.on::after{background:linear-gradient(90deg,transparent,var(--purple),transparent)}
+.navGroup[data-group="progress"] .navActiveSub{background:rgba(168,124,248,.12);color:var(--purple)}
+.navGroup[data-group="progress"] .navDropItem.on{background:rgba(168,124,248,.08);color:var(--purple)}
+.navGroup[data-group="progress"] .navDropItem.on::before{background:var(--purple)}
+
+/* ── Light mode overrides ── */
+body.light-mode .navGroupBtn:hover{background:rgba(107,89,232,.05);color:var(--text)}
+body.light-mode .navGroupBtn.on{background:var(--pdim)}
+body.light-mode .navGroupBtn.group-open{background:rgba(107,89,232,.04)}
+body.light-mode .navDropdown{background:#fff;border-color:rgba(60,70,120,.12);box-shadow:0 4px 20px rgba(30,40,90,.12),0 1px 4px rgba(30,40,90,.07)}
+body.light-mode .navDropItem:hover{background:rgba(107,89,232,.05);color:var(--text)}
+body.light-mode .navDropItem.on{background:var(--pdim);color:var(--p)}
+body.light-mode .navDropIcon{background:var(--card2)}
+body.light-mode .navDropItem:hover .navDropIcon{background:var(--card3)}
+
+/* ── New Mobile Bottom Nav ── */
+#mobileNav{
+  position:fixed;bottom:0;left:0;right:0;z-index:600;
+  background:rgba(5,6,14,.97);
+  backdrop-filter:blur(32px) saturate(160%);
+  border-top:1px solid rgba(155,143,245,.12);
+  padding:6px 0 max(8px,env(safe-area-inset-bottom));
+  box-shadow:0 -4px 24px rgba(0,0,0,.5);
+}
+.mNavItems{display:flex;justify-content:space-around;align-items:stretch}
+.mNavBtn{
+  display:flex;flex-direction:column;align-items:center;gap:3px;
+  padding:5px 8px;cursor:pointer;border:none;background:none;
+  color:var(--muted);transition:color var(--dur) var(--ease);flex:1;min-width:0;
+  position:relative;
+}
+.mNavBtn.on{color:var(--p)}
+.mNavBtn.on .mNavDot{opacity:1;transform:scale(1)}
+.mNavDot{
+  position:absolute;top:3px;width:4px;height:4px;border-radius:50%;
+  background:var(--p);opacity:0;transform:scale(0);
+  transition:all .2s var(--ease-spring);
+}
+.mNavBtn svg{width:20px;height:20px;stroke-width:1.6;flex-shrink:0;transition:transform .2s var(--ease-spring)}
+.mNavBtn.on svg{transform:scale(1.1)}
+.mNavBtn span{font-size:9px;font-family:var(--font-body);font-weight:600;letter-spacing:.01em;line-height:1;white-space:nowrap}
+
+/* Mob group popup */
+#mobGroupPicker{
+  position:fixed;bottom:0;left:0;right:0;z-index:700;
+  background:var(--card);
+  border-radius:22px 22px 0 0;
+  border-top:1px solid var(--border2);
+  padding:14px 16px max(24px,env(safe-area-inset-bottom));
+  box-shadow:0 -8px 40px rgba(0,0,0,.55);
+  transform:translateY(100%);
+  transition:transform .28s var(--ease);
+}
+#mobGroupPicker.open{transform:translateY(0)}
+#mobGroupPickerOverlay{
+  position:fixed;inset:0;z-index:690;
+  background:rgba(0,0,0,.5);
+  backdrop-filter:blur(4px);
+  opacity:0;pointer-events:none;
+  transition:opacity .25s;
+}
+#mobGroupPickerOverlay.open{opacity:1;pointer-events:all}
+.mgpHandle{width:36px;height:3px;background:var(--border3);border-radius:2px;margin:0 auto 14px}
+.mgpTitle{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:1.5px;color:var(--muted);margin-bottom:10px}
+.mgpGrid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.mgpItem{
+  display:flex;align-items:center;gap:10px;
+  padding:12px 12px;border-radius:12px;
+  background:var(--card2);border:1px solid var(--border);
+  cursor:pointer;transition:all .15s;
+}
+.mgpItem:hover{border-color:var(--border2);background:var(--card3)}
+.mgpItem.on{border-color:var(--p);background:var(--pdim)}
+.mgpItemIcon{font-size:18px;flex-shrink:0}
+.mgpItemLabel{font-family:var(--font-body);font-size:12px;font-weight:600;color:var(--text)}
+.mgpItemSub{font-size:10px;color:var(--muted);margin-top:1px}
+
+/* ── Light mode mobile nav ── */
+body.light-mode #mobileNav{background:rgba(250,251,255,.97);border-top:1px solid rgba(60,70,120,.1);box-shadow:0 -2px 16px rgba(30,40,90,.07)}
+body.light-mode .mNavBtn{color:var(--muted)}
+body.light-mode .mNavBtn.on{color:var(--p)}
+body.light-mode #mobGroupPicker{background:#fff}
+
+/* ═══════════════════════════════════════════════════
+   STAGE-2 UI SYSTEM
+   Unified subTabs · PaneHead · Grid · EmptyState · Skeleton
+═══════════════════════════════════════════════════ */
+
+/* ── UNIFIED SUB-TABS ─────────────────────────────
+   Usage: <div class="subTabs subTabs--gold">
+            <button class="subTab on">...</button>
+          </div>
+   Modifiers: --violet(default) --gold --cyan --green --blue --pink
+──────────────────────────────────────────────────── */
+.subTabs{
+  display:flex;gap:2px;
+  border-bottom:1px solid var(--border);
+  margin-bottom:16px;
+  overflow-x:auto;-webkit-overflow-scrolling:touch;
+  scrollbar-width:none;-ms-overflow-style:none;
+  padding-bottom:0;
+}
+.subTabs::-webkit-scrollbar{display:none;height:0}
+
+.subTab{
+  padding:8px 15px 10px;
+  border:none;background:none;
+  font-family:var(--font-body);font-size:11.5px;font-weight:600;
+  color:var(--muted);cursor:pointer;
+  border-bottom:2px solid transparent;margin-bottom:-1px;
+  white-space:nowrap;flex-shrink:0;
+  border-radius:6px 6px 0 0;
+  transition:color .14s,background .14s,border-color .14s;
+  position:relative;
+  display:flex;align-items:center;gap:5px;
+}
+.subTab:hover{color:var(--text2);background:rgba(255,255,255,.04)}
+/* Active colour variants */
+.subTabs--violet .subTab.on{color:var(--p);border-bottom-color:var(--p)}
+.subTabs--gold .subTab.on{color:var(--gold);border-bottom-color:var(--gold)}
+.subTabs--cyan .subTab.on{color:var(--cyan);border-bottom-color:var(--cyan)}
+.subTabs--green .subTab.on{color:var(--green);border-bottom-color:var(--green)}
+.subTabs--blue .subTab.on{color:var(--blue);border-bottom-color:var(--blue)}
+.subTabs--pink .subTab.on{color:var(--pink);border-bottom-color:var(--pink)}
+/* Count badge inside sub-tab */
+.subTabBadge{
+  display:inline-flex;align-items:center;justify-content:center;
+  min-width:16px;height:16px;padding:0 4px;
+  border-radius:8px;font-size:9px;font-weight:800;
+  background:var(--card3);color:var(--muted);
+  transition:background .14s,color .14s;
+}
+.subTab.on .subTabBadge{background:currentColor;color:var(--bg)}
+
+/* Light mode */
+body.light-mode .subTab:hover{background:rgba(107,89,232,.04)}
+
+/* ── PANE HEADER ──────────────────────────────────
+   Usage:
+   <header class="paneHead">
+     <div class="paneHeadLeft">
+       <div class="paneBreadcrumb">...</div>
+       <div class="paneHeadRow">
+         <div class="paneHeadIcon">SVG</div>
+         <div>
+           <h1 class="paneTitle">Title</h1>
+           <p class="paneSubtitle">Subtitle</p>
+         </div>
+       </div>
+     </div>
+     <div class="paneHeadActions">buttons</div>
+   </header>
+──────────────────────────────────────────────────── */
+.paneHead{
+  display:flex;align-items:flex-end;justify-content:space-between;
+  gap:12px;margin-bottom:20px;flex-wrap:wrap;
+}
+.paneHeadLeft{display:flex;flex-direction:column;gap:4px;min-width:0}
+.paneHeadRow{display:flex;align-items:center;gap:10px}
+.paneHeadIcon{
+  width:36px;height:36px;border-radius:10px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:18px;flex-shrink:0;
+  background:var(--card2);border:1px solid var(--border2);
+  box-shadow:var(--shadow);
+}
+.paneTitle{
+  font-family:var(--font-display);font-size:22px;font-weight:800;
+  letter-spacing:-.5px;color:var(--text);line-height:1.1;
+}
+.paneSubtitle{font-size:12px;color:var(--text2);margin-top:2px;letter-spacing:-.01em}
+.paneHeadActions{display:flex;align-items:center;gap:6px;flex-wrap:wrap;flex-shrink:0}
+
+/* Breadcrumb */
+.paneBreadcrumb{
+  display:flex;align-items:center;gap:5px;
+  font-size:10px;font-weight:600;color:var(--muted);
+  letter-spacing:.02em;
+}
+.paneBreadcrumb span{cursor:pointer;transition:color .12s}
+.paneBreadcrumb span:hover{color:var(--text2)}
+.paneBreadcrumb svg{width:10px;height:10px;flex-shrink:0;opacity:.5}
+.paneBreadcrumb .pbc-active{color:var(--text2);cursor:default}
+
+/* ── GRID SYSTEM ──────────────────────────────────
+   Usage: <div class="g2"> … cards … </div>
+──────────────────────────────────────────────────── */
+.g1{display:grid;grid-template-columns:1fr;gap:12px}
+.g2{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+.g3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.g4{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.g-auto{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px}
+.g-auto-sm{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px}
+/* column spans */
+.gc2{grid-column:span 2}
+.gc3{grid-column:span 3}
+.gc4{grid-column:span 4}
+.gc-full{grid-column:1/-1}
+
+@media(max-width:900px){.g4{grid-template-columns:repeat(2,1fr)}.g3{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:600px){
+  .g2,.g3,.g4{grid-template-columns:1fr}
+  .g-auto{grid-template-columns:1fr}
+  .gc2,.gc3,.gc4,.gc-full{grid-column:unset}
+}
+
+/* ── EMPTY STATE COMPONENT ───────────────────────
+   Usage: <div class="emptyState"> … </div>
+   or JS: el.innerHTML = renderEmptyState({...})
+──────────────────────────────────────────────────── */
+.emptyState{
+  display:flex;flex-direction:column;align-items:center;
+  justify-content:center;text-align:center;
+  padding:48px 24px;
+  border-radius:var(--r);
+  border:1.5px dashed var(--border2);
+  background:linear-gradient(135deg,var(--card) 0%,var(--card2) 100%);
+  gap:12px;
+  animation:paneIn .3s var(--ease) both;
+}
+.emptyStateIcon{
+  width:56px;height:56px;border-radius:16px;
+  background:var(--card2);border:1px solid var(--border2);
+  display:flex;align-items:center;justify-content:center;
+  font-size:26px;
+  box-shadow:var(--shadow);
+  margin-bottom:4px;
+}
+.emptyStateTitle{
+  font-family:var(--font-display);font-size:16px;font-weight:700;
+  color:var(--text);letter-spacing:-.2px;
+}
+.emptyStateSub{font-size:12px;color:var(--muted);max-width:260px;line-height:1.55}
+.emptyStateAction{margin-top:4px}
+
+/* ── SKELETON LOADER ─────────────────────────────
+   Usage: <div class="skel" style="width:80%;height:14px"></div>
+   Card:  <div class="skelCard">...</div>
+──────────────────────────────────────────────────── */
+@keyframes skelShimmer{
+  0%{background-position:200% center}
+  100%{background-position:-200% center}
+}
+.skel{
+  border-radius:6px;
+  background:linear-gradient(
+    90deg,
+    var(--card2) 25%,
+    var(--card3) 50%,
+    var(--card2) 75%
+  );
+  background-size:400% 100%;
+  animation:skelShimmer 1.6s ease infinite;
+  display:block;
+}
+.skelCard{
+  background:var(--card);border:1px solid var(--border);
+  border-radius:var(--r);padding:16px;
+  display:flex;flex-direction:column;gap:10px;
+  overflow:hidden;
+}
+.skelLine{height:12px;border-radius:4px}
+.skelLineH{height:20px;border-radius:6px}
+.skelCircle{border-radius:50%;flex-shrink:0}
+
+/* ── Divider label ── */
+.divLbl{
+  font-size:9px;font-weight:800;text-transform:uppercase;
+  letter-spacing:1.6px;color:var(--muted);
+  display:flex;align-items:center;gap:10px;
+  margin:18px 0 12px;
+}
+.divLbl::after{content:'';flex:1;height:1px;background:linear-gradient(90deg,var(--border),transparent)}
+
+/* Mobile responsive for stage-2 */
+@media(max-width:700px){
+  .paneHead{margin-bottom:14px;gap:8px}
+  .paneTitle{font-size:18px}
+  .paneSubtitle{font-size:11px}
+  .paneHeadIcon{width:30px;height:30px;font-size:15px}
+  .subTab{padding:7px 11px 9px;font-size:10.5px;scroll-snap-align:start}
+  .subTabs{scroll-snap-type:x proximity}
+  .emptyState{padding:32px 16px;gap:10px}
+  .emptyStateIcon{width:46px;height:46px;font-size:22px}
+  .emptyStateTitle{font-size:14px}
+  .emptyStateSub{font-size:11px}
+}
+body.light-mode .emptyState{background:linear-gradient(135deg,#fff,var(--card2));border-color:var(--border2)}
+body.light-mode .skelCard{background:#fff}
+body.light-mode .skel{background:linear-gradient(90deg,var(--card2) 25%,#f0f2f7 50%,var(--card2) 75%);background-size:400% 100%}
+
+/* ── CSS Containment — Stage 3 perf ── */
+.pane{contain:layout style;will-change:auto}
+.pane.on{contain:none} /* active pane must paint freely */
+
 /* ────────── APP LOADER ────────── */
 #appLoader{position:fixed;inset:0;z-index:9999;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;transition:opacity .3s,visibility .3s}
 #appLoader.hidden{opacity:0;visibility:hidden;pointer-events:none}
@@ -2105,14 +2556,12 @@ select.inp option{background:var(--card2);color:var(--text)}
   .dashScoreCard #dashScoreBreak{flex-direction:row!important;flex-wrap:wrap!important;gap:8px!important;font-size:10px!important}
   .dashScoreCard .scoreRing{flex-shrink:0}
 
-  /* ── Sub-tabs — smooth scroll ── */
-  .rwSubTabs,.gymSubTabs,[id^="tab-"] > div:first-child{
-    overflow-x:auto;-webkit-overflow-scrolling:touch;
-    padding-bottom:1px;scroll-snap-type:x proximity;
-    scrollbar-width:none;-ms-overflow-style:none;
+  /* ── Sub-tabs — smooth scroll (unified .subTabs) ── */
+  .subTabs,.rwSubTabs,.gymSubTabs{
+    scroll-snap-type:x proximity;
+    padding-bottom:1px;
   }
-  .rwSubTabs::-webkit-scrollbar,.gymSubTabs::-webkit-scrollbar,[id^="tab-"] > div:first-child::-webkit-scrollbar{display:none;height:0}
-  .rwSubTab,.gymSubTab{padding:7px 11px 9px;font-size:10.5px;scroll-snap-align:start;flex-shrink:0}
+  .subTab,.rwSubTab,.gymSubTab{padding:7px 11px 9px;font-size:10.5px;scroll-snap-align:start}
 
   /* ── Cards global ── */
   .card{border-radius:14px}
@@ -2234,69 +2683,7 @@ select.inp option{background:var(--card2);color:var(--text)}
   .rbGrid{grid-template-columns:1fr 1fr;gap:8px}
   .rwPts{font-size:36px}
 
-  /* ── Rewards & Gym sub-tabs: pill style on mobile ── */
-  .rwSubTabs{
-    display:flex;
-    gap:6px;
-    padding:4px 0 10px;
-    margin-bottom:10px;
-    border-bottom:1px solid var(--border);
-    overflow-x:auto;
-    -webkit-overflow-scrolling:touch;
-    scrollbar-width:none;
-  }
-  .rwSubTabs::-webkit-scrollbar{display:none}
-  .rwSubTab{
-    flex-shrink:0;
-    padding:6px 14px;
-    border-radius:20px;
-    border:1.5px solid var(--border2)!important;
-    background:var(--card2)!important;
-    font-size:11px;font-weight:700;
-    color:var(--text2)!important;
-    cursor:pointer;
-    border-bottom:1.5px solid var(--border2)!important;
-    margin-bottom:0!important;
-    transition:all .15s;
-    white-space:nowrap;
-  }
-  .rwSubTab.on{
-    background:rgba(240,171,48,.12)!important;
-    border-color:var(--gold)!important;
-    color:var(--gold)!important;
-  }
-  .gymSubTabs{
-    display:flex;
-    gap:6px;
-    padding:4px 0 10px;
-    margin-bottom:10px;
-    border-bottom:1px solid var(--border);
-    overflow-x:auto;
-    -webkit-overflow-scrolling:touch;
-    scrollbar-width:none;
-  }
-  .gymSubTabs::-webkit-scrollbar{display:none}
-  .gymSubTab{
-    flex-shrink:0;
-    padding:6px 14px;
-    border-radius:20px;
-    border:1.5px solid var(--border2)!important;
-    background:var(--card2)!important;
-    font-size:11px;font-weight:700;
-    color:var(--text2)!important;
-    cursor:pointer;
-    border-bottom:1.5px solid var(--border2)!important;
-    margin-bottom:0!important;
-    transition:all .15s;
-    white-space:nowrap;
-  }
-  .gymSubTab.on{
-    background:rgba(34,204,232,.1)!important;
-    border-color:var(--cyan)!important;
-    color:var(--cyan)!important;
-  }
-
-  /* ── Weekly grid override: override the flex already set ── */
+  /* ── Weekly grid override ── */
   .wGrid{display:flex!important;grid-template-columns:unset!important}
 
   /* ── Finance transactions ── */
@@ -2441,25 +2828,101 @@ select.inp option{background:var(--card2);color:var(--text)}
   <div class="hInner">
     <!-- Desktop -->
     <div class="hDesktop">
-      <a class="hLogo" href="#" onclick="event.preventDefault();switchTab('dash',document.querySelector('.hTab'))">
+      <a class="hLogo" href="#dash" onclick="event.preventDefault();navigateTo('dash')">
         <div class="hLogoMark">✦</div>
         <div class="hLogoText">PlannerPro</div>
       </a>
       <div class="hSep"></div>
-      <div class="hTabsWrap">
-        <div class="hTabs" id="hTabs">
-          <button class="hTab on" onclick="switchTab('dash',this)" title="Клавиша 1">Дашборд</button>
-          <button class="hTab" onclick="switchTab('weekly',this)" title="Клавиша 2">Неделя</button>
-          <button class="hTab" onclick="switchTab('habits',this)" title="Клавиша 3">Привычки</button>
-          <button class="hTab" onclick="switchTab('tasks',this)" title="Клавиша 4">Задачи</button>
-          <button class="hTab" onclick="switchTab('calendar',this)" title="Клавиша 5">Календарь</button>
-          <button class="hTab" onclick="switchTab('kanban',this)" title="Клавиша 6">Канбан</button>
-          <button class="hTab" onclick="switchTab('finance',this)" title="Клавиша 7">Финансы</button>
-          <button class="hTab" onclick="switchTab('goals',this)" title="Клавиша 8">Цели</button>
-          <button class="hTab" onclick="switchTab('rewards',this)" title="Клавиша 9">Награды</button>
-          <button class="hTab" onclick="switchTab('gym',this)" title="Клавиша 0">Тренировки</button>
-          <button class="hTab" onclick="switchTab('analytics',this)">📊 Аналитика</button>
-        </div>
+      <!-- ══ GROUPED NAV — Stage 1 ══ -->
+      <div class="hNavWrap">
+        <nav class="hNav" id="hNav" role="tablist" aria-label="Навигация PlannerPro">
+
+          <!-- 1. Дашборд -->
+          <div class="navGroup" data-group="dash">
+            <button class="navGroupBtn on" data-tab="dash" role="tab" aria-selected="true" aria-controls="tab-dash" title="Дашборд [1]">
+              <svg class="navGroupIcon" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="2" y="2" width="7" height="7" rx="1.5"/><rect x="11" y="2" width="7" height="7" rx="1.5"/><rect x="2" y="11" width="7" height="7" rx="1.5"/><rect x="11" y="11" width="7" height="7" rx="1.5"/></svg>
+              Дашборд
+            </button>
+          </div>
+
+          <!-- 2. Планирование -->
+          <div class="navGroup" data-group="planning">
+            <button class="navGroupBtn" role="tab" aria-haspopup="true" aria-expanded="false" aria-controls="navDrop-planning" title="Планирование [2]">
+              <svg class="navGroupIcon" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="2" width="14" height="16" rx="2"/><path d="M7 6h6M7 10h6M7 14h4" stroke-linecap="round"/></svg>
+              Планирование
+              <svg class="navChevron" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="m5 7 5 5 5-5"/></svg>
+            </button>
+            <div class="navDropdown" id="navDrop-planning" role="menu" aria-label="Планирование">
+              <button class="navDropItem" data-tab="tasks" role="menuitem">
+                <div class="navDropIcon">✅</div>
+                <div><div class="navDropLabel">Задачи</div><div class="navDropSub">Список и Канбан</div></div>
+              </button>
+              <button class="navDropItem" data-tab="weekly" role="menuitem">
+                <div class="navDropIcon">📅</div>
+                <div><div class="navDropLabel">Неделя</div><div class="navDropSub">Еженедельный план</div></div>
+              </button>
+              <button class="navDropItem" data-tab="calendar" role="menuitem">
+                <div class="navDropIcon">📆</div>
+                <div><div class="navDropLabel">Календарь</div><div class="navDropSub">Ежемесячный вид</div></div>
+              </button>
+              <button class="navDropItem" data-tab="kanban" role="menuitem">
+                <div class="navDropIcon">🗂</div>
+                <div><div class="navDropLabel">Канбан</div><div class="navDropSub">Доски и колонки</div></div>
+              </button>
+            </div>
+          </div>
+
+          <!-- 3. Здоровье -->
+          <div class="navGroup" data-group="health">
+            <button class="navGroupBtn" role="tab" aria-haspopup="true" aria-expanded="false" aria-controls="navDrop-health" title="Здоровье [3]">
+              <svg class="navGroupIcon" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M10 17C5 13 2 10.5 2 7.5a4 4 0 018 0 4 4 0 018 0C18 10.5 15 13 10 17z"/></svg>
+              Здоровье
+              <svg class="navChevron" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="m5 7 5 5 5-5"/></svg>
+            </button>
+            <div class="navDropdown" id="navDrop-health" role="menu" aria-label="Здоровье">
+              <button class="navDropItem" data-tab="habits" role="menuitem">
+                <div class="navDropIcon">🔥</div>
+                <div><div class="navDropLabel">Привычки</div><div class="navDropSub">Трекер и стрики</div></div>
+              </button>
+              <button class="navDropItem" data-tab="gym" role="menuitem">
+                <div class="navDropIcon">💪</div>
+                <div><div class="navDropLabel">Тренировки</div><div class="navDropSub">Зал, вес, сон</div></div>
+              </button>
+            </div>
+          </div>
+
+          <!-- 4. Финансы -->
+          <div class="navGroup" data-group="finance">
+            <button class="navGroupBtn" data-tab="finance" role="tab" aria-selected="false" aria-controls="tab-finance" title="Финансы [4]">
+              <svg class="navGroupIcon" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="2" y="5" width="16" height="11" rx="2"/><path d="M2 9h16"/><circle cx="6" cy="13" r="1" fill="currentColor" stroke="none"/><path d="M10 13h4" stroke-linecap="round"/></svg>
+              Финансы
+            </button>
+          </div>
+
+          <!-- 5. Прогресс -->
+          <div class="navGroup" data-group="progress">
+            <button class="navGroupBtn" role="tab" aria-haspopup="true" aria-expanded="false" aria-controls="navDrop-progress" title="Прогресс [5]">
+              <svg class="navGroupIcon" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M2 14l5-5 4 3 7-8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              Прогресс
+              <svg class="navChevron" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="m5 7 5 5 5-5"/></svg>
+            </button>
+            <div class="navDropdown" id="navDrop-progress" role="menu" aria-label="Прогресс">
+              <button class="navDropItem" data-tab="goals" role="menuitem">
+                <div class="navDropIcon">🌱</div>
+                <div><div class="navDropLabel">Цели</div><div class="navDropSub">Рост и миссия</div></div>
+              </button>
+              <button class="navDropItem" data-tab="rewards" role="menuitem">
+                <div class="navDropIcon">🏆</div>
+                <div><div class="navDropLabel">Награды</div><div class="navDropSub">Очки и достижения</div></div>
+              </button>
+              <button class="navDropItem" data-tab="analytics" role="menuitem">
+                <div class="navDropIcon">📊</div>
+                <div><div class="navDropLabel">Аналитика</div><div class="navDropSub">Отчёты и графики</div></div>
+              </button>
+            </div>
+          </div>
+
+        </nav>
       </div>
       <!-- Right controls -->
       <div style="display:flex;align-items:center;gap:8px;padding-bottom:4px;flex-shrink:0">
@@ -2495,46 +2958,43 @@ select.inp option{background:var(--card2);color:var(--text)}
   </div>
 </div><!-- /hdr -->
 
-<!-- Mobile Bottom Nav -->
+<!-- ══ Mobile Bottom Nav — 5 groups, no drawer ══ -->
 <div id="mobileNav" style="display:none">
   <div class="mNavItems">
-    <button class="mNavBtn on" onclick="switchTabMob('dash',this)">
+    <button class="mNavBtn on" data-mob="dash">
+      <div class="mNavDot"></div>
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
       <span>Дашборд</span>
     </button>
-    <button class="mNavBtn" onclick="switchTabMob('tasks',this)">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
-      <span>Задачи</span>
+    <button class="mNavBtn" data-mob-group="planning">
+      <div class="mNavDot"></div>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="4" y="2" width="16" height="20" rx="2"/><path d="M9 7h6M9 12h6M9 17h4" stroke-linecap="round"/></svg>
+      <span>Планы</span>
     </button>
-    <button class="mNavBtn" onclick="switchTabMob('habits',this)">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3" stroke-linecap="round"/></svg>
-      <span>Привычки</span>
+    <button class="mNavBtn" data-mob-group="health">
+      <div class="mNavDot"></div>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 21C7 16.5 3 13.5 3 9a5 5 0 019 0 5 5 0 019 0c0 4.5-4 7.5-9 12z"/></svg>
+      <span>Здоровье</span>
     </button>
-    <button class="mNavBtn" onclick="switchTabMob('finance',this)">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/><circle cx="7" cy="15" r="1" fill="currentColor"/><path d="M11 15h6"/></svg>
+    <button class="mNavBtn" data-mob="finance">
+      <div class="mNavDot"></div>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/><circle cx="7" cy="15" r="1" fill="currentColor" stroke="none"/><path d="M11 15h6" stroke-linecap="round"/></svg>
       <span>Финансы</span>
     </button>
-    <button class="mNavBtn" onclick="moreMenu()">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="5" cy="12" r="1.5" fill="currentColor"/><circle cx="12" cy="12" r="1.5" fill="currentColor"/><circle cx="19" cy="12" r="1.5" fill="currentColor"/></svg>
-      <span>Ещё</span>
+    <button class="mNavBtn" data-mob-group="progress">
+      <div class="mNavDot"></div>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M3 17l5-6 4 3.5 9-10" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <span>Прогресс</span>
     </button>
   </div>
 </div>
 
-<!-- More menu (mobile) — bottom sheet -->
-<div id="moreMenuOverlay" style="display:none;position:fixed;inset:0;z-index:700;background:rgba(0,0,0,.6);backdrop-filter:blur(4px)" onclick="closeMoreMenu()">
-  <div style="position:absolute;bottom:0;left:0;right:0;background:var(--card);border-radius:24px 24px 0 0;padding:12px 16px max(20px,env(safe-area-inset-bottom));border-top:1px solid var(--border2);box-shadow:0 -8px 40px rgba(0,0,0,.5)" onclick="event.stopPropagation()">
-    <div style="width:32px;height:3px;background:var(--border3);border-radius:2px;margin:0 auto 18px"></div>
-    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px">
-      <button class="mMoreBtn" onclick="switchTabMob('weekly',null);closeMoreMenu()">📅<br>Неделя</button>
-      <button class="mMoreBtn" onclick="switchTabMob('calendar',null);closeMoreMenu()">📆<br>Календарь</button>
-      <button class="mMoreBtn" onclick="switchTabMob('kanban',null);closeMoreMenu()">🗂<br>Канбан</button>
-      <button class="mMoreBtn" onclick="switchTabMob('goals',null);closeMoreMenu()">🌱<br>Цели</button>
-      <button class="mMoreBtn" onclick="switchTabMob('rewards',null);closeMoreMenu()">🏆<br>Награды</button>
-      <button class="mMoreBtn" onclick="switchTabMob('gym',null);closeMoreMenu()">💪<br>Тренировки</button>
-      <button class="mMoreBtn" onclick="switchTabMob('analytics',null);closeMoreMenu()">📊<br>Аналитика</button>
-    </div>
-  </div>
+<!-- Mobile Group Picker overlay -->
+<div id="mobGroupPickerOverlay" onclick="closeMobGroupPicker()"></div>
+<div id="mobGroupPicker">
+  <div class="mgpHandle"></div>
+  <div class="mgpTitle" id="mgpTitle">Выбери раздел</div>
+  <div class="mgpGrid" id="mgpGrid"></div>
 </div>
 
 <!-- ═══ 0. DASHBOARD ═══ -->
@@ -2573,13 +3033,13 @@ select.inp option{background:var(--card2);color:var(--text)}
     <div class="dashFocusTitle" id="dashGreetBig">Что сделаем сегодня?</div>
     <div class="dashFocusSub" id="dashFocusSub">Загружаем твой план...</div>
     <div class="dashFocusActions">
-      <button class="btn btnB" style="font-size:11.5px" onclick="switchTab('tasks',document.querySelector('.hTab:nth-child(4)'))">
+      <button class="btn btnB" style="font-size:11.5px" onclick="navigateTo('tasks')">
         📋 Задачи дня
       </button>
-      <button class="btn btnG" style="font-size:11.5px" onclick="switchTab('habits',document.querySelector('.hTab:nth-child(3)'))">
+      <button class="btn btnG" style="font-size:11.5px" onclick="navigateTo('habits')">
         ✅ Привычки
       </button>
-      <button class="btn btnG" style="font-size:11.5px" onclick="switchTab('gym',document.querySelector('.hTab:nth-child(10)'))">
+      <button class="btn btnG" style="font-size:11.5px" onclick="navigateTo('gym')">
         💪 Тренировка
       </button>
     </div>
@@ -2793,31 +3253,67 @@ select.inp option{background:var(--card2);color:var(--text)}
 
 <!-- ═══ 1. WEEKLY PLANNER ═══ -->
 <div id="tab-weekly" class="pane hInner">
-  <div class="wNav">
-    <button class="btn btnG" onclick="wkNav(-1)">◀ Назад</button>
-    <span class="wNavLbl" id="wNavLbl"></span>
-    <button class="btn btnG" onclick="wkNav(1)">Вперёд ▶</button>
-    <button class="btn btnO" onclick="wkToday()">Сегодня</button>
-  </div>
+  <header class="paneHead">
+    <div class="paneHeadLeft">
+      <nav class="paneBreadcrumb">
+        <span onclick="navigateTo('dash')">PlannerPro</span>
+        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="m7 10 3 3 3-3"/><path d="m7 6 3 3 3-3"/></svg>
+        <span onclick="navigateTo('weekly')" class="pbc-active">Планирование</span>
+        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="m7 10 3 3 3-3"/><path d="m7 6 3 3 3-3"/></svg>
+        <span class="pbc-active">Неделя</span>
+      </nav>
+      <div class="paneHeadRow">
+        <div class="paneHeadIcon" style="background:rgba(91,149,255,.12);border-color:rgba(91,149,255,.25)">📅</div>
+        <div>
+          <h1 class="paneTitle">Недельный план</h1>
+          <p class="paneSubtitle">Фокус, задачи и заметки по дням</p>
+        </div>
+      </div>
+    </div>
+    <div class="paneHeadActions">
+      <button class="btn btnG" onclick="wkNav(-1)">◀</button>
+      <span class="wNavLbl" id="wNavLbl" style="font-size:12px;font-weight:600;color:var(--text2);white-space:nowrap"></span>
+      <button class="btn btnG" onclick="wkNav(1)">▶</button>
+      <button class="btn btnO" onclick="wkToday()">Сегодня</button>
+    </div>
+  </header>
   <div class="wGrid" id="wGrid"></div>
 </div>
 
 <!-- ═══ 2. HABIT TRACKER ═══ -->
 <div id="tab-habits" class="pane hInner">
-  <div class="htHeader">
-    <div class="htMonthNav">
-      <button class="btn btnG" onclick="htNav(-1)">◀</button>
-      <div class="htMonthName" id="htMonthName"></div>
-      <button class="btn btnG" onclick="htNav(1)">▶</button>
-    </div>
-    <div class="htSummary">
-      <div class="htStat"><div class="htStatL">Привычек</div><div class="htStatV" id="htCntV">0</div></div>
-      <div class="htStat"><div class="htStatL">Выполнено</div><div class="htStatV" id="htDoneV">0</div></div>
-      <div class="htProgWrap">
-        <div class="htStatL">Прогресс</div>
-        <div class="htProgBar"><div class="htProgFill" id="htProgFill" style="width:0%"></div></div>
-        <div style="display:flex;justify-content:flex-end"><span class="htProgPct" id="htProgPct">0%</span></div>
+  <header class="paneHead">
+    <div class="paneHeadLeft">
+      <nav class="paneBreadcrumb">
+        <span onclick="navigateTo('dash')">PlannerPro</span>
+        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="m7 10 3 3 3-3"/><path d="m7 6 3 3 3-3"/></svg>
+        <span class="pbc-active">Здоровье</span>
+        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="m7 10 3 3 3-3"/><path d="m7 6 3 3 3-3"/></svg>
+        <span class="pbc-active">Привычки</span>
+      </nav>
+      <div class="paneHeadRow">
+        <div class="paneHeadIcon" style="background:rgba(15,221,170,.1);border-color:rgba(15,221,170,.25)">🔥</div>
+        <div>
+          <h1 class="paneTitle">Трекер привычек</h1>
+          <p class="paneSubtitle">Ежедневный контроль · Стрики · Прогресс</p>
+        </div>
       </div>
+    </div>
+    <div class="paneHeadActions">
+      <button class="btn btnG" onclick="htNav(-1)">◀</button>
+      <div class="htMonthName" id="htMonthName" style="font-size:12px;font-weight:600;color:var(--text2)"></div>
+      <button class="btn btnG" onclick="htNav(1)">▶</button>
+      <button class="btn btnE" onclick="addHabit()">+ Привычка</button>
+    </div>
+  </header>
+  <!-- Stats strip -->
+  <div class="htSummary" style="margin-bottom:14px">
+    <div class="htStat"><div class="htStatL">Привычек</div><div class="htStatV" id="htCntV">0</div></div>
+    <div class="htStat"><div class="htStatL">Выполнено</div><div class="htStatV" id="htDoneV">0</div></div>
+    <div class="htProgWrap">
+      <div class="htStatL">Прогресс</div>
+      <div class="htProgBar"><div class="htProgFill" id="htProgFill" style="width:0%"></div></div>
+      <div style="display:flex;justify-content:flex-end"><span class="htProgPct" id="htProgPct">0%</span></div>
     </div>
   </div>
   <div class="htTblWrap"><table class="htTbl" id="htTbl"></table><button class="htAddBtn" onclick="addHabit()">+ Добавить привычку</button></div>
@@ -2829,7 +3325,28 @@ select.inp option{background:var(--card2);color:var(--text)}
 
 <!-- ═══ 3. TASK PLANNER ═══ -->
 <div id="tab-tasks" class="pane hInner">
-  <!-- Top bar: stats + filters -->
+  <header class="paneHead">
+    <div class="paneHeadLeft">
+      <nav class="paneBreadcrumb">
+        <span onclick="navigateTo('dash')">PlannerPro</span>
+        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="m7 10 3 3 3-3"/><path d="m7 6 3 3 3-3"/></svg>
+        <span class="pbc-active">Планирование</span>
+        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="m7 10 3 3 3-3"/><path d="m7 6 3 3 3-3"/></svg>
+        <span class="pbc-active">Задачи</span>
+      </nav>
+      <div class="paneHeadRow">
+        <div class="paneHeadIcon" style="background:rgba(91,149,255,.12);border-color:rgba(91,149,255,.25)">✅</div>
+        <div>
+          <h1 class="paneTitle">Задачи</h1>
+          <p class="paneSubtitle">Список, фильтры, приоритеты</p>
+        </div>
+      </div>
+    </div>
+    <div class="paneHeadActions">
+      <button class="btn btnG" style="font-size:10px;padding:5px 10px" onclick="openLabelsModal()">⚙ Метки</button>
+      <button id="tpToggleDone" class="btn btnG" style="font-size:10px;padding:5px 10px" onclick="tpToggleDone()">🙈 Готовые</button>
+    </div>
+  </header>
   <div class="card" style="padding:12px 14px;margin-bottom:12px">
     <!-- Stats strip -->
     <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:10px">
@@ -2945,6 +3462,25 @@ select.inp option{background:var(--card2);color:var(--text)}
 
 <!-- ═══ 5. KANBAN ═══ -->
 <div id="tab-kanban" class="pane hInner">
+  <header class="paneHead">
+    <div class="paneHeadLeft">
+      <nav class="paneBreadcrumb">
+        <span onclick="navigateTo('dash')">PlannerPro</span>
+        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="m7 10 3 3 3-3"/><path d="m7 6 3 3 3-3"/></svg>
+        <span class="pbc-active">Планирование</span>
+        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="m7 10 3 3 3-3"/><path d="m7 6 3 3 3-3"/></svg>
+        <span class="pbc-active">Канбан</span>
+      </nav>
+      <div class="paneHeadRow">
+        <div class="paneHeadIcon" style="background:rgba(155,143,245,.12);border-color:rgba(155,143,245,.25)">🗂</div>
+        <div>
+          <h1 class="paneTitle">Канбан</h1>
+          <p class="paneSubtitle">Доски · Колонки · Карточки</p>
+        </div>
+      </div>
+    </div>
+    <div class="paneHeadActions" id="kbBoardBarWrap"></div>
+  </header>
   <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;flex-wrap:wrap;gap:8px">
     <div class="kbBoardBar" id="kbBoardBar">
       <span style="font-family:var(--font-display);font-size:20px;font-style:normal;font-weight:700;letter-spacing:-.4px;color:var(--purple)">Канбан</span>
@@ -2958,6 +3494,25 @@ select.inp option{background:var(--card2);color:var(--text)}
 
 <!-- ═══ 6. FINANCE ═══ -->
 <div id="tab-finance" class="pane hInner">
+  <header class="paneHead">
+    <div class="paneHeadLeft">
+      <nav class="paneBreadcrumb">
+        <span onclick="navigateTo('dash')">PlannerPro</span>
+        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="m7 10 3 3 3-3"/><path d="m7 6 3 3 3-3"/></svg>
+        <span class="pbc-active">Финансы</span>
+      </nav>
+      <div class="paneHeadRow">
+        <div class="paneHeadIcon" style="background:rgba(240,171,48,.1);border-color:rgba(240,171,48,.25)">💰</div>
+        <div>
+          <h1 class="paneTitle">Финансы</h1>
+          <p class="paneSubtitle">Доходы, расходы, бюджеты, счета</p>
+        </div>
+      </div>
+    </div>
+    <div class="paneHeadActions" id="finHeadActions">
+      <button class="btn btnE" onclick="openFinModal()">+ Транзакция</button>
+    </div>
+  </header>
   <div class="finMonNav">
     <button class="btn btnG" onclick="finNav(-1)" style="padding:7px 12px;font-size:14px">◀</button>
     <div class="finMonName" id="finMonName"></div>
@@ -3031,13 +3586,34 @@ select.inp option{background:var(--card2);color:var(--text)}
 
 <!-- ═══ 7. GOALS & GROWTH ═══ -->
 <div id="tab-goals" class="pane hInner">
-  <!-- Sub-tabs -->
-  <div style="display:flex;gap:4px;border-bottom:1px solid var(--border);margin-bottom:16px;overflow-x:auto">
-    <button class="rwSubTab on" onclick="goalSubTab('goals',this)">🌱 Цели</button>
-    <button class="rwSubTab" onclick="goalSubTab('principles',this)">⚡ Принципы</button>
-    <button class="rwSubTab" onclick="goalSubTab('kaizen',this)">🧠 Кайдзен</button>
-    <button class="rwSubTab" onclick="goalSubTab('diary',this)">📓 Дневник</button>
-    <button class="rwSubTab" onclick="goalSubTab('sleep',this)">🌙 Трекер сна</button>
+  <header class="paneHead">
+    <div class="paneHeadLeft">
+      <nav class="paneBreadcrumb">
+        <span onclick="navigateTo('dash')">PlannerPro</span>
+        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="m7 10 3 3 3-3"/><path d="m7 6 3 3 3-3"/></svg>
+        <span class="pbc-active">Прогресс</span>
+        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="m7 10 3 3 3-3"/><path d="m7 6 3 3 3-3"/></svg>
+        <span class="pbc-active">Цели</span>
+      </nav>
+      <div class="paneHeadRow">
+        <div class="paneHeadIcon" style="background:rgba(15,221,170,.1);border-color:rgba(15,221,170,.25)">🌱</div>
+        <div>
+          <h1 class="paneTitle">Цели и рост</h1>
+          <p class="paneSubtitle">Миссия · Принципы · Кайдзен · Дневник · Сон</p>
+        </div>
+      </div>
+    </div>
+    <div class="paneHeadActions" id="goalsHeadActions">
+      <button class="btn btnE" onclick="openGoalModal(null)">+ Цель</button>
+    </div>
+  </header>
+  <!-- Sub-tabs — unified -->
+  <div class="subTabs subTabs--green">
+    <button class="subTab on" onclick="goalSubTab('goals',this)">🌱 Цели</button>
+    <button class="subTab" onclick="goalSubTab('principles',this)">⚡ Принципы</button>
+    <button class="subTab" onclick="goalSubTab('kaizen',this)">🧠 Кайдзен</button>
+    <button class="subTab" onclick="goalSubTab('diary',this)">📓 Дневник</button>
+    <button class="subTab" onclick="goalSubTab('sleep',this)">🌙 Трекер сна</button>
   </div>
 
   <!-- GOALS tab -->
@@ -3148,30 +3724,42 @@ select.inp option{background:var(--card2);color:var(--text)}
 
 <!-- ═══ 8. REWARDS SYSTEM ═══ -->
 <div id="tab-rewards" class="pane hInner">
-  <!-- Top bar -->
-  <div class="rwTopBar">
-    <div>
-      <div class="rwPtsLabel">Доступно баллов</div>
-      <div class="rwPts" id="rw-pts">0</div>
+  <header class="paneHead">
+    <div class="paneHeadLeft">
+      <nav class="paneBreadcrumb">
+        <span onclick="navigateTo('dash')">PlannerPro</span>
+        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="m7 10 3 3 3-3"/><path d="m7 6 3 3 3-3"/></svg>
+        <span class="pbc-active">Прогресс</span>
+        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="m7 10 3 3 3-3"/><path d="m7 6 3 3 3-3"/></svg>
+        <span class="pbc-active">Награды</span>
+      </nav>
+      <div class="paneHeadRow">
+        <div class="paneHeadIcon" style="background:rgba(240,171,48,.1);border-color:rgba(240,171,48,.25)">🏆</div>
+        <div>
+          <h1 class="paneTitle">Система наград</h1>
+          <p class="paneSubtitle">Баллы · Стрик · Магазин · История</p>
+        </div>
+      </div>
     </div>
-    <div style="display:flex;flex-direction:column;gap:6px;margin-left:auto;align-items:flex-end">
-      <div class="rwStreak">🔥 <span id="rw-streak">0 дней</span></div>
-      <div class="rwMultBadge" id="rw-mult" style="display:none"></div>
-      <div class="rwDebtBadge" id="rw-debt" style="display:none"></div>
+    <div class="paneHeadActions">
+      <div class="rwTopBarCompact">
+        <div><span class="rwPtsLabel" style="font-size:9px">Баллов</span><div class="rwPts" id="rw-pts" style="font-size:22px;line-height:1">0</div></div>
+        <div class="rwStreak" style="font-size:12px">🔥 <span id="rw-streak">0 дней</span></div>
+      </div>
     </div>
-  </div>
+  </header>
   <!-- Progress -->
   <div class="rwProgWrap">
     <div class="rwProgRow"><span>Обязательные сегодня</span><span id="rw-mand-txt">0 / 5</span></div>
     <div class="rwProgTrack"><div class="rwProgFill" id="rw-mand-bar" style="width:0%"></div></div>
   </div>
-  <!-- Sub-tabs -->
-  <div class="rwSubTabs">
-    <button class="rwSubTab on" onclick="rwTab('today',this)">Сегодня</button>
-    <button class="rwSubTab" onclick="rwTab('shop',this)">Магазин</button>
-    <button class="rwSubTab" onclick="rwTab('stats',this)">Статистика</button>
-    <button class="rwSubTab" onclick="rwTab('history',this)">История</button>
-    <button class="rwSubTab" onclick="rwTab('edit',this)">✏️ Изменить</button>
+  <!-- Sub-tabs — unified -->
+  <div class="subTabs subTabs--gold">
+    <button class="subTab on" onclick="rwTab('today',this)">Сегодня</button>
+    <button class="subTab" onclick="rwTab('shop',this)">Магазин</button>
+    <button class="subTab" onclick="rwTab('stats',this)">Статистика</button>
+    <button class="subTab" onclick="rwTab('history',this)">История</button>
+    <button class="subTab" onclick="rwTab('edit',this)">✏️ Изменить</button>
   </div>
   <!-- TODAY -->
   <div class="rwPane on" id="rwp-today">
@@ -3239,6 +3827,27 @@ select.inp option{background:var(--card2);color:var(--text)}
 
 <!-- ═══ 9. GYM / WORKOUT SYSTEM ═══ -->
 <div id="tab-gym" class="pane hInner">
+  <header class="paneHead">
+    <div class="paneHeadLeft">
+      <nav class="paneBreadcrumb">
+        <span onclick="navigateTo('dash')">PlannerPro</span>
+        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="m7 10 3 3 3-3"/><path d="m7 6 3 3 3-3"/></svg>
+        <span class="pbc-active">Здоровье</span>
+        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="m7 10 3 3 3-3"/><path d="m7 6 3 3 3-3"/></svg>
+        <span class="pbc-active">Тренировки</span>
+      </nav>
+      <div class="paneHeadRow">
+        <div class="paneHeadIcon" style="background:rgba(34,204,232,.1);border-color:rgba(34,204,232,.25)">💪</div>
+        <div>
+          <h1 class="paneTitle">Тренировки</h1>
+          <p class="paneSubtitle">Программы · Сессии · История · Прогресс · Вес</p>
+        </div>
+      </div>
+    </div>
+    <div class="paneHeadActions">
+      <button class="btn btnB" onclick="gymOpenProgModal(null)">+ Программа</button>
+    </div>
+  </header>
   <!-- Active session banner -->
   <div id="gym-active-banner" style="display:none" class="gymActiveBanner" onclick="gymSubTabGo('session')">
     <div class="gymActivePulse"></div>
@@ -3253,14 +3862,14 @@ select.inp option{background:var(--card2);color:var(--text)}
     <div class="gymStatCard"><div class="gymStatV" style="color:var(--gold)" id="gym-stat-vol">0</div><div class="gymStatL">Объём (кг) всего</div></div>
     <div class="gymStatCard"><div class="gymStatV" style="color:var(--green)" id="gym-stat-streak">0</div><div class="gymStatL">Стрик (нед)</div></div>
   </div>
-  <!-- Sub-tabs -->
-  <div class="gymSubTabs">
-    <button class="gymSubTab on" onclick="gymSubTab('programs',this)">📋 Программы</button>
-    <button class="gymSubTab" onclick="gymSubTab('session',this)" id="gym-st-session">💪 Тренировка</button>
-    <button class="gymSubTab" onclick="gymSubTab('history',this)">🕒 История</button>
-    <button class="gymSubTab" onclick="gymSubTab('progress',this)">📈 Прогресс</button>
-    <button class="gymSubTab" onclick="gymSubTab('weight',this)">⚖️ Вес</button>
-    <button class="gymSubTab" onclick="gymSubTab('library',this)">📚 Библиотека</button>
+  <!-- Sub-tabs — unified -->
+  <div class="subTabs subTabs--cyan">
+    <button class="subTab on" onclick="gymSubTab('programs',this)">📋 Программы</button>
+    <button class="subTab" onclick="gymSubTab('session',this)" id="gym-st-session">💪 Тренировка</button>
+    <button class="subTab" onclick="gymSubTab('history',this)">🕒 История</button>
+    <button class="subTab" onclick="gymSubTab('progress',this)">📈 Прогресс</button>
+    <button class="subTab" onclick="gymSubTab('weight',this)">⚖️ Вес</button>
+    <button class="subTab" onclick="gymSubTab('library',this)">📚 Библиотека</button>
   </div>
 
   <!-- PROGRAMS -->
@@ -3357,6 +3966,25 @@ select.inp option{background:var(--card2);color:var(--text)}
 
 <!-- ═══ 10. ANALYTICS ═══ -->
 <div id="tab-analytics" class="pane hInner">
+  <header class="paneHead">
+    <div class="paneHeadLeft">
+      <nav class="paneBreadcrumb">
+        <span onclick="navigateTo('dash')">PlannerPro</span>
+        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="m7 10 3 3 3-3"/><path d="m7 6 3 3 3-3"/></svg>
+        <span class="pbc-active">Прогресс</span>
+        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="m7 10 3 3 3-3"/><path d="m7 6 3 3 3-3"/></svg>
+        <span class="pbc-active">Аналитика</span>
+      </nav>
+      <div class="paneHeadRow">
+        <div class="paneHeadIcon" style="background:rgba(168,124,248,.1);border-color:rgba(168,124,248,.25)">📊</div>
+        <div>
+          <h1 class="paneTitle">Аналитика</h1>
+          <p class="paneSubtitle">Отчёты · Графики · Инсайты по всем разделам</p>
+        </div>
+      </div>
+    </div>
+    <div class="paneHeadActions"></div>
+  </header>
   <div id="analytics-content"></div>
 </div>
 
@@ -4128,10 +4756,254 @@ select.inp option{background:var(--card2);color:var(--text)}
 </div>
 
 <script>
-'use strict';
-/* ─────────────────────────
-   DATA LAYER — Firebase Firestore
-───────────────────────── */
+/* ═══════════════════════════════════════════════════
+   STAGE-3 PERFORMANCE & ARCHITECTURE
+   Store · Debounce · Virtual List · Lazy Tabs · Idle Render
+═══════════════════════════════════════════════════ */
+
+/* ── Reactive mini-store ──────────────────────────
+   const store = createStore({ tasks:[], ui:{} })
+   store.set('tasks', [...])
+   store.get('tasks')
+   store.subscribe('tasks', callback)
+──────────────────────────────────────────────────── */
+function createStore(initial={}){
+  const _state=structuredClone(initial);
+  const _subs={};
+  return{
+    get(key){return _state[key]},
+    set(key,val){
+      _state[key]=val;
+      (_subs[key]||[]).forEach(fn=>{try{fn(val);}catch(e){console.warn('store subscriber err',e);}});
+    },
+    subscribe(key,fn){
+      if(!_subs[key])_subs[key]=[];
+      _subs[key].push(fn);
+      return()=>{_subs[key]=_subs[key].filter(s=>s!==fn);};
+    },
+    getState(){return _state;}
+  };
+}
+// Global UI store — centralises volatile UI state
+const uiStore = createStore({
+  activeTab:'dash',
+  searchQuery:'',
+  loadedModules:new Set(),
+  skeletonMap:{},
+});
+
+/* ── Debounce & throttle ─────────────────────────── */
+function debounce(fn, ms=300){
+  let t;
+  return function(...a){clearTimeout(t);t=setTimeout(()=>fn.apply(this,a),ms);}
+}
+function throttle(fn, ms=100){
+  let last=0;
+  return function(...a){const now=Date.now();if(now-last>=ms){last=now;fn.apply(this,a);}}
+}
+
+/* ── Virtual list renderer ───────────────────────────
+   Renders only visible rows for huge lists (tasks, sleep log).
+   Usage:
+     const vl = new VirtualList({
+       container: document.querySelector('#taskList'),
+       items: myArray,
+       rowHeight: 64,
+       renderRow: (item) => `<div>...</div>`
+     });
+──────────────────────────────────────────────────── */
+class VirtualList {
+  constructor({container, items=[], rowHeight=64, renderRow, buffer=5}){
+    this.c=container;
+    this.items=items;
+    this.rh=rowHeight;
+    this.render=renderRow;
+    this.buf=buffer;
+    this._scroller=null;
+    this._inner=null;
+    this._raf=null;
+    this._init();
+  }
+  _init(){
+    this.c.style.overflow='auto';
+    this.c.style.position='relative';
+    this._scroller=document.createElement('div');
+    this._scroller.style.cssText='position:relative;width:100%';
+    this._inner=document.createElement('div');
+    this._inner.style.cssText='position:absolute;left:0;right:0';
+    this._scroller.appendChild(this._inner);
+    this.c.appendChild(this._scroller);
+    this.c.addEventListener('scroll',()=>{
+      cancelAnimationFrame(this._raf);
+      this._raf=requestAnimationFrame(()=>this._paint());
+    },{passive:true});
+    this._paint();
+  }
+  _paint(){
+    const total=this.items.length;
+    this._scroller.style.height=total*this.rh+'px';
+    const scrollTop=this.c.scrollTop;
+    const viewH=this.c.clientHeight;
+    const start=Math.max(0,Math.floor(scrollTop/this.rh)-this.buf);
+    const end=Math.min(total,Math.ceil((scrollTop+viewH)/this.rh)+this.buf);
+    this._inner.style.top=start*this.rh+'px';
+    const html=this.items.slice(start,end).map(this.render).join('');
+    safeHTML(this._inner, html);
+  }
+  update(items){
+    this.items=items;
+    cancelAnimationFrame(this._raf);
+    this._raf=requestAnimationFrame(()=>this._paint());
+  }
+  destroy(){
+    if(this._scroller)this.c.removeChild(this._scroller);
+  }
+}
+
+/* ── Lazy tab loader ─────────────────────────────────
+   Tab render functions are still defined globally (single-file
+   constraint), but we only CALL them when the tab is first opened,
+   and skip re-renders if data hasn't changed.
+──────────────────────────────────────────────────── */
+const _tabRenderCache={};  // tabName → last G snapshot hash
+
+function _hashG(){
+  // Fast shallow hash of G to detect data changes
+  try{return JSON.stringify(G).length+'|'+Object.keys(G).join(',');}
+  catch{return Date.now()+''}
+}
+
+function lazyRender(tabName, renderFn){
+  const hash=_hashG();
+  if(_tabRenderCache[tabName]===hash){return;} // data unchanged — skip
+  _tabRenderCache[tabName]=hash;
+  if(typeof renderFn==='function') renderFn();
+}
+
+function invalidateTabCache(tabName){
+  // Call after any data mutation to force re-render on next visit
+  if(tabName){delete _tabRenderCache[tabName];}
+  else{Object.keys(_tabRenderCache).forEach(k=>delete _tabRenderCache[k]);}
+}
+
+/* ── requestIdleCallback polyfill + idle render ──────
+   Heavy renders (analytics) run during browser idle time.
+──────────────────────────────────────────────────── */
+const ric = window.requestIdleCallback
+  || ((cb)=>setTimeout(()=>cb({timeRemaining:()=>16, didTimeout:false}),1));
+
+function renderWhenIdle(fn, label=''){
+  ric((idle)=>{
+    if(idle.timeRemaining()>5 || idle.didTimeout){
+      try{fn();}catch(e){console.warn('idleRender err',label,e);}
+    } else {
+      // Not enough time this frame — try next
+      ric(()=>{try{fn();}catch(e){console.warn('idleRender retry err',label,e);}});
+    }
+  },{timeout:2000});
+}
+
+/* ── Batched Firestore writes ────────────────────────
+   Collect multiple sub-document writes and flush in one batch.
+   Usage: batchWrite([{ path:'users/uid', data:{...} }])
+──────────────────────────────────────────────────── */
+async function batchWrite(ops=[]){
+  if(!currentUser||!ops.length)return;
+  const batch=db.batch();
+  ops.forEach(({path,data,merge=false})=>{
+    const ref=db.doc(path);
+    merge?batch.set(ref,data,{merge:true}):batch.set(ref,data);
+  });
+  try{
+    await batch.commit();
+    setSyncDot('ok');
+  }catch(e){
+    console.warn('batchWrite err',e);
+    setSyncDot('error');
+  }
+}
+
+/* ── Visibility-aware subscription manager ───────────
+   Automatically unsubscribes listeners when tab goes to background
+   and re-subscribes when it comes back.
+──────────────────────────────────────────────────── */
+const _listeners={};
+function managedSubscribe(key, subscribeFn){
+  // Unsubscribe existing listener for this key
+  if(_listeners[key]){try{_listeners[key]();}catch{} delete _listeners[key];}
+  const unsub=subscribeFn();
+  if(typeof unsub==='function')_listeners[key]=unsub;
+}
+function unsubscribeAll(){
+  Object.entries(_listeners).forEach(([k,fn])=>{
+    try{fn();}catch{}
+    delete _listeners[k];
+  });
+}
+
+/* ── Performance: search with debounce ──────────────
+   Drop-in replacement: attach to any search input.
+   el = input element, onResults(query) = your render fn
+──────────────────────────────────────────────────── */
+function attachSearchDebounce(el, onResults){
+  if(!el)return;
+  el.addEventListener('input', debounce(()=>onResults(el.value.trim()), 280));
+}
+
+/* ── Object.assign-based safe data getter ───────────
+   Prevents crashes from missing/null sub-objects in G.
+──────────────────────────────────────────────────── */
+function gGet(path, fallback=[]){
+  try{
+    return path.split('.').reduce((o,k)=>o?.[k], G) ?? fallback;
+  }catch{return fallback;}
+}
+
+/* Stage-3 patches to existing functions */
+
+// Patch navigateTo to invalidate tab cache
+const _origNavigateTo=navigateTo;
+navigateTo=function(tabName){
+  _origNavigateTo(tabName);
+  uiStore.set('activeTab',tabName);
+};
+
+// Patch saveD to also invalidate render cache
+const _origSaveD=saveD;
+saveD=function(){
+  invalidateTabCache(); // data changed — all tabs must re-render
+  _origSaveD();
+};
+
+// Patch renderAnalytics to use idle callback
+const _origRenderAnalytics=typeof renderAnalytics!=='undefined'?renderAnalytics:null;
+if(_origRenderAnalytics){
+  renderAnalytics=function(){
+    renderWhenIdle(_origRenderAnalytics,'analytics');
+  };
+}
+
+// Patch unsubscribeAll on logout
+const _origSignOut=auth.signOut.bind(auth);
+auth.signOut=function(){
+  unsubscribeAll();
+  return _origSignOut();
+};
+
+// Attach debounced search to task search input (if present)
+document.addEventListener('DOMContentLoaded',()=>{
+  const tSearch=document.getElementById('tSearchInp');
+  if(tSearch){
+    // replace existing oninput with debounced version
+    tSearch.oninput=null;
+    attachSearchDebounce(tSearch, (q)=>{
+      if(typeof filterTasks==='function') filterTasks(q);
+      else if(typeof renderTP==='function') renderTP();
+    });
+  }
+});
+
+
 const SKEY='planner_v5';
 let G={};
 let _saveTimer=null;
@@ -4453,9 +5325,37 @@ function initApp(){
   // Migrate old tasks (ensure they have IDs)
   if(G.tasks)G.tasks=G.tasks.map(t=>t.id?t:{...t,id:uid()});
   kbMigrate();
+  invalidateTabCache(); // fresh data — force all tabs to re-render
   renderDash();
   initMobileNav();
 }
+
+/* ═══════════════════════════════════════════════════
+   STAGE-3 MODULE ARCHITECTURE MAP
+   (Single-file version — for future split reference)
+   ─────────────────────────────────────────────────
+   index.html          ← shell <200 lines (current: single file)
+   
+   FUTURE SPLIT:
+   /css/tokens.css     ← :root vars (lines 50-290)
+   /css/base.css       ← reset, typography (lines 291-400)
+   /css/components.css ← btn, card, input, modal (lines 401-700)
+   /css/layout.css     ← nav, pane, grid (lines 701-900)
+   /css/stage1.css     ← grouped nav (injected)
+   /css/stage2.css     ← subTabs, paneHead, grid, emptyState (injected)
+   /css/stage3.css     ← containment, skeleton tweaks (injected)
+   
+   /js/utils.js        ← uid, esc, fmt*, debounce, throttle
+   /js/store.js        ← createStore, uiStore
+   /js/virtual-list.js ← VirtualList class
+   /js/firebase.js     ← db, auth, saveD, subscribeCloud
+   /js/router.js       ← navigateTo, routerInit, dropdown setup
+   /js/modules/
+     dash.js, weekly.js, habits.js, tasks.js,
+     calendar.js, kanban.js, finance.js,
+     goals.js, rewards.js, gym.js, analytics.js
+═══════════════════════════════════════════════════ */
+
 
 /* ─────────────────────────
    HELPERS
@@ -4494,17 +5394,287 @@ function updateThemeBtn(){
 /* ─────────────────────────
    TABS
 ───────────────────────── */
-function switchTab(name,btn){
-  document.querySelectorAll('.pane').forEach(e=>e.classList.remove('on'));
-  document.querySelectorAll('.hTab').forEach(e=>e.classList.remove('on'));
-  const pane=document.getElementById('tab-'+name);
-  pane.classList.add('on');
-  if(btn)btn.classList.add('on');
-  // Scroll to top on tab switch
+/* ═══════════════════════════════════════════════════
+   STAGE-1 ROUTER  — Grouped nav · Hash routing · ARIA
+═══════════════════════════════════════════════════ */
+
+// Map every tab-id to its nav group
+const TAB_GROUP={
+  dash:'dash',
+  tasks:'planning',weekly:'planning',calendar:'planning',kanban:'planning',
+  habits:'health',gym:'health',
+  finance:'finance',
+  goals:'progress',rewards:'progress',analytics:'progress'
+};
+
+// Label shown in mobile group picker per sub-tab
+const MOB_GROUPS={
+  planning:{
+    title:'Планирование',
+    items:[
+      {tab:'tasks',   icon:'✅', label:'Задачи',    sub:'Список и Канбан'},
+      {tab:'weekly',  icon:'📅', label:'Неделя',    sub:'Еженедельный план'},
+      {tab:'calendar',icon:'📆', label:'Календарь', sub:'Ежемесячный вид'},
+      {tab:'kanban',  icon:'🗂', label:'Канбан',    sub:'Доски и колонки'},
+    ]
+  },
+  health:{
+    title:'Здоровье',
+    items:[
+      {tab:'habits',icon:'🔥', label:'Привычки',   sub:'Трекер и стрики'},
+      {tab:'gym',   icon:'💪', label:'Тренировки', sub:'Зал, вес, сон'},
+    ]
+  },
+  progress:{
+    title:'Прогресс',
+    items:[
+      {tab:'goals',    icon:'🌱', label:'Цели',      sub:'Рост и миссия'},
+      {tab:'rewards',  icon:'🏆', label:'Награды',   sub:'Очки и достижения'},
+      {tab:'analytics',icon:'📊', label:'Аналитика', sub:'Отчёты и графики'},
+    ]
+  }
+};
+
+/* ── Core navigate ── */
+function navigateTo(tabName){
+  if(!tabName||!document.getElementById('tab-'+tabName))return;
+
+  // Hide all panes
+  document.querySelectorAll('.pane').forEach(p=>p.classList.remove('on'));
+  document.getElementById('tab-'+tabName).classList.add('on');
+
+  // Update URL hash silently
+  history.replaceState(null,'','#'+tabName);
+
+  // ── Desktop nav ──
+  const group=TAB_GROUP[tabName]||'dash';
+  document.querySelectorAll('.navGroup').forEach(g=>{
+    const grp=g.dataset.group;
+    const btn=g.querySelector('.navGroupBtn');
+    const drop=g.querySelector('.navDropdown');
+    g.classList.remove('open');
+    btn&&btn.classList.remove('on','group-open');
+    btn&&btn.setAttribute('aria-expanded','false');
+
+    if(grp===group){
+      btn&&btn.classList.add('on');
+      btn&&btn.setAttribute('aria-selected','true');
+      // Update active-sub pill if group has dropdown
+      const existingPill=btn&&btn.querySelector('.navActiveSub');
+      if(existingPill)existingPill.remove();
+      if(drop){
+        // Mark the active drop item
+        drop.querySelectorAll('.navDropItem').forEach(it=>{
+          it.classList.toggle('on',it.dataset.tab===tabName);
+        });
+        // Show active-sub pill inside button
+        const activeItem=drop.querySelector('.navDropItem.on');
+        if(activeItem&&btn){
+          const lbl=activeItem.querySelector('.navDropLabel');
+          if(lbl){
+            const pill=document.createElement('span');
+            pill.className='navActiveSub';
+            pill.textContent=lbl.textContent;
+            // insert before chevron
+            const chev=btn.querySelector('.navChevron');
+            chev?btn.insertBefore(pill,chev):btn.appendChild(pill);
+          }
+        }
+      }
+    } else {
+      btn&&btn.setAttribute('aria-selected','false');
+    }
+  });
+
+  // ── Mobile nav ──
+  document.querySelectorAll('.mNavBtn').forEach(b=>{
+    b.classList.remove('on');
+    const directTab=b.dataset.mob;
+    const grpKey=b.dataset.mobGroup;
+    if(directTab===tabName){b.classList.add('on');return;}
+    if(grpKey&&MOB_GROUPS[grpKey]){
+      const found=MOB_GROUPS[grpKey].items.some(i=>i.tab===tabName);
+      if(found)b.classList.add('on');
+    }
+  });
+
+  // ── Run render ──
+  const renders={dash:renderDash,weekly:renderWP,habits:renderHT,tasks:renderTP,
+    routine:renderRoutine,calendar:renderCal,kanban:renderKanban,finance:renderFin,
+    goals:renderGrowth,rewards:rwRender,gym:gymRender,analytics:renderAnalytics};
+  if(renders[tabName])renders[tabName]();
+
   window.scrollTo({top:0,behavior:'instant'});
-  const renders={dash:renderDash,weekly:renderWP,habits:renderHT,tasks:renderTP,routine:renderRoutine,calendar:renderCal,kanban:renderKanban,finance:renderFin,goals:renderGrowth,rewards:rwRender,gym:gymRender,analytics:renderAnalytics};
-  if(renders[name])renders[name]();
+  closeMobGroupPicker();
 }
+
+/* ── Hash-based boot ── */
+function routerInit(){
+  const hash=(location.hash||'#dash').replace('#','');
+  navigateTo(document.getElementById('tab-'+hash)?hash:'dash');
+}
+window.addEventListener('popstate',()=>routerInit());
+
+/* ════ Desktop dropdown logic ════ */
+function setupGroupDropdowns(){
+  document.querySelectorAll('.navGroup').forEach(group=>{
+    const btn=group.querySelector('.navGroupBtn');
+    const drop=group.querySelector('.navDropdown');
+    if(!drop)return; // direct tabs (dash, finance) have no dropdown
+
+    btn.addEventListener('click',e=>{
+      e.stopPropagation();
+      const isOpen=group.classList.contains('open');
+      closeAllDropdowns();
+      if(!isOpen){
+        group.classList.add('open');
+        btn.classList.add('group-open');
+        btn.setAttribute('aria-expanded','true');
+      }
+    });
+
+    // Keyboard: arrow keys, Escape
+    btn.addEventListener('keydown',e=>{
+      if(e.key==='ArrowDown'||e.key==='Enter'||e.key===' '){
+        e.preventDefault();
+        group.classList.add('open');
+        btn.setAttribute('aria-expanded','true');
+        const first=drop.querySelector('.navDropItem');
+        first&&first.focus();
+      }
+      if(e.key==='Escape')closeAllDropdowns();
+    });
+
+    drop.querySelectorAll('.navDropItem').forEach((item,idx,items)=>{
+      item.addEventListener('click',()=>navigateTo(item.dataset.tab));
+      item.addEventListener('keydown',e=>{
+        if(e.key==='ArrowDown'){e.preventDefault();items[idx+1]&&items[idx+1].focus();}
+        if(e.key==='ArrowUp'){e.preventDefault();(idx>0?items[idx-1]:btn).focus();}
+        if(e.key==='Escape'){closeAllDropdowns();btn.focus();}
+        if(e.key==='Enter'||e.key===' '){e.preventDefault();navigateTo(item.dataset.tab);}
+      });
+    });
+  });
+
+  // Direct-tab buttons (no dropdown)
+  document.querySelectorAll('.navGroupBtn[data-tab]').forEach(btn=>{
+    btn.addEventListener('click',()=>navigateTo(btn.dataset.tab));
+  });
+
+  // Close on outside click
+  document.addEventListener('click',()=>closeAllDropdowns());
+}
+
+function closeAllDropdowns(){
+  document.querySelectorAll('.navGroup.open').forEach(g=>{
+    g.classList.remove('open');
+    const btn=g.querySelector('.navGroupBtn');
+    btn&&btn.classList.remove('group-open');
+    btn&&btn.setAttribute('aria-expanded','false');
+  });
+}
+
+/* ════ Mobile group picker ════ */
+function openMobGroupPicker(groupKey){
+  const data=MOB_GROUPS[groupKey];if(!data)return;
+  document.getElementById('mgpTitle').textContent=data.title;
+  document.getElementById('mgpGrid').innerHTML=data.items.map(it=>`
+    <button class="mgpItem${document.getElementById('tab-'+it.tab)?.classList.contains('on')?' on':''}"
+      onclick="navigateTo('${it.tab}')">
+      <div class="mgpItemIcon">${it.icon}</div>
+      <div>
+        <div class="mgpItemLabel">${it.label}</div>
+        <div class="mgpItemSub">${it.sub}</div>
+      </div>
+    </button>`).join('');
+  document.getElementById('mobGroupPicker').classList.add('open');
+  document.getElementById('mobGroupPickerOverlay').classList.add('open');
+}
+function closeMobGroupPicker(){
+  document.getElementById('mobGroupPicker')?.classList.remove('open');
+  document.getElementById('mobGroupPickerOverlay')?.classList.remove('open');
+}
+
+/* ════ Mobile nav event delegation ════ */
+function setupMobileNav(){
+  document.getElementById('mobileNav')?.addEventListener('click',e=>{
+    const btn=e.target.closest('.mNavBtn');if(!btn)return;
+    const directTab=btn.dataset.mob;
+    const grpKey=btn.dataset.mobGroup;
+    if(directTab)navigateTo(directTab);
+    else if(grpKey)openMobGroupPicker(grpKey);
+  });
+}
+
+/* Keyboard shortcuts 1–5 for groups */
+document.addEventListener('keydown',e=>{
+  if(e.target.tagName==='INPUT'||e.target.tagName==='TEXTAREA'||e.target.isContentEditable)return;
+  if(e.metaKey||e.ctrlKey||e.altKey)return;
+  const map={'1':'dash','2':'tasks','3':'habits','4':'finance','5':'goals'};
+  if(map[e.key])navigateTo(map[e.key]);
+});
+
+// Shim: keep old call sites working
+function switchTab(name){navigateTo(name);}
+function switchTabMob(name){navigateTo(name);}
+function closeMoreMenu(){closeMobGroupPicker();}
+function moreMenu(){} // no-op, replaced by group picker
+
+/* ═══════════════════════════════════════════════════
+   STAGE-2 JS HELPERS
+   renderEmptyState · showSkeleton · paneHeadTitle
+═══════════════════════════════════════════════════ */
+
+/**
+ * Renders an empty state HTML string.
+ * @param {object} cfg
+ *   icon    string  emoji or SVG string
+ *   title   string
+ *   sub     string  subtitle / hint
+ *   action  string  HTML for a button, optional
+ * @returns {string} HTML
+ */
+function renderEmptyState({icon='📭',title='Ничего нет',sub='',action=''}={}){
+  return `<div class="emptyState">
+    <div class="emptyStateIcon">${icon}</div>
+    <div class="emptyStateTitle">${esc(title)}</div>
+    ${sub?`<p class="emptyStateSub">${esc(sub)}</p>`:''}
+    ${action?`<div class="emptyStateAction">${action}</div>`:''}
+  </div>`;
+}
+
+/**
+ * Fills a container with skeleton cards while data loads.
+ * @param {string|Element} selector   CSS selector or DOM element
+ * @param {number}         count      number of skeleton cards
+ */
+function showSkeleton(selector, count=3){
+  const el=typeof selector==='string'?document.querySelector(selector):selector;
+  if(!el)return;
+  el.innerHTML=Array.from({length:count},()=>`
+    <div class="skelCard">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:4px">
+        <div class="skel skelCircle" style="width:32px;height:32px"></div>
+        <div style="flex:1"><div class="skel skelLine" style="width:60%;margin-bottom:6px"></div><div class="skel skelLine" style="width:40%;height:9px"></div></div>
+      </div>
+      <div class="skel skelLine" style="width:100%;margin-bottom:6px"></div>
+      <div class="skel skelLine" style="width:80%;margin-bottom:6px"></div>
+      <div class="skel skelLine" style="width:55%;height:9px"></div>
+    </div>`).join('');
+}
+
+/**
+ * Updates the paneHead action area dynamically.
+ * @param {string} paneId   e.g. 'goals'
+ * @param {string} html     buttons HTML
+ */
+function setPaneActions(paneId, html){
+  const el=document.querySelector(`#tab-${paneId} .paneHeadActions`);
+  if(el)el.innerHTML=html;
+}
+
+
+
 
 /* ═══════════════════════════════════
    1. WEEKLY PLANNER
@@ -10391,21 +11561,21 @@ function anlToggleFilter(id){if(!id)anlSetLabels([]);else anlToggleLbl(id);}
    COMMAND PALETTE — ⌘K
 ═══════════════════════════════════ */
 const CMD_ITEMS=[
-  {icon:'🏠',label:'Дашборд',shortcut:'',action:()=>switchTab('dash',document.querySelector('.hTab'))},
-  {icon:'📅',label:'Недельный планировщик',action:()=>switchTab('weekly',document.querySelectorAll('.hTab')[1])},
-  {icon:'✅',label:'Трекер привычек',action:()=>switchTab('habits',document.querySelectorAll('.hTab')[2])},
-  {icon:'📋',label:'Список задач',shortcut:'',action:()=>switchTab('tasks',document.querySelectorAll('.hTab')[3])},
-  {icon:'📆',label:'Календарь',action:()=>switchTab('calendar',document.querySelectorAll('.hTab')[4])},
-  {icon:'🎯',label:'Канбан доска',action:()=>switchTab('kanban',document.querySelectorAll('.hTab')[5])},
-  {icon:'💰',label:'Финансы',action:()=>switchTab('finance',document.querySelectorAll('.hTab')[6])},
-  {icon:'🌱',label:'Цели и рост',action:()=>switchTab('goals',document.querySelectorAll('.hTab')[7])},
-  {icon:'🏆',label:'Система наград',action:()=>switchTab('rewards',document.querySelectorAll('.hTab')[8])},
-  {icon:'💪',label:'Тренировки',action:()=>switchTab('gym',document.querySelectorAll('.hTab')[9])},
-  {icon:'➕',label:'Добавить задачу',action:()=>{switchTab('tasks',document.querySelectorAll('.hTab')[3]);setTimeout(()=>document.getElementById('tAddInp')?.focus(),200)}},
+  {icon:'🏠',label:'Дашборд',shortcut:'',action:()=>navigateTo('dash')},
+  {icon:'📅',label:'Недельный планировщик',action:()=>navigateTo('weekly')},
+  {icon:'✅',label:'Трекер привычек',action:()=>navigateTo('habits')},
+  {icon:'📋',label:'Список задач',shortcut:'',action:()=>navigateTo('tasks')},
+  {icon:'📆',label:'Календарь',action:()=>navigateTo('calendar')},
+  {icon:'🎯',label:'Канбан доска',action:()=>navigateTo('kanban')},
+  {icon:'💰',label:'Финансы',action:()=>navigateTo('finance')},
+  {icon:'🌱',label:'Цели и рост',action:()=>navigateTo('goals')},
+  {icon:'🏆',label:'Система наград',action:()=>navigateTo('rewards')},
+  {icon:'💪',label:'Тренировки',action:()=>navigateTo('gym')},
+  {icon:'➕',label:'Добавить задачу',action:()=>{navigateTo('tasks');setTimeout(()=>document.getElementById('tAddInp')?.focus(),200)}},
   {icon:'📓',label:'Написать в дневник',action:()=>openJournalModal()},
-  {icon:'🏋️',label:'Начать тренировку',action:()=>{switchTab('gym',document.querySelectorAll('.hTab')[9]);setTimeout(()=>gymSubTabGo('session'),200)}},
-  {icon:'💸',label:'Добавить транзакцию',action:()=>{switchTab('finance',document.querySelectorAll('.hTab')[6]);setTimeout(()=>openFinModal(),200)}},
-  {icon:'🎯',label:'Новая цель',action:()=>{switchTab('goals',document.querySelectorAll('.hTab')[7]);setTimeout(()=>openGoalModal(null),200)}},
+  {icon:'🏋️',label:'Начать тренировку',action:()=>{navigateTo('gym');setTimeout(()=>gymSubTabGo('session'),200)}},
+  {icon:'💸',label:'Добавить транзакцию',action:()=>{navigateTo('finance');setTimeout(()=>openFinModal(),200)}},
+  {icon:'🎯',label:'Новая цель',action:()=>{navigateTo('goals');setTimeout(()=>openGoalModal(null),200)}},
 ];
 let _cmdIdx=0;
 
@@ -10924,31 +12094,14 @@ function isMobile(){return window.innerWidth<=700}
 function initMobileNav(){
   if(isMobile()){
     document.getElementById('mobileNav').style.display='block';
-    // Show today's date
     const el=document.getElementById('hMobileDate');
     if(el){const d=new Date();el.textContent=d.getDate()+' '+['янв','фев','мар','апр','май','июн','июл','авг','сен','окт','ноя','дек'][d.getMonth()]+' · '+['вс','пн','вт','ср','чт','пт','сб'][d.getDay()];}
   }
+  setupGroupDropdowns();
+  setupMobileNav();
+  routerInit();
 }
 
-function switchTabMob(name,btn){
-  // Switch pane
-  document.querySelectorAll('.pane').forEach(e=>e.classList.remove('on'));
-  document.querySelectorAll('.hTab').forEach(e=>e.classList.remove('on'));
-  const pane=document.getElementById('tab-'+name);
-  if(pane)pane.classList.add('on');
-  // Update desktop tabs
-  document.querySelectorAll('.hTab').forEach(b=>{if(b.getAttribute('onclick')&&b.getAttribute('onclick').includes("'"+name+"'"))b.classList.add('on');});
-  // Update mobile nav btns
-  document.querySelectorAll('.mNavBtn').forEach(b=>b.classList.remove('on'));
-  if(btn)btn.classList.add('on');
-  // Render
-  const renders={dash:renderDash,weekly:renderWP,habits:renderHT,tasks:renderTP,routine:renderRoutine,calendar:renderCal,kanban:renderKanban,finance:renderFin,goals:renderGrowth,rewards:rwRender,gym:gymRender,analytics:renderAnalytics};
-  if(renders[name])renders[name]();
-  window.scrollTo(0,0);
-}
-
-function moreMenu(){document.getElementById('moreMenuOverlay').style.display='block';}
-function closeMoreMenu(){document.getElementById('moreMenuOverlay').style.display='none';}
 
 /* ─── SERVICE WORKER (offline support) ─── */
 if('serviceWorker' in navigator){
@@ -11073,8 +12226,7 @@ document.addEventListener('keydown', e => {
     if(idx >= 0 && idx < KB_TAB_ORDER.length) {
       e.preventDefault();
       const tab = KB_TAB_ORDER[idx];
-      const btn = [...document.querySelectorAll('.hTab')].find(b => b.getAttribute('onclick')?.includes("'"+tab+"'"));
-      switchTab(tab, btn);
+      navigateTo(tab);
       showKbHint(e.key + ' → ' + (KB_TAB_NAMES[tab] || tab));
     }
   }
