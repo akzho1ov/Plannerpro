@@ -5180,7 +5180,12 @@ function subscribeCloud(){
     clearTimeout(_connectTimeout); // connected — cancel timeout
 
     // Skip snapshots that are our OWN local writes still pending on server
-    if(snap.metadata.hasPendingWrites){return;}
+    // ── BUG FIX: hasPendingWrites means Firestore has accepted the write locally
+    // but not yet confirmed from server. Set dot to 'syncing', not just skip.
+    if(snap.metadata.hasPendingWrites){
+      setSyncDot('syncing');
+      return;
+    }
 
     setSyncDot('ok');
 
@@ -5262,7 +5267,9 @@ function saveD(){
     try{
       const payload=cleanForFirestoreNoPhotos(G);
       await db.collection('users').doc(currentUser.uid).set(payload);
+      // ── Firestore confirmed write ── show green immediately
       setSyncDot('ok');
+      showSaveStatus('saved','✓ Сохранено');
     }catch(e){
       console.warn('Save error',e);
       setSyncDot('error');
@@ -9665,11 +9672,25 @@ function rwD(){
     rewards:JSON.parse(JSON.stringify(RW_DEFAULT_REWARDS))
   };
   if(!G.rewardSys.qtyToday)G.rewardSys.qtyToday={};
+  if(!Array.isArray(G.rewardSys.completedToday))G.rewardSys.completedToday=[];
+  if(!Array.isArray(G.rewardSys.history))G.rewardSys.history=[];
+  // ── Migration: restore defaults if tasks/rewards got wiped ──
+  if(!G.rewardSys.tasks||!G.rewardSys.tasks.length){
+    G.rewardSys.tasks=JSON.parse(JSON.stringify(RW_DEFAULT_TASKS));
+    console.info('[rwD] tasks were empty — restored defaults');
+  }
+  if(!G.rewardSys.rewards||!G.rewardSys.rewards.length){
+    G.rewardSys.rewards=JSON.parse(JSON.stringify(RW_DEFAULT_REWARDS));
+    console.info('[rwD] rewards were empty — restored defaults');
+  }
   return G.rewardSys;
 }
 
 function rwCheckReset(){
   const d=rwD();const today=dk(t0());
+  // ── BUG FIX: only save when date actually changed ──
+  // Before: always called saveD() → caused infinite save loop → yellow dot forever
+  if(d.lastDate===today)return; // nothing changed, skip
   if(d.lastDate&&d.lastDate!==today){
     const mand=d.tasks.filter(t=>t.type==='ob');
     const mandDone=mand.every(t=>d.completedToday.includes(t.id));
@@ -9679,7 +9700,8 @@ function rwCheckReset(){
     }
     d.completedToday=[];d.qtyToday={};
   }
-  d.lastDate=today;saveD();
+  d.lastDate=today;
+  saveD(); // only called once per day (when date changes)
 }
 
 function rwGetMult(){
