@@ -3829,6 +3829,8 @@ body.light-mode .skel{background:linear-gradient(90deg,var(--card2) 25%,#f0f2f7 
       <div class="rwTopBarCompact">
         <div><span class="rwPtsLabel" style="font-size:9px">Баллов</span><div class="rwPts" id="rw-pts" style="font-size:22px;line-height:1">0</div></div>
         <div class="rwStreak" style="font-size:12px">🔥 <span id="rw-streak">0 дней</span></div>
+        <div id="rw-mult" style="display:none;font-size:10px;font-weight:700;color:var(--green);background:rgba(15,221,170,.12);border:1px solid rgba(15,221,170,.3);border-radius:6px;padding:2px 8px"></div>
+        <div id="rw-debt" style="display:none;font-size:10px;font-weight:700;color:var(--red);background:rgba(248,113,113,.12);border:1px solid rgba(248,113,113,.3);border-radius:6px;padding:2px 8px"></div>
       </div>
     </div>
   </header>
@@ -5255,10 +5257,13 @@ function saveD(){
   try{localStorage.setItem(SKEY+'_cache',JSON.stringify(G));}catch{}
   // 2. Save photos to localStorage separately (keeps Firestore doc tiny)
   savePhotosLocally();
-  // 3. Debounce Firestore write — 500ms (was 1500ms)
+  // 3. Debounce Firestore write — 500ms
   clearTimeout(_saveTimer);
-  setSyncDot('syncing');
+  // ── BUG FIX: setSyncDot('syncing') moved INSIDE the timeout ──
+  // Before: dot went yellow immediately on every saveD() call — even when debounced away.
+  // Now: dot only goes yellow when we actually start a Firestore write.
   _saveTimer=setTimeout(async()=>{
+    setSyncDot('syncing');
     if(!currentUser){setSyncDot('error');return;}
     if(_isSaving){_pendingSave=true;return;}
     _isSaving=true;
@@ -9713,10 +9718,12 @@ function rwGetMult(){
 function rwGetAvail(){const d=rwD();return d.pts-d.debt;}
 
 function rwTab(name,btn){
-  document.querySelectorAll('.rwSubTab').forEach(e=>e.classList.remove('on'));
+  document.querySelectorAll('#tab-rewards .subTab').forEach(e=>e.classList.remove('on'));
   document.querySelectorAll('.rwPane').forEach(e=>e.classList.remove('on'));
   document.getElementById('rwp-'+name).classList.add('on');
   btn.classList.add('on');
+  if(name==='today')rwRenderTasks();
+  if(name==='shop')rwRenderRewards();
   if(name==='stats')rwRenderStats();
   if(name==='history')rwRenderLog();
   if(name==='edit')rwRenderEdit();
