@@ -3271,6 +3271,20 @@ body.light-mode .skel{background:linear-gradient(90deg,var(--card2) 25%,#f0f2f7 
       <div class="dashCardLbl">📆 Ближайшие события</div>
       <div id="dashUpcoming" style="display:flex;flex-direction:column;gap:5px;margin-top:2px"></div>
     </div>
+    <!-- Labels Donut -->
+    <div class="dashCard" style="position:relative">
+      <div class="dashCardLbl">🏷 Задачи по меткам</div>
+      <div style="display:flex;align-items:center;gap:14px;margin-top:6px">
+        <div style="position:relative;flex-shrink:0;width:90px;height:90px">
+          <canvas id="dashLabelDonut" width="90" height="90" style="display:block"></canvas>
+          <div id="dashDonutCenter" style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;pointer-events:none">
+            <div style="font-family:var(--font-display);font-size:20px;font-weight:800;color:var(--text);line-height:1" id="dashDonutTotal">0</div>
+            <div style="font-size:8px;color:var(--muted);font-weight:600;margin-top:2px">задач</div>
+          </div>
+        </div>
+        <div id="dashLabelLegend" style="flex:1;display:flex;flex-direction:column;gap:5px;min-width:0"></div>
+      </div>
+    </div>
   </div>
 
   <!-- Charts row -->
@@ -9427,6 +9441,7 @@ function renderDash(){
   renderDashActivity();
   renderDashRewards();
   renderDashUpcoming();
+  renderDashLabelDonut();
   renderTaskWeekChart();
   requestAnimationFrame(()=>renderStreakHeatmap());
   renderDashSleepWidget();
@@ -9611,6 +9626,94 @@ function renderDashUpcoming(){
         <div style="font-size:11px;color:var(--text2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(it.text)}</div>
         <div style="font-size:9px;color:var(--muted);margin-top:1px">${esc(it.label)}${it.time?' · '+esc(it.time):''}</div>
       </div>
+    </div>`).join('');
+}
+
+function renderDashLabelDonut(){
+  const cv=document.getElementById('dashLabelDonut');
+  const legendEl=document.getElementById('dashLabelLegend');
+  const totalEl=document.getElementById('dashDonutTotal');
+  if(!cv||!legendEl)return;
+
+  const W=90,H=90,cx=45,cy=45,R=38,r=22;
+  const ctx=cv.getContext('2d');
+  ctx.clearRect(0,0,W,H);
+
+  // Collect tasks → count per label
+  const tasks=tpD().filter(t=>!t.done||t.done); // all tasks
+  const labelMap={};
+  const labels=labelsD();
+
+  tasks.forEach(t=>{
+    const tLabels=getTaskLabels(t);
+    if(tLabels.length){
+      tLabels.forEach(l=>{
+        if(!labelMap[l.id])labelMap[l.id]={name:l.name,color:l.color||'#9B8FF5',count:0};
+        labelMap[l.id].count++;
+      });
+    } else {
+      if(!labelMap['__none__'])labelMap['__none__']={name:'Без метки',color:'#3A4070',count:0};
+      labelMap['__none__'].count++;
+    }
+  });
+
+  const segments=Object.values(labelMap).sort((a,b)=>b.count-a.count).slice(0,6);
+  const total=segments.reduce((s,x)=>s+x.count,0);
+  if(totalEl)totalEl.textContent=total;
+
+  if(!total){
+    // Empty state ring
+    ctx.beginPath();
+    ctx.arc(cx,cy,R,0,Math.PI*2);
+    ctx.arc(cx,cy,r,0,Math.PI*2,true);
+    ctx.fillStyle='rgba(255,255,255,.06)';
+    ctx.fill('evenodd');
+    legendEl.innerHTML='<div style="font-size:10px;color:var(--muted)">Нет задач с метками</div>';
+    return;
+  }
+
+  // Draw donut segments
+  const gap=0.025; // gap between segments in radians
+  let angle=-Math.PI/2;
+  const drawn=[];
+  segments.forEach((seg,i)=>{
+    const sweep=(seg.count/total)*Math.PI*2 - gap;
+    if(sweep<=0)return;
+    const startA=angle+gap/2;
+    const endA=startA+sweep;
+
+    // Outer glow
+    ctx.save();
+    ctx.shadowColor=seg.color;
+    ctx.shadowBlur=8;
+    ctx.beginPath();
+    ctx.moveTo(cx+Math.cos(startA)*r,cy+Math.sin(startA)*r);
+    ctx.arc(cx,cy,R,startA,endA);
+    ctx.arc(cx,cy,r,endA,startA,true);
+    ctx.closePath();
+    ctx.fillStyle=seg.color;
+    ctx.globalAlpha=i===0?1:0.75+i*(-0.07);
+    ctx.fill();
+    ctx.restore();
+
+    drawn.push({seg,pct:Math.round(seg.count/total*100)});
+    angle+=sweep+gap;
+  });
+
+  // Center hole refinement
+  ctx.save();
+  ctx.beginPath();
+  ctx.arc(cx,cy,r-1,0,Math.PI*2);
+  ctx.fillStyle='var(--card)';
+  ctx.fill();
+  ctx.restore();
+
+  // Legend
+  legendEl.innerHTML=drawn.slice(0,5).map(({seg,pct})=>`
+    <div style="display:flex;align-items:center;gap:6px;min-width:0">
+      <div style="width:8px;height:8px;border-radius:50%;background:${seg.color};flex-shrink:0;box-shadow:0 0 5px ${seg.color}88"></div>
+      <div style="flex:1;font-size:10px;color:var(--text2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(seg.name)}</div>
+      <div style="font-size:10px;font-weight:700;color:var(--text);font-family:var(--font-display);flex-shrink:0">${pct}%</div>
     </div>`).join('');
 }
 
