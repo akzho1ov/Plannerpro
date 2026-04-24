@@ -18,8 +18,10 @@
 <title>PlannerPro — Центр управления</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,300;12..96,400;12..96,500;12..96,600;12..96,700;12..96,800&family=Instrument+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
-<!-- DOMPurify — sanitizes all innerHTML injections -->
+<!-- DOMPurify — sanitizes innerHTML -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.1.5/purify.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 <script>
@@ -4753,6 +4755,7 @@ body.light-mode .skel{background:linear-gradient(90deg,var(--card2) 25%,#f0f2f7 
 </div>
 
 <script>
+'use strict';
 /* ═══════════════════════════════════════════════════
    STAGE-3 PERFORMANCE & ARCHITECTURE
    Store · Debounce · Virtual List · Lazy Tabs · Idle Render
