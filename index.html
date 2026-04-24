@@ -2349,48 +2349,77 @@ body.light-mode #mobGroupPicker{background:#fff}
           </div>
    Modifiers: --violet(default) --gold --cyan --green --blue --pink
 ──────────────────────────────────────────────────── */
+/* ── PILL / SEGMENT CONTROL SUB-TABS ── */
 .subTabs{
-  display:flex;gap:2px;
-  border-bottom:1px solid var(--border);
-  margin-bottom:16px;
+  display:flex;gap:4px;
+  padding:4px;
+  margin-bottom:18px;
   overflow-x:auto;-webkit-overflow-scrolling:touch;
   scrollbar-width:none;-ms-overflow-style:none;
-  padding-bottom:0;
+  background:rgba(255,255,255,.04);
+  border-radius:14px;
+  border:1px solid var(--border);
 }
 .subTabs::-webkit-scrollbar{display:none;height:0}
 
 .subTab{
-  padding:8px 15px 10px;
-  border:none;background:none;
-  font-family:var(--font-body);font-size:11.5px;font-weight:600;
-  color:var(--muted);cursor:pointer;
-  border-bottom:2px solid transparent;margin-bottom:-1px;
+  padding:7px 15px;
+  border:none;background:transparent;
+  font-family:var(--font-body);font-size:11.5px;font-weight:500;
+  color:var(--text2);cursor:pointer;
   white-space:nowrap;flex-shrink:0;
-  border-radius:6px 6px 0 0;
-  transition:color .14s,background .14s,border-color .14s;
-  position:relative;
-  display:flex;align-items:center;gap:5px;
+  border-radius:10px;
+  transition:color .15s,background .15s,box-shadow .15s;
+  display:flex;align-items:center;gap:6px;
+  letter-spacing:-.01em;
 }
-.subTab:hover{color:var(--text2);background:rgba(255,255,255,.04)}
-/* Active colour variants */
-.subTabs--violet .subTab.on{color:var(--p);border-bottom-color:var(--p)}
-.subTabs--gold .subTab.on{color:var(--gold);border-bottom-color:var(--gold)}
-.subTabs--cyan .subTab.on{color:var(--cyan);border-bottom-color:var(--cyan)}
-.subTabs--green .subTab.on{color:var(--green);border-bottom-color:var(--green)}
-.subTabs--blue .subTab.on{color:var(--blue);border-bottom-color:var(--blue)}
-.subTabs--pink .subTab.on{color:var(--pink);border-bottom-color:var(--pink)}
+.subTab:hover:not(.on){
+  color:var(--text);
+  background:rgba(255,255,255,.07);
+}
+
+/* Active pill — shared base */
+.subTab.on{
+  background:var(--card2);
+  color:var(--text);
+  font-weight:600;
+  box-shadow:0 1px 4px rgba(0,0,0,.4),0 0 0 1px var(--border2);
+}
+
+/* Colour accent on active pill label */
+.subTabs--violet .subTab.on{color:var(--p);box-shadow:0 1px 4px rgba(0,0,0,.4),0 0 0 1px rgba(155,143,245,.3),0 0 12px rgba(155,143,245,.08)}
+.subTabs--gold   .subTab.on{color:var(--gold);box-shadow:0 1px 4px rgba(0,0,0,.4),0 0 0 1px rgba(240,171,48,.3),0 0 12px rgba(240,171,48,.08)}
+.subTabs--cyan   .subTab.on{color:var(--cyan);box-shadow:0 1px 4px rgba(0,0,0,.4),0 0 0 1px rgba(34,204,232,.3),0 0 12px rgba(34,204,232,.08)}
+.subTabs--green  .subTab.on{color:var(--green);box-shadow:0 1px 4px rgba(0,0,0,.4),0 0 0 1px rgba(15,221,170,.3),0 0 12px rgba(15,221,170,.08)}
+.subTabs--blue   .subTab.on{color:var(--blue);box-shadow:0 1px 4px rgba(0,0,0,.4),0 0 0 1px rgba(91,149,255,.3),0 0 12px rgba(91,149,255,.08)}
+.subTabs--pink   .subTab.on{color:var(--pink);box-shadow:0 1px 4px rgba(0,0,0,.4),0 0 0 1px rgba(240,107,176,.3),0 0 12px rgba(240,107,176,.08)}
+
 /* Count badge inside sub-tab */
 .subTabBadge{
   display:inline-flex;align-items:center;justify-content:center;
-  min-width:16px;height:16px;padding:0 4px;
-  border-radius:8px;font-size:9px;font-weight:800;
+  min-width:17px;height:17px;padding:0 5px;
+  border-radius:99px;font-size:9px;font-weight:700;
   background:var(--card3);color:var(--muted);
-  transition:background .14s,color .14s;
+  transition:background .15s,color .15s;
 }
-.subTab.on .subTabBadge{background:currentColor;color:var(--bg)}
+.subTab.on .subTabBadge{
+  background:currentColor;color:var(--bg);
+  opacity:.9;
+}
 
 /* Light mode */
-body.light-mode .subTab:hover{background:rgba(107,89,232,.04)}
+body.light-mode .subTabs{
+  background:rgba(60,70,120,.04);
+  border-color:var(--border);
+}
+body.light-mode .subTab:hover:not(.on){background:rgba(107,89,232,.06);color:var(--text)}
+body.light-mode .subTab.on{background:#fff;box-shadow:0 1px 4px rgba(30,40,90,.1),0 0 0 1px var(--border2)}
+body.light-mode .subTabs--violet .subTab.on{box-shadow:0 1px 4px rgba(30,40,90,.1),0 0 0 1px rgba(107,89,232,.3)}
+body.light-mode .subTabs--gold   .subTab.on{box-shadow:0 1px 4px rgba(30,40,90,.1),0 0 0 1px rgba(201,138,0,.3)}
+body.light-mode .subTabs--cyan   .subTab.on{box-shadow:0 1px 4px rgba(30,40,90,.1),0 0 0 1px rgba(9,153,196,.3)}
+body.light-mode .subTabs--green  .subTab.on{box-shadow:0 1px 4px rgba(30,40,90,.1),0 0 0 1px rgba(11,168,122,.3)}
+body.light-mode .subTabs--blue   .subTab.on{box-shadow:0 1px 4px rgba(30,40,90,.1),0 0 0 1px rgba(62,127,232,.3)}
+body.light-mode .subTabs--pink   .subTab.on{box-shadow:0 1px 4px rgba(30,40,90,.1),0 0 0 1px rgba(217,83,157,.3)}
 
 /* ── PANE HEADER ──────────────────────────────────
    Usage:
@@ -2535,8 +2564,8 @@ body.light-mode .subTab:hover{background:rgba(107,89,232,.04)}
   .paneTitle{font-size:18px}
   .paneSubtitle{font-size:11px}
   .paneHeadIcon{width:30px;height:30px;font-size:15px}
-  .subTab{padding:7px 11px 9px;font-size:10.5px;scroll-snap-align:start}
-  .subTabs{scroll-snap-type:x proximity}
+  .subTab{padding:6px 11px;font-size:10.5px;scroll-snap-align:start}
+  .subTabs{scroll-snap-type:x proximity;border-radius:12px}
   .emptyState{padding:32px 16px;gap:10px}
   .emptyStateIcon{width:46px;height:46px;font-size:22px}
   .emptyStateTitle{font-size:14px}
@@ -2643,9 +2672,9 @@ body.light-mode .skel{background:linear-gradient(90deg,var(--card2) 25%,#f0f2f7 
   /* ── Sub-tabs — smooth scroll (unified .subTabs) ── */
   .subTabs,.rwSubTabs,.gymSubTabs{
     scroll-snap-type:x proximity;
-    padding-bottom:1px;
+    border-radius:12px;
   }
-  .subTab,.rwSubTab,.gymSubTab{padding:7px 11px 9px;font-size:10.5px;scroll-snap-align:start}
+  .subTab,.rwSubTab,.gymSubTab{padding:6px 11px;font-size:10.5px;scroll-snap-align:start}
 
   /* ── Cards global ── */
   .card{border-radius:14px}
