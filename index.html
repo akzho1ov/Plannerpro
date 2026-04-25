@@ -373,6 +373,63 @@ body.light-mode .goalCard{background:#fff;border-color:var(--border)}
 /* Auth */
 body.light-mode .authCard{background:#fff;box-shadow:0 8px 32px rgba(30,40,90,.12)}
 
+/* ── Analytics section — light mode full fix ── */
+/* Period filter buttons */
+body.light-mode #analytics-content button[onclick*="anlSetPeriod"]{
+  background:var(--card2)!important;
+  color:var(--text2)!important;
+  border-color:var(--border)!important;
+}
+/* Empty state card in analytics */
+body.light-mode #analytics-content>div>div:first-child{background:linear-gradient(135deg,#fff,var(--card2))!important}
+/* Stat value cards */
+body.light-mode .anlStatVal{color:var(--text)!important}
+body.light-mode .anlStatLbl{color:var(--muted)!important}
+/* Bar chart backgrounds */
+body.light-mode [id*="anlDayChart"],
+body.light-mode [id*="anlBarChart"]{background:transparent!important}
+/* Label breakdown cards */
+body.light-mode #analytics-content .card{
+  background:#fff!important;
+  border-color:var(--border)!important;
+  box-shadow:0 1px 4px rgba(20,30,90,.07)!important;
+}
+/* Progress bars track */
+body.light-mode #analytics-content [style*="background:rgba(255,255,255,.05)"],
+body.light-mode #analytics-content [style*="background: rgba(255,255,255,.05)"]{
+  background:rgba(60,70,130,.08)!important;
+}
+/* Muted text inside analytics */
+body.light-mode #analytics-content [style*="color:var(--muted)"]{color:var(--muted)!important}
+body.light-mode #analytics-content [style*="color:var(--text2)"]{color:var(--text2)!important}
+/* Header row */
+body.light-mode #analytics-content [style*="background:linear-gradient(135deg,var(--card)"],
+body.light-mode #analytics-content [style*="background:linear-gradient(145deg,var(--card)"]{
+  background:#fff!important;
+}
+/* Period bar buttons — active state */
+body.light-mode #analytics-content button[style*="background:var(--pdim2)"]{
+  background:rgba(90,70,224,.12)!important;
+}
+/* Label filter dropdown */
+body.light-mode #anlLbfPanel{
+  background:#fff!important;
+  border-color:var(--border2)!important;
+  box-shadow:0 8px 30px rgba(20,30,90,.12)!important;
+}
+/* Custom date range strip */
+body.light-mode #anlCustomRange{
+  background:var(--card2)!important;
+  border-color:var(--pdim2)!important;
+}
+/* Donut center text in analytics */
+body.light-mode #analytics-content [style*="rgba(10,11,22"]{background:#fff!important}
+/* Chart canvas backgrounds */
+body.light-mode #analytics-content canvas{background:transparent!important}
+/* Section headers inside analytics */
+body.light-mode #analytics-content [style*="font-weight:800;color:var(--text)"]{color:var(--text)!important}
+body.light-mode #analytics-content [style*="color:var(--text);margin-bottom"]{color:var(--text)!important}
+
 /* Theme toggle button */
 .themeToggleBtn{
   display:flex;align-items:center;justify-content:center;
@@ -963,7 +1020,7 @@ select.inp option{background:var(--card2);color:var(--text)}
 .anaGoalInp{width:26px;border:none;background:transparent;font-family:var(--font-body);font-size:11px;font-weight:800;color:var(--pink);text-align:center;outline:none}
 .htAddBtn{border:1.5px dashed rgba(244,114,182,.25);background:none;border-radius:9px;padding:8px;width:calc(100% - 24px);margin:10px 12px;font-family:var(--font-body);font-size:11px;font-weight:600;color:var(--pink);cursor:pointer;transition:.15s;display:block}
 .htAddBtn:hover{background:var(--pinkdim)}
-.chartCard{background:linear-gradient(145deg,var(--card),rgba(10,11,22,.99));border-radius:var(--r);border:1px solid var(--border);padding:16px;box-shadow:var(--shadow),inset 0 1px 0 rgba(255,255,255,.03)}
+.chartCard{background:linear-gradient(145deg,var(--card),var(--bg));border-radius:var(--r);border:1px solid var(--border);padding:16px;box-shadow:var(--shadow),inset 0 1px 0 rgba(255,255,255,.03)}
 
 /* ══════════════════════════════
    3. TASK PLANNER — mobile-first
@@ -980,7 +1037,7 @@ select.inp option{background:var(--card2);color:var(--text)}
 .ldot{width:10px;height:10px;border-radius:3px;flex-shrink:0}
 .lov{background:rgba(248,113,113,.3)}.lto{background:rgba(251,146,60,.3)}.lso{background:rgba(245,158,11,.3)}.ln{background:var(--border2)}.ld{background:rgba(45,212,166,.3)}
 .taskCard{
-  background:linear-gradient(160deg,var(--card) 0%,rgba(10,11,22,.99) 100%);
+  background:linear-gradient(160deg,var(--card) 0%,var(--bg) 100%);
   border-radius:var(--r);border:1px solid var(--border);overflow:hidden;
   box-shadow:var(--shadow),inset 0 1px 0 rgba(255,255,255,.03);
 }
@@ -1223,7 +1280,7 @@ select.inp option{background:var(--card2);color:var(--text)}
 .kbColCnt{background:var(--card);border-radius:6px;padding:2px 7px;font-size:10px;font-weight:700;color:var(--muted)}
 .kbCards{padding:8px;display:flex;flex-direction:column;gap:7px;min-height:100px}
 .kbCard{
-  background:linear-gradient(160deg,var(--card) 0%,rgba(10,11,22,.99) 100%);
+  background:linear-gradient(160deg,var(--card) 0%,var(--bg) 100%);
   border-radius:12px;padding:12px 14px;border:1px solid var(--border);
   transition:all .18s var(--ease);position:relative;
   box-shadow:0 2px 8px rgba(0,0,0,.3),inset 0 1px 0 rgba(255,255,255,.03);
@@ -1263,7 +1320,7 @@ select.inp option{background:var(--card2);color:var(--text)}
 }
 @keyframes fadeOverlay{from{opacity:0;backdrop-filter:blur(0px)}to{opacity:1;backdrop-filter:blur(8px)}}
 .modalBox{
-  background:linear-gradient(160deg,rgba(14,15,32,.98) 0%,rgba(10,11,22,.99) 100%);
+  background:linear-gradient(160deg,rgba(14,15,32,.98) 0%,var(--bg) 100%);
   border-radius:20px;
   border:1px solid rgba(155,143,245,.15);
   padding:24px;width:100%;max-width:460px;
@@ -1524,7 +1581,12 @@ select.inp option{background:var(--card2);color:var(--text)}
 .dashGrid3{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:16px}
 @media(max-width:1400px){.dashGrid{grid-template-columns:repeat(4,1fr)}}
 @media(max-width:1100px){.dashGrid{grid-template-columns:repeat(2,1fr)}.dashGrid2{grid-template-columns:1fr 1fr}}
-@media(max-width:768px){.dashGrid,.dashGrid2,.dashGrid3{grid-template-columns:1fr}}
+@media(max-width:768px){
+  .dashGrid,.dashGrid2,.dashGrid3{grid-template-columns:1fr}
+  /* Donut card full-width + bigger chart on mobile */
+  #dashLabelDonut{width:120px!important;height:120px!important}
+  .dashDonutCard{grid-column:1/-1}
+}
 .dashGrowthRow{align-items:stretch!important}
 .dashGrowthRow>.dashCard,.dashGrowthRow>.dashGrowthCard{height:100%;align-self:stretch!important}
 .dashCard{
@@ -2605,7 +2667,7 @@ body.light-mode .skel{background:linear-gradient(90deg,var(--card2) 25%,#f0f2f7 
 .wtDel:hover{color:var(--red)}
 .wtChartCard{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:14px 16px;margin-bottom:14px;overflow-x:auto}
 .wtStatsRow{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px}
-.wtStatCard{background:linear-gradient(145deg,var(--card),rgba(10,11,22,.99));border:1px solid var(--border);border-radius:var(--r2);padding:12px 10px;text-align:center;box-shadow:var(--shadow),inset 0 1px 0 rgba(255,255,255,.03);transition:border-color .2s,transform .2s}
+.wtStatCard{background:linear-gradient(145deg,var(--card),var(--bg));border:1px solid var(--border);border-radius:var(--r2);padding:12px 10px;text-align:center;box-shadow:var(--shadow),inset 0 1px 0 rgba(255,255,255,.03);transition:border-color .2s,transform .2s}
 .wtStatV{font-family:var(--font-display);font-size:20px;font-weight:800;line-height:1}
 .wtStatL{font-size:9px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);margin-top:4px;font-weight:700}
 
@@ -3272,7 +3334,7 @@ body.light-mode .skel{background:linear-gradient(90deg,var(--card2) 25%,#f0f2f7 
       <div id="dashUpcoming" style="display:flex;flex-direction:column;gap:5px;margin-top:2px"></div>
     </div>
     <!-- Labels Donut -->
-    <div class="dashCard" style="position:relative">
+    <div class="dashCard dashDonutCard" style="position:relative">
       <div class="dashCardLbl">🏷 Задачи по меткам</div>
       <div style="display:flex;align-items:center;gap:14px;margin-top:6px">
         <div style="position:relative;flex-shrink:0;width:90px;height:90px">
@@ -3664,9 +3726,7 @@ body.light-mode .skel{background:linear-gradient(90deg,var(--card2) 25%,#f0f2f7 
         </div>
       </div>
     </div>
-    <div class="paneHeadActions" id="finHeadActions">
-      <button class="btn btnE" onclick="openFinModal()">+ Транзакция</button>
-    </div>
+    <div class="paneHeadActions" id="finHeadActions" style="display:none"></div>
   </header>
   <div class="finMonNav">
     <button class="btn btnG" onclick="finNav(-1)" style="padding:7px 12px;font-size:14px">◀</button>
@@ -9441,7 +9501,7 @@ function renderDash(){
   renderDashActivity();
   renderDashRewards();
   renderDashUpcoming();
-  renderDashLabelDonut();
+  renderDashLabelDonut(taskFiltered, p);
   renderTaskWeekChart();
   requestAnimationFrame(()=>renderStreakHeatmap());
   renderDashSleepWidget();
@@ -9629,116 +9689,105 @@ function renderDashUpcoming(){
     </div>`).join('');
 }
 
-function renderDashLabelDonut(){
+function renderDashLabelDonut(filteredTasks, period){
   const cv=document.getElementById('dashLabelDonut');
   const legendEl=document.getElementById('dashLabelLegend');
   const totalEl=document.getElementById('dashDonutTotal');
   if(!cv||!legendEl)return;
 
-  // ── Resolve actual CSS colours for Canvas (Canvas ignores var(--x)) ──
-  const style=getComputedStyle(document.documentElement);
-  const resolveVar=v=>style.getPropertyValue(v).trim()||v;
-  const bgColor=resolveVar('--card')||'#10122A';
-  const mutedColor=resolveVar('--muted')||'#8490B8';
-  const textColor=resolveVar('--text')||'#F2F4FF';
+  // Update card label with current period
+  const donutCard=cv.closest('.dashCard');
+  if(donutCard){
+    const lbl=donutCard.querySelector('.dashCardLbl');
+    const periodNames={day:'сегодня',week:'эта неделя',month:'этот месяц'};
+    if(lbl)lbl.innerHTML='🏷 Задачи по меткам <span class="dashPeriodTag">'+(periodNames[period]||'')+'</span>';
+  }
+
+  // Resolve actual CSS colours for Canvas (Canvas ignores CSS vars)
+  const csRoot=getComputedStyle(document.documentElement);
+  const bgColor=csRoot.getPropertyValue('--card').trim()||'#10122A';
+  const mutedColor=csRoot.getPropertyValue('--muted').trim()||'#8490B8';
 
   const DPR=window.devicePixelRatio||1;
   const SIZE=90;
   cv.width=SIZE*DPR; cv.height=SIZE*DPR;
   cv.style.width=SIZE+'px'; cv.style.height=SIZE+'px';
-
   const ctx=cv.getContext('2d');
   ctx.scale(DPR,DPR);
   ctx.clearRect(0,0,SIZE,SIZE);
-
   const cx=SIZE/2, cy=SIZE/2, R=38, r=23;
 
-  // ── Collect tasks → count per label (all tasks in G) ──
-  const allTasks=tpD();          // G.tasks flat array
+  // Count tasks by label from the period-filtered set
+  const tasks=filteredTasks||tpD();
   const labelMap={};
-
-  allTasks.forEach(t=>{
+  tasks.forEach(t=>{
     const tLabels=getTaskLabels(t);
     if(tLabels.length){
       tLabels.forEach(l=>{
         const key=l.id||l.name;
-        if(!labelMap[key])labelMap[key]={name:l.name,color:l.color&&l.color.startsWith('#')?l.color:'#9B8FF5',count:0,done:0};
+        if(!labelMap[key])labelMap[key]={name:l.name,color:l.color&&l.color.startsWith('#')?l.color:'#9B8FF5',count:0};
         labelMap[key].count++;
-        if(t.done)labelMap[key].done++;
       });
     } else {
-      if(!labelMap['__none__'])labelMap['__none__']={name:'Без метки',color:'#4A5280',count:0,done:0};
+      if(!labelMap['__none__'])labelMap['__none__']={name:'Без метки',color:'#4A5280',count:0};
       labelMap['__none__'].count++;
-      if(t.done)labelMap['__none__'].done++;
     }
   });
 
   const segments=Object.values(labelMap).filter(s=>s.count>0).sort((a,b)=>b.count-a.count).slice(0,7);
   const total=segments.reduce((s,x)=>s+x.count,0);
-
   if(totalEl)totalEl.textContent=total;
 
-  // ── Empty state ──
+  // Empty state
   if(!total){
     ctx.beginPath();
     ctx.arc(cx,cy,R,0,Math.PI*2);
     ctx.arc(cx,cy,r,Math.PI*2,0,true);
     ctx.fillStyle='rgba(255,255,255,.07)';
     ctx.fill('evenodd');
-    // inner hole
     ctx.beginPath();ctx.arc(cx,cy,r-1,0,Math.PI*2);
     ctx.fillStyle=bgColor;ctx.fill();
-    legendEl.innerHTML='<div style="font-size:10px;color:'+mutedColor+'">Добавь метки к задачам</div>';
-    if(totalEl)totalEl.style.color=mutedColor;
+    legendEl.innerHTML='<div style="font-size:10px;color:'+mutedColor+'">Нет задач за период</div>';
     return;
   }
 
-  // ── Draw segments ──
+  // Draw donut segments
   const gap=segments.length>1?0.03:0;
   let angle=-Math.PI/2;
   const drawn=[];
-
   segments.forEach((seg,i)=>{
     const sweep=Math.max(0,(seg.count/total)*Math.PI*2-gap);
     if(sweep<=0)return;
-    const startA=angle+gap/2;
-    const endA=startA+sweep;
-
+    const startA=angle+gap/2, endA=startA+sweep;
     ctx.save();
-    ctx.shadowColor=seg.color;
-    ctx.shadowBlur=10;
+    ctx.shadowColor=seg.color; ctx.shadowBlur=10;
     ctx.globalAlpha=1-i*0.1;
     ctx.beginPath();
     ctx.arc(cx,cy,R,startA,endA);
     ctx.arc(cx,cy,r,endA,startA,true);
     ctx.closePath();
-    ctx.fillStyle=seg.color;
-    ctx.fill();
+    ctx.fillStyle=seg.color; ctx.fill();
     ctx.restore();
-
     drawn.push({seg,pct:Math.round(seg.count/total*100)});
     angle+=sweep+gap;
   });
 
-  // ── Inner hole punch (must be solid colour, NOT css var) ──
+  // Inner hole — must use resolved colour, NOT CSS var
   ctx.save();
-  ctx.beginPath();
-  ctx.arc(cx,cy,r-0.5,0,Math.PI*2);
-  ctx.fillStyle=bgColor;
-  ctx.shadowColor='transparent';
-  ctx.fill();
+  ctx.beginPath(); ctx.arc(cx,cy,r-0.5,0,Math.PI*2);
+  ctx.fillStyle=bgColor; ctx.shadowColor='transparent'; ctx.fill();
   ctx.restore();
 
-  // ── Legend ──
-  legendEl.innerHTML=drawn.map(({seg,pct})=>{
-    const donePct=seg.count>0?Math.round(seg.done/seg.count*100):0;
-    return`<div style="display:flex;align-items:center;gap:6px;min-width:0">
-      <div style="width:8px;height:8px;border-radius:50%;background:${seg.color};flex-shrink:0;box-shadow:0 0 6px ${seg.color}99"></div>
-      <div style="flex:1;font-size:10px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#BCC5E8">${esc(seg.name)}</div>
-      <div style="font-size:9px;font-weight:700;color:#F2F4FF;font-family:monospace;flex-shrink:0">${seg.count}<span style="color:${mutedColor};font-weight:400"> (${pct}%)</span></div>
-    </div>`;
-  }).join('');
+  // Legend
+  legendEl.innerHTML=drawn.map(({seg,pct})=>
+    '<div style="display:flex;align-items:center;gap:5px;min-width:0">'+
+    '<div style="width:7px;height:7px;border-radius:50%;background:'+seg.color+';flex-shrink:0;box-shadow:0 0 5px '+seg.color+'99"></div>'+
+    '<div style="flex:1;font-size:9.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text2)">'+esc(seg.name)+'</div>'+
+    '<div style="font-size:9px;font-weight:700;color:var(--text);font-family:monospace;flex-shrink:0">'+seg.count+' <span style="color:var(--muted);font-weight:400">('+pct+'%)</span></div>'+
+    '</div>'
+  ).join('');
 }
+
 
 /* ═══════════════════════════════════
    GROWTH CHARTS
@@ -11176,7 +11225,7 @@ function renderAnalytics(){
 
 
   // ── Нет данных ──
-  const emptyHtml=doneTasks.length===0?`<div style="background:linear-gradient(135deg,var(--card),rgba(10,11,22,.99));border:1px solid var(--border);border-radius:20px;padding:60px 40px;text-align:center;margin-bottom:20px">
+  const emptyHtml=doneTasks.length===0?`<div style="background:linear-gradient(135deg,var(--card),var(--bg));border:1px solid var(--border);border-radius:20px;padding:60px 40px;text-align:center;margin-bottom:20px">
     <div style="font-size:56px;margin-bottom:16px;filter:drop-shadow(0 0 20px rgba(155,143,245,.3))">📊</div>
     <div style="font-size:16px;font-weight:800;color:var(--text);margin-bottom:8px;font-family:var(--font-display)">Нет выполненных задач</div>
     <div style="font-size:12px;color:var(--muted)">Выбери другой период или выполни несколько задач</div>
@@ -11299,7 +11348,7 @@ function renderAnalytics(){
   // ── ACTUAL TIME CARD (фактически потрачено) ──
   const trackedTasks=doneTasks.filter(t=>t.actualDuration&&t.actualDuration>0);
   const totalActualDur=trackedTasks.reduce((s,t)=>s+(t.actualDuration||0),0);
-  const trackerCard=trackedTasks.length?`<div style="background:linear-gradient(135deg,rgba(15,221,170,.08),rgba(34,204,232,.04),rgba(10,11,22,.99));border:1px solid rgba(15,221,170,.2);border-radius:20px;padding:18px 20px;margin-bottom:20px;position:relative;overflow:hidden">
+  const trackerCard=trackedTasks.length?`<div style="background:linear-gradient(135deg,rgba(15,221,170,.08),rgba(34,204,232,.04),var(--bg));border:1px solid rgba(15,221,170,.2);border-radius:20px;padding:18px 20px;margin-bottom:20px;position:relative;overflow:hidden">
     <div style="position:absolute;top:-30px;right:-30px;width:150px;height:150px;border-radius:50%;background:radial-gradient(circle,rgba(15,221,170,.1),transparent 70%);pointer-events:none"></div>
     <div style="font-size:9.5px;font-weight:800;text-transform:uppercase;letter-spacing:1.5px;color:var(--green);margin-bottom:12px;display:flex;align-items:center;gap:8px">
       <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2" stroke-linecap="round"/></svg>
@@ -11315,7 +11364,7 @@ function renderAnalytics(){
           <span>Покрытие задач</span>
           <span style="font-weight:700;color:var(--green)">${Math.round(trackedTasks.length/doneTasks.length*100)}%</span>
         </div>
-        <div style="height:8px;background:rgba(255,255,255,.06);border-radius:4px;overflow:hidden">
+        <div style="height:8px;background:var(--card3);border-radius:4px;overflow:hidden;border:1px solid var(--border)">
           <div style="height:100%;width:${Math.round(trackedTasks.length/doneTasks.length*100)}%;background:linear-gradient(90deg,var(--green),var(--cyan));border-radius:4px;transition:width .6s var(--ease)"></div>
         </div>
         <div style="font-size:9.5px;color:var(--muted);margin-top:5px">Среднее на задачу: ${trackedTasks.length?fmtMin(Math.round(totalActualDur/trackedTasks.length)):'-'}</div>
@@ -11335,7 +11384,7 @@ function renderAnalytics(){
       <div style="font-size:18px;margin-bottom:8px">${k.ico}</div>
       <div style="font-size:24px;font-weight:800;color:${k.c};font-family:var(--font-display);line-height:1;letter-spacing:-1px">${k.dispVal!==undefined?k.dispVal:k.val}</div>
       <div style="font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);margin-top:6px">${k.lbl}</div>
-      <div style="font-size:10px;color:rgba(255,255,255,.3);margin-top:2px">${k.sub}</div>
+      <div style="font-size:10px;color:var(--muted);margin-top:2px">${k.sub}</div>
       ${k.prevVal!==null&&k.prevVal!==undefined?anlDelta(k.val,k.prevVal):''}
     </div>`).join('')}
   </div>`;
@@ -11350,11 +11399,11 @@ function renderAnalytics(){
   const prevToFmt=prevRange?fmtDateShort(prevRange.to):'';
 
   const compBannerHtml=prevRange&&(prevDoneTasks.length>0||doneTasks.length>0)?`
-  <div style="background:linear-gradient(135deg,rgba(155,143,245,.07) 0%,rgba(34,204,232,.04) 50%,rgba(10,11,22,.99) 100%);border:1px solid rgba(155,143,245,.2);border-radius:18px;padding:0;margin-bottom:20px;overflow:hidden;position:relative">
+  <div style="background:linear-gradient(135deg,rgba(155,143,245,.1) 0%,rgba(34,204,232,.06) 50%,var(--card) 100%);border:1px solid rgba(155,143,245,.2);border-radius:18px;padding:0;margin-bottom:20px;overflow:hidden;position:relative">
     <!-- top glow line -->
     <div style="position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(155,143,245,.5),transparent)"></div>
     <!-- header row -->
-    <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px 10px;border-bottom:1px solid rgba(255,255,255,.05);flex-wrap:wrap;gap:8px">
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px 10px;border-bottom:1px solid var(--border);flex-wrap:wrap;gap:8px">
       <div style="display:flex;align-items:center;gap:8px">
         <div style="width:6px;height:6px;border-radius:50%;background:var(--p);box-shadow:0 0 8px var(--pglow);flex-shrink:0"></div>
         <span style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:1.2px;color:var(--p)">Сравнение периодов</span>
@@ -11438,13 +11487,13 @@ function renderAnalytics(){
   }
   const pieSection=lblStats.length?`<div style="display:grid;grid-template-columns:1fr 2fr;gap:16px;margin-bottom:24px">
     <!-- PIE CHART -->
-    <div style="background:linear-gradient(145deg,var(--card),rgba(10,11,22,.99));border:1px solid var(--border);border-radius:20px;padding:24px;display:flex;flex-direction:column;align-items:center;position:relative;overflow:hidden">
+    <div style="background:linear-gradient(145deg,var(--card),var(--bg));border:1px solid var(--border);border-radius:20px;padding:24px;display:flex;flex-direction:column;align-items:center;position:relative;overflow:hidden">
       <div style="position:absolute;inset:0;background:radial-gradient(circle at 50% 50%,rgba(155,143,245,.04),transparent 70%);pointer-events:none"></div>
       <div style="font-size:9.5px;font-weight:800;text-transform:uppercase;letter-spacing:1.2px;color:var(--muted);margin-bottom:16px;align-self:flex-start">🥧 Распределение времени</div>
       ${anlDrawPie(visLblStats)}
     </div>
     <!-- LABEL BREAKDOWN -->
-    <div style="background:linear-gradient(145deg,var(--card),rgba(10,11,22,.99));border:1px solid var(--border);border-radius:20px;padding:24px;overflow:hidden">
+    <div style="background:linear-gradient(145deg,var(--card),var(--bg));border:1px solid var(--border);border-radius:20px;padding:24px;overflow:hidden">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:6px">
         <div style="font-size:9.5px;font-weight:800;text-transform:uppercase;letter-spacing:1.2px;color:var(--muted)">🏷 По меткам</div>
         <div style="display:flex;gap:4px;flex-wrap:wrap">
@@ -11480,7 +11529,7 @@ function renderAnalytics(){
   </div>`:'';
 
   // ── TIME BALANCE BAR ──
-  const timeBalHtml=`<div style="background:linear-gradient(145deg,var(--card),rgba(10,11,22,.99));border:1px solid var(--border);border-radius:20px;padding:22px 24px;margin-bottom:24px">
+  const timeBalHtml=`<div style="background:linear-gradient(145deg,var(--card),var(--bg));border:1px solid var(--border);border-radius:20px;padding:22px 24px;margin-bottom:24px">
     <div style="font-size:9.5px;font-weight:800;text-transform:uppercase;letter-spacing:1.2px;color:var(--muted);margin-bottom:18px;display:flex;align-items:center;gap:6px">
       <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--cyan)" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2" stroke-linecap="round"/></svg>
       Баланс времени (без 8ч сна)
@@ -11512,7 +11561,7 @@ function renderAnalytics(){
   // ── BAR CHART (daily) ──
   const showDays=Math.min(dayArr.length,30);
   const visibleDays=dayArr.slice(-showDays);
-  const barChartHtml=visibleDays.some(d=>d.min>0||d.count>0)?`<div style="background:linear-gradient(145deg,var(--card),rgba(10,11,22,.99));border:1px solid var(--border);border-radius:20px;padding:22px 24px;margin-bottom:24px">
+  const barChartHtml=visibleDays.some(d=>d.min>0||d.count>0)?`<div style="background:linear-gradient(145deg,var(--card),var(--bg));border:1px solid var(--border);border-radius:20px;padding:22px 24px;margin-bottom:24px">
     <div style="font-size:9.5px;font-weight:800;text-transform:uppercase;letter-spacing:1.2px;color:var(--muted);margin-bottom:18px">📈 Время по дням (выполненные)</div>
     <div style="overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;padding-bottom:4px">
     <div style="display:flex;align-items:flex-end;gap:${showDays>20?'2':'4'}px;height:100px;min-width:${Math.max(showDays*18,280)}px">
@@ -11539,7 +11588,7 @@ function renderAnalytics(){
 
   // ── TOP DAYS ──
   const topDays=[...dayArr].filter(d=>d.min>0).sort((a,b)=>b.min-a.min).slice(0,5);
-  const topDaysHtml=topDays.length?`<div style="background:linear-gradient(145deg,var(--card),rgba(10,11,22,.99));border:1px solid var(--border);border-radius:20px;padding:20px 20px;margin-bottom:24px">
+  const topDaysHtml=topDays.length?`<div style="background:linear-gradient(145deg,var(--card),var(--bg));border:1px solid var(--border);border-radius:20px;padding:20px 20px;margin-bottom:24px">
     <div style="font-size:9.5px;font-weight:800;text-transform:uppercase;letter-spacing:1.2px;color:var(--muted);margin-bottom:16px">🔥 Самые продуктивные дни</div>
     <div style="display:flex;flex-direction:column;gap:10px">
       ${topDays.map((d,i)=>{
@@ -11573,7 +11622,7 @@ function renderAnalytics(){
   const maxWdCount=Math.max(...weekdayData.map(d=>d.count),1);
   const wdColors=['var(--blue)','var(--green)','var(--purple)','var(--gold)','var(--red)','var(--orange)','var(--pink)'];
   const bestWd=weekdayData.reduce((b,d)=>d.count>b.count?d:b,weekdayData[0]);
-  const weekdayHtml=doneTasks.length>0?`<div style="background:linear-gradient(145deg,var(--card),rgba(10,11,22,.99));border:1px solid var(--border);border-radius:20px;padding:22px 24px;margin-bottom:24px">
+  const weekdayHtml=doneTasks.length>0?`<div style="background:linear-gradient(145deg,var(--card),var(--bg));border:1px solid var(--border);border-radius:20px;padding:22px 24px;margin-bottom:24px">
     <div style="font-size:9.5px;font-weight:800;text-transform:uppercase;letter-spacing:1.2px;color:var(--muted);margin-bottom:18px;display:flex;align-items:center;gap:6px">
       <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--purple)" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
       🗓 Активность по дням недели
@@ -11611,7 +11660,7 @@ function renderAnalytics(){
   }
   const maxWk=Math.max(...weeklyTrend.map(w=>w.count),1);
   const wkAvg=Math.round(weeklyTrend.slice(0,7).reduce((s,w)=>s+w.count,0)/7);
-  const weeklyTrendHtml=weeklyTrend.some(w=>w.count>0)?`<div style="background:linear-gradient(145deg,var(--card),rgba(10,11,22,.99));border:1px solid var(--border);border-radius:20px;padding:22px 24px;margin-bottom:24px">
+  const weeklyTrendHtml=weeklyTrend.some(w=>w.count>0)?`<div style="background:linear-gradient(145deg,var(--card),var(--bg));border:1px solid var(--border);border-radius:20px;padding:22px 24px;margin-bottom:24px">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:8px">
       <div style="font-size:9.5px;font-weight:800;text-transform:uppercase;letter-spacing:1.2px;color:var(--muted);display:flex;align-items:center;gap:6px">
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--cyan)" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
@@ -11646,7 +11695,7 @@ function renderAnalytics(){
   const overdueCount=allPeriodTasks.filter(t=>!t.done).length;
   const crColor=completionRate>=80?'var(--green)':completionRate>=50?'var(--gold)':'var(--red)';
   const crGrad=completionRate>=80?'linear-gradient(90deg,var(--green),var(--cyan))':completionRate>=50?'linear-gradient(90deg,var(--gold),var(--orange))':'linear-gradient(90deg,var(--red),var(--orange))';
-  const completionHtml=totalPeriod>0?`<div style="background:linear-gradient(145deg,var(--card),rgba(10,11,22,.99));border:1px solid var(--border);border-radius:20px;padding:22px 24px;margin-bottom:24px">
+  const completionHtml=totalPeriod>0?`<div style="background:linear-gradient(145deg,var(--card),var(--bg));border:1px solid var(--border);border-radius:20px;padding:22px 24px;margin-bottom:24px">
     <div style="font-size:9.5px;font-weight:800;text-transform:uppercase;letter-spacing:1.2px;color:var(--muted);margin-bottom:16px;display:flex;align-items:center;gap:6px">
       <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
       ✅ Процент выполнения задач
@@ -13474,7 +13523,7 @@ function renderSleepTracker(){
     {icon:'🎯',val:consistency+'%',lbl:'Регулярность',color:'var(--p)'},
     {icon:'✅',val:normCount+'/'+last30.length,lbl:'Норма 7–9ч',color:'var(--blue)'},
   ].map(function(s){
-    return '<div style="background:linear-gradient(145deg,var(--card),rgba(10,11,22,.99));border:1px solid var(--border);border-radius:14px;padding:12px 10px;text-align:center;transition:transform .2s,border-color .2s" onmouseover="this.style.transform=\'translateY(-2px)\';this.style.borderColor=\'rgba(34,204,232,.18)\'" onmouseout="this.style.transform=\'\';this.style.borderColor=\'var(--border)\'">'
+    return '<div style="background:linear-gradient(145deg,var(--card),var(--bg));border:1px solid var(--border);border-radius:14px;padding:12px 10px;text-align:center;transition:transform .2s,border-color .2s" onmouseover="this.style.transform=\'translateY(-2px)\';this.style.borderColor=\'rgba(34,204,232,.18)\'" onmouseout="this.style.transform=\'\';this.style.borderColor=\'var(--border)\'">'
       +'<div style="font-size:18px;margin-bottom:4px">'+s.icon+'</div>'
       +'<div style="font-family:var(--font-display);font-size:17px;font-weight:800;color:'+s.color+';line-height:1;letter-spacing:-.4px">'+s.val+'</div>'
       +'<div style="font-size:9px;color:var(--muted);margin-top:3px;font-weight:700;text-transform:uppercase;letter-spacing:.3px">'+s.lbl+'</div>'
@@ -13569,7 +13618,7 @@ function renderSleepTracker(){
   html+='<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(105px,1fr));gap:8px;margin-bottom:20px">'+statsCards+'</div>';
 
   // Main chart card
-  html+='<div style="background:linear-gradient(145deg,var(--card),rgba(10,11,22,.99));border:1px solid var(--border);border-radius:20px;padding:18px;margin-bottom:14px;overflow:hidden">';
+  html+='<div style="background:linear-gradient(145deg,var(--card),var(--bg));border:1px solid var(--border);border-radius:20px;padding:18px;margin-bottom:14px;overflow:hidden">';
   html+='<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px">';
   html+='<div><div style="font-size:12px;font-weight:700;color:var(--text)">📈 Время отхода и подъёма</div><div style="font-size:10px;color:var(--muted);margin-top:1px">Последние 30 записей</div></div>';
   html+='<div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap">';
@@ -13582,11 +13631,11 @@ function renderSleepTracker(){
 
   // Two charts row
   html+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px" class="slpChartGrid">';
-  html+='<div style="background:linear-gradient(145deg,var(--card),rgba(10,11,22,.99));border:1px solid var(--border);border-radius:16px;padding:16px">';
+  html+='<div style="background:linear-gradient(145deg,var(--card),var(--bg));border:1px solid var(--border);border-radius:16px;padding:16px">';
   html+='<div style="font-size:11px;font-weight:700;color:var(--text);margin-bottom:2px">⏱️ Продолжительность</div>';
   html+='<div style="font-size:9px;color:var(--muted);margin-bottom:12px">Часов сна · цель 7–9ч</div>';
   html+='<canvas id="slp-dur-chart" height="110" style="width:100%;display:block"></canvas></div>';
-  html+='<div style="background:linear-gradient(145deg,var(--card),rgba(10,11,22,.99));border:1px solid var(--border);border-radius:16px;padding:16px">';
+  html+='<div style="background:linear-gradient(145deg,var(--card),var(--bg));border:1px solid var(--border);border-radius:16px;padding:16px">';
   html+='<div style="font-size:11px;font-weight:700;color:var(--text);margin-bottom:2px">🎯 Sleep Score тренд</div>';
   html+='<div style="font-size:9px;color:var(--muted);margin-bottom:12px">Комплексная оценка</div>';
   html+='<canvas id="slp-score-chart" height="110" style="width:100%;display:block"></canvas></div>';
@@ -13618,13 +13667,13 @@ function renderSleepTracker(){
 
   // Tag stats
   if(entries.length>=3){
-    html+='<div style="background:linear-gradient(145deg,var(--card),rgba(10,11,22,.99));border:1px solid var(--border);border-radius:16px;padding:16px 18px;margin-bottom:14px">';
+    html+='<div style="background:linear-gradient(145deg,var(--card),var(--bg));border:1px solid var(--border);border-radius:16px;padding:16px 18px;margin-bottom:14px">';
     html+='<div style="font-size:11px;font-weight:700;color:var(--text);margin-bottom:12px">🏷️ Влияние факторов на сон</div>';
     html+='<div id="slp-tag-stats"></div></div>';
   }
 
   // History
-  html+='<div style="background:linear-gradient(145deg,var(--card),rgba(10,11,22,.99));border:1px solid var(--border);border-radius:16px;overflow:hidden">';
+  html+='<div style="background:linear-gradient(145deg,var(--card),var(--bg));border:1px solid var(--border);border-radius:16px;overflow:hidden">';
   html+='<div style="padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between">';
   html+='<div style="font-size:11px;font-weight:700;color:var(--text)">📋 История сна</div>';
   html+='<div style="font-size:9px;color:var(--muted)">'+entries.length+' записей</div></div>';
