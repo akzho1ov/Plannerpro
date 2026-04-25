@@ -9635,64 +9635,84 @@ function renderDashLabelDonut(){
   const totalEl=document.getElementById('dashDonutTotal');
   if(!cv||!legendEl)return;
 
-  const W=90,H=90,cx=45,cy=45,R=38,r=22;
+  // ── Resolve actual CSS colours for Canvas (Canvas ignores var(--x)) ──
+  const style=getComputedStyle(document.documentElement);
+  const resolveVar=v=>style.getPropertyValue(v).trim()||v;
+  const bgColor=resolveVar('--card')||'#10122A';
+  const mutedColor=resolveVar('--muted')||'#8490B8';
+  const textColor=resolveVar('--text')||'#F2F4FF';
+
+  const DPR=window.devicePixelRatio||1;
+  const SIZE=90;
+  cv.width=SIZE*DPR; cv.height=SIZE*DPR;
+  cv.style.width=SIZE+'px'; cv.style.height=SIZE+'px';
+
   const ctx=cv.getContext('2d');
-  ctx.clearRect(0,0,W,H);
+  ctx.scale(DPR,DPR);
+  ctx.clearRect(0,0,SIZE,SIZE);
 
-  // Collect tasks → count per label
-  const tasks=tpD().filter(t=>!t.done||t.done); // all tasks
+  const cx=SIZE/2, cy=SIZE/2, R=38, r=23;
+
+  // ── Collect tasks → count per label (all tasks in G) ──
+  const allTasks=tpD();          // G.tasks flat array
   const labelMap={};
-  const labels=labelsD();
 
-  tasks.forEach(t=>{
+  allTasks.forEach(t=>{
     const tLabels=getTaskLabels(t);
     if(tLabels.length){
       tLabels.forEach(l=>{
-        if(!labelMap[l.id])labelMap[l.id]={name:l.name,color:l.color||'#9B8FF5',count:0};
-        labelMap[l.id].count++;
+        const key=l.id||l.name;
+        if(!labelMap[key])labelMap[key]={name:l.name,color:l.color&&l.color.startsWith('#')?l.color:'#9B8FF5',count:0,done:0};
+        labelMap[key].count++;
+        if(t.done)labelMap[key].done++;
       });
     } else {
-      if(!labelMap['__none__'])labelMap['__none__']={name:'Без метки',color:'#3A4070',count:0};
+      if(!labelMap['__none__'])labelMap['__none__']={name:'Без метки',color:'#4A5280',count:0,done:0};
       labelMap['__none__'].count++;
+      if(t.done)labelMap['__none__'].done++;
     }
   });
 
-  const segments=Object.values(labelMap).sort((a,b)=>b.count-a.count).slice(0,6);
+  const segments=Object.values(labelMap).filter(s=>s.count>0).sort((a,b)=>b.count-a.count).slice(0,7);
   const total=segments.reduce((s,x)=>s+x.count,0);
+
   if(totalEl)totalEl.textContent=total;
 
+  // ── Empty state ──
   if(!total){
-    // Empty state ring
     ctx.beginPath();
     ctx.arc(cx,cy,R,0,Math.PI*2);
-    ctx.arc(cx,cy,r,0,Math.PI*2,true);
-    ctx.fillStyle='rgba(255,255,255,.06)';
+    ctx.arc(cx,cy,r,Math.PI*2,0,true);
+    ctx.fillStyle='rgba(255,255,255,.07)';
     ctx.fill('evenodd');
-    legendEl.innerHTML='<div style="font-size:10px;color:var(--muted)">Нет задач с метками</div>';
+    // inner hole
+    ctx.beginPath();ctx.arc(cx,cy,r-1,0,Math.PI*2);
+    ctx.fillStyle=bgColor;ctx.fill();
+    legendEl.innerHTML='<div style="font-size:10px;color:'+mutedColor+'">Добавь метки к задачам</div>';
+    if(totalEl)totalEl.style.color=mutedColor;
     return;
   }
 
-  // Draw donut segments
-  const gap=0.025; // gap between segments in radians
+  // ── Draw segments ──
+  const gap=segments.length>1?0.03:0;
   let angle=-Math.PI/2;
   const drawn=[];
+
   segments.forEach((seg,i)=>{
-    const sweep=(seg.count/total)*Math.PI*2 - gap;
+    const sweep=Math.max(0,(seg.count/total)*Math.PI*2-gap);
     if(sweep<=0)return;
     const startA=angle+gap/2;
     const endA=startA+sweep;
 
-    // Outer glow
     ctx.save();
     ctx.shadowColor=seg.color;
-    ctx.shadowBlur=8;
+    ctx.shadowBlur=10;
+    ctx.globalAlpha=1-i*0.1;
     ctx.beginPath();
-    ctx.moveTo(cx+Math.cos(startA)*r,cy+Math.sin(startA)*r);
     ctx.arc(cx,cy,R,startA,endA);
     ctx.arc(cx,cy,r,endA,startA,true);
     ctx.closePath();
     ctx.fillStyle=seg.color;
-    ctx.globalAlpha=i===0?1:0.75+i*(-0.07);
     ctx.fill();
     ctx.restore();
 
@@ -9700,21 +9720,24 @@ function renderDashLabelDonut(){
     angle+=sweep+gap;
   });
 
-  // Center hole refinement
+  // ── Inner hole punch (must be solid colour, NOT css var) ──
   ctx.save();
   ctx.beginPath();
-  ctx.arc(cx,cy,r-1,0,Math.PI*2);
-  ctx.fillStyle='var(--card)';
+  ctx.arc(cx,cy,r-0.5,0,Math.PI*2);
+  ctx.fillStyle=bgColor;
+  ctx.shadowColor='transparent';
   ctx.fill();
   ctx.restore();
 
-  // Legend
-  legendEl.innerHTML=drawn.slice(0,5).map(({seg,pct})=>`
-    <div style="display:flex;align-items:center;gap:6px;min-width:0">
-      <div style="width:8px;height:8px;border-radius:50%;background:${seg.color};flex-shrink:0;box-shadow:0 0 5px ${seg.color}88"></div>
-      <div style="flex:1;font-size:10px;color:var(--text2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(seg.name)}</div>
-      <div style="font-size:10px;font-weight:700;color:var(--text);font-family:var(--font-display);flex-shrink:0">${pct}%</div>
-    </div>`).join('');
+  // ── Legend ──
+  legendEl.innerHTML=drawn.map(({seg,pct})=>{
+    const donePct=seg.count>0?Math.round(seg.done/seg.count*100):0;
+    return`<div style="display:flex;align-items:center;gap:6px;min-width:0">
+      <div style="width:8px;height:8px;border-radius:50%;background:${seg.color};flex-shrink:0;box-shadow:0 0 6px ${seg.color}99"></div>
+      <div style="flex:1;font-size:10px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#BCC5E8">${esc(seg.name)}</div>
+      <div style="font-size:9px;font-weight:700;color:#F2F4FF;font-family:monospace;flex-shrink:0">${seg.count}<span style="color:${mutedColor};font-weight:400"> (${pct}%)</span></div>
+    </div>`;
+  }).join('');
 }
 
 /* ═══════════════════════════════════
