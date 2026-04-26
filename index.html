@@ -3044,6 +3044,10 @@ body.light-mode .skel{background:linear-gradient(90deg,var(--card2) 25%,#f0f2f7 
                 <div class="navDropIcon">📆</div>
                 <div><div class="navDropLabel">Календарь</div><div class="navDropSub">Ежемесячный вид</div></div>
               </button>
+              <button class="navDropItem" data-tab="pomodoro" role="menuitem">
+                <div class="navDropIcon">🍅</div>
+                <div><div class="navDropLabel">Помодоро</div><div class="navDropSub">Фокус и фактическое время</div></div>
+              </button>
               <button class="navDropItem" data-tab="kanban" role="menuitem">
                 <div class="navDropIcon">🗂</div>
                 <div><div class="navDropLabel">Канбан</div><div class="navDropSub">Доски и колонки</div></div>
@@ -5227,7 +5231,7 @@ function setSyncDot(state){
 
 // ── Re-render whichever tab is currently visible (called after cloud sync) ──
 function reRenderCurrentTab(){
-  const renders={dash:renderDash,weekly:renderWP,habits:renderHT,tasks:renderTP,routine:renderRoutine,calendar:renderCal,kanban:renderKanban,finance:renderFin,goals:renderGrowth,rewards:rwRender,gym:gymRender,analytics:renderAnalytics};
+  const renders={dash:renderDash,weekly:renderWP,habits:renderHT,tasks:renderTP,routine:renderRoutine,calendar:renderCal,kanban:renderKanban,finance:renderFin,goals:renderGrowth,rewards:rwRender,gym:gymRender,analytics:renderAnalytics,pomodoro:renderPomodoro};
   for(const[name,fn] of Object.entries(renders)){
     if(document.getElementById('tab-'+name)?.classList.contains('on')){
       try{fn();}catch(e){console.warn('rerender err',e);}
@@ -5643,7 +5647,7 @@ function updateThemeBtn(){
 // Map every tab-id to its nav group
 const TAB_GROUP={
   dash:'dash',
-  tasks:'planning',weekly:'planning',calendar:'planning',kanban:'planning',
+  tasks:'planning',weekly:'planning',calendar:'planning',kanban:'planning',pomodoro:'planning',
   habits:'health',gym:'health',
   finance:'finance',
   goals:'progress',rewards:'progress',analytics:'progress'
@@ -5658,6 +5662,7 @@ const MOB_GROUPS={
       {tab:'weekly',  icon:'📅', label:'Неделя',    sub:'Еженедельный план'},
       {tab:'calendar',icon:'📆', label:'Календарь', sub:'Ежемесячный вид'},
       {tab:'kanban',  icon:'🗂', label:'Канбан',    sub:'Доски и колонки'},
+      {tab:'pomodoro',icon:'🍅', label:'Помодоро',  sub:'Фокус и время'},
     ]
   },
   health:{
@@ -5746,7 +5751,7 @@ function navigateTo(tabName){
   // ── Run render ──
   const renders={dash:renderDash,weekly:renderWP,habits:renderHT,tasks:renderTP,
     routine:renderRoutine,calendar:renderCal,kanban:renderKanban,finance:renderFin,
-    goals:renderGrowth,rewards:rwRender,gym:gymRender,analytics:renderAnalytics};
+    goals:renderGrowth,rewards:rwRender,gym:gymRender,analytics:renderAnalytics,pomodoro:renderPomodoro};
   if(renders[tabName])renders[tabName]();
 
   window.scrollTo({top:0,behavior:'instant'});
@@ -12694,11 +12699,11 @@ function _initWeekTooltips(){} // legacy stub — delegation handles everything
    Цифры 1-9 для навигации (без модификаторов)
    Не конфликтует с Chrome
 ══════════════════════════════════════════ */
-const KB_TAB_ORDER = ['dash','weekly','habits','tasks','calendar','kanban','finance','goals','rewards','gym'];
+const KB_TAB_ORDER = ['dash','weekly','habits','tasks','calendar','kanban','finance','goals','rewards','gym','pomodoro'];
 const KB_TAB_NAMES = {
   'dash':'Дашборд','weekly':'Неделя','habits':'Привычки','tasks':'Задачи',
   'calendar':'Календарь','kanban':'Канбан','finance':'Финансы','goals':'Цели',
-  'rewards':'Награды','gym':'Тренировки'
+  'rewards':'Награды','gym':'Тренировки','pomodoro':'Помодоро'
 };
 
 document.addEventListener('keydown', e => {
@@ -14190,6 +14195,727 @@ function buildSleepAnalyticsHTML(){
 }
 
 
+</script>
+
+<!-- ═══ POMODORO TAB ═══ -->
+<div id="tab-pomodoro" class="pane hInner">
+  <header class="paneHead">
+    <div class="paneHeadLeft">
+      <nav class="paneBreadcrumb">
+        <span onclick="navigateTo('dash')">PlannerPro</span>
+        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="m7 10 3 3 3-3"/><path d="m7 6 3 3 3-3"/></svg>
+        <span class="pbc-active">Планирование</span>
+        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="m7 10 3 3 3-3"/><path d="m7 6 3 3 3-3"/></svg>
+        <span class="pbc-active">Помодоро</span>
+      </nav>
+      <div class="paneHeadRow">
+        <div class="paneHeadIcon" style="background:rgba(255,79,114,.1);border-color:rgba(255,79,114,.28)">🍅</div>
+        <div>
+          <h1 class="paneTitle">Помодоро — Фокус</h1>
+          <p class="paneSubtitle">Таймер · Связка с задачами · Эффективность</p>
+        </div>
+      </div>
+    </div>
+    <div class="paneHeadActions">
+      <button class="btn btnG" style="font-size:11px" onclick="pomOpenSettings()">⚙ Настройки</button>
+    </div>
+  </header>
+
+  <div id="pomodoro-content">
+    <!-- Renders by JS -->
+  </div>
+</div>
+
+<!-- ═══ POMODORO SETTINGS MODAL ═══ -->
+<div class="overlay" id="pomSettingsOverlay" style="display:none">
+  <div class="modalBox" style="max-width:400px">
+    <div class="modalHead">
+      <span class="modalTitle">⚙ Настройки таймера</span>
+      <button class="modalClose" onclick="document.getElementById('pomSettingsOverlay').style.display='none'">✕</button>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:14px">
+      <div class="fldGrp">
+        <div class="fldLbl">🍅 Рабочий период (минуты)</div>
+        <input type="number" class="inp" id="pom-set-work" min="1" max="120" value="25" style="font-family:var(--font-mono);font-size:16px;font-weight:700;max-width:100px">
+      </div>
+      <div class="fldGrp">
+        <div class="fldLbl">☕ Короткий перерыв (минуты)</div>
+        <input type="number" class="inp" id="pom-set-break" min="1" max="60" value="5" style="font-family:var(--font-mono);font-size:16px;font-weight:700;max-width:100px">
+      </div>
+      <div class="fldGrp">
+        <div class="fldLbl">🌿 Длинный перерыв (минуты)</div>
+        <input type="number" class="inp" id="pom-set-long" min="1" max="120" value="15" style="font-family:var(--font-mono);font-size:16px;font-weight:700;max-width:100px">
+      </div>
+      <div class="fldGrp">
+        <div class="fldLbl">Длинный перерыв после (циклов)</div>
+        <input type="number" class="inp" id="pom-set-cycles" min="1" max="10" value="4" style="font-family:var(--font-mono);font-size:16px;font-weight:700;max-width:100px">
+      </div>
+    </div>
+    <div style="display:flex;gap:8px;margin-top:16px">
+      <button class="btn btnG" style="flex:1;justify-content:center" onclick="document.getElementById('pomSettingsOverlay').style.display='none'">Отмена</button>
+      <button class="btn btnB" style="flex:1;justify-content:center" onclick="pomSaveSettings()">💾 Сохранить</button>
+    </div>
+  </div>
+</div>
+
+<style>
+/* ══════════════════════════════════════
+   POMODORO DESIGN SYSTEM
+══════════════════════════════════════ */
+.pomWrap{display:grid;grid-template-columns:1fr 340px;gap:20px;align-items:start}
+@media(max-width:900px){.pomWrap{grid-template-columns:1fr}}
+
+/* Ring timer */
+.pomRingWrap{
+  display:flex;flex-direction:column;align-items:center;
+  background:linear-gradient(160deg,var(--card) 0%,var(--bg) 100%);
+  border:1px solid var(--border);border-radius:24px;padding:32px 24px;
+  position:relative;overflow:hidden;
+}
+.pomRingWrap::before{
+  content:'';position:absolute;top:-60px;left:50%;transform:translateX(-50%);
+  width:320px;height:320px;border-radius:50%;
+  background:radial-gradient(circle,var(--pom-glow,rgba(255,79,114,.08)) 0%,transparent 70%);
+  pointer-events:none;transition:background 1s;
+}
+.pomRingWrap.break-mode::before{background:radial-gradient(circle,rgba(15,221,170,.08) 0%,transparent 70%)}
+.pomRingWrap.long-mode::before{background:radial-gradient(circle,rgba(91,149,255,.08) 0%,transparent 70%)}
+
+.pomModeBadge{
+  display:inline-flex;align-items:center;gap:7px;
+  padding:5px 16px;border-radius:20px;font-size:11px;font-weight:800;
+  letter-spacing:.4px;text-transform:uppercase;
+  margin-bottom:22px;border:1px solid;transition:all .4s;
+}
+.pomModeBadge.work{background:rgba(255,79,114,.1);border-color:rgba(255,79,114,.3);color:var(--red)}
+.pomModeBadge.sbreak{background:rgba(15,221,170,.1);border-color:rgba(15,221,170,.3);color:var(--green)}
+.pomModeBadge.lbreak{background:rgba(91,149,255,.1);border-color:rgba(91,149,255,.3);color:var(--blue)}
+
+.pomRingSvg{position:relative;margin-bottom:20px;cursor:default}
+.pomRingBg{stroke:rgba(255,255,255,.05);transition:.3s}
+.pomRingFill{
+  stroke-linecap:round;
+  transition:stroke-dashoffset .8s cubic-bezier(.16,1,.3,1),stroke .4s;
+  transform:rotate(-90deg);transform-origin:50% 50%;
+}
+.pomTimerTxt{
+  position:absolute;inset:0;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+}
+.pomTimerNum{
+  font-family:var(--font-mono);font-size:56px;font-weight:700;
+  letter-spacing:-2px;line-height:1;
+  transition:color .4s;
+}
+.pomTimerLbl{font-size:11px;color:var(--muted);font-weight:600;margin-top:4px;letter-spacing:.5px}
+
+.pomBtns{display:flex;align-items:center;gap:12px;margin-bottom:20px}
+.pomBtn{
+  border:none;cursor:pointer;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  transition:all .18s var(--ease);font-size:18px;
+}
+.pomBtnMain{
+  width:64px;height:64px;
+  background:var(--red);color:#fff;
+  box-shadow:0 0 32px rgba(255,79,114,.4),0 4px 16px rgba(0,0,0,.3);
+}
+.pomBtnMain:hover{transform:scale(1.07);box-shadow:0 0 42px rgba(255,79,114,.55),0 6px 20px rgba(0,0,0,.4)}
+.pomBtnMain.break{background:var(--green);box-shadow:0 0 32px rgba(15,221,170,.4),0 4px 16px rgba(0,0,0,.3)}
+.pomBtnMain.break:hover{box-shadow:0 0 42px rgba(15,221,170,.55)}
+.pomBtnMain.lbreak{background:var(--blue);box-shadow:0 0 32px rgba(91,149,255,.4),0 4px 16px rgba(0,0,0,.3)}
+.pomBtnSec{
+  width:44px;height:44px;background:var(--card2);border:1px solid var(--border2);color:var(--text2);font-size:16px;
+}
+.pomBtnSec:hover{background:var(--card3);border-color:var(--border3);color:var(--text)}
+
+/* Cycle dots */
+.pomCycleDots{display:flex;gap:6px;align-items:center;margin-bottom:24px}
+.pomCycleDot{
+  width:10px;height:10px;border-radius:50%;
+  background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);
+  transition:all .25s var(--ease);
+}
+.pomCycleDot.done{background:var(--red);border-color:rgba(255,79,114,.5);box-shadow:0 0 8px rgba(255,79,114,.4)}
+.pomCycleDot.current{background:rgba(255,79,114,.3);border-color:rgba(255,79,114,.5);animation:pomDotPulse 1.2s ease-in-out infinite}
+@keyframes pomDotPulse{0%,100%{box-shadow:0 0 0 0 rgba(255,79,114,.4)}50%{box-shadow:0 0 0 4px rgba(255,79,114,.1)}}
+
+/* Task selector */
+.pomTaskCard{
+  background:linear-gradient(145deg,var(--card2),var(--card));
+  border:1px solid var(--border);border-radius:16px;padding:16px 18px;
+  margin-bottom:16px;transition:border-color .2s;cursor:pointer;
+}
+.pomTaskCard:hover,.pomTaskCard.sel{border-color:rgba(255,79,114,.4)}
+.pomTaskCard.sel{background:linear-gradient(145deg,rgba(255,79,114,.07),rgba(255,79,114,.03));border-color:rgba(255,79,114,.35)}
+
+/* Stats panel */
+.pomStatRow{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px}
+.pomStat{
+  background:var(--card2);border:1px solid var(--border);border-radius:12px;
+  padding:12px 10px;text-align:center;
+}
+.pomStatVal{font-family:var(--font-display);font-size:20px;font-weight:800;line-height:1;margin-bottom:3px}
+.pomStatLbl{font-size:9px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.5px}
+
+/* Efficiency gauge */
+.pomEffGauge{
+  background:linear-gradient(135deg,var(--card),var(--card2));
+  border:1px solid var(--border);border-radius:16px;padding:16px;
+  margin-bottom:16px;
+}
+.pomEffVal{
+  font-family:var(--font-display);font-size:36px;font-weight:800;
+  line-height:1;transition:color .4s;
+}
+.pomEffBar{height:8px;background:var(--card3);border-radius:4px;overflow:hidden;margin-top:8px}
+.pomEffFill{height:100%;border-radius:4px;transition:width .7s var(--ease),background .4s}
+
+/* History */
+.pomHistItem{
+  display:flex;align-items:center;gap:12px;
+  padding:10px 14px;border-bottom:1px solid var(--border);
+  transition:background .15s;
+}
+.pomHistItem:last-child{border-bottom:none}
+.pomHistItem:hover{background:rgba(255,255,255,.02)}
+.pomHistDot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+
+/* Notification bubble */
+.pomNotif{
+  position:fixed;bottom:100px;left:50%;transform:translateX(-50%) translateY(20px);
+  background:rgba(12,13,30,.97);border:1px solid var(--border2);
+  border-radius:24px;padding:10px 22px;font-size:13px;font-weight:700;
+  color:var(--text);box-shadow:var(--shadow2);z-index:500;
+  opacity:0;transition:all .3s var(--ease);pointer-events:none;
+  white-space:nowrap;
+}
+.pomNotif.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* Light mode overrides */
+body.light-mode .pomRingBg{stroke:rgba(0,0,0,.06)}
+body.light-mode .pomCycleDot{background:rgba(0,0,0,.06);border-color:rgba(0,0,0,.12)}
+body.light-mode .pomHistItem:hover{background:rgba(0,0,0,.02)}
+</style>
+
+<script>
+/* ═══════════════════════════════════════════════════
+   🍅 POMODORO SYSTEM — Full focus tracker
+   Data: G.pomodoro = { sessions:[], settings:{} }
+   Links actualDuration → task via taskId
+═══════════════════════════════════════════════════ */
+
+/* ── Data ── */
+function pomD(){
+  if(!G.pomodoro)G.pomodoro={sessions:[],settings:{workMin:25,breakMin:5,longMin:15,cycles:4}};
+  const s=G.pomodoro.settings;
+  if(!s.workMin)s.workMin=25;
+  if(!s.breakMin)s.breakMin=5;
+  if(!s.longMin)s.longMin=15;
+  if(!s.cycles)s.cycles=4;
+  return G.pomodoro;
+}
+
+/* ── Timer state (not persisted, RAM only) ── */
+const POM={
+  mode:'work',          // 'work' | 'sbreak' | 'lbreak'
+  running:false,
+  secondsLeft:0,
+  totalSeconds:0,
+  cyclesDone:0,
+  sessionWorkMin:0,     // accumulated work minutes this session
+  taskId:null,
+  _iv:null,
+  _startTs:null,
+  _pausedSec:0,
+};
+
+/* ── Helpers ── */
+function pomSettings(){return pomD().settings;}
+function pomFmtTime(s){const m=Math.floor(s/60),ss=s%60;return `${String(m).padStart(2,'0')}:${String(ss).padStart(2,'0')}`}
+function pomModeColor(){
+  if(POM.mode==='sbreak')return 'var(--green)';
+  if(POM.mode==='lbreak')return 'var(--blue)';
+  return 'var(--red)';
+}
+function pomModeName(){
+  if(POM.mode==='sbreak')return '☕ Короткий перерыв';
+  if(POM.mode==='lbreak')return '🌿 Длинный перерыв';
+  return '🍅 Фокус';
+}
+function pomModeClass(){return POM.mode==='work'?'work':POM.mode==='sbreak'?'sbreak':'lbreak'}
+function pomMainBtnClass(){return POM.mode==='sbreak'?'break':POM.mode==='lbreak'?'lbreak':''}
+
+/* Get task planned minutes from time+endTime */
+function pomTaskPlannedMin(task){
+  if(!task)return 0;
+  if(task.time&&task.endTime){
+    const [sh,sm]=task.time.split(':').map(Number);
+    const [eh,em]=task.endTime.split(':').map(Number);
+    const diff=(eh*60+em)-(sh*60+sm);
+    if(diff>0)return diff;
+  }
+  return 0;
+}
+
+/* ── Init timer for mode ── */
+function pomInitMode(mode){
+  POM.mode=mode;
+  const s=pomSettings();
+  const min=mode==='work'?s.workMin:mode==='sbreak'?s.breakMin:s.longMin;
+  POM.totalSeconds=min*60;
+  POM.secondsLeft=min*60;
+  POM.running=false;
+  POM._pausedSec=0;
+  clearInterval(POM._iv);
+  POM._iv=null;
+  pomUpdateUI();
+}
+
+/* ── Start / pause ── */
+function pomToggle(){
+  if(POM.running){
+    // Pause
+    POM.running=false;
+    clearInterval(POM._iv);
+    POM._iv=null;
+    pomUpdateUI();
+    pomShowNotif('⏸ Пауза');
+  } else {
+    // Start
+    POM.running=true;
+    POM._startTs=Date.now();
+    POM._iv=setInterval(pomTick,1000);
+    pomUpdateUI();
+    pomShowNotif(POM.mode==='work'?'🍅 Фокус начат!':'☕ Отдых начат!');
+  }
+}
+
+/* ── Tick ── */
+function pomTick(){
+  if(!POM.running)return;
+  POM.secondsLeft=Math.max(0,POM.secondsLeft-1);
+  if(POM.mode==='work'){
+    POM.sessionWorkMin+=(1/60);
+  }
+  pomUpdateTimerDisplay();
+  if(POM.secondsLeft<=0){
+    pomOnComplete();
+  }
+}
+
+/* ── Session complete ── */
+function pomOnComplete(){
+  clearInterval(POM._iv);POM._iv=null;POM.running=false;
+  const s=pomSettings();
+
+  if(POM.mode==='work'){
+    // Save work session
+    POM.cyclesDone++;
+    const workMinDone=Math.round(pomSettings().workMin);
+    pomSaveSession(workMinDone);
+    // Add actual time to task
+    if(POM.taskId){
+      const t=tpD().find(t=>t.id===POM.taskId);
+      if(t){
+        t.actualDuration=(t.actualDuration||0)+workMinDone;
+        saveD();
+      }
+    }
+    pomShowNotif('✅ Помодоро завершён! +'+workMinDone+'мин');
+    pomPlaySound('work');
+    // Decide next mode
+    const isLong=POM.cyclesDone>0&&POM.cyclesDone%s.cycles===0;
+    pomInitMode(isLong?'lbreak':'sbreak');
+  } else {
+    // Break done — go back to work
+    pomShowNotif('🍅 Перерыв окончен! Начинаем работу');
+    pomPlaySound('break');
+    pomInitMode('work');
+  }
+}
+
+/* ── Skip / Reset ── */
+function pomSkip(){
+  if(POM.mode==='work'&&POM.secondsLeft<POM.totalSeconds){
+    // Record partial work
+    const partialMin=Math.round((POM.totalSeconds-POM.secondsLeft)/60);
+    if(partialMin>0){
+      pomSaveSession(partialMin);
+      if(POM.taskId){
+        const t=tpD().find(t=>t.id===POM.taskId);
+        if(t){t.actualDuration=(t.actualDuration||0)+partialMin;saveD();}
+      }
+    }
+    POM.cyclesDone++;
+  }
+  clearInterval(POM._iv);POM._iv=null;POM.running=false;
+  const s=pomSettings();
+  const isLong=POM.mode==='work'&&POM.cyclesDone>0&&POM.cyclesDone%s.cycles===0;
+  pomInitMode(POM.mode==='work'?(isLong?'lbreak':'sbreak'):'work');
+  pomShowNotif('⏭ Пропущено');
+}
+
+function pomReset(){
+  clearInterval(POM._iv);POM._iv=null;POM.running=false;
+  POM.cyclesDone=0;POM.sessionWorkMin=0;
+  pomInitMode('work');
+  pomShowNotif('🔄 Сброшен');
+}
+
+/* ── Link task ── */
+function pomSetTask(id){
+  POM.taskId=(POM.taskId===id)?null:id;
+  renderPomodoro();
+}
+
+/* ── Save session ── */
+function pomSaveSession(workMin){
+  const t=POM.taskId?tpD().find(x=>x.id===POM.taskId):null;
+  const plannedMin=pomTaskPlannedMin(t);
+  const eff=plannedMin>0?Math.round(workMin/plannedMin*100):null;
+  pomD().sessions.unshift({
+    id:uid(),
+    date:dk(new Date()),
+    taskId:POM.taskId||null,
+    taskName:t?t.text:'Без задачи',
+    workMin,
+    plannedMin,
+    efficiency:eff,
+    mode:'work',
+  });
+  // Keep last 200
+  if(pomD().sessions.length>200)pomD().sessions=pomD().sessions.slice(0,200);
+  saveD();
+}
+
+/* ── Sound (Web Audio API) ── */
+function pomPlaySound(type){
+  try{
+    const ctx=new(window.AudioContext||window.webkitAudioContext)();
+    const osc=ctx.createOscillator();
+    const gain=ctx.createGain();
+    osc.connect(gain);gain.connect(ctx.destination);
+    if(type==='work'){osc.frequency.setValueAtTime(880,ctx.currentTime);osc.frequency.setValueAtTime(660,ctx.currentTime+0.15);gain.gain.setValueAtTime(0.25,ctx.currentTime);gain.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+0.5);}
+    else{osc.frequency.setValueAtTime(550,ctx.currentTime);osc.frequency.setValueAtTime(440,ctx.currentTime+0.2);gain.gain.setValueAtTime(0.2,ctx.currentTime);gain.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+0.6);}
+    osc.start(ctx.currentTime);osc.stop(ctx.currentTime+0.8);
+  }catch(e){}
+}
+
+/* ── Notification ── */
+let _pomNotifTimer=null;
+function pomShowNotif(msg){
+  let el=document.getElementById('pomNotifBubble');
+  if(!el){el=document.createElement('div');el.id='pomNotifBubble';el.className='pomNotif';document.body.appendChild(el);}
+  el.textContent=msg;el.classList.add('show');
+  clearTimeout(_pomNotifTimer);
+  _pomNotifTimer=setTimeout(()=>el.classList.remove('show'),2500);
+}
+
+/* ── Settings ── */
+function pomOpenSettings(){
+  const s=pomSettings();
+  document.getElementById('pom-set-work').value=s.workMin;
+  document.getElementById('pom-set-break').value=s.breakMin;
+  document.getElementById('pom-set-long').value=s.longMin;
+  document.getElementById('pom-set-cycles').value=s.cycles;
+  document.getElementById('pomSettingsOverlay').style.display='flex';
+}
+function pomSaveSettings(){
+  const s=pomSettings();
+  s.workMin=parseInt(document.getElementById('pom-set-work').value)||25;
+  s.breakMin=parseInt(document.getElementById('pom-set-break').value)||5;
+  s.longMin=parseInt(document.getElementById('pom-set-long').value)||15;
+  s.cycles=parseInt(document.getElementById('pom-set-cycles').value)||4;
+  saveD();
+  document.getElementById('pomSettingsOverlay').style.display='none';
+  if(!POM.running)pomInitMode(POM.mode);
+  renderPomodoro();
+  pomShowNotif('✅ Настройки сохранены');
+}
+
+/* ── Update just the timer display (every tick) ── */
+function pomUpdateTimerDisplay(){
+  const numEl=document.getElementById('pom-timer-num');
+  const fillEl=document.getElementById('pom-ring-fill');
+  if(!numEl)return;
+  numEl.textContent=pomFmtTime(POM.secondsLeft);
+  // Ring
+  if(fillEl){
+    const r=88;const C=2*Math.PI*r;
+    const pct=POM.totalSeconds>0?POM.secondsLeft/POM.totalSeconds:0;
+    fillEl.style.strokeDashoffset=C-(C*pct);
+  }
+}
+
+/* ── Full UI update ── */
+function pomUpdateUI(){
+  // Mode badge
+  const badge=document.getElementById('pom-mode-badge');
+  if(badge){badge.textContent=pomModeName();badge.className='pomModeBadge '+pomModeClass();}
+  // Wrap class
+  const wrap=document.getElementById('pom-ring-wrap');
+  if(wrap){wrap.className='pomRingWrap '+(POM.mode==='work'?'':POM.mode==='sbreak'?'break-mode':'long-mode');}
+  // Ring color
+  const fill=document.getElementById('pom-ring-fill');
+  if(fill)fill.style.stroke=pomModeColor();
+  // Timer num color
+  const num=document.getElementById('pom-timer-num');
+  if(num)num.style.color=pomModeColor();
+  // Main btn
+  const btn=document.getElementById('pom-main-btn');
+  if(btn){
+    btn.innerHTML=POM.running
+      ?'<svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></svg>'
+      :'<svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><polygon points="5,3 19,12 5,21"/></svg>';
+    btn.className='pomBtn pomBtnMain '+pomMainBtnClass();
+  }
+  pomUpdateTimerDisplay();
+  pomUpdateCycles();
+}
+
+/* ── Cycle dots ── */
+function pomUpdateCycles(){
+  const el=document.getElementById('pom-cycle-dots');
+  if(!el)return;
+  const total=pomSettings().cycles;
+  let h='';
+  for(let i=0;i<total;i++){
+    const done=i<POM.cyclesDone%total||(POM.cyclesDone>0&&POM.cyclesDone%total===0);
+    const curr=POM.running&&POM.mode==='work'&&i===POM.cyclesDone%total;
+    h+=`<div class="pomCycleDot${done?' done':curr?' current':''}"></div>`;
+  }
+  el.innerHTML=h;
+}
+
+/* ── MAIN RENDER ── */
+function renderPomodoro(){
+  const el=document.getElementById('pomodoro-content');
+  if(!el)return;
+
+  // Init timer if not started
+  if(POM.totalSeconds===0)pomInitMode('work');
+
+  const s=pomSettings();
+  const sessions=pomD().sessions;
+  const todaySessions=sessions.filter(s=>s.date===dk(new Date()));
+  const todayWork=todaySessions.filter(s=>s.mode==='work');
+  const todayMin=todayWork.reduce((a,b)=>a+b.workMin,0);
+  const todayCycles=todayWork.length;
+
+  // Linked task
+  const linkedTask=POM.taskId?tpD().find(t=>t.id===POM.taskId):null;
+  const plannedMin=pomTaskPlannedMin(linkedTask);
+  const taskActual=linkedTask?(linkedTask.actualDuration||0):0;
+  const eff=plannedMin>0&&taskActual>0?Math.round(taskActual/plannedMin*100):null;
+  const effColor=eff===null?'var(--muted)':eff>=90?'var(--green)':eff>=60?'var(--gold)':'var(--red)';
+
+  // Today's tasks (for selection)
+  const today=dk(new Date());
+  const todayTasks=tpD().filter(t=>{
+    if(t.done)return false;
+    if(t.deadline===today)return true;
+    if(!t.deadline)return true;
+    return false;
+  }).slice(0,12);
+
+  // Ring params
+  const r=88;const C=(2*Math.PI*r).toFixed(2);
+  const pct=POM.totalSeconds>0?POM.secondsLeft/POM.totalSeconds:0;
+  const offset=(C*(1-pct)).toFixed(2);
+
+  // Sessions history (last 8)
+  const recentSess=sessions.slice(0,8);
+
+  el.innerHTML=`
+  <div class="pomWrap">
+    <!-- ── LEFT: TIMER ── -->
+    <div style="display:flex;flex-direction:column;gap:16px">
+
+      <!-- Ring card -->
+      <div class="pomRingWrap ${POM.mode==='work'?'':POM.mode==='sbreak'?'break-mode':'long-mode'}" id="pom-ring-wrap">
+        <div class="pomModeBadge ${pomModeClass()}" id="pom-mode-badge">${pomModeName()}</div>
+
+        <!-- SVG Ring -->
+        <div class="pomRingSvg" style="position:relative;width:220px;height:220px;margin-bottom:8px">
+          <svg width="220" height="220" viewBox="0 0 220 220">
+            <circle class="pomRingBg" cx="110" cy="110" r="${r}" fill="none" stroke-width="10"/>
+            <circle id="pom-ring-fill" class="pomRingFill" cx="110" cy="110" r="${r}" fill="none" stroke-width="10"
+              stroke="${pomModeColor()}"
+              stroke-dasharray="${C}"
+              stroke-dashoffset="${offset}"
+              style="transform:rotate(-90deg);transform-origin:50% 50%;"/>
+          </svg>
+          <div class="pomTimerTxt">
+            <div class="pomTimerNum" id="pom-timer-num" style="color:${pomModeColor()}">${pomFmtTime(POM.secondsLeft)}</div>
+            <div class="pomTimerLbl">${POM.mode==='work'?s.workMin+'м рабочий':POM.mode==='sbreak'?s.breakMin+'м перерыв':s.longMin+'м отдых'}</div>
+          </div>
+        </div>
+
+        <!-- Cycle dots -->
+        <div class="pomCycleDots" id="pom-cycle-dots">
+          ${(()=>{let h='';for(let i=0;i<s.cycles;i++){const done=i<POM.cyclesDone%s.cycles||(POM.cyclesDone>0&&POM.cyclesDone%s.cycles===0);const curr=POM.running&&POM.mode==='work'&&i===POM.cyclesDone%s.cycles;h+=`<div class="pomCycleDot${done?' done':curr?' current':''}"></div>`;}return h;})()}
+        </div>
+
+        <!-- Buttons -->
+        <div class="pomBtns">
+          <button class="pomBtn pomBtnSec" onclick="pomReset()" title="Сброс" style="font-size:16px">↺</button>
+          <button class="pomBtn pomBtnMain ${pomMainBtnClass()}" id="pom-main-btn" onclick="pomToggle()">
+            ${POM.running
+              ?'<svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></svg>'
+              :'<svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><polygon points="5,3 19,12 5,21"/></svg>'}
+          </button>
+          <button class="pomBtn pomBtnSec" onclick="pomSkip()" title="Пропустить" style="font-size:14px">⏭</button>
+        </div>
+
+        <!-- Mode switcher -->
+        <div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:center">
+          <button onclick="pomInitMode('work')" style="border:1px solid ${POM.mode==='work'?'rgba(255,79,114,.45)':'var(--border2)'};background:${POM.mode==='work'?'rgba(255,79,114,.12)':'var(--card2)'};color:${POM.mode==='work'?'var(--red)':'var(--text2)'};border-radius:20px;padding:5px 14px;font-size:10.5px;font-weight:700;cursor:pointer;transition:.15s">🍅 Фокус</button>
+          <button onclick="pomInitMode('sbreak')" style="border:1px solid ${POM.mode==='sbreak'?'rgba(15,221,170,.45)':'var(--border2)'};background:${POM.mode==='sbreak'?'rgba(15,221,170,.12)':'var(--card2)'};color:${POM.mode==='sbreak'?'var(--green)':'var(--text2)'};border-radius:20px;padding:5px 14px;font-size:10.5px;font-weight:700;cursor:pointer;transition:.15s">☕ Перерыв</button>
+          <button onclick="pomInitMode('lbreak')" style="border:1px solid ${POM.mode==='lbreak'?'rgba(91,149,255,.45)':'var(--border2)'};background:${POM.mode==='lbreak'?'rgba(91,149,255,.12)':'var(--card2)'};color:${POM.mode==='lbreak'?'var(--blue)':'var(--text2)'};border-radius:20px;padding:5px 14px;font-size:10.5px;font-weight:700;cursor:pointer;transition:.15s">🌿 Длинный</button>
+        </div>
+      </div>
+
+      <!-- Linked task -->
+      <div style="background:linear-gradient(145deg,var(--card),var(--bg));border:1px solid var(--border);border-radius:18px;padding:18px 20px">
+        <div style="font-size:9.5px;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:12px;display:flex;align-items:center;gap:6px">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/></svg>
+          Связка с задачей
+        </div>
+        ${linkedTask?`
+          <div style="display:flex;align-items:flex-start;gap:10px;padding:12px;background:rgba(255,79,114,.06);border:1px solid rgba(255,79,114,.25);border-radius:12px;margin-bottom:10px">
+            <div style="width:8px;height:8px;border-radius:50%;background:var(--red);flex-shrink:0;margin-top:5px;box-shadow:0 0 8px rgba(255,79,114,.5)"></div>
+            <div style="flex:1;min-width:0">
+              <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(linkedTask.text)||'Без названия'}</div>
+              <div style="display:flex;gap:10px;flex-wrap:wrap">
+                ${plannedMin?`<span style="font-size:10px;color:var(--p);font-family:var(--font-mono)">📅 Запланировано: ${plannedMin}мин</span>`:''}
+                ${taskActual?`<span style="font-size:10px;color:var(--cyan);font-family:var(--font-mono)">⏳ Фактически: ${taskActual}мин</span>`:''}
+              </div>
+            </div>
+            <button onclick="pomSetTask(null)" style="border:none;background:none;color:rgba(255,255,255,.3);font-size:16px;cursor:pointer;flex-shrink:0;padding:0 2px;transition:.15s" onmouseover="this.style.color='var(--red)'" onmouseout="this.style.color='rgba(255,255,255,.3)'">×</button>
+          </div>`:''}
+        <div style="font-size:10px;color:var(--muted);margin-bottom:8px">Задачи на сегодня — нажми для привязки:</div>
+        <div style="display:flex;flex-direction:column;gap:6px;max-height:220px;overflow-y:auto">
+          ${todayTasks.length?todayTasks.map(t=>{
+            const isSel=POM.taskId===t.id;
+            const pm=pomTaskPlannedMin(t);
+            const lbls=getTaskLabels(t);
+            const col=lbls.length?lbls[0].color:'var(--border3)';
+            return`<div class="pomTaskCard${isSel?' sel':''}" onclick="pomSetTask('${t.id}')" style="border-left:3px solid ${col}">
+              <div style="display:flex;align-items:center;gap:8px">
+                <div style="flex:1;min-width:0">
+                  <div style="font-size:12px;font-weight:${isSel?700:500};color:${isSel?'var(--red)':'var(--text)'};overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(t.text)||'Без названия'}</div>
+                  ${pm||t.actualDuration?`<div style="display:flex;gap:8px;margin-top:3px">
+                    ${pm?`<span style="font-size:9px;color:var(--p);font-family:var(--font-mono)">📅 ${pm}м</span>`:''}
+                    ${t.actualDuration?`<span style="font-size:9px;color:var(--cyan);font-family:var(--font-mono)">⏳ ${t.actualDuration}м</span>`:''}
+                  </div>`:''}
+                </div>
+                ${isSel?'<div style="width:8px;height:8px;border-radius:50%;background:var(--red);flex-shrink:0;box-shadow:0 0 6px rgba(255,79,114,.5)"></div>':''}
+              </div>
+            </div>`;
+          }).join(''):`<div style="text-align:center;padding:20px;font-size:11px;color:var(--muted)">Нет активных задач. Добавь задачи в раздел Задачи.</div>`}
+        </div>
+      </div>
+    </div>
+
+    <!-- ── RIGHT: STATS + HISTORY ── -->
+    <div style="display:flex;flex-direction:column;gap:16px">
+
+      <!-- Today stats -->
+      <div style="background:linear-gradient(145deg,var(--card),var(--bg));border:1px solid var(--border);border-radius:18px;padding:18px 20px">
+        <div style="font-size:9.5px;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:14px">📊 Сегодня</div>
+        <div class="pomStatRow">
+          <div class="pomStat">
+            <div class="pomStatVal" style="color:var(--red)">${todayCycles}</div>
+            <div class="pomStatLbl">Циклов</div>
+          </div>
+          <div class="pomStat">
+            <div class="pomStatVal" style="color:var(--cyan)">${todayMin}</div>
+            <div class="pomStatLbl">Минут</div>
+          </div>
+          <div class="pomStat">
+            <div class="pomStatVal" style="color:var(--p)">${Math.floor(todayMin/60)}<span style="font-size:14px">ч</span>${todayMin%60}<span style="font-size:14px">м</span></div>
+            <div class="pomStatLbl">Итого</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Efficiency gauge -->
+      <div class="pomEffGauge">
+        <div style="font-size:9.5px;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:12px;display:flex;align-items:center;gap:6px">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="${effColor}" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Эффективность фокуса
+        </div>
+        ${eff!==null?`
+          <div style="display:flex;align-items:flex-end;gap:10px;margin-bottom:6px">
+            <div class="pomEffVal" style="color:${effColor}">${eff}%</div>
+            <div style="font-size:10px;color:var(--muted);padding-bottom:6px;line-height:1.4">${taskActual}м факт<br>${plannedMin}м план</div>
+          </div>
+          <div class="pomEffBar"><div class="pomEffFill" style="width:${Math.min(eff,100)}%;background:${effColor}"></div></div>
+          <div style="font-size:10px;color:var(--muted);margin-top:8px">${eff>=100?'🎯 Отличная работа — уложился в план!':eff>=80?'✅ Хорошая эффективность':eff>=60?'⚡ Средний фокус — можно лучше':'🔴 Значительный перерасход времени'}</div>
+        `:`
+          <div style="display:flex;align-items:center;gap:10px">
+            <div class="pomEffVal" style="color:var(--muted)">—</div>
+            <div style="font-size:11px;color:var(--muted);line-height:1.5">Привяжи задачу с<br>запланированным временем</div>
+          </div>
+          <div class="pomEffBar" style="margin-top:10px"><div class="pomEffFill" style="width:0%"></div></div>
+        `}
+      </div>
+
+      <!-- Settings preview -->
+      <div style="background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px 16px">
+        <div style="font-size:9.5px;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:10px">⚙ Текущие настройки</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+          <div style="display:flex;align-items:center;gap:6px">
+            <span style="font-size:14px">🍅</span>
+            <div><div style="font-size:14px;font-weight:800;color:var(--red);font-family:var(--font-mono)">${s.workMin}м</div><div style="font-size:9px;color:var(--muted)">Рабочий</div></div>
+          </div>
+          <div style="display:flex;align-items:center;gap:6px">
+            <span style="font-size:14px">☕</span>
+            <div><div style="font-size:14px;font-weight:800;color:var(--green);font-family:var(--font-mono)">${s.breakMin}м</div><div style="font-size:9px;color:var(--muted)">Перерыв</div></div>
+          </div>
+          <div style="display:flex;align-items:center;gap:6px">
+            <span style="font-size:14px">🌿</span>
+            <div><div style="font-size:14px;font-weight:800;color:var(--blue);font-family:var(--font-mono)">${s.longMin}м</div><div style="font-size:9px;color:var(--muted)">Длинный</div></div>
+          </div>
+          <div style="display:flex;align-items:center;gap:6px">
+            <span style="font-size:14px">🔄</span>
+            <div><div style="font-size:14px;font-weight:800;color:var(--p);font-family:var(--font-mono)">${s.cycles}</div><div style="font-size:9px;color:var(--muted)">Циклов</div></div>
+          </div>
+        </div>
+        <button onclick="pomOpenSettings()" style="width:100%;margin-top:10px;background:var(--pdim);border:1px solid rgba(155,143,245,.25);color:var(--p);border-radius:9px;padding:7px;font-size:11px;font-weight:700;cursor:pointer;transition:.15s" onmouseover="this.style.background='var(--pdim2)'" onmouseout="this.style.background='var(--pdim)'">⚙ Изменить настройки</button>
+      </div>
+
+      <!-- History -->
+      <div style="background:linear-gradient(145deg,var(--card),var(--bg));border:1px solid var(--border);border-radius:18px;overflow:hidden">
+        <div style="padding:16px 18px 12px;display:flex;align-items:center;justify-content:space-between">
+          <div style="font-size:9.5px;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:var(--muted)">🕒 История сессий</div>
+          ${sessions.length?`<button onclick="if(confirm('Очистить всю историю?')){pomD().sessions=[];saveD();renderPomodoro()}" style="border:none;background:none;color:rgba(255,255,255,.2);font-size:11px;cursor:pointer;transition:.15s" onmouseover="this.style.color='var(--red)'" onmouseout="this.style.color='rgba(255,255,255,.2)'">🗑</button>`:''}
+        </div>
+        ${recentSess.length?`<div>
+          ${recentSess.map(sess=>{
+            const effStr=sess.efficiency!=null?sess.efficiency+'%':'—';
+            const effC=sess.efficiency==null?'var(--muted)':sess.efficiency>=80?'var(--green)':sess.efficiency>=60?'var(--gold)':'var(--red)';
+            return`<div class="pomHistItem">
+              <div class="pomHistDot" style="background:var(--red);box-shadow:0 0 5px rgba(255,79,114,.3)"></div>
+              <div style="flex:1;min-width:0">
+                <div style="font-size:11.5px;font-weight:600;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(sess.taskName||'Без задачи')}</div>
+                <div style="font-size:9.5px;color:var(--muted);margin-top:1px">${sess.date} · ${sess.workMin}м работы${sess.plannedMin?' · план '+sess.plannedMin+'м':''}</div>
+              </div>
+              <div style="font-size:12px;font-weight:800;color:${effC};font-family:var(--font-mono);flex-shrink:0">${effStr}</div>
+            </div>`;
+          }).join('')}
+        </div>`:`<div style="padding:24px;text-align:center;font-size:11px;color:var(--muted)">История пуста. Завершённые сессии появятся здесь.</div>`}
+      </div>
+
+    </div>
+  </div>`;
+
+  // Start ticking UI if already running
+  if(POM.running){
+    pomUpdateTimerDisplay();
+  }
+}
 </script>
 
 </div><!-- /appWrap -->
