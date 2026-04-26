@@ -3381,6 +3381,21 @@ body.light-mode .skel{background:linear-gradient(90deg,var(--card2) 25%,#f0f2f7 
     </div>
   </div>
 
+  <!-- Insights + Pomodoro Heatmap row -->
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:14px">
+    <!-- AI Insights -->
+    <div class="dashCard" style="background:linear-gradient(145deg,var(--card),var(--bg));border:1px solid var(--border)">
+      <div class="dashCardLbl" style="margin-bottom:12px">✦ Инсайты</div>
+      <div id="dashInsightsBlock"><div style="font-size:11px;color:var(--muted)">Анализирую данные...</div></div>
+    </div>
+    <!-- Pomodoro Heatmap -->
+    <div class="dashCard" style="background:linear-gradient(145deg,var(--card),var(--bg));border:1px solid var(--border);overflow:auto">
+      <div class="dashCardLbl" style="margin-bottom:4px">🍅 Активность (фокус)</div>
+      <div style="font-size:10px;color:var(--muted);margin-bottom:10px">Минуты фокуса по дням — 18 недель</div>
+      <div id="pomHeatmapBlock" style="overflow-x:auto"></div>
+    </div>
+  </div>
+
   <!-- Growth Widgets Row -->
   <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:14px" class="dashGrowthRow">
     <!-- Weekly Tasks Bar Chart -->
@@ -4437,7 +4452,26 @@ body.light-mode .skel{background:linear-gradient(90deg,var(--card2) 25%,#f0f2f7 
     <!-- Date + Times row - all on one line -->
     <div class="tmField">
       <label class="tmLabel">Срок выполнения</label>
-      <input type="date" class="inp" id="tm-deadline" style="color-scheme:dark">
+      <div style="display:flex;gap:8px;align-items:center">
+        <input type="date" class="inp" id="tm-deadline" style="color-scheme:dark;flex:1">
+        <input type="time" class="inp" id="tm-deadline-time" placeholder="—" style="color-scheme:dark;max-width:100px;font-family:var(--font-mono);font-size:13px;font-weight:700" title="Время дедлайна">
+      </div>
+    </div>
+    <div class="tmField" id="tm-reminder-row" style="display:none">
+      <label class="tmLabel">🔔 Напомнить за</label>
+      <div style="display:flex;gap:8px;align-items:center">
+        <select class="inp sel" id="tm-reminder-min" style="flex:1;font-size:12px">
+          <option value="">Без напоминания</option>
+          <option value="5">5 минут</option>
+          <option value="10">10 минут</option>
+          <option value="15">15 минут</option>
+          <option value="30">30 минут</option>
+          <option value="60">1 час</option>
+          <option value="120">2 часа</option>
+          <option value="1440">1 день</option>
+        </select>
+        <div id="tm-reminder-status" style="font-size:10px;color:var(--muted);white-space:nowrap"></div>
+      </div>
     </div>
     <datalist id="timeOptions30"></datalist>
     <div style="display:flex;gap:8px;margin-bottom:14px;align-items:flex-end">
@@ -5573,6 +5607,7 @@ function initApp(){
   }
 
   renderDash();
+  if(typeof taskScheduleAllReminders==='function')setTimeout(taskScheduleAllReminders,500);
   initMobileNav();
 }
 
@@ -6838,6 +6873,16 @@ function openTaskModal(idx,prefillDate,dstr){
   document.getElementById('tm-id').value=t?.id||'';
   document.getElementById('tm-text').value=t?.text||'';
   document.getElementById('tm-deadline').value=t?.deadline||prefillDate||'';
+  document.getElementById('tm-deadline-time').value=t?.deadlineTime||'';
+  document.getElementById('tm-reminder-min').value=t?.reminderMin||'';
+  const reminderRow=document.getElementById('tm-reminder-row');
+  if(reminderRow)reminderRow.style.display=(t?.deadline||prefillDate)?'':'none';
+  // Show/hide reminder row on deadline change
+  document.getElementById('tm-deadline').onchange=function(){
+    if(reminderRow)reminderRow.style.display=this.value?'':'none';
+    taskScheduleReminder(null); // clear old on change
+  };
+  _updateReminderStatus(t);
   // Build datalist for time inputs
   _buildTimeDatalist();
   const tmSel=document.getElementById('tm-time');
@@ -6872,6 +6917,83 @@ function openTaskModal(idx,prefillDate,dstr){
   setTimeout(()=>document.getElementById('tm-text').focus(),60);
 }
 
+
+/* ══════════════════════════════════════════
+   DEADLINE REMINDER ENGINE
+══════════════════════════════════════════ */
+const _reminderTimers={};
+
+function _updateReminderStatus(task){
+  const el=document.getElementById('tm-reminder-status');
+  if(!el||!task?.reminderMin||!task?.deadline)return;
+  const dtStr=task.deadline+(task.deadlineTime?'T'+task.deadlineTime:'T09:00');
+  const fireAt=new Date(new Date(dtStr).getTime()-task.reminderMin*60000);
+  const diff=fireAt-Date.now();
+  if(diff<0){el.textContent='⏰ Уже было';el.style.color='var(--muted)';}
+  else{el.textContent='⏰ Через '+_fmtReminderDiff(diff);el.style.color='var(--green)';}
+}
+
+function _fmtReminderDiff(ms){
+  const h=Math.floor(ms/3600000);
+  const m=Math.floor((ms%3600000)/60000);
+  if(h>24)return Math.floor(h/24)+'д '+h%24+'ч';
+  if(h>0)return h+'ч '+m+'м';
+  return m+'м';
+}
+
+function taskScheduleReminder(taskId){
+  // Clear existing timer if any
+  if(taskId&&_reminderTimers[taskId]){
+    clearTimeout(_reminderTimers[taskId]);
+    delete _reminderTimers[taskId];
+  }
+}
+
+function taskScheduleAllReminders(){
+  // Run on app start — schedule all pending reminders
+  tpD().forEach(t=>{
+    if(!t.reminderMin||!t.deadline||t.done)return;
+    const dtStr=t.deadline+'T'+(t.deadlineTime||'09:00');
+    const fireAt=new Date(new Date(dtStr).getTime()-t.reminderMin*60000);
+    const delay=fireAt-Date.now();
+    if(delay>0&&delay<7*24*3600000){ // max 7 days ahead
+      if(_reminderTimers[t.id])clearTimeout(_reminderTimers[t.id]);
+      _reminderTimers[t.id]=setTimeout(()=>{
+        _fireTaskReminder(t);
+      },delay);
+    }
+  });
+}
+
+function _fireTaskReminder(task){
+  const minLabel=task.reminderMin<60?task.reminderMin+'мин':Math.round(task.reminderMin/60)+'ч';
+  const msg='⏰ Через '+minLabel+': '+task.text;
+  // Browser push notification
+  if(Notification.permission==='granted'){
+    const n=new Notification('🔔 Напоминание о дедлайне',{
+      body:msg,
+      icon:'data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 32 32%22><text y=%2228%22 font-size=%2228%22>📋</text></svg>'
+    });
+    n.onclick=()=>{window.focus();navigateTo('tasks');};
+  }
+  // In-app toast
+  _showReminderToast(msg,task);
+}
+
+function _showReminderToast(msg,task){
+  const toast=document.createElement('div');
+  toast.style.cssText='position:fixed;bottom:24px;right:24px;z-index:9999;background:var(--card);border:1px solid rgba(155,143,245,.4);border-radius:16px;padding:14px 18px;max-width:320px;box-shadow:var(--shadow3);animation:slideUp .3s var(--ease)';
+  toast.innerHTML=`
+    <div style="font-size:12px;font-weight:800;color:var(--p);margin-bottom:4px">🔔 Напоминание</div>
+    <div style="font-size:13px;color:var(--text);font-weight:600;margin-bottom:10px">${esc(task.text)}</div>
+    <div style="font-size:10px;color:var(--muted);margin-bottom:10px">${msg.split(':').slice(1).join(':').trim()}</div>
+    <div style="display:flex;gap:8px">
+      <button onclick="this.closest('[style*=fixed]').remove()" style="flex:1;padding:6px;background:var(--pdim);border:1px solid rgba(155,143,245,.3);border-radius:8px;color:var(--p);font-size:11px;font-weight:700;cursor:pointer">OK</button>
+      <button onclick="navigateTo('tasks');this.closest('[style*=fixed]').remove()" style="flex:1;padding:6px;background:var(--card2);border:1px solid var(--border2);border-radius:8px;color:var(--text2);font-size:11px;font-weight:700;cursor:pointer">Открыть</button>
+    </div>`;
+  document.body.appendChild(toast);
+  setTimeout(()=>toast.remove(),12000);
+}
 function taskModalSave(){
   const text=document.getElementById('tm-text').value.trim();
   if(!text)return;
@@ -6881,9 +7003,14 @@ function taskModalSave(){
   const timeVal=document.getElementById('tm-time').value||'';
   const endTimeVal=document.getElementById('tm-endTime').value||'';
   const actualDur=document.getElementById('tm-actualDuration')?.value||'';
+  const deadlineVal=document.getElementById('tm-deadline').value||'';
+  const deadlineTimeVal=document.getElementById('tm-deadline-time').value||'';
+  const reminderMinVal=document.getElementById('tm-reminder-min').value||'';
   const data={
     text,
-    deadline:document.getElementById('tm-deadline').value||'',
+    deadline:deadlineVal,
+    deadlineTime:deadlineTimeVal,
+    reminderMin:reminderMinVal?parseInt(reminderMinVal):null,
     time:timeVal,
     endTime:endTimeVal,
     plannedDuration:null,
@@ -6917,7 +7044,7 @@ function taskModalSave(){
     tpD().push({...data,id,priority:2});
     syncNewTaskToKanban(id);
   }
-  saveD();closeTaskModal();_refreshAllTaskViews();
+  saveD();closeTaskModal();_refreshAllTaskViews();setTimeout(taskScheduleAllReminders,100);
 }
 
 async function _doSaveRecurring(existingTask, data, dstr){
@@ -9548,6 +9675,8 @@ function renderDash(){
   renderTaskWeekChart();
   requestAnimationFrame(()=>renderStreakHeatmap());
   renderDashSleepWidget();
+  renderDashInsights();
+  renderPomHeatmap();
   (function(){
     const weeks=6;const today=t0();let best=0;
     for(let w=0;w<weeks;w++){
@@ -9570,6 +9699,165 @@ function drawDashRing(score){
   svg.innerHTML=`<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="var(--border2)" stroke-width="7"/>
     <circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${color}" stroke-width="7"
       stroke-dasharray="${dash.toFixed(1)} ${gap.toFixed(1)}" stroke-linecap="round" style="transition:.6s"/>`;
+}
+
+
+/* ══════════════════════════════════════════
+   DASHBOARD INSIGHTS
+══════════════════════════════════════════ */
+function renderDashInsights(){
+  const el=document.getElementById('dashInsightsBlock');
+  if(!el)return;
+  const sessions=pomD?pomD().sessions:[];
+  const tasks=tpD();
+  const insights=[];
+
+  // 1. Лучший день недели по помидорам
+  const dayTotals=[0,0,0,0,0,0,0]; // 0=вс
+  const dayCounts=[0,0,0,0,0,0,0];
+  sessions.filter(s=>s.mode==='work').forEach(s=>{
+    if(!s.date)return;
+    const d=new Date(s.date+'T00:00:00');
+    dayTotals[d.getDay()]+=s.workMin;
+    dayCounts[d.getDay()]++;
+  });
+  const dayNames=['Воскресенье','Понедельник','Вторник','Среда','Четверг','Пятница','Суббота'];
+  const dayNamesShort=['Вс','Пн','Вт','Ср','Чт','Пт','Сб'];
+  const avgByDay=dayTotals.map((t,i)=>dayCounts[i]?t/dayCounts[i]:0);
+  const bestDayIdx=avgByDay.indexOf(Math.max(...avgByDay));
+  if(dayCounts[bestDayIdx]>=2){
+    insights.push({icon:'🏆',text:`Твой лучший день — <b>${dayNames[bestDayIdx]}</b>`,sub:`В среднем ${Math.round(avgByDay[bestDayIdx])}мин фокуса`});
+  }
+
+  // 2. Среднее время фокуса в день
+  const daysWithWork=new Set(sessions.filter(s=>s.mode==='work').map(s=>s.date));
+  if(daysWithWork.size>=3){
+    const totalMin=sessions.filter(s=>s.mode==='work').reduce((a,b)=>a+b.workMin,0);
+    const avgPerDay=totalMin/daysWithWork.size;
+    insights.push({icon:'⏱',text:`Среднее время фокуса — <b>${(avgPerDay/60).toFixed(1)} ч/день</b>`,sub:`По ${Math.round(avgPerDay)} минут · ${daysWithWork.size} активных дней`});
+  }
+
+  // 3. Лучшее время суток
+  const hourBuckets={morning:0,afternoon:0,evening:0};
+  sessions.filter(s=>s.mode==='work'&&s.date).forEach(s=>{
+    // У нас нет точного часа — берём из истории паузы если есть
+    const h=new Date().getHours(); // fallback
+    if(h>=6&&h<12)hourBuckets.morning+=s.workMin;
+    else if(h>=12&&h<18)hourBuckets.afternoon+=s.workMin;
+    else hourBuckets.evening+=s.workMin;
+  });
+
+  // 4. Streak
+  const streak=pomCalcStreak?pomCalcStreak():0;
+  if(streak>=3){
+    insights.push({icon:'🔥',text:`Серия <b>${streak} дней</b> подряд!`,sub:'Не прерывай ритм — продолжай сегодня'});
+  }
+
+  // 5. Задач выполнено за неделю
+  const today=t0();
+  let weekDone=0;
+  for(let i=0;i<7;i++){const d=new Date(today);d.setDate(d.getDate()-i);const k=dk(d);weekDone+=tasks.filter(t=>t.done&&t.deadline===k).length;}
+  if(weekDone>0){
+    insights.push({icon:'✅',text:`За 7 дней выполнено <b>${weekDone} задач</b>`,sub:weekDone>=5?'Отличный результат!':weekDone>=2?'Хороший прогресс':'Начало положено'});
+  }
+
+  // 6. Паузы — самый частый отвлекатель
+  const pauseLog=pomD?pomD().pauseLog:[];
+  if(pauseLog.length>=3){
+    const reasonCount={};
+    pauseLog.forEach(p=>{if(p.reason)p.reason.split(',').forEach(r=>{const k=r.trim();if(k)reasonCount[k]=(reasonCount[k]||0)+1;});});
+    const topReason=Object.entries(reasonCount).sort((a,b)=>b[1]-a[1])[0];
+    if(topReason)insights.push({icon:'📱',text:`Главный отвлекатель — <b>${topReason[0]}</b>`,sub:`${topReason[1]} раз за всё время`});
+  }
+
+  if(!insights.length){
+    el.innerHTML='<div style="font-size:11px;color:var(--muted);text-align:center;padding:12px 0">Инсайты появятся после нескольких дней использования</div>';
+    return;
+  }
+
+  el.innerHTML=insights.map((ins,i)=>`
+    <div style="display:flex;align-items:flex-start;gap:10px;padding:10px 0;${i<insights.length-1?'border-bottom:1px solid var(--border);':''}">
+      <div style="font-size:20px;flex-shrink:0;line-height:1.2">${ins.icon}</div>
+      <div>
+        <div style="font-size:12px;color:var(--text);line-height:1.5">${ins.text}</div>
+        <div style="font-size:10px;color:var(--muted);margin-top:2px">${ins.sub}</div>
+      </div>
+    </div>`).join('');
+}
+
+/* ══════════════════════════════════════════
+   POMODORO ACTIVITY HEATMAP (GitHub-style)
+══════════════════════════════════════════ */
+function renderPomHeatmap(){
+  const el=document.getElementById('pomHeatmapBlock');
+  if(!el)return;
+  const sessions=pomD?pomD().sessions:[];
+  const weeks=18; // ~4 месяца
+  const today=t0();
+  // Build day map: date -> minutes
+  const dayMap={};
+  sessions.filter(s=>s.mode==='work').forEach(s=>{
+    if(s.date)dayMap[s.date]=(dayMap[s.date]||0)+s.workMin;
+  });
+  const maxMin=Math.max(...Object.values(dayMap),1);
+
+  function getColor(min){
+    if(!min)return 'var(--border)';
+    const pct=min/maxMin;
+    if(pct<0.25)return 'rgba(155,143,245,0.2)';
+    if(pct<0.5) return 'rgba(155,143,245,0.45)';
+    if(pct<0.75)return 'rgba(155,143,245,0.7)';
+    return 'var(--p)';
+  }
+
+  // Start from Monday weeks ago
+  const startDate=new Date(today);
+  startDate.setDate(startDate.getDate()-(weeks*7-1));
+  // Align to Monday
+  const dow=startDate.getDay();
+  const offset=dow===0?-6:1-dow;
+  startDate.setDate(startDate.getDate()+offset);
+
+  const dayLabels=['','Пн','','Ср','','Пт',''];
+  const monthsSeen=[];
+
+  let gridHTML='<div style="display:flex;gap:3px">';
+  // Day labels column
+  gridHTML+='<div style="display:flex;flex-direction:column;gap:2px;padding-top:18px">';
+  dayLabels.forEach(l=>`${gridHTML+='<div style="height:12px;font-size:8px;color:var(--muted);line-height:12px;text-align:right;padding-right:4px;min-width:16px">'+(l)+'</div>'}`);
+  gridHTML+='</div>';
+
+  for(let w=0;w<weeks;w++){
+    gridHTML+='<div style="display:flex;flex-direction:column;gap:2px">';
+    // Month label on top
+    const firstDay=new Date(startDate);firstDay.setDate(firstDay.getDate()+w*7);
+    const monthKey=firstDay.getFullYear()+'-'+firstDay.getMonth();
+    const monthLabel=(!monthsSeen.includes(monthKey)&&firstDay.getDate()<=7)?
+      ['Янв','Фев','Мар','Апр','Май','Июн','Июл','Авг','Сен','Окт','Ноя','Дек'][firstDay.getMonth()]:'';
+    monthsSeen.push(monthKey);
+    gridHTML+=`<div style="height:14px;font-size:8px;color:var(--muted);text-align:center;line-height:14px">${monthLabel}</div>`;
+
+    for(let d=0;d<7;d++){
+      const date=new Date(startDate);date.setDate(date.getDate()+w*7+d);
+      if(date>today){gridHTML+='<div style="width:12px;height:12px"></div>';continue;}
+      const k=dk(date);
+      const min=dayMap[k]||0;
+      const color=getColor(min);
+      const isToday=k===dk(today);
+      gridHTML+=`<div style="width:12px;height:12px;border-radius:2px;background:${color};${isToday?'outline:1.5px solid var(--p);outline-offset:1px;':''}" title="${k}: ${min?min+'мин':'нет активности'}"></div>`;
+    }
+    gridHTML+='</div>';
+  }
+  gridHTML+='</div>';
+
+  // Legend
+  gridHTML+=`<div style="display:flex;align-items:center;gap:5px;margin-top:8px;justify-content:flex-end">
+    <span style="font-size:9px;color:var(--muted)">меньше</span>
+    ${['var(--border)','rgba(155,143,245,0.2)','rgba(155,143,245,0.45)','rgba(155,143,245,0.7)','var(--p)'].map(c=>`<div style="width:10px;height:10px;border-radius:2px;background:${c}"></div>`).join('')}
+    <span style="font-size:9px;color:var(--muted)">больше</span>
+  </div>`;
+
+  el.innerHTML=gridHTML;
 }
 
 function drawDashHabChart(){
