@@ -12105,6 +12105,7 @@ const CMD_ITEMS=[
   {icon:'🏋️',label:'Начать тренировку',action:()=>{navigateTo('gym');setTimeout(()=>gymSubTabGo('session'),200)}},
   {icon:'💸',label:'Добавить транзакцию',action:()=>{navigateTo('finance');setTimeout(()=>openFinModal(),200)}},
   {icon:'🎯',label:'Новая цель',action:()=>{navigateTo('goals');setTimeout(()=>openGoalModal(null),200)}},
+  {icon:'🌙',label:'Записать сон',shortcut:'S',action:()=>sleepQuickAdd()},
 ];
 let _cmdIdx=0;
 
@@ -12141,9 +12142,8 @@ function cmdKeyNav(e){
 }
 function cmdExec(idx){closeCmdPalette();CMD_ITEMS[idx]?.action();}
 
-// Global keyboard shortcut
+// Global keyboard shortcut — только Escape для cmd palette (Ctrl+K встроен в основной обработчик ниже)
 document.addEventListener('keydown',e=>{
-  if((e.metaKey||e.ctrlKey)&&e.key==='k'){e.preventDefault();openCmdPalette();}
   if(e.key==='Escape'&&document.getElementById('cmdOverlay').classList.contains('open'))closeCmdPalette();
 });
 
@@ -12744,34 +12744,58 @@ const KB_TAB_NAMES = {
   'rewards':'Награды','gym':'Тренировки','pomodoro':'Помодоро'
 };
 
+// ── Защитная функция: безопасно ли перехватывать клавишу ──
+function isSafeHotkey(e){
+  if(e.metaKey||e.ctrlKey||e.altKey||e.shiftKey) return false;
+  if(e.target.tagName==='INPUT'||e.target.tagName==='TEXTAREA'||e.target.isContentEditable) return false;
+  if(document.getElementById('taskModal')?.classList.contains('open')) return false;
+  if(document.getElementById('cmdOverlay')?.classList.contains('open')) return false;
+  if(document.getElementById('kbOverlay')?.classList.contains('open')) return false;
+  return true;
+}
+
 document.addEventListener('keydown', e => {
-  // Ignore when typing in inputs/textareas/modal open
-  if(e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.isContentEditable) return;
-  if(e.metaKey || e.ctrlKey || e.altKey || e.shiftKey) return;
+  // Ctrl+K / Cmd+K — командная палитра (единственный Ctrl-шорткат приложения)
+  if((e.metaKey||e.ctrlKey)&&e.key==='k'){e.preventDefault();openCmdPalette();return;}
 
-  // Digit keys 1-9 → switch tab
-  if(e.code.startsWith('Digit')) {
-    const idx = parseInt(e.key) - 1;
-    if(idx >= 0 && idx < KB_TAB_ORDER.length) {
+  if(!isSafeHotkey(e)) return;
+
+  // Цифры 1-9 — переключение вкладок
+  if(e.code.startsWith('Digit')){
+    const idx=parseInt(e.key)-1;
+    if(idx>=0&&idx<KB_TAB_ORDER.length){
       e.preventDefault();
-      const tab = KB_TAB_ORDER[idx];
-      navigateTo(tab);
-      showKbHint(e.key + ' → ' + (KB_TAB_NAMES[tab] || tab));
+      navigateTo(KB_TAB_ORDER[idx]);
+      showKbHint(e.key+' → '+(KB_TAB_NAMES[KB_TAB_ORDER[idx]]||KB_TAB_ORDER[idx]));
     }
+    return;
   }
 
-  // N = новая задача (когда не в инпуте)
-  if(e.code === 'KeyN') {
-    const modal = document.getElementById('taskModal');
-    if(modal && modal.classList.contains('open')) return;
-    e.preventDefault();
-    openTaskModal && openTaskModal(-1);
-    showKbHint('N → Новая задача');
-  }
-
-  // ? = показать подсказку по шорткатам
-  if(e.key === '?') {
-    showKbHint('1-9: вкладки  •  N: новая задача');
+  switch(e.code){
+    case 'KeyN': // новая задача
+      e.preventDefault();
+      openTaskModal&&openTaskModal(-1);
+      showKbHint('N → Новая задача');
+      break;
+    case 'KeyP': // Pomodoro старт/пауза
+      e.preventDefault();
+      if(typeof pomToggle==='function') pomToggle();
+      showKbHint('P → Pomodoro пауза/старт');
+      break;
+    case 'KeyR': // сброс Pomodoro
+      e.preventDefault();
+      if(typeof pomReset==='function') pomReset();
+      showKbHint('R → Pomodoro сброс');
+      break;
+    case 'KeyS': // быстрая запись сна
+      e.preventDefault();
+      if(typeof sleepQuickAdd==='function') sleepQuickAdd();
+      showKbHint('S → Быстрая запись сна');
+      break;
+    case 'Slash': // ? — подсказка
+      e.preventDefault();
+      showKbHint('1-9: вкладки  •  N: задача  •  P: помидор  •  R: сброс  •  S: сон');
+      break;
   }
 });
 
@@ -13500,7 +13524,9 @@ function sleepSave(){
   const mood=document.getElementById('slp-mood')?.value||'';
   if(!date||!bedtime||!wakeup){sleepNotif('Заполни дату, время сна и подъёма','error');return;}
   const dur=sleepDuration(bedtime,wakeup);
-  if(dur<60||dur>1440){sleepNotif('Проверь время — слишком мало или много','error');return;}
+  if(dur<60){sleepNotif('Слишком мало — минимум 1 час','error');return;}
+  if(dur>660){sleepNotif('Больше 11 часов — проверь правильность времени','error');return;}
+  if(dur>570){sleepNotif('Больше 9.5 часов — убедись что время верное','warn');}
   const entries=sleepEntries();
   const existing=entries.findIndex(e=>e.date===date);
   const tags=[..._slpActiveTags];
@@ -13522,12 +13548,106 @@ function sleepDelete(id){
   saveD();renderSleepTracker();renderDashSleepWidget();
 }
 
+/* ── Быстрый ввод сна — маленький попап без перехода в раздел ── */
+function sleepQuickAdd(){
+  const existing=document.getElementById('sleepQuickModal');
+  if(existing){existing.remove();return;}
+  const now=new Date();
+  const hh=String(now.getHours()).padStart(2,'0');
+  const mm=String(now.getMinutes()).padStart(2,'0');
+  const today=dk(now);
+  const modal=document.createElement('div');
+  modal.id='sleepQuickModal';
+  modal.style.cssText='position:fixed;inset:0;z-index:3000;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.65);backdrop-filter:blur(10px)';
+  modal.innerHTML=`
+    <div style="background:var(--card);border:1px solid var(--border2);border-radius:20px;padding:24px;width:min(380px,92vw);box-shadow:var(--shadow3)">
+      <div style="font-size:14px;font-weight:800;color:var(--text);margin-bottom:16px;display:flex;align-items:center;gap:8px">
+        🌙 Быстрая запись сна
+        <button onclick="document.getElementById('sleepQuickModal').remove()"
+          style="margin-left:auto;border:none;background:none;color:var(--muted);font-size:20px;cursor:pointer;line-height:1;padding:0">×</button>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">
+        <div>
+          <div style="font-size:9px;color:var(--red);margin-bottom:4px;font-weight:700;text-transform:uppercase;letter-spacing:.6px">🌛 Лёг спать</div>
+          <input type="time" id="sq-bed" value="23:00"
+            style="width:100%;padding:8px 10px;background:var(--card2);border:1px solid var(--border2);border-radius:8px;color:var(--red);font-size:15px;font-family:var(--font-mono);font-weight:700;box-sizing:border-box">
+        </div>
+        <div>
+          <div style="font-size:9px;color:var(--green);margin-bottom:4px;font-weight:700;text-transform:uppercase;letter-spacing:.6px">☀️ Проснулся</div>
+          <input type="time" id="sq-wake" value="${hh}:${mm}"
+            style="width:100%;padding:8px 10px;background:var(--card2);border:1px solid var(--border2);border-radius:8px;color:var(--green);font-size:15px;font-family:var(--font-mono);font-weight:700;box-sizing:border-box">
+        </div>
+      </div>
+      <div style="margin-bottom:14px">
+        <div style="font-size:9px;color:var(--muted);margin-bottom:4px;font-weight:700;text-transform:uppercase;letter-spacing:.6px">📅 Дата (день когда проснулся)</div>
+        <input type="date" id="sq-date" value="${today}"
+          style="width:100%;padding:8px 10px;background:var(--card2);border:1px solid var(--border2);border-radius:8px;color:var(--text);font-size:13px;box-sizing:border-box;color-scheme:dark">
+      </div>
+      <div id="sq-warn" style="display:none;font-size:11px;color:var(--red);margin-bottom:10px;padding:7px 10px;background:var(--reddim);border-radius:7px;border:1px solid rgba(255,79,114,.25)"></div>
+      <button onclick="sleepQuickSave()"
+        style="width:100%;padding:11px;background:var(--p);border:none;border-radius:10px;color:#fff;font-size:13px;font-weight:800;cursor:pointer;transition:.15s"
+        onmouseover="this.style.background='var(--p2)'" onmouseout="this.style.background='var(--p)'">
+        💾 Сохранить сон
+      </button>
+      <div style="text-align:center;font-size:10px;color:var(--muted);margin-top:8px">Качество можно добавить позже в трекере сна</div>
+    </div>`;
+  modal.addEventListener('click',e=>{if(e.target===modal)modal.remove();});
+  document.addEventListener('keydown',function escHandler(e){
+    if(e.key==='Escape'){modal.remove();document.removeEventListener('keydown',escHandler);}
+  });
+  document.body.appendChild(modal);
+  setTimeout(()=>document.getElementById('sq-bed')?.focus(),50);
+}
+
+function sleepQuickSave(){
+  const date=document.getElementById('sq-date').value;
+  const bedtime=document.getElementById('sq-bed').value;
+  const wakeup=document.getElementById('sq-wake').value;
+  const warn=document.getElementById('sq-warn');
+  if(!date||!bedtime||!wakeup){
+    warn.textContent='Заполни все поля';warn.style.display='block';return;
+  }
+  const[bh,bm]=bedtime.split(':').map(Number);
+  const[wh,wm]=wakeup.split(':').map(Number);
+  let bed=bh*60+bm,wake=wh*60+wm;
+  if(wake<=bed)wake+=24*60;
+  const dur=wake-bed;
+  if(dur<60||dur>660){
+    warn.textContent='Проверь время — кажется что-то не так ('+Math.round(dur/60*10)/10+'ч)';
+    warn.style.display='block';return;
+  }
+  const entries=sleepEntries();
+  const existing=entries.findIndex(e=>e.date===date);
+  const entry={
+    id:existing>=0?entries[existing].id:uid(),
+    date,bedtime,wakeup,quality:3,note:'',dur,tags:[],mood:''
+  };
+  entry.score=calcSleepScore(entry,entries);
+  if(existing>=0)entries[existing]=entry;
+  else{entries.push(entry);entries.sort((a,b)=>a.date.localeCompare(b.date));}
+  saveD();
+  document.getElementById('sleepQuickModal').remove();
+  renderDashSleepWidget();
+  if(document.getElementById('sleepTrackerRoot'))renderSleepTracker();
+  showKbHint('🌙 Сон записан — '+Math.round(dur/60*10)/10+'ч');
+}
+
 function sleepNotif(msg,type){
   const el=document.getElementById('sleepNotif');if(!el)return;
   el.textContent=msg;el.style.display='block';
-  el.style.background=type==='error'?'rgba(255,79,114,.15)':'rgba(15,221,170,.15)';
-  el.style.borderColor=type==='error'?'rgba(255,79,114,.3)':'rgba(15,221,170,.3)';
-  el.style.color=type==='error'?'var(--red)':'var(--green)';
+  if(type==='error'){
+    el.style.background='rgba(255,79,114,.15)';
+    el.style.borderColor='rgba(255,79,114,.3)';
+    el.style.color='var(--red)';
+  } else if(type==='warn'){
+    el.style.background='rgba(240,171,48,.15)';
+    el.style.borderColor='rgba(240,171,48,.3)';
+    el.style.color='var(--gold)';
+  } else {
+    el.style.background='rgba(15,221,170,.15)';
+    el.style.borderColor='rgba(15,221,170,.3)';
+    el.style.color='var(--green)';
+  }
   setTimeout(()=>{if(el)el.style.display='none';},3000);
 }
 
@@ -13547,9 +13667,13 @@ function renderSleepTracker(){
   var avgDur=last30.length?Math.round(last30.reduce(function(s,e){return s+e.dur;},0)/last30.length):0;
   var avgQ=last30.filter(function(e){return e.quality;}).length?
     (last30.filter(function(e){return e.quality;}).reduce(function(s,e){return s+e.quality;},0)/last30.filter(function(e){return e.quality;}).length).toFixed(1):0;
-  var best=last30.length?Math.max.apply(null,last30.map(function(e){return e.dur;})):0;
-  var worst=last30.length?Math.min.apply(null,last30.map(function(e){return e.dur;})):0;
+  var validForBest=last30.filter(function(e){return e.dur<=600;});
+  var best=(validForBest.length?validForBest:last30).reduce(function(m,e){return e.dur>m?e.dur:m;},0);
+  var validForWorst=last30.filter(function(e){return e.dur>=60;});
+  var worst=validForWorst.length?validForWorst.reduce(function(m,e){return e.dur<m?e.dur:m;},Infinity):0;
+  if(worst===Infinity)worst=0;
   var consistency=Math.round(last30.length/30*100);
+  var coveragePct=consistency;
   var normCount=last30.filter(function(e){return e.dur>=7*60&&e.dur<=9*60;}).length;
   var last7=entries.slice(-7);
   var debtMin=last7.reduce(function(s,e){return s+(8*60-e.dur);},0);
@@ -13559,7 +13683,7 @@ function renderSleepTracker(){
 
   // Build stats cards HTML
   var statsCards=[
-    {icon:'⏱️',val:fmtSleep(avgDur),lbl:'Среднее (30д)',color:'var(--cyan)'},
+    {icon:'⏱️',val:fmtSleep(avgDur)+(coveragePct<70?'<div style="font-size:9px;color:var(--gold);margin-top:3px;font-weight:700">⚠ данных за '+coveragePct+'% дней</div>':''),lbl:'Среднее (30д)',color:'var(--cyan)'},
     {icon:'⭐',val:avgQ?avgQ+'/5':'—',lbl:'Ср. качество',color:'var(--gold)'},
     {icon:'🏆',val:fmtSleep(best),lbl:'Лучшая ночь',color:'var(--green)'},
     {icon:'📉',val:fmtSleep(worst),lbl:'Худшая ночь',color:'var(--red)'},
