@@ -14387,30 +14387,98 @@ function buildSleepAnalyticsHTML(){
 
 <!-- ═══ POMODORO SETTINGS MODAL ═══ -->
 <div class="overlay" id="pomSettingsOverlay" style="display:none">
-  <div class="modalBox" style="max-width:400px">
+  <div class="modalBox" style="max-width:480px;max-height:90vh;overflow-y:auto">
     <div class="modalHead">
-      <span class="modalTitle">⚙ Настройки таймера</span>
+      <span class="modalTitle">⚙ Настройки Pomodoro</span>
       <button class="modalClose" onclick="document.getElementById('pomSettingsOverlay').style.display='none'">✕</button>
     </div>
-    <div style="display:flex;flex-direction:column;gap:14px">
-      <div class="fldGrp">
-        <div class="fldLbl">🍅 Рабочий период (минуты)</div>
-        <input type="number" class="inp" id="pom-set-work" min="1" max="120" value="25" style="font-family:var(--font-mono);font-size:16px;font-weight:700;max-width:100px">
-      </div>
-      <div class="fldGrp">
-        <div class="fldLbl">☕ Короткий перерыв (минуты)</div>
-        <input type="number" class="inp" id="pom-set-break" min="1" max="60" value="5" style="font-family:var(--font-mono);font-size:16px;font-weight:700;max-width:100px">
-      </div>
-      <div class="fldGrp">
-        <div class="fldLbl">🌿 Длинный перерыв (минуты)</div>
-        <input type="number" class="inp" id="pom-set-long" min="1" max="120" value="15" style="font-family:var(--font-mono);font-size:16px;font-weight:700;max-width:100px">
-      </div>
-      <div class="fldGrp">
-        <div class="fldLbl">Длинный перерыв после (циклов)</div>
-        <input type="number" class="inp" id="pom-set-cycles" min="1" max="10" value="4" style="font-family:var(--font-mono);font-size:16px;font-weight:700;max-width:100px">
+
+    <!-- Пресеты -->
+    <div style="margin-bottom:18px">
+      <div style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:8px">⚡ Быстрые пресеты</div>
+      <div style="display:flex;gap:7px;flex-wrap:wrap">
+        <button onclick="pomApplyPreset(25,5,15,4)" style="padding:6px 13px;background:var(--card2);border:1px solid var(--border2);border-radius:20px;color:var(--text2);font-size:11px;font-weight:700;cursor:pointer;transition:.15s" onmouseover="this.style.borderColor='var(--red)';this.style.color='var(--red)'" onmouseout="this.style.borderColor='var(--border2)';this.style.color='var(--text2)'">🍅 Классика 25/5</button>
+        <button onclick="pomApplyPreset(90,20,30,2)" style="padding:6px 13px;background:var(--card2);border:1px solid var(--border2);border-radius:20px;color:var(--text2);font-size:11px;font-weight:700;cursor:pointer;transition:.15s" onmouseover="this.style.borderColor='var(--p)';this.style.color='var(--p)'" onmouseout="this.style.borderColor='var(--border2)';this.style.color='var(--text2)'">🧠 Глубокий 90/20</button>
+        <button onclick="pomApplyPreset(15,5,15,4)" style="padding:6px 13px;background:var(--card2);border:1px solid var(--border2);border-radius:20px;color:var(--text2);font-size:11px;font-weight:700;cursor:pointer;transition:.15s" onmouseover="this.style.borderColor='var(--green)';this.style.color='var(--green)'" onmouseout="this.style.borderColor='var(--border2)';this.style.color='var(--text2)'">🌱 Лайт 15/5</button>
+        <button onclick="pomApplyPreset(50,10,20,3)" style="padding:6px 13px;background:var(--card2);border:1px solid var(--border2);border-radius:20px;color:var(--text2);font-size:11px;font-weight:700;cursor:pointer;transition:.15s" onmouseover="this.style.borderColor='var(--cyan)';this.style.color='var(--cyan)'" onmouseout="this.style.borderColor='var(--border2)';this.style.color='var(--text2)'">⏱ Средний 50/10</button>
       </div>
     </div>
-    <div style="display:flex;gap:8px;margin-top:16px">
+
+    <div style="display:flex;flex-direction:column;gap:13px">
+      <!-- Таймеры -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div class="fldGrp">
+          <div class="fldLbl">🍅 Рабочий (мин)</div>
+          <input type="number" class="inp" id="pom-set-work" min="1" max="120" value="25" style="font-family:var(--font-mono);font-size:16px;font-weight:700">
+        </div>
+        <div class="fldGrp">
+          <div class="fldLbl">☕ Перерыв (мин)</div>
+          <input type="number" class="inp" id="pom-set-break" min="1" max="60" value="5" style="font-family:var(--font-mono);font-size:16px;font-weight:700">
+        </div>
+        <div class="fldGrp">
+          <div class="fldLbl">🌿 Длинный (мин)</div>
+          <input type="number" class="inp" id="pom-set-long" min="1" max="120" value="15" style="font-family:var(--font-mono);font-size:16px;font-weight:700">
+        </div>
+        <div class="fldGrp">
+          <div class="fldLbl">🔄 Циклов до длинного</div>
+          <input type="number" class="inp" id="pom-set-cycles" min="1" max="10" value="4" style="font-family:var(--font-mono);font-size:16px;font-weight:700">
+        </div>
+      </div>
+
+      <!-- Цель на день -->
+      <div class="fldGrp">
+        <div class="fldLbl">🎯 Цель на день (помидоров)</div>
+        <input type="number" class="inp" id="pom-set-goal" min="1" max="20" value="8" style="font-family:var(--font-mono);font-size:16px;font-weight:700;max-width:100px">
+      </div>
+
+      <!-- Звук -->
+      <div class="fldGrp">
+        <div class="fldLbl">🔊 Звук уведомления</div>
+        <div style="display:flex;gap:8px;align-items:center">
+          <select class="inp sel" id="pom-set-sound" style="flex:1;font-size:12px">
+            <option value="bell">🔔 Колокол</option>
+            <option value="pixel">👾 Пиксельный бип</option>
+            <option value="soft">🎵 Мягкий тон</option>
+            <option value="coffee">☕ Кофе-машина</option>
+            <option value="none">🔇 Без звука</option>
+          </select>
+          <button onclick="pomPlaySound('work')" style="padding:7px 12px;background:var(--card2);border:1px solid var(--border2);border-radius:8px;color:var(--text2);font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap">▶ Тест</button>
+        </div>
+      </div>
+
+      <!-- Громкость -->
+      <div class="fldGrp">
+        <div class="fldLbl" style="display:flex;justify-content:space-between">
+          <span>🔉 Громкость</span>
+          <span id="pom-set-volume-lbl" style="color:var(--p);font-family:var(--font-mono);font-weight:700">60%</span>
+        </div>
+        <input type="range" id="pom-set-volume" min="0" max="100" value="60" style="width:100%;accent-color:var(--p)" oninput="document.getElementById('pom-set-volume-lbl').textContent=this.value+'%'">
+      </div>
+
+      <!-- Автозапуск -->
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;background:var(--card2);border:1px solid var(--border);border-radius:12px">
+        <div>
+          <div style="font-size:12px;font-weight:700;color:var(--text)">⚡ Автозапуск следующей сессии</div>
+          <div style="font-size:10px;color:var(--muted);margin-top:2px">Перерыв/работа начинается автоматически</div>
+        </div>
+        <label style="position:relative;display:inline-block;width:38px;height:22px;flex-shrink:0">
+          <input type="checkbox" id="pom-set-autostart" style="opacity:0;width:0;height:0">
+          <span onclick="this.previousElementSibling.click()" style="position:absolute;cursor:pointer;inset:0;background:var(--border2);border-radius:11px;transition:.25s" id="pom-autostart-track"></span>
+          <span id="pom-autostart-thumb" style="position:absolute;content:'';height:16px;width:16px;left:3px;bottom:3px;background:white;border-radius:50%;transition:.25s;pointer-events:none"></span>
+        </label>
+      </div>
+
+      <!-- Уведомления браузера -->
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;background:var(--card2);border:1px solid var(--border);border-radius:12px">
+        <div>
+          <div style="font-size:12px;font-weight:700;color:var(--text)">🔔 Браузерные уведомления</div>
+          <div style="font-size:10px;color:var(--muted);margin-top:2px">Работает когда вкладка свёрнута</div>
+        </div>
+        <button onclick="pomRequestNotif()" id="pom-notif-btn" style="padding:6px 12px;background:var(--pdim);border:1px solid rgba(155,143,245,.3);border-radius:8px;color:var(--p);font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap" onclick="pomRequestNotif()">${Notification.permission==='granted'?'✅ Включено':Notification.permission==='denied'?'🚫 Заблокировано':'Включить'}</button
+      </div>
+    </div>
+
+    <div style="display:flex;gap:8px;margin-top:18px">
       <button class="btn btnG" style="flex:1;justify-content:center" onclick="document.getElementById('pomSettingsOverlay').style.display='none'">Отмена</button>
       <button class="btn btnB" style="flex:1;justify-content:center" onclick="pomSaveSettings()">💾 Сохранить</button>
     </div>
@@ -14424,6 +14492,12 @@ function buildSleepAnalyticsHTML(){
 .pomWrap{display:grid;grid-template-columns:1fr 340px;gap:20px;align-items:start}
 @media(max-width:900px){.pomWrap{grid-template-columns:1fr}}
 
+
+/* ── Pomodoro toggle switch ── */
+#pom-set-autostart:checked + #pom-autostart-track{background:var(--p);}
+#pom-set-autostart:checked ~ #pom-autostart-thumb{transform:translateX(16px);}
+/* ── Pause modal chips ── */
+#pom-pause-chips button.sel{background:var(--pdim2);border-color:var(--p);color:var(--p);}
 /* Ring timer */
 .pomRingWrap{
   display:flex;flex-direction:column;align-items:center;
@@ -14572,6 +14646,12 @@ function pomD(){
   if(!s.breakMin)s.breakMin=5;
   if(!s.longMin)s.longMin=15;
   if(!s.cycles)s.cycles=4;
+  if(s.autoStart===undefined)s.autoStart=false;
+  if(!s.sound)s.sound='bell';
+  if(s.volume===undefined)s.volume=60;
+  if(s.dailyGoal===undefined)s.dailyGoal=8;
+  if(!s.notifications===undefined)s.notifications=false;
+  if(!G.pomodoro.pauseLog)G.pomodoro.pauseLog=[];
   return G.pomodoro;
 }
 
@@ -14634,20 +14714,65 @@ function pomInitMode(mode){
 /* ── Start / pause ── */
 function pomToggle(){
   if(POM.running){
-    // Pause
     POM.running=false;
-    clearInterval(POM._iv);
-    POM._iv=null;
+    clearInterval(POM._iv);POM._iv=null;
     pomUpdateUI();
-    pomShowNotif('⏸ Пауза');
+    // Пауза с комментарием — только в режиме работы
+    if(POM.mode==='work'){
+      POM._pauseStartSec=POM.secondsLeft;
+      pomShowPauseComment();
+    } else {
+      pomShowNotif('⏸ Пауза');
+    }
   } else {
-    // Start
     POM.running=true;
     POM._startTs=Date.now();
     POM._iv=setInterval(pomTick,1000);
     pomUpdateUI();
     pomShowNotif(POM.mode==='work'?'🍅 Фокус начат!':'☕ Отдых начат!');
   }
+}
+
+function pomShowPauseComment(){
+  const existing=document.getElementById('pomPauseModal');
+  if(existing)existing.remove();
+  const modal=document.createElement('div');
+  modal.id='pomPauseModal';
+  modal.style.cssText='position:fixed;inset:0;z-index:3000;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.6);backdrop-filter:blur(10px)';
+  modal.innerHTML=`
+    <div style="background:var(--card);border:1px solid var(--border2);border-radius:20px;padding:24px;width:min(360px,92vw);box-shadow:var(--shadow3)">
+      <div style="font-size:13px;font-weight:800;color:var(--text);margin-bottom:6px">⏸ Пауза — почему отвлёкся?</div>
+      <div style="font-size:11px;color:var(--muted);margin-bottom:14px">Необязательно — помогает анализировать паттерны</div>
+      <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px" id="pom-pause-chips">
+        ${['📱 Телефон','💬 Сообщение','🚶 Встал','💭 Отвлёкся','🔔 Уведомление','🍵 Чай/кофе'].map(t=>`
+          <button onclick="this.classList.toggle('sel');this.style.background=this.classList.contains('sel')?'var(--pdim2)':'var(--card2)';this.style.borderColor=this.classList.contains('sel')?'var(--p)':'var(--border2)';this.style.color=this.classList.contains('sel')?'var(--p)':'var(--text2)'"
+            style="padding:5px 11px;border:1px solid var(--border2);background:var(--card2);color:var(--text2);border-radius:20px;font-size:11px;font-weight:600;cursor:pointer;transition:.15s">${t}</button>`).join('')}
+      </div>
+      <textarea id="pom-pause-note" placeholder="Или напиши своё..." style="width:100%;padding:9px 12px;background:var(--card2);border:1px solid var(--border2);border-radius:10px;color:var(--text);font-size:12px;font-family:var(--font-body);resize:none;height:60px;box-sizing:border-box;margin-bottom:12px"></textarea>
+      <div style="display:flex;gap:8px">
+        <button onclick="pomSavePauseComment()" style="flex:1;padding:10px;background:var(--p);border:none;border-radius:10px;color:#fff;font-size:12px;font-weight:800;cursor:pointer">Сохранить</button>
+        <button onclick="document.getElementById('pomPauseModal').remove();pomShowNotif('⏸ Пауза')" style="padding:10px 16px;background:var(--card2);border:1px solid var(--border2);border-radius:10px;color:var(--text2);font-size:12px;font-weight:700;cursor:pointer">Пропустить</button>
+      </div>
+    </div>`;
+  document.body.appendChild(modal);
+  setTimeout(()=>document.getElementById('pom-pause-note')?.focus(),80);
+}
+
+function pomSavePauseComment(){
+  const chips=[...document.querySelectorAll('#pom-pause-chips button.sel')].map(b=>b.textContent.trim());
+  const note=(document.getElementById('pom-pause-note')?.value||'').trim();
+  if(chips.length||note){
+    pomD().pauseLog.unshift({
+      date:dk(new Date()),
+      time:new Date().toTimeString().slice(0,5),
+      reason:chips.join(', ')+(chips.length&&note?', ':'')+note,
+      secLeft:POM._pauseStartSec||0
+    });
+    if(pomD().pauseLog.length>100)pomD().pauseLog=pomD().pauseLog.slice(0,100);
+    saveD();
+  }
+  document.getElementById('pomPauseModal')?.remove();
+  pomShowNotif('⏸ Пауза записана');
 }
 
 /* ── Tick ── */
@@ -14669,28 +14794,26 @@ function pomOnComplete(){
   const s=pomSettings();
 
   if(POM.mode==='work'){
-    // Save work session
     POM.cyclesDone++;
     const workMinDone=Math.round(pomSettings().workMin);
     pomSaveSession(workMinDone);
-    // Add actual time to task
     if(POM.taskId){
       const t=tpD().find(t=>t.id===POM.taskId);
-      if(t){
-        t.actualDuration=(t.actualDuration||0)+workMinDone;
-        saveD();
-      }
+      if(t){t.actualDuration=(t.actualDuration||0)+workMinDone;saveD();}
     }
     pomShowNotif('✅ Помодоро завершён! +'+workMinDone+'мин');
     pomPlaySound('work');
-    // Decide next mode
     const isLong=POM.cyclesDone>0&&POM.cyclesDone%s.cycles===0;
-    pomInitMode(isLong?'lbreak':'sbreak');
+    const nextMode=isLong?'lbreak':'sbreak';
+    pomBrowserNotif('🍅 Помодоро завершён!', isLong?'Время для длинного перерыва 🌿':'Короткий перерыв ☕');
+    pomInitMode(nextMode);
+    if(s.autoStart){setTimeout(()=>{if(!POM.running){pomToggle();}},1200);}
   } else {
-    // Break done — go back to work
     pomShowNotif('🍅 Перерыв окончен! Начинаем работу');
     pomPlaySound('break');
+    pomBrowserNotif('☕ Перерыв окончен', 'Время фокусироваться 🍅');
     pomInitMode('work');
+    if(s.autoStart){setTimeout(()=>{if(!POM.running){pomToggle();}},1200);}
   }
 }
 
@@ -14748,17 +14871,71 @@ function pomSaveSession(workMin){
   saveD();
 }
 
-/* ── Sound (Web Audio API) ── */
+/* ── Sound (Web Audio API) — несколько звуков + громкость ── */
 function pomPlaySound(type){
   try{
+    const s=pomSettings();
+    const vol=(s.volume!==undefined?s.volume:60)/100*0.4;
+    if(vol<=0)return;
     const ctx=new(window.AudioContext||window.webkitAudioContext)();
-    const osc=ctx.createOscillator();
     const gain=ctx.createGain();
-    osc.connect(gain);gain.connect(ctx.destination);
-    if(type==='work'){osc.frequency.setValueAtTime(880,ctx.currentTime);osc.frequency.setValueAtTime(660,ctx.currentTime+0.15);gain.gain.setValueAtTime(0.25,ctx.currentTime);gain.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+0.5);}
-    else{osc.frequency.setValueAtTime(550,ctx.currentTime);osc.frequency.setValueAtTime(440,ctx.currentTime+0.2);gain.gain.setValueAtTime(0.2,ctx.currentTime);gain.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+0.6);}
-    osc.start(ctx.currentTime);osc.stop(ctx.currentTime+0.8);
+    gain.connect(ctx.destination);
+    const sound=s.sound||'bell';
+
+    if(sound==='bell'){
+      // Колокол — два тона
+      [880,660].forEach((f,i)=>{
+        const o=ctx.createOscillator();o.type='sine';
+        o.connect(gain);o.frequency.setValueAtTime(f,ctx.currentTime+i*0.18);
+        gain.gain.setValueAtTime(vol,ctx.currentTime+i*0.18);
+        gain.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+i*0.18+0.6);
+        o.start(ctx.currentTime+i*0.18);o.stop(ctx.currentTime+i*0.18+0.7);
+      });
+    } else if(sound==='pixel'){
+      // Пиксельный бип — квадратная волна
+      const o=ctx.createOscillator();o.type='square';
+      o.connect(gain);
+      const freqs=type==='work'?[523,659,784]:[392,330,262];
+      freqs.forEach((f,i)=>{o.frequency.setValueAtTime(f,ctx.currentTime+i*0.08);});
+      gain.gain.setValueAtTime(vol*0.3,ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+0.35);
+      o.start(ctx.currentTime);o.stop(ctx.currentTime+0.4);
+    } else if(sound==='soft'){
+      // Мягкий — синус с fade
+      const o=ctx.createOscillator();o.type='sine';
+      o.connect(gain);
+      o.frequency.setValueAtTime(type==='work'?528:396,ctx.currentTime);
+      gain.gain.setValueAtTime(0,ctx.currentTime);
+      gain.gain.linearRampToValueAtTime(vol,ctx.currentTime+0.1);
+      gain.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+1.2);
+      o.start(ctx.currentTime);o.stop(ctx.currentTime+1.3);
+    } else if(sound==='coffee'){
+      // Кофе-машина — шум + тон
+      const buf=ctx.createBuffer(1,ctx.sampleRate*0.4,ctx.sampleRate);
+      const data=buf.getChannelData(0);
+      for(let i=0;i<data.length;i++)data[i]=(Math.random()*2-1)*0.15;
+      const src=ctx.createBufferSource();src.buffer=buf;src.connect(gain);
+      gain.gain.setValueAtTime(vol*0.5,ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+0.4);
+      src.start();src.stop(ctx.currentTime+0.4);
+    }
   }catch(e){}
+}
+
+/* ── Browser push notification ── */
+function pomBrowserNotif(title,body){
+  if(Notification.permission==='granted'){
+    new Notification(title,{body,icon:'data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 32 32%22><text y=%2228%22 font-size=%2228%22>🍅</text></svg>'});
+  }
+}
+
+function pomRequestNotif(){
+  if(Notification.permission==='default'){
+    Notification.requestPermission().then(p=>{
+      pomShowNotif(p==='granted'?'🔔 Уведомления включены':'🔕 Уведомления отклонены');
+      renderPomodoro();
+    });
+  }
 }
 
 /* ── Notification ── */
@@ -14772,12 +14949,25 @@ function pomShowNotif(msg){
 }
 
 /* ── Settings ── */
+
+/* ── Apply preset ── */
+function pomApplyPreset(work,brk,lng,cyc){
+  document.getElementById('pom-set-work').value=work;
+  document.getElementById('pom-set-break').value=brk;
+  document.getElementById('pom-set-long').value=lng;
+  document.getElementById('pom-set-cycles').value=cyc;
+}
 function pomOpenSettings(){
   const s=pomSettings();
   document.getElementById('pom-set-work').value=s.workMin;
   document.getElementById('pom-set-break').value=s.breakMin;
   document.getElementById('pom-set-long').value=s.longMin;
   document.getElementById('pom-set-cycles').value=s.cycles;
+  document.getElementById('pom-set-autostart').checked=s.autoStart||false;
+  document.getElementById('pom-set-sound').value=s.sound||'bell';
+  document.getElementById('pom-set-volume').value=s.volume!==undefined?s.volume:60;
+  document.getElementById('pom-set-volume-lbl').textContent=(s.volume!==undefined?s.volume:60)+'%';
+  document.getElementById('pom-set-goal').value=s.dailyGoal||8;
   document.getElementById('pomSettingsOverlay').style.display='flex';
 }
 function pomSaveSettings(){
@@ -14786,12 +14976,48 @@ function pomSaveSettings(){
   s.breakMin=parseInt(document.getElementById('pom-set-break').value)||5;
   s.longMin=parseInt(document.getElementById('pom-set-long').value)||15;
   s.cycles=parseInt(document.getElementById('pom-set-cycles').value)||4;
+  s.autoStart=document.getElementById('pom-set-autostart').checked;
+  s.sound=document.getElementById('pom-set-sound').value||'bell';
+  s.volume=parseInt(document.getElementById('pom-set-volume').value)||60;
+  s.dailyGoal=parseInt(document.getElementById('pom-set-goal').value)||8;
   saveD();
   document.getElementById('pomSettingsOverlay').style.display='none';
   if(!POM.running)pomInitMode(POM.mode);
   renderPomodoro();
   pomShowNotif('✅ Настройки сохранены');
 }
+/* ── Streak: дни подряд с хотя бы 1 помодоро ── */
+function pomCalcStreak(){
+  const sessions=pomD().sessions;
+  if(!sessions.length)return 0;
+  const days=new Set(sessions.filter(s=>s.mode==='work').map(s=>s.date));
+  let streak=0;
+  const d=new Date();
+  while(true){
+    const k=dk(d);
+    if(!days.has(k))break;
+    streak++;
+    d.setDate(d.getDate()-1);
+  }
+  return streak;
+}
+
+/* ── Export sessions as CSV ── */
+function pomExportCSV(){
+  const sessions=pomD().sessions;
+  if(!sessions.length){pomShowNotif('Нет данных для экспорта');return;}
+  const rows=['Дата,Задача,Минут,Запланировано,Эффективность%'];
+  sessions.forEach(s=>{
+    rows.push([s.date,'"'+(s.taskName||'Без задачи').replace(/"/g,"'")+'"',s.workMin,s.plannedMin||'',s.efficiency!=null?s.efficiency:''].join(','));
+  });
+  const blob=new Blob([rows.join('\n')],{type:'text/csv;charset=utf-8'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download='pomodoro_history_'+dk(new Date())+'.csv';
+  a.click();
+  pomShowNotif('📥 Экспорт CSV готов');
+}
+
 
 /* ── Update just the timer display (every tick) ── */
 function pomUpdateTimerDisplay(){
@@ -14980,9 +15206,12 @@ function renderPomodoro(){
     <!-- ── RIGHT: STATS + HISTORY ── -->
     <div style="display:flex;flex-direction:column;gap:16px">
 
-      <!-- Today stats -->
+      <!-- Today stats + Goal + Streak -->
       <div style="background:linear-gradient(145deg,var(--card),var(--bg));border:1px solid var(--border);border-radius:18px;padding:18px 20px">
-        <div style="font-size:9.5px;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:14px">📊 Сегодня</div>
+        <div style="font-size:9.5px;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:14px;display:flex;align-items:center;justify-content:space-between">
+          <span>📊 Сегодня</span>
+          ${pomCalcStreak()>0?`<span style="display:flex;align-items:center;gap:4px;background:rgba(255,171,0,.12);border:1px solid rgba(255,171,0,.3);border-radius:20px;padding:3px 10px;font-size:10px;font-weight:800;color:var(--gold)">🔥 ${pomCalcStreak()} дней подряд</span>`:''}
+        </div>
         <div class="pomStatRow">
           <div class="pomStat">
             <div class="pomStatVal" style="color:var(--red)">${todayCycles}</div>
@@ -14997,6 +15226,21 @@ function renderPomodoro(){
             <div class="pomStatLbl">Итого</div>
           </div>
         </div>
+        ${(()=>{
+          const goal=s.dailyGoal||8;
+          const pct=Math.min(Math.round(todayCycles/goal*100),100);
+          const goalColor=pct>=100?'var(--green)':pct>=60?'var(--gold)':'var(--red)';
+          return `<div style="margin-top:14px">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+              <span style="font-size:10px;color:var(--muted);font-weight:700">🎯 Цель дня: ${todayCycles}/${goal} помидоров</span>
+              <span style="font-size:10px;font-weight:800;color:${goalColor};font-family:var(--font-mono)">${pct}%</span>
+            </div>
+            <div style="height:6px;background:var(--border2);border-radius:3px;overflow:hidden">
+              <div style="height:100%;width:${pct}%;background:${goalColor};border-radius:3px;transition:width .5s ease"></div>
+            </div>
+            ${pct>=100?'<div style="font-size:10px;color:var(--green);margin-top:5px;font-weight:700">🎉 Цель выполнена!</div>':''}
+          </div>`;
+        })()}
       </div>
 
       <!-- Efficiency gauge -->
@@ -15045,11 +15289,41 @@ function renderPomodoro(){
         <button onclick="pomOpenSettings()" style="width:100%;margin-top:10px;background:var(--pdim);border:1px solid rgba(155,143,245,.25);color:var(--p);border-radius:9px;padding:7px;font-size:11px;font-weight:700;cursor:pointer;transition:.15s" onmouseover="this.style.background='var(--pdim2)'" onmouseout="this.style.background='var(--pdim)'">⚙ Изменить настройки</button>
       </div>
 
-      <!-- History -->
+      <!-- Weekly chart -->
+      ${(()=>{
+        const last7=[],today2=new Date();
+        const dayNames=['Вс','Пн','Вт','Ср','Чт','Пт','Сб'];
+        for(let i=6;i>=0;i--){
+          const d=new Date(today2);d.setDate(d.getDate()-i);
+          const k=dk(d);
+          const dayMin=sessions.filter(s=>s.date===k&&s.mode==='work').reduce((a,b)=>a+b.workMin,0);
+          last7.push({label:dayNames[d.getDay()],min:dayMin,isToday:i===0});
+        }
+        const maxMin=Math.max(...last7.map(d=>d.min),1);
+        return `<div style="background:linear-gradient(145deg,var(--card),var(--bg));border:1px solid var(--border);border-radius:18px;padding:16px 18px">
+          <div style="font-size:9.5px;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:14px">📈 Неделя (минут фокуса)</div>
+          <div style="display:flex;align-items:flex-end;gap:5px;height:64px">
+            ${last7.map(d=>{
+              const h=Math.round((d.min/maxMin)*60);
+              const col=d.isToday?'var(--red)':d.min>0?'var(--p)':'var(--border2)';
+              return `<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px">
+                <div style="font-size:8px;color:var(--muted);font-family:var(--font-mono)">${d.min?d.min:''}</div>
+                <div style="width:100%;height:${Math.max(h,d.min?3:1)}px;background:${col};border-radius:3px 3px 0 0;transition:.3s;min-height:${d.min?3:1}px"></div>
+                <div style="font-size:9px;font-weight:${d.isToday?800:600};color:${d.isToday?'var(--red)':'var(--muted)'}">${d.label}</div>
+              </div>`;
+            }).join('')}
+          </div>
+        </div>`;
+      })()}
+
+      <!-- История сессий -->
       <div style="background:linear-gradient(145deg,var(--card),var(--bg));border:1px solid var(--border);border-radius:18px;overflow:hidden">
         <div style="padding:16px 18px 12px;display:flex;align-items:center;justify-content:space-between">
           <div style="font-size:9.5px;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:var(--muted)">🕒 История сессий</div>
-          ${sessions.length?`<button onclick="if(confirm('Очистить всю историю?')){pomD().sessions=[];saveD();renderPomodoro()}" style="border:none;background:none;color:rgba(255,255,255,.2);font-size:11px;cursor:pointer;transition:.15s" onmouseover="this.style.color='var(--red)'" onmouseout="this.style.color='rgba(255,255,255,.2)'">🗑</button>`:''}
+          <div style="display:flex;gap:8px;align-items:center">
+            ${sessions.length?`<button onclick="pomExportCSV()" style="border:none;background:var(--pdim);color:var(--p);font-size:10px;font-weight:700;cursor:pointer;padding:4px 9px;border-radius:7px;border:1px solid rgba(155,143,245,.25);transition:.15s" onmouseover="this.style.background='var(--pdim2)'" onmouseout="this.style.background='var(--pdim)'">📥 CSV</button>`:''}
+            ${sessions.length?`<button onclick="if(confirm('Очистить всю историю?')){pomD().sessions=[];saveD();renderPomodoro()}" style="border:none;background:none;color:rgba(255,255,255,.2);font-size:11px;cursor:pointer;transition:.15s" onmouseover="this.style.color='var(--red)'" onmouseout="this.style.color='rgba(255,255,255,.2)'">🗑</button>`:''}
+          </div>
         </div>
         ${recentSess.length?`<div>
           ${recentSess.map(sess=>{
