@@ -4478,7 +4478,7 @@ body.light-mode .skel{background:linear-gradient(90deg,var(--card2) 25%,#f0f2f7 
     <!-- Label -->
     <div class="tmField">
       <label class="tmLabel">Метка</label>
-      <div style="display:flex;gap:6px;flex-wrap:wrap" id="tm-labels-list"></div>
+      <div style="display:flex;flex-direction:column;gap:8px" id="tm-labels-list"></div>
     </div>
 
     <!-- Notes -->
@@ -7037,13 +7037,51 @@ function _renderTaskModalLabels(selectedIds){
   const el=document.getElementById('tm-labels-list');if(!el)return;
   const selSet=new Set(Array.isArray(selectedIds)?selectedIds:(selectedIds?[selectedIds]:[]));
   const groups=labelGroupsD();
-  let html=`<span style="cursor:pointer;font-size:10.5px;padding:4px 10px;border-radius:20px;border:1px solid ${selSet.size===0?'var(--p)':'var(--border2)'};background:${selSet.size===0?'var(--pdim)':'transparent'};color:${selSet.size===0?'var(--p)':'var(--muted)'};font-weight:600" onclick="taskModalClearLabels()">Без</span>`;
+
+  // ── "Без метки" clear chip ──
+  let html=`<div style="margin-bottom:2px">
+    <span style="cursor:pointer;font-size:10px;padding:3px 12px;border-radius:20px;
+      border:1px solid ${selSet.size===0?'var(--p)':'var(--border2)'};
+      background:${selSet.size===0?'var(--pdim)':'transparent'};
+      color:${selSet.size===0?'var(--p)':'var(--muted)'};font-weight:700;display:inline-flex;align-items:center;gap:5px"
+      onclick="taskModalClearLabels()">
+      ${selSet.size===0?'<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>':''}
+      Без метки
+    </span>
+  </div>`;
+
+  // ── Groups ──
   groups.forEach(g=>{
-    html+=`<span style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.6px;color:${g.color};padding:0 4px;opacity:.7;align-self:center;white-space:nowrap">${esc(g.name)}</span>`;
-    g.labels.forEach(l=>{
-      const sel=selSet.has(l.id);
-      html+=`<span style="cursor:pointer;font-size:10.5px;padding:4px 10px;border-radius:20px;border:1px solid ${sel?l.color:'transparent'};background:${sel?hexA(l.color,.2):'var(--card2)'};color:${l.color};font-weight:600;display:inline-flex;align-items:center;gap:5px;transition:.12s" onclick="taskModalToggleLabel('${l.id}')"><span style="width:8px;height:8px;border-radius:50%;background:${l.color};flex-shrink:0"></span>${esc(l.name)}${sel?` <span style="font-size:9px;opacity:.7">✓</span>`:''}</span>`;
-    });
+    if(!g.labels||!g.labels.length)return;
+    const selInGroup=g.labels.filter(l=>selSet.has(l.id)).length;
+    html+=`<div style="background:var(--card2);border:1px solid var(--border);border-radius:12px;padding:10px 12px">
+      <div style="display:flex;align-items:center;gap:6px;margin-bottom:8px">
+        <span style="width:7px;height:7px;border-radius:50%;background:${g.color};flex-shrink:0;box-shadow:0 0 5px ${g.color}66"></span>
+        <span style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.8px;color:${g.color}">${esc(g.name)}</span>
+        ${selInGroup?`<span style="font-size:8.5px;font-weight:700;padding:1px 6px;border-radius:8px;background:${g.color}22;color:${g.color};margin-left:auto">${selInGroup} выбр.</span>`:''}
+      </div>
+      <div style="display:flex;flex-wrap:wrap;gap:5px">
+        ${g.labels.map(l=>{
+          const sel=selSet.has(l.id);
+          return`<span style="cursor:pointer;font-size:10.5px;padding:4px 11px;border-radius:20px;
+            border:1px solid ${sel?l.color+'99':'var(--border2)'};
+            background:${sel?hexA(l.color,.15):'var(--card3)'};
+            color:${sel?l.color:'var(--text2)'};
+            font-weight:${sel?700:500};
+            display:inline-flex;align-items:center;gap:5px;
+            transition:all .12s;
+            box-shadow:${sel?'0 0 8px '+l.color+'33':'none'}"
+            onclick="taskModalToggleLabel('${l.id}')"
+            onmouseover="if(!this.classList.contains('sel')){this.style.borderColor='${l.color}55';this.style.color='${l.color}';}"
+            onmouseout="this.style.borderColor='';this.style.color='';">
+            <span style="width:6px;height:6px;border-radius:50%;background:${l.color};flex-shrink:0;
+              box-shadow:${sel?'0 0 5px '+l.color:'none'}"></span>
+            ${esc(l.name)}
+            ${sel?`<svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="${l.color}" stroke-width="3.5"><polyline points="20 6 9 17 4 12"/></svg>`:''}
+          </span>`;
+        }).join('')}
+      </div>
+    </div>`;
   });
   el.innerHTML=html;
 }
