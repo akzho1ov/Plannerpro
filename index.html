@@ -1416,11 +1416,29 @@ select.inp option{background:var(--card2);color:var(--text)}
 /* ══════════════════════════════
    6. FINANCE
 ══════════════════════════════ */
-.finMonNav{display:flex;align-items:center;gap:8px;margin-bottom:14px;flex-wrap:wrap}
+.finMonNav{display:flex;align-items:center;gap:8px;margin-bottom:16px;flex-wrap:wrap}
 .finMonName{font-family:var(--font-display);font-size:24px;font-weight:800;font-style:italic;color:var(--gold);text-shadow:0 0 20px rgba(240,171,48,.3)}
+/* Finance search bar */
+.finSearchBar{display:flex;align-items:center;gap:8px;margin-bottom:12px;flex-wrap:wrap}
+.finSearchInp{flex:1;min-width:160px;background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:8px 12px 8px 34px;color:var(--text);font-size:12px;font-family:var(--font-body);outline:none;transition:.15s}
+.finSearchInp:focus{border-color:var(--gold);box-shadow:0 0 0 2px rgba(240,171,48,.1)}
+.finSearchWrap{position:relative;flex:1;min-width:160px}
+.finSearchWrap::before{content:'🔍';position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:12px;pointer-events:none}
+/* Finance filter pills */
+.finFilterPills{display:flex;gap:5px;flex-wrap:wrap}
+.finFilterPill{padding:4px 10px;border-radius:20px;border:1px solid var(--border);background:var(--card2);color:var(--muted);font-size:10px;font-weight:700;cursor:pointer;transition:.12s;white-space:nowrap}
+.finFilterPill:hover{border-color:var(--gold);color:var(--gold)}
+.finFilterPill.on{background:rgba(240,171,48,.12);border-color:var(--gold);color:var(--gold)}
+/* Transaction grouped by date */
+.finTxDateGroup{font-size:9.5px;font-weight:800;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);padding:10px 0 5px;display:flex;align-items:center;gap:8px}
+.finTxDateGroup::after{content:'';flex:1;height:1px;background:var(--border)}
+/* Category select with indent for subcategories */
+.finCatOptGroup{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);padding:4px 8px;background:var(--card3)}
+.finCatOptSub{padding-left:20px!important}
 .finSummaryGrid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:14px}
 @media(max-width:600px){.finSummaryGrid{grid-template-columns:1fr 1fr}}
-.finSumCard{background:var(--card);border-radius:var(--r);border:1px solid var(--border);padding:14px 16px}
+.finSumCard{background:var(--card);border-radius:var(--r);border:1px solid var(--border);padding:16px 18px;transition:.2s;position:relative;overflow:hidden}
+.finSumCard::before{content:'';position:absolute;top:-30px;right:-30px;width:80px;height:80px;border-radius:50%;opacity:.06;pointer-events:none}
 .finPeriodBtn{background:var(--card2);border:1px solid var(--border);border-radius:6px;padding:3px 9px;font-size:10px;font-weight:700;color:var(--muted);cursor:pointer;transition:.12s}
 .finPeriodBtn:hover{border-color:var(--border2);color:var(--text)}
 .finPeriodBtn.active{background:var(--pdim);border-color:var(--p);color:var(--p)}
@@ -1436,7 +1454,8 @@ select.inp option{background:var(--card2);color:var(--text)}
 .finBudFill.warn{background:linear-gradient(90deg,var(--gold),var(--orange))}
 .finBudFill.over{background:linear-gradient(90deg,var(--red),var(--orange))}
 .finTxList{display:flex;flex-direction:column;gap:7px}
-.finTxItem{display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--card2);border-radius:10px;border:1px solid var(--border)}
+.finTxItem{display:flex;align-items:center;gap:10px;padding:11px 13px;background:var(--card2);border-radius:11px;border:1px solid var(--border);transition:all .15s;margin-bottom:5px}
+.finTxItem:hover{border-color:var(--border2);background:var(--card3);transform:translateX(2px)}
 .finTxIcon{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
 .finTxInfo{flex:1;min-width:0}
 .finTxName{font-size:12px;font-weight:700;color:var(--text)}
@@ -2076,6 +2095,23 @@ select.inp option{background:var(--card2);color:var(--text)}
 .finCatBudAmt{color:var(--muted);font-family:var(--font-mono);font-size:10px}
 .finCatBudTrack{height:6px;background:var(--border2);border-radius:4px;overflow:hidden}
 .finCatBudFill{height:100%;border-radius:4px;transition:.4s}
+/* Category editor rows */
+.finCatSection{margin-bottom:20px}
+.finCatSectionHead{display:flex;align-items:center;justify-content:space-between;padding:8px 12px;border-radius:10px;cursor:pointer;user-select:none;transition:.15s}
+.finCatSectionHead:hover{background:rgba(255,255,255,.03)}
+.finCatSectionTitle{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.8px}
+.finCatSectionArrow{font-size:12px;transition:transform .2s;color:var(--muted)}
+.finCatSectionArrow.open{transform:rotate(180deg)}
+.finCatSectionBody{display:flex;flex-direction:column;gap:5px;padding:4px 0}
+.finCatParentRow{background:var(--card2);border:1px solid var(--border);border-radius:10px;overflow:hidden}
+.finCatParentHead{display:flex;align-items:center;gap:7px;padding:9px 11px;cursor:pointer;transition:background .15s}
+.finCatParentHead:hover{background:rgba(255,255,255,.03)}
+.finCatParentToggle{font-size:10px;color:var(--muted);transition:transform .2s;flex-shrink:0;width:14px}
+.finCatParentToggle.open{transform:rotate(90deg)}
+.finCatSubList{border-top:1px solid var(--border);padding:6px 8px 8px 28px;display:flex;flex-direction:column;gap:4px;background:rgba(0,0,0,.15)}
+.finCatSubRow{display:flex;align-items:center;gap:7px;padding:7px 9px;background:var(--card3);border:1px solid var(--border);border-radius:8px}
+.finCatAddSubBtn{width:100%;padding:6px;border:1px dashed var(--border2);border-radius:7px;background:transparent;color:var(--muted);font-size:10px;font-weight:700;cursor:pointer;transition:.15s;font-family:var(--font-body);text-align:center;margin-top:4px}
+.finCatAddSubBtn:hover{border-color:var(--gold);color:var(--gold)}
 
 /* ── Kanban drag-drop ── */
 .kbDragOver{background:rgba(139,122,240,.08)!important;border:1.5px dashed var(--p)!important;border-radius:var(--r);}
@@ -3801,11 +3837,24 @@ body.light-mode .skel{background:linear-gradient(90deg,var(--card2) 25%,#f0f2f7 
   </div>
   <div class="finLayout2">
     <div>
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
-        <div class="secLbl" style="margin:0">Транзакции</div>
-        <select class="inp" id="finAcctFilter" onchange="renderFin()" style="width:auto;font-size:11px;padding:5px 8px">
+      <!-- Search & Filter bar -->
+      <div class="finSearchBar">
+        <div class="finSearchWrap">
+          <input class="finSearchInp" id="finSearchInp" placeholder="Поиск транзакций..." oninput="renderFinTxList()">
+        </div>
+        <select class="inp" id="finAcctFilter" onchange="renderFin()" style="width:auto;font-size:11px;padding:8px 10px;flex-shrink:0">
           <option value="">Все счета</option>
         </select>
+      </div>
+      <!-- Filter pills by type -->
+      <div class="finFilterPills" style="margin-bottom:10px" id="finTypePills">
+        <span class="finFilterPill on" data-type="" onclick="setFinFilter('')">Все</span>
+        <span class="finFilterPill" data-type="out" onclick="setFinFilter('out')">💸 Расходы</span>
+        <span class="finFilterPill" data-type="in" onclick="setFinFilter('in')">💰 Доходы</span>
+      </div>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+        <div class="secLbl" style="margin:0">Транзакции</div>
+        <button onclick="exportFinCSV()" style="border:none;background:var(--card2);border:1px solid var(--border);color:var(--muted);font-size:10px;font-weight:700;cursor:pointer;padding:4px 10px;border-radius:7px;transition:.15s" onmouseover="this.style.color='var(--gold)';this.style.borderColor='var(--gold)'" onmouseout="this.style.color='var(--muted)';this.style.borderColor='var(--border)'">📥 CSV</button>
       </div>
       <div id="finTxList" class="finTxList"></div>
     </div>
@@ -4875,13 +4924,15 @@ body.light-mode .skel{background:linear-gradient(90deg,var(--card2) 25%,#f0f2f7 
 
 <!-- Finance Categories Modal -->
 <div class="overlay" id="finCatsOverlay" style="display:none">
-  <div class="modalBox" style="max-width:540px;max-height:85vh;display:flex;flex-direction:column">
+  <div class="modalBox" style="max-width:560px;max-height:88vh;display:flex;flex-direction:column">
     <div class="modalHead">
       <span class="modalTitle">🏷 Управление категориями</span>
       <button class="modalClose" onclick="closeFinCatsModal()">✕</button>
     </div>
-    <div style="font-size:11px;color:var(--text2);margin-bottom:12px">Добавляй, редактируй и удаляй категории. Иконку и цвет можно менять прямо в строке.</div>
-    <div id="finCatsEditorList" style="flex:1;overflow-y:auto;padding-right:4px;display:flex;flex-direction:column;gap:4px"></div>
+    <div style="font-size:11px;color:var(--muted);margin-bottom:14px;padding:9px 12px;background:var(--card2);border-radius:9px;border:1px solid var(--border)">
+      💡 Нажми на <b style="color:var(--text)">▶</b> рядом с категорией чтобы увидеть подкатегории. Иконку и цвет можно редактировать прямо в строке.
+    </div>
+    <div id="finCatsEditorList" style="flex:1;overflow-y:auto;padding-right:4px;display:flex;flex-direction:column;gap:0"></div>
     <button class="btn btnB" style="width:100%;justify-content:center;margin-top:14px" onclick="closeFinCatsModal()">✓ Сохранить и закрыть</button>
   </div>
 </div>
@@ -8277,6 +8328,7 @@ function deleteCurrentBoard(){
    6. FINANCE
 ═══════════════════════════════════ */
 let finY=t0().getFullYear(),finM=t0().getMonth(),finTypeVal='out',finChartPeriod='month6';
+let _finTypeFilter=''; // '' | 'in' | 'out'
 
 // ── Категории финансов (динамические, из G + дефолты) ──
 const FIN_CATS_DEFAULT=[
@@ -8296,7 +8348,6 @@ function finCatsD(){
   if(!G.finCats||!G.finCats.length)G.finCats=JSON.parse(JSON.stringify(FIN_CATS_DEFAULT));
   return G.finCats;
 }
-// Совместимость — FIN_CATS как геттер на динамические категории
 Object.defineProperty(window,'FIN_CATS',{get:()=>finCatsD(),configurable:true});
 
 // ── Управление категориями ──
@@ -8308,50 +8359,98 @@ function closeFinCatsModal(){
   document.getElementById('finCatsOverlay').style.display='none';
   renderFin();
 }
+
+// State for expanded parents/sections in category editor
+window._finCatExpanded = window._finCatExpanded || {};
+window._finCatSectionOpen = window._finCatSectionOpen || {out:true, in:true};
+
 function renderFinCatsEditor(){
   const el=document.getElementById('finCatsEditorList');if(!el)return;
   const cats=finCatsD();
   const types=[{k:'out',label:'Расходы',color:'var(--red)'},{k:'in',label:'Доходы',color:'var(--green)'}];
   let html='';
   types.forEach(({k,label,color})=>{
+    const isOpen=window._finCatSectionOpen[k]!==false;
     const roots=cats.filter(c=>c.type===k&&!c.parentId);
-    html+=`<div style="margin-bottom:18px">
-      <div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.8px;color:${color};margin-bottom:8px">${label}</div>
-      <div style="display:flex;flex-direction:column;gap:6px" id="finCatsGroup_${k}">
-        ${roots.map(cat=>finCatRowHtml(cat,cats,k)).join('')}
+    html+=`<div class="finCatSection">
+      <div class="finCatSectionHead" onclick="finToggleSection('${k}')" style="border-left:3px solid ${color};padding-left:12px;margin-bottom:${isOpen?'6px':'0'}">
+        <div class="finCatSectionTitle" style="color:${color}">${label} <span style="font-weight:400;color:var(--muted)">(${roots.length})</span></div>
+        <div class="finCatSectionArrow ${isOpen?'open':''}">▼</div>
       </div>
-      <button onclick="finAddCat('${k}',null)" style="margin-top:8px;width:100%;padding:7px;border:1px dashed var(--border2);border-radius:8px;background:transparent;color:var(--muted);font-size:11px;cursor:pointer;font-family:var(--font-body);transition:all .15s" onmouseover="this.style.borderColor='${color}';this.style.color='${color}'" onmouseout="this.style.borderColor='var(--border2)';this.style.color='var(--muted)'">＋ Добавить категорию ${label.toLowerCase()}</button>
+      <div class="finCatSectionBody" id="finCatSection_${k}" style="display:${isOpen?'flex':'none'}">
+        ${roots.map(cat=>finCatParentHtml(cat,cats,k)).join('')}
+        <button class="finCatAddSubBtn" onclick="finAddCat('${k}',null)" style="border-color:${color}22;color:${color}" onmouseover="this.style.borderColor='${color}';this.style.background='rgba(0,0,0,.1)'" onmouseout="this.style.borderColor='${color}22';this.style.background='transparent'">＋ Добавить категорию ${label.toLowerCase()}</button>
+      </div>
     </div>`;
   });
   el.innerHTML=html;
 }
-function finCatRowHtml(cat,cats,type){
+
+function finToggleSection(k){
+  window._finCatSectionOpen[k]=!window._finCatSectionOpen[k];
+  renderFinCatsEditor();
+}
+
+function finCatParentHtml(cat,cats,type){
   const subs=cats.filter(c=>c.parentId===cat.id);
-  const subsHtml=subs.length?`<div style="margin-left:20px;margin-top:4px;display:flex;flex-direction:column;gap:4px">
-    ${subs.map(s=>finCatRowHtml(s,cats,type)).join('')}
-  </div>`:'';
-  return`<div>
-    <div style="display:flex;align-items:center;gap:7px;padding:7px 10px;background:var(--card3);border:1px solid var(--border);border-radius:8px;border-left:3px solid ${cat.color}">
-      <input value="${esc(cat.icon||'')}" maxlength="4" oninput="finCatUpdate('${cat.id}','icon',this.value)" style="width:38px;text-align:center;font-size:15px;border:none;background:transparent;color:var(--text);outline:none;cursor:text;flex-shrink:0">
-      <input value="${esc(cat.name)}" oninput="finCatUpdate('${cat.id}','name',this.value)" style="flex:1;border:none;background:transparent;color:var(--text);font-size:12px;font-weight:600;outline:none;min-width:0">
-      <input type="color" value="${cat.color}" onchange="finCatUpdate('${cat.id}','color',this.value)" style="width:28px;height:28px;border:none;border-radius:6px;cursor:pointer;padding:1px;background:transparent;flex-shrink:0">
-      ${!cat.parentId?`<button onclick="finAddCat('${type}','${cat.id}')" title="Добавить подкатегорию" style="width:24px;height:24px;border:1px solid var(--border2);border-radius:5px;background:var(--card2);color:var(--text2);font-size:12px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-weight:700">+</button>`:'<span style="width:24px;flex-shrink:0"></span>'}
-      <button onclick="finCatDelete('${cat.id}')" title="Удалить" style="width:24px;height:24px;border:1px solid var(--reddim);border-radius:5px;background:transparent;color:var(--red);font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;opacity:.7" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='.7'">×</button>
+  const isExpanded=window._finCatExpanded[cat.id]!==false; // default open if has subs
+  const hasSubs=subs.length>0;
+  return`<div class="finCatParentRow" style="border-left:3px solid ${cat.color}">
+    <div class="finCatParentHead" onclick="finToggleCatExpand('${cat.id}')" >
+      ${hasSubs?`<span class="finCatParentToggle ${hasSubs&&isExpanded?'open':''}">▶</span>`:'<span style="width:14px;flex-shrink:0"></span>'}
+      <input value="${esc(cat.icon||'')}" maxlength="4" onclick="event.stopPropagation()" oninput="finCatUpdate('${cat.id}','icon',this.value)" style="width:36px;text-align:center;font-size:15px;border:none;background:transparent;color:var(--text);outline:none;cursor:text;flex-shrink:0">
+      <input value="${esc(cat.name)}" onclick="event.stopPropagation()" oninput="finCatUpdate('${cat.id}','name',this.value)" style="flex:1;border:none;background:transparent;color:var(--text);font-size:12px;font-weight:700;outline:none;min-width:0">
+      <input type="color" value="${cat.color}" onclick="event.stopPropagation()" onchange="finCatUpdate('${cat.id}','color',this.value)" style="width:26px;height:26px;border:none;border-radius:5px;cursor:pointer;padding:1px;background:transparent;flex-shrink:0">
+      <button onclick="event.stopPropagation();finAddCat('${type}','${cat.id}')" title="Добавить подкатегорию" style="width:26px;height:26px;border:1px solid var(--border2);border-radius:5px;background:var(--card2);color:var(--text2);font-size:13px;cursor:pointer;flex-shrink:0;font-weight:700;transition:.12s" onmouseover="this.style.borderColor='var(--green)';this.style.color='var(--green)'" onmouseout="this.style.borderColor='var(--border2)';this.style.color='var(--text2)'">+</button>
+      <button onclick="event.stopPropagation();finCatDelete('${cat.id}')" title="Удалить" style="width:26px;height:26px;border:1px solid transparent;border-radius:5px;background:transparent;color:var(--muted);font-size:15px;cursor:pointer;flex-shrink:0;transition:.12s" onmouseover="this.style.borderColor='var(--reddim)';this.style.color='var(--red)'" onmouseout="this.style.borderColor='transparent';this.style.color='var(--muted)'">×</button>
     </div>
-    ${subsHtml}
+    ${hasSubs?`<div class="finCatSubList" id="finCatSubs_${cat.id}" style="display:${isExpanded?'flex':'none'}">
+      ${subs.map(s=>finCatSubHtml(s)).join('')}
+      <button class="finCatAddSubBtn" onclick="finAddCat('${type}','${cat.id}')">＋ Подкатегория</button>
+    </div>`:''}
   </div>`;
 }
+
+function finCatSubHtml(cat){
+  return`<div class="finCatSubRow" style="border-left:3px solid ${cat.color}">
+    <input value="${esc(cat.icon||'')}" maxlength="4" oninput="finCatUpdate('${cat.id}','icon',this.value)" style="width:30px;text-align:center;font-size:13px;border:none;background:transparent;color:var(--text);outline:none;flex-shrink:0">
+    <input value="${esc(cat.name)}" oninput="finCatUpdate('${cat.id}','name',this.value)" style="flex:1;border:none;background:transparent;color:var(--text2);font-size:11px;font-weight:600;outline:none;min-width:0">
+    <input type="color" value="${cat.color}" onchange="finCatUpdate('${cat.id}','color',this.value)" style="width:22px;height:22px;border:none;border-radius:4px;cursor:pointer;padding:1px;background:transparent;flex-shrink:0">
+    <button onclick="finCatDelete('${cat.id}')" title="Удалить" style="width:22px;height:22px;border:none;background:transparent;color:var(--muted);font-size:14px;cursor:pointer;flex-shrink:0;transition:.12s" onmouseover="this.style.color='var(--red)'" onmouseout="this.style.color='var(--muted)'">×</button>
+  </div>`;
+}
+
+function finToggleCatExpand(id){
+  const subs=finCatsD().filter(c=>c.parentId===id);
+  if(!subs.length)return;
+  window._finCatExpanded[id]=!window._finCatExpanded[id];
+  // Toggle the sublist visibility
+  const subEl=document.getElementById('finCatSubs_'+id);
+  const toggleEl=document.querySelector(`[onclick*="finToggleCatExpand('${id}')"] .finCatParentToggle`);
+  if(subEl){
+    const open=window._finCatExpanded[id];
+    subEl.style.display=open?'flex':'none';
+    if(toggleEl)toggleEl.classList.toggle('open',open);
+  }
+}
+
 function finCatUpdate(id,field,val){
   const c=finCatsD().find(x=>x.id===id);if(!c)return;
   c[field]=val;saveD();
-  // Обновить цвет рамки в реальном времени
-  if(field==='color'){renderFinCatsEditor();}
+  if(field==='color'){
+    // Update border color in real-time without full re-render
+    const parentRow=document.querySelector(`[style*="${c.color}"]`);
+    renderFinCatsEditor();
+  }
 }
 function finCatDelete(id){
   const cats=finCatsD();
   const cat=cats.find(c=>c.id===id);if(!cat)return;
-  if(!confirm(`Удалить категорию "${cat.name}"? Транзакции с ней останутся.`))return;
-  // Удалить и подкатегории
+  const subCount=cats.filter(c=>c.parentId===id).length;
+  const msg=subCount>0
+    ?`Удалить категорию "${cat.name}" и ${subCount} подкатегорий? Транзакции останутся.`
+    :`Удалить категорию "${cat.name}"? Транзакции останутся.`;
+  if(!confirm(msg))return;
   G.finCats=cats.filter(c=>c.id!==id&&c.parentId!==id);
   saveD();renderFinCatsEditor();
 }
@@ -8359,14 +8458,15 @@ function finAddCat(type,parentId){
   const newCat={
     id:'cat_'+uid(),
     name:'Новая категория',
-    icon:'📌',
+    icon: parentId?'📌':'📁',
     type,
     color:'#8B7AF0',
     parentId:parentId||null
   };
   finCatsD().push(newCat);
+  // Auto-expand parent if adding subcategory
+  if(parentId) window._finCatExpanded[parentId]=true;
   saveD();renderFinCatsEditor();
-  // Сфокусировать на новом инпуте
   setTimeout(()=>{
     const rows=document.querySelectorAll('#finCatsEditorList input[value="Новая категория"]');
     if(rows.length)rows[rows.length-1].select();
@@ -8380,16 +8480,33 @@ function finBudD(){if(!G.finBud)G.finBud={};if(!G.finBud[finKey()])G.finBud[finK
 function finAccountsD(){if(!G.finAccounts)G.finAccounts=[{id:'cash',name:'Наличка',icon:'💵',balance:0},{id:'card',name:'Карта',icon:'💳',balance:0}];return G.finAccounts}
 function finCatBudgetsD(){if(!G.finCatBudgets)G.finCatBudgets={};return G.finCatBudgets}
 
+// Helper: get display name of category (with parent prefix for subs)
+function finCatDisplayName(cat){
+  if(!cat)return'Прочее';
+  if(cat.parentId){
+    const parent=finCatsD().find(c=>c.id===cat.parentId);
+    if(parent)return`${parent.icon} ${parent.name} › ${cat.icon} ${cat.name}`;
+  }
+  return`${cat.icon} ${cat.name}`;
+}
+
+function setFinFilter(type){
+  _finTypeFilter=type;
+  document.querySelectorAll('.finFilterPill').forEach(p=>{
+    p.classList.toggle('on',p.dataset.type===type);
+  });
+  renderFinTxList();
+}
+
 function renderFin(){
   document.getElementById('finMonName').textContent=`${MN[finM]} ${finY}`;
   const acctFilter=document.getElementById('finAcctFilter')?.value||'';
   const txs=finTxD().filter(t=>{const d=new Date(t.date);return d.getFullYear()===finY&&d.getMonth()===finM&&(!acctFilter||t.acctId===acctFilter)});
   const inc=txs.filter(t=>t.type==='in'&&!t.isTransfer).reduce((a,t)=>a+Number(t.amount),0);
   const exp=txs.filter(t=>t.type==='out'&&!t.isTransfer).reduce((a,t)=>a+Number(t.amount),0);
-  const bal=inc-exp;
   document.getElementById('finIncVal').textContent=fmtMoney(inc);
   document.getElementById('finExpVal').textContent=fmtMoney(exp);
-  // BALANCE = sum of all account balances (initialBalance + all-time transactions)
+  // BALANCE = sum of all account balances
   const accts=finAccountsD();
   const acctBals={};
   let totalBalance=0;
@@ -8399,13 +8516,11 @@ function renderFin(){
     acctBals[a.id]=(a.initialBalance||0)+aInc-aExp;
     totalBalance+=acctBals[a.id];
   });
-  // If no accounts set, fall back to monthly balance
-  const displayBal=accts.length>0?totalBalance:bal;
+  const displayBal=accts.length>0?totalBalance:(inc-exp);
   document.getElementById('finBalVal').textContent=fmtMoney(displayBal);
 
   // Accounts row
   const acctsRow=document.getElementById('finAccountsRow');
-  // Populate account filter dropdown
   const acctFilterSel=document.getElementById('finAcctFilter');
   if(acctFilterSel){
     const cur=acctFilterSel.value;
@@ -8418,7 +8533,7 @@ function renderFin(){
     return `<div class="finAcctCard${a.id===acctFilter?' active':''}" onclick="filterFinAcct('${a.id}')" style="border-left:3px solid ${col}">
       <div class="finAcctIcon">${esc(a.icon||'💰')}</div>
       <div class="finAcctName">${esc(a.name)}</div>
-      <div class="finAcctBal" style="color:${balV>=0?col:'var(--red)'}">${fmtMoney(balV)}</div>
+      <div class="finAcctBal" style="color:${balV>=0?col:'var(--red)'}; font-family:var(--font-mono)">${fmtMoney(balV)}</div>
     </div>`;
   }).join('')+
     `<div class="finAcctCard" onclick="openAccountModal(null)" style="opacity:.6;border-style:dashed;display:flex;align-items:center;justify-content:center;min-height:74px;flex-direction:column;gap:4px">
@@ -8426,42 +8541,22 @@ function renderFin(){
       <div style="font-size:9px;color:var(--muted);font-weight:700">Новый счёт</div>
     </div>`;
 
-  // Sync period buttons
   document.querySelectorAll('.finPeriodBtn').forEach(b=>b.classList.toggle('active',b.dataset.period===finChartPeriod));
-  // Line chart
   drawFinLineChart();
-  // Pie chart
   drawFinPieChart(txs);
-
-  // Category budget bars
   renderCatBudgetBars(exp,txs);
+  renderFinTxList();
 
-  // Transactions
-  const list=document.getElementById('finTxList');list.innerHTML='';
-  if(!txs.length){list.innerHTML='<div style="text-align:center;padding:20px;color:var(--muted);font-size:12px">Транзакций нет. Добавь первую!</div>'}
-  else{
-    [...txs].sort((a,b)=>b.date.localeCompare(a.date)).forEach(tx=>{
-      const cat=FIN_CATS.find(c=>c.id===tx.category)||{icon:'📦',name:'Прочее',color:'#9ca3af'};
-      const acct=accts.find(a=>a.id===tx.acctId)||{name:'',icon:''};
-      const item=document.createElement('div');item.className='finTxItem';item.style.cursor='pointer';
-      item.innerHTML=`<div class="finTxIcon" style="background:${cat.color}22">${cat.icon}</div>
-        <div class="finTxInfo">
-          <div class="finTxName">${esc(tx.note||cat.name)}</div>
-          <div class="finTxMeta">${cat.name}${acct.name?' · '+acct.icon+' '+acct.name:''} · ${tx.date}</div>
-        </div>
-        <div class="finTxAmt" style="color:${tx.type==='in'?'var(--green)':'var(--red)'}">${tx.type==='in'?'+':'-'}${fmtMoney(tx.amount)}</div>
-        <button class="finTxDel" onclick="event.stopPropagation();delFinTx('${tx.id}')">×</button>`;
-      item.onclick=()=>openFinModal(tx.id);
-      list.appendChild(item);
-    });
-  }
-
-  // Category breakdown
+  // Category breakdown (right column)
   const catEl=document.getElementById('finCatList');catEl.innerHTML='';
-  const outCats=FIN_CATS.filter(c=>c.type==='out');
+  const outCats=FIN_CATS.filter(c=>c.type==='out'&&!c.parentId);
+  let hasAny=false;
   outCats.forEach(cat=>{
-    const amt=txs.filter(t=>t.type==='out'&&t.category===cat.id).reduce((a,t)=>a+Number(t.amount),0);
+    // sum cat + its subcategories
+    const catIds=[cat.id,...FIN_CATS.filter(c=>c.parentId===cat.id).map(c=>c.id)];
+    const amt=txs.filter(t=>t.type==='out'&&catIds.includes(t.category)).reduce((a,t)=>a+Number(t.amount),0);
     if(!amt)return;
+    hasAny=true;
     const pct=exp?Math.round(amt/exp*100):0;
     const row=document.createElement('div');row.className='finCatRow';
     row.innerHTML=`<div class="finCatLbl">${cat.icon} ${cat.name}</div>
@@ -8469,7 +8564,76 @@ function renderFin(){
       <div class="finCatAmt">${fmtMoney(amt)}</div>`;
     catEl.appendChild(row);
   });
-  if(!catEl.children.length)catEl.innerHTML='<div style="font-size:11px;color:var(--muted)">Нет расходов</div>';
+  if(!hasAny)catEl.innerHTML='<div style="font-size:11px;color:var(--muted);padding:8px 0">Нет расходов за этот месяц</div>';
+}
+
+// Render only transactions list (used for search/filter)
+function renderFinTxList(){
+  const acctFilter=document.getElementById('finAcctFilter')?.value||'';
+  const search=(document.getElementById('finSearchInp')?.value||'').toLowerCase().trim();
+  const txs=finTxD().filter(t=>{
+    const d=new Date(t.date);
+    if(d.getFullYear()!==finY||d.getMonth()!==finM)return false;
+    if(acctFilter&&t.acctId!==acctFilter)return false;
+    if(_finTypeFilter&&t.type!==_finTypeFilter)return false;
+    if(search){
+      const cat=FIN_CATS.find(c=>c.id===t.category);
+      const acct=finAccountsD().find(a=>a.id===t.acctId);
+      const haystack=`${t.note||''} ${cat?cat.name:''} ${acct?acct.name:''}`.toLowerCase();
+      if(!haystack.includes(search))return false;
+    }
+    return true;
+  });
+
+  const list=document.getElementById('finTxList');list.innerHTML='';
+  const accts=finAccountsD();
+
+  if(!txs.length){
+    list.innerHTML=`<div style="text-align:center;padding:24px 16px;color:var(--muted);font-size:12px">${search?'Ничего не найдено 🔍':'Транзакций нет. Добавь первую!'}</div>`;
+    return;
+  }
+
+  // Group by date
+  const sorted=[...txs].sort((a,b)=>b.date.localeCompare(a.date));
+  const groups={};
+  sorted.forEach(tx=>{
+    if(!groups[tx.date])groups[tx.date]=[];
+    groups[tx.date].push(tx);
+  });
+
+  Object.keys(groups).sort((a,b)=>b.localeCompare(a)).forEach(date=>{
+    // Date header
+    const dateHeader=document.createElement('div');
+    dateHeader.className='finTxDateGroup';
+    const d=new Date(date);
+    const dayNames=['Вс','Пн','Вт','Ср','Чт','Пт','Сб'];
+    const isToday=date===dk(t0());
+    const isYesterday=date===dk(new Date(t0().getTime()-86400000));
+    const dayLabel=isToday?'Сегодня':isYesterday?'Вчера':`${dayNames[d.getDay()]}, ${d.getDate()} ${MN[d.getMonth()].slice(0,3).toLowerCase()}`;
+    // Day total
+    const dayInc=groups[date].filter(t=>t.type==='in'&&!t.isTransfer).reduce((a,t)=>a+Number(t.amount),0);
+    const dayExp=groups[date].filter(t=>t.type==='out'&&!t.isTransfer).reduce((a,t)=>a+Number(t.amount),0);
+    const daySumHtml=dayExp>0?`<span style="font-size:9px;color:var(--red);font-family:var(--font-mono);font-weight:700">−${fmtMoney(dayExp)}</span>`:'';
+    const dayIncHtml=dayInc>0?`<span style="font-size:9px;color:var(--green);font-family:var(--font-mono);font-weight:700">+${fmtMoney(dayInc)}</span>`:'';
+    dateHeader.innerHTML=`${dayLabel}<span style="flex:1"></span>${dayIncHtml}${daySumHtml}`;
+    list.appendChild(dateHeader);
+
+    groups[date].forEach(tx=>{
+      const cat=FIN_CATS.find(c=>c.id===tx.category)||{icon:'📦',name:'Прочее',color:'#9ca3af'};
+      const acct=accts.find(a=>a.id===tx.acctId)||{name:'',icon:''};
+      const catDisplayName=finCatDisplayName(cat);
+      const item=document.createElement('div');item.className='finTxItem';item.style.cursor='pointer';
+      item.innerHTML=`<div class="finTxIcon" style="background:${cat.color}22;border:1px solid ${cat.color}33">${cat.icon}</div>
+        <div class="finTxInfo">
+          <div class="finTxName">${esc(tx.note||cat.name)}</div>
+          <div class="finTxMeta">${esc(catDisplayName)}${acct.name?' · '+acct.icon+' '+acct.name:''}</div>
+        </div>
+        <div class="finTxAmt" style="color:${tx.type==='in'?'var(--green)':'var(--red)'}; font-family:var(--font-mono)">${tx.type==='in'?'+':'-'}${fmtMoney(tx.amount)}</div>
+        <button class="finTxDel" onclick="event.stopPropagation();delFinTx('${tx.id}')">×</button>`;
+      item.onclick=()=>openFinModal(tx.id);
+      list.appendChild(item);
+    });
+  });
 }
 
 function filterFinAcct(id){
@@ -8493,10 +8657,11 @@ function renderCatBudgetBars(totalExp, txs){
     const pct=Math.min(100,Math.round(spent/limit*100));
     const over=spent>limit;
     const col=over?'var(--red)':pct>=75?'var(--gold)':'var(--green)';
+    const remaining=limit-spent;
     html+=`<div class="finCatBudRow">
       <div class="finCatBudHead">
         <span class="finCatBudName">${cat.icon} ${cat.name} ${over?'⚠️':''}</span>
-        <span class="finCatBudAmt">${fmtMoney(spent)} / ${fmtMoney(limit)}</span>
+        <span class="finCatBudAmt">${fmtMoney(spent)} / ${fmtMoney(limit)} ${over?`<span style="color:var(--red)">перерасход +${fmtMoney(spent-limit)}</span>`:`<span style="color:var(--muted)">ост. ${fmtMoney(remaining)}</span>`}</span>
       </div>
       <div class="finCatBudTrack"><div class="finCatBudFill" style="width:${pct}%;background:${col}"></div></div>
     </div>`;
@@ -8511,13 +8676,12 @@ function setFinChartPeriod(p,btn){
 }
 function drawFinLineChart(){
   const cv=document.getElementById('finLineChart');if(!cv)return;
-  cv.width=cv.offsetWidth||600;cv.height=110;
+  cv.width=cv.offsetWidth||600;cv.height=120;
   const ctx=cv.getContext('2d'),W=cv.width,H=cv.height;
   ctx.clearRect(0,0,W,H);
   const now=new Date();
   let points=[];
   if(finChartPeriod==='week'){
-    // last 7 days
     for(let i=6;i>=0;i--){
       const d=new Date(now);d.setDate(now.getDate()-i);
       const dk2=d.toISOString().slice(0,10);
@@ -8541,49 +8705,62 @@ function drawFinLineChart(){
   const incData=points.map(p=>p.inc),expData=points.map(p=>p.exp),labels=points.map(p=>p.lbl);
   const n=points.length;
   const maxV=Math.max(...incData,...expData,1);
-  const pad={l:6,r:6,t:10,b:20};
+  const pad={l:6,r:6,t:12,b:22};
   const chartW=W-pad.l-pad.r,chartH=H-pad.t-pad.b;
   const xStep=n>1?chartW/(n-1):chartW;
   const yToCanvas=v=>pad.t+chartH-(v/maxV)*chartH;
+  // Grid lines
   [0,.25,.5,.75,1].forEach(f=>{
     const y=pad.t+chartH*(1-f);
     ctx.beginPath();ctx.strokeStyle='rgba(255,255,255,.05)';ctx.lineWidth=1;
     ctx.moveTo(pad.l,y);ctx.lineTo(W-pad.r,y);ctx.stroke();
+    if(f>0){
+      ctx.fillStyle='rgba(90,97,130,.5)';ctx.font='8px Instrument Sans,sans-serif';ctx.textAlign='left';
+      ctx.fillText(fmtMoney(maxV*f),pad.l+2,y-2);
+    }
   });
-  // Income fill + line
+  // Income area
   ctx.beginPath();
   incData.forEach((v,i)=>{const x=pad.l+(n>1?i*xStep:chartW/2),y=yToCanvas(v);i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);});
   ctx.lineTo(pad.l+(n>1?(n-1)*xStep:chartW/2),H-pad.b);ctx.lineTo(pad.l,H-pad.b);ctx.closePath();
-  ctx.fillStyle='rgba(18,232,172,.08)';ctx.fill();
-  ctx.beginPath();ctx.strokeStyle='rgba(18,232,172,.85)';ctx.lineWidth=2;ctx.lineJoin='round';
+  const incGrad=ctx.createLinearGradient(0,pad.t,0,H-pad.b);
+  incGrad.addColorStop(0,'rgba(18,232,172,.18)');incGrad.addColorStop(1,'rgba(18,232,172,.02)');
+  ctx.fillStyle=incGrad;ctx.fill();
+  ctx.beginPath();ctx.strokeStyle='rgba(18,232,172,.9)';ctx.lineWidth=2;ctx.lineJoin='round';
   incData.forEach((v,i)=>{const x=pad.l+(n>1?i*xStep:chartW/2),y=yToCanvas(v);i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);});
   ctx.stroke();
-  // Expense fill + line
+  // Expense area
   ctx.beginPath();
   expData.forEach((v,i)=>{const x=pad.l+(n>1?i*xStep:chartW/2),y=yToCanvas(v);i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);});
   ctx.lineTo(pad.l+(n>1?(n-1)*xStep:chartW/2),H-pad.b);ctx.lineTo(pad.l,H-pad.b);ctx.closePath();
-  ctx.fillStyle='rgba(255,92,122,.07)';ctx.fill();
-  ctx.beginPath();ctx.strokeStyle='rgba(255,92,122,.85)';ctx.lineWidth=2;ctx.lineJoin='round';
+  const expGrad=ctx.createLinearGradient(0,pad.t,0,H-pad.b);
+  expGrad.addColorStop(0,'rgba(255,92,122,.15)');expGrad.addColorStop(1,'rgba(255,92,122,.02)');
+  ctx.fillStyle=expGrad;ctx.fill();
+  ctx.beginPath();ctx.strokeStyle='rgba(255,92,122,.9)';ctx.lineWidth=2;ctx.lineJoin='round';
   expData.forEach((v,i)=>{const x=pad.l+(n>1?i*xStep:chartW/2),y=yToCanvas(v);i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);});
   ctx.stroke();
   // Labels
   labels.forEach((lbl,i)=>{
     const x=pad.l+(n>1?i*xStep:chartW/2);
-    ctx.fillStyle='rgba(90,97,130,.8)';ctx.font='8px Instrument Sans,sans-serif';ctx.textAlign='center';
-    ctx.fillText(lbl,x,H-4);
+    ctx.fillStyle='rgba(90,97,130,.85)';ctx.font='8px Instrument Sans,sans-serif';ctx.textAlign='center';
+    ctx.fillText(lbl,x,H-5);
   });
-  // Dots with value tooltip on hover
-  incData.forEach((v,i)=>{const x=pad.l+(n>1?i*xStep:chartW/2),y=yToCanvas(v);ctx.beginPath();ctx.arc(x,y,3,0,Math.PI*2);ctx.fillStyle='rgba(18,232,172,1)';ctx.fill();});
-  expData.forEach((v,i)=>{const x=pad.l+(n>1?i*xStep:chartW/2),y=yToCanvas(v);ctx.beginPath();ctx.arc(x,y,3,0,Math.PI*2);ctx.fillStyle='rgba(255,92,122,1)';ctx.fill();});
+  // Dots
+  incData.forEach((v,i)=>{if(!v)return;const x=pad.l+(n>1?i*xStep:chartW/2),y=yToCanvas(v);ctx.beginPath();ctx.arc(x,y,3.5,0,Math.PI*2);ctx.fillStyle='#12e8ac';ctx.fill();ctx.strokeStyle='rgba(0,0,0,.4)';ctx.lineWidth=1;ctx.stroke();});
+  expData.forEach((v,i)=>{if(!v)return;const x=pad.l+(n>1?i*xStep:chartW/2),y=yToCanvas(v);ctx.beginPath();ctx.arc(x,y,3.5,0,Math.PI*2);ctx.fillStyle='#ff5c7a';ctx.fill();ctx.strokeStyle='rgba(0,0,0,.4)';ctx.lineWidth=1;ctx.stroke();});
 }
+
 function drawFinPieChart(txs){
   const cv=document.getElementById('finPieChart');if(!cv)return;
   const ctx=cv.getContext('2d'),S=cv.width,cx=S/2,cy=S/2,R=S/2-8,rInner=R*0.55;
   ctx.clearRect(0,0,S,S);
-  const outCats=FIN_CATS.filter(c=>c.type==='out');
-  const slices=outCats.map(cat=>({
-    cat,amt:txs.filter(t=>t.type==='out'&&!t.isTransfer&&t.category===cat.id).reduce((a,t)=>a+Number(t.amount),0)
-  })).filter(s=>s.amt>0).sort((a,b)=>b.amt-a.amt);
+  // Use parent cats for pie (aggregate subcats)
+  const outParents=FIN_CATS.filter(c=>c.type==='out'&&!c.parentId);
+  const slices=outParents.map(cat=>{
+    const catIds=[cat.id,...FIN_CATS.filter(c=>c.parentId===cat.id).map(c=>c.id)];
+    const amt=txs.filter(t=>t.type==='out'&&!t.isTransfer&&catIds.includes(t.category)).reduce((a,t)=>a+Number(t.amount),0);
+    return{cat,amt};
+  }).filter(s=>s.amt>0).sort((a,b)=>b.amt-a.amt);
   const total=slices.reduce((a,s)=>a+s.amt,0);
   const legend=document.getElementById('finPieLegend');
   if(!total){
@@ -8597,27 +8774,24 @@ function drawFinPieChart(txs){
     const sweep=(s.amt/total)*Math.PI*2;
     ctx.beginPath();ctx.moveTo(cx,cy);ctx.arc(cx,cy,R,angle,angle+sweep);ctx.closePath();
     ctx.fillStyle=s.cat.color;ctx.fill();
-    ctx.beginPath();ctx.arc(cx,cy,R+1,angle,angle+sweep);ctx.strokeStyle='rgba(0,0,0,.3)';ctx.lineWidth=2;ctx.stroke();
+    ctx.beginPath();ctx.arc(cx,cy,R+1,angle,angle+sweep);ctx.strokeStyle='rgba(0,0,0,.4)';ctx.lineWidth=2;ctx.stroke();
     angle+=sweep;
   });
-  // Donut hole
   ctx.beginPath();ctx.arc(cx,cy,rInner,0,Math.PI*2);
   const bg=getComputedStyle(document.documentElement).getPropertyValue('--bg2').trim()||'#141722';
   ctx.fillStyle=bg;ctx.fill();
-  // Center text
   ctx.fillStyle='rgba(255,255,255,.9)';ctx.font=`bold 13px Instrument Sans,sans-serif`;ctx.textAlign='center';ctx.textBaseline='middle';
   ctx.fillText(fmtMoney(total),cx,cy-6);
   ctx.fillStyle='rgba(255,255,255,.4)';ctx.font=`9px Instrument Sans,sans-serif`;
   ctx.fillText('расходы',cx,cy+8);
-  // Legend
   if(legend){
     legend.innerHTML=slices.slice(0,7).map(s=>{
       const pct=Math.round(s.amt/total*100);
-      return `<div style="display:flex;align-items:center;gap:7px">
+      return `<div style="display:flex;align-items:center;gap:7px;padding:3px 0">
         <span style="width:9px;height:9px;border-radius:50%;background:${s.cat.color};flex-shrink:0"></span>
         <span style="font-size:11px;color:var(--text2);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${s.cat.icon} ${s.cat.name}</span>
-        <span style="font-size:11px;font-weight:700;color:var(--text)">${pct}%</span>
-        <span style="font-size:10px;color:var(--muted)">${fmtMoney(s.amt)}</span>
+        <span style="font-size:11px;font-weight:700;color:var(--text);font-family:var(--font-mono)">${pct}%</span>
+        <span style="font-size:10px;color:var(--muted);font-family:var(--font-mono)">${fmtMoney(s.amt)}</span>
       </div>`;
     }).join('');
   }
@@ -8635,13 +8809,13 @@ function openFinModal(editId){
   document.getElementById('finAmt').value=tx?tx.amount:'';
   document.getElementById('finNote').value=tx?tx.note||'':'';
   document.getElementById('finDate').value=tx?tx.date:dk(t0());
-  // Populate account select
   const acctSel=document.getElementById('finAcctSel');
   acctSel.innerHTML='<option value="">Без счёта</option>';
   finAccountsD().forEach(a=>{const o=document.createElement('option');o.value=a.id;o.textContent=`${a.icon} ${a.name}`;if(tx&&tx.acctId===a.id)o.selected=true;acctSel.appendChild(o);});
   updateFinCatSelect(type);
   if(tx)document.getElementById('finCat').value=tx.category||'';
   document.getElementById('finOverlay').style.display='flex';
+  setTimeout(()=>document.getElementById('finAmt')?.focus(),80);
 }
 function closeFinModal(){document.getElementById('finOverlay').style.display='none';_finEditId=null;}
 function deleteFinTx(){
@@ -8654,10 +8828,39 @@ function setFinType(type){
   document.getElementById('finTypeOut').className='kbPriBtn'+(type==='out'?' sel':'');
   updateFinCatSelect(type);
 }
+// Build category select with parent/subcategory grouping
 function updateFinCatSelect(type){
   const sel=document.getElementById('finCat');sel.innerHTML='';
-  FIN_CATS.filter(c=>c.type===type).forEach(c=>{
-    const o=document.createElement('option');o.value=c.id;o.textContent=`${c.icon} ${c.name}`;sel.appendChild(o);
+  const cats=finCatsD();
+  const parents=cats.filter(c=>c.type===type&&!c.parentId);
+  parents.forEach(parent=>{
+    const subs=cats.filter(c=>c.parentId===parent.id);
+    if(subs.length){
+      // Add parent as optgroup label (disabled option)
+      const groupLabel=document.createElement('option');
+      groupLabel.disabled=true;
+      groupLabel.textContent=`── ${parent.icon} ${parent.name} ──`;
+      groupLabel.style.fontWeight='800';
+      groupLabel.style.color='var(--muted)';
+      sel.appendChild(groupLabel);
+      // Add parent itself as selectable
+      const parentOpt=document.createElement('option');
+      parentOpt.value=parent.id;
+      parentOpt.textContent=`  ${parent.icon} ${parent.name}`;
+      sel.appendChild(parentOpt);
+      // Add subcategories
+      subs.forEach(sub=>{
+        const o=document.createElement('option');
+        o.value=sub.id;
+        o.textContent=`    └ ${sub.icon} ${sub.name}`;
+        sel.appendChild(o);
+      });
+    } else {
+      const o=document.createElement('option');
+      o.value=parent.id;
+      o.textContent=`${parent.icon} ${parent.name}`;
+      sel.appendChild(o);
+    }
   });
 }
 function addFinTx(){
@@ -8673,6 +8876,24 @@ function addFinTx(){
 }
 function delFinTx(id){const i=finTxD().findIndex(t=>t.id===id);if(i>=0){finTxD().splice(i,1);saveD();renderFin()}}
 function saveBudget(){const v=parseFloat(document.getElementById('finBudgetInp')?.value)||0;finBudD().budget=v;saveD();renderFin()}
+
+// Export CSV
+function exportFinCSV(){
+  const txs=finTxD().filter(t=>{const d=new Date(t.date);return d.getFullYear()===finY&&d.getMonth()===finM});
+  if(!txs.length){alert('Нет транзакций за этот месяц');return;}
+  const accts=finAccountsD();
+  const rows=[['Дата','Тип','Категория','Счёт','Сумма','Описание']];
+  [...txs].sort((a,b)=>b.date.localeCompare(a.date)).forEach(tx=>{
+    const cat=FIN_CATS.find(c=>c.id===tx.category)||{name:'Прочее'};
+    const acct=accts.find(a=>a.id===tx.acctId)||{name:''};
+    rows.push([tx.date,tx.type==='in'?'Доход':'Расход',cat.name,acct.name,tx.amount,tx.note||'']);
+  });
+  const csv=rows.map(r=>r.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');
+  const blob=new Blob(['\ufeff'+csv],{type:'text/csv;charset=utf-8'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');a.href=url;a.download=`finance_${MN[finM]}_${finY}.csv`;a.click();
+  URL.revokeObjectURL(url);
+}
 
 // Accounts
 function openAccountModal(){
@@ -8692,7 +8913,7 @@ function renderAccountList(){
       <div class="acctEditRow-head">
         <input class="inp" value="${esc(a.icon||'💰')}" style="width:50px;text-align:center;font-size:18px;flex-shrink:0" maxlength="4" oninput="finAccountsD()[${i}].icon=this.value;saveD()">
         <input class="inp" value="${esc(a.name)}" style="flex:1;font-weight:600" oninput="finAccountsD()[${i}].name=this.value;saveD()">
-        <input type="color" value="${acctColor}" style="width:38px;height:36px;border:none;border-radius:8px;cursor:pointer;padding:2px;background:var(--card3);border:1px solid var(--border2);flex-shrink:0" onchange="finAccountsD()[${i}].color=this.value;saveD();renderAccountList()">
+        <input type="color" value="${acctColor}" style="width:38px;height:36px;border:none;border-radius:8px;cursor:pointer;padding:2px;background:var(--card2);border:1px solid var(--border2);flex-shrink:0" onchange="finAccountsD()[${i}].color=this.value;saveD();renderAccountList()">
         <button class="btn btnR" style="font-size:10px;padding:4px 8px;flex-shrink:0" onclick="deleteAccount('${a.id}')">🗑</button>
       </div>
       <div class="acctEditRow-fields">
@@ -8734,7 +8955,6 @@ function openTransferModal(){
     const opt2=opt1.cloneNode(true);
     fromSel.appendChild(opt1);toSel.appendChild(opt2);
   });
-  // Default: select different accounts
   if(accts.length>=2)toSel.selectedIndex=1;
   document.getElementById('trAmount').value='';
   document.getElementById('trDate').value=dk(t0());
@@ -8756,21 +8976,16 @@ function doTransfer(){
   const fromAcct=finAccountsD().find(a=>a.id===fromId);
   const toAcct=finAccountsD().find(a=>a.id===toId);
   if(!fromAcct||!toAcct){errEl.textContent='Счёт не найден';errEl.style.display='block';return;}
-  // Check balance
   const aInc=finTxD().filter(t=>t.type==='in'&&t.acctId===fromId).reduce((s,t)=>s+Number(t.amount),0);
   const aExp=finTxD().filter(t=>t.type==='out'&&t.acctId===fromId).reduce((s,t)=>s+Number(t.amount),0);
   const fromBal=(fromAcct.initialBalance||0)+aInc-aExp;
   if(amt>fromBal){
-    // Warn but don't block — might be intentional (overdraft)
     if(!confirm(`На счёте "${fromAcct.name}" только ${fmtMoney(fromBal)}. Всё равно перевести?`))return;
   }
   const transferNote=`Перевод: ${fromAcct.icon||''}${fromAcct.name} → ${toAcct.icon||''}${toAcct.name}${note&&note!=='Перевод'?' ('+note+')':''}`;
-  // Debit from source
   finTxD().push({id:uid(),date,amount:amt,type:'out',category:'transfer',note:transferNote,acctId:fromId,isTransfer:true});
-  // Credit to destination
   finTxD().push({id:uid(),date,amount:amt,type:'in',category:'transfer',note:transferNote,acctId:toId,isTransfer:true});
   saveD();closeTransferModal();renderFin();
-  // Show success toast via sync dot area
   showSaveStatus('saved',`✓ Переведено ${fmtMoney(amt)} → ${toAcct.name}`);
 }
 
@@ -8783,14 +8998,15 @@ function closeCatBudgetModal(){document.getElementById('catBudgetOverlay').style
 function renderCatBudgetEditor(){
   const el=document.getElementById('catBudgetEditorList');if(!el)return;
   const budgets=finCatBudgetsD();
-  el.innerHTML=FIN_CATS.filter(c=>c.type==='out').map(cat=>`
-    <div style="display:flex;align-items:center;gap:10px">
-      <span style="font-size:14px;min-width:24px">${cat.icon}</span>
+  el.innerHTML=FIN_CATS.filter(c=>c.type==='out'&&!c.parentId).map(cat=>`
+    <div style="display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:1px solid var(--border)">
+      <span style="font-size:16px;min-width:26px">${cat.icon}</span>
       <span style="flex:1;font-size:12px;font-weight:600;color:var(--text2)">${cat.name}</span>
-      <input type="number" class="inp" value="${budgets[cat.id]||''}" style="width:120px;font-size:12px" placeholder="Лимит..."
+      <input type="number" class="inp" value="${budgets[cat.id]||''}" style="width:120px;font-size:12px;text-align:right" placeholder="Лимит..."
         oninput="finCatBudgetsD()['${cat.id}']=Number(this.value)||0;saveD()">
     </div>`).join('');
 }
+
 
 /* ═══════════════════════════════════
    7. GOALS & GROWTH
