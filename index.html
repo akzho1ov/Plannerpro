@@ -14953,8 +14953,9 @@ const POM={
   sessionWorkMin:0,     // accumulated work minutes this session
   taskId:null,
   _iv:null,
-  _startTs:null,
+  _startTs:null,        // Date.now() when timer last started/resumed
   _pausedSec:0,
+  _baseSecondsLeft:0,   // secondsLeft at the moment of last start/resume
 };
 
 /* ── Helpers ── */
@@ -14992,8 +14993,10 @@ function pomInitMode(mode){
   const min=mode==='work'?s.workMin:mode==='sbreak'?s.breakMin:s.longMin;
   POM.totalSeconds=min*60;
   POM.secondsLeft=min*60;
+  POM._baseSecondsLeft=min*60;
   POM.running=false;
   POM._pausedSec=0;
+  POM._startTs=null;
   clearInterval(POM._iv);
   POM._iv=null;
   pomUpdateUI();
@@ -15002,7 +15005,10 @@ function pomInitMode(mode){
 /* ── Start / pause ── */
 function pomToggle(){
   if(POM.running){
+    // ── PAUSE: snapshot current secondsLeft from real time ──
     POM.running=false;
+    const elapsed=Math.floor((Date.now()-POM._startTs)/1000);
+    POM.secondsLeft=Math.max(0,POM._baseSecondsLeft-elapsed);
     clearInterval(POM._iv);POM._iv=null;
     pomUpdateUI();
     // Пауза с комментарием — только в режиме работы
@@ -15013,9 +15019,11 @@ function pomToggle(){
       pomShowNotif('⏸ Пауза');
     }
   } else {
+    // ── RESUME / START: anchor start timestamp ──
     POM.running=true;
     POM._startTs=Date.now();
-    POM._iv=setInterval(pomTick,1000);
+    POM._baseSecondsLeft=POM.secondsLeft;
+    POM._iv=setInterval(pomTick,500);
     pomUpdateUI();
     pomShowNotif(POM.mode==='work'?'🍅 Фокус начат!':'☕ Отдых начат!');
   }
@@ -15066,10 +15074,16 @@ function pomSavePauseComment(){
 /* ── Tick ── */
 function pomTick(){
   if(!POM.running)return;
-  POM.secondsLeft=Math.max(0,POM.secondsLeft-1);
+  // ── Timestamp-based: always calculate from real elapsed time ──
+  // This is accurate even when tab is throttled, hidden, or switched
+  const elapsed=Math.floor((Date.now()-POM._startTs)/1000);
+  const newSecondsLeft=Math.max(0,POM._baseSecondsLeft-elapsed);
+  // Only update sessionWorkMin by the actual delta
   if(POM.mode==='work'){
-    POM.sessionWorkMin+=(1/60);
+    const delta=POM.secondsLeft-newSecondsLeft;
+    if(delta>0) POM.sessionWorkMin+=(delta/60);
   }
+  POM.secondsLeft=newSecondsLeft;
   pomUpdateTimerDisplay();
   if(POM.secondsLeft<=0){
     pomOnComplete();
@@ -15133,8 +15147,25 @@ function pomReset(){
   pomShowNotif('🔄 Сброшен');
 }
 
-/* ── Link task ── */
-function pomSetTask(id){
+/* ── Visibility change: resync timer when tab becomes visible ── */
+document.addEventListener('visibilitychange',()=>{
+  if(document.visibilityState==='visible'&&POM.running){
+    // Recalculate exact secondsLeft from real elapsed time
+    const elapsed=Math.floor((Date.now()-POM._startTs)/1000);
+    POM.secondsLeft=Math.max(0,POM._baseSecondsLeft-elapsed);
+    // Restart interval cleanly (avoids drift from stacked intervals)
+    clearInterval(POM._iv);
+    if(POM.secondsLeft>0){
+      POM._iv=setInterval(pomTick,500);
+    } else {
+      pomOnComplete();
+      return;
+    }
+    pomUpdateTimerDisplay();
+  }
+});
+
+
   POM.taskId=(POM.taskId===id)?null:id;
   renderPomodoro();
 }
