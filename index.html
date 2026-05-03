@@ -2963,6 +2963,35 @@ body.light-mode .skel{background:linear-gradient(90deg,var(--card2) 25%,#f0f2f7 
 /* ═══════════════════════════════════════════
    RUN MODULE — БЕГ · STRAVA-STYLE
 ═══════════════════════════════════════════ */
+/* Run modal overlay — own class, NOT .modalOverlay (avoids mobile !important conflict) */
+.runOverlay{
+  display:none;
+  position:fixed;inset:0;z-index:8000;
+  background:rgba(0,0,0,.75);backdrop-filter:blur(6px);
+  align-items:center;justify-content:center;
+  padding:16px;overflow-y:auto;
+}
+.runOverlay.open{display:flex}
+/* On mobile — bottom sheet style */
+@media(max-width:700px){
+  .runOverlay.open{align-items:flex-end;padding:0}
+  .runOverlay .runModalBox{
+    width:100%!important;max-width:100%!important;
+    border-radius:22px 22px 0 0!important;
+    max-height:92vh;overflow-y:auto;
+    padding:20px 16px max(24px,env(safe-area-inset-bottom))!important;
+    animation:mobileSheetIn .28s var(--ease) both!important;
+  }
+}
+.runModalBox{
+  background:var(--card);border:1px solid var(--border);
+  border-radius:20px;padding:24px;width:100%;max-width:440px;
+  box-shadow:0 24px 80px rgba(0,0,0,.6);
+  position:relative;
+}
+/* Share overlay — position:fixed, hidden by default */
+#runShareOverlay{display:none}
+#runShareOverlay.open{display:flex}
 .subTabs--orange .subTab.on{color:var(--orange);box-shadow:0 1px 4px rgba(0,0,0,.4),0 0 0 1px rgba(255,128,48,.3),0 0 12px rgba(255,128,48,.1)}
 body.light-mode .subTabs--orange .subTab.on{box-shadow:0 1px 4px rgba(30,40,90,.1),0 0 0 1px rgba(255,128,48,.4)}
 
@@ -3067,9 +3096,11 @@ body.light-mode .subTabs--orange .subTab.on{box-shadow:0 1px 4px rgba(30,40,90,.
 #runShareOverlay{
   position:fixed;inset:0;z-index:9999;
   background:rgba(0,0,0,.92);backdrop-filter:blur(8px);
-  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  flex-direction:column;align-items:center;justify-content:center;
   padding:16px;overflow-y:auto;
+  display:none;
 }
+#runShareOverlay.open{display:flex}
 .runShareWrap{
   width:100%;max-width:420px;
   display:flex;flex-direction:column;align-items:center;gap:14px;
@@ -15307,8 +15338,8 @@ function buildSleepAnalyticsHTML(){
 </div>
 
 <!-- ═══ FINISH RUN MODAL ═══ -->
-<div id="runFinishModal" class="modalOverlay" style="display:none" onclick="if(event.target===this){}">
-  <div class="modalBox" style="max-width:420px">
+<div id="runFinishModal" class="runOverlay" onclick="if(event.target===this){}">
+  <div class="runModalBox">
     <div style="font-family:var(--font-display);font-size:22px;font-weight:800;color:var(--orange);margin-bottom:4px">🏁 Пробежка завершена!</div>
     <div style="font-size:12px;color:var(--muted);margin-bottom:20px">Подтверди детали и сохрани</div>
     <div style="background:linear-gradient(135deg,rgba(255,128,48,.1),rgba(255,128,48,.05));border:1px solid rgba(255,128,48,.2);border-radius:16px;padding:16px;margin-bottom:20px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;text-align:center">
@@ -15362,7 +15393,7 @@ function buildSleepAnalyticsHTML(){
 </div>
 
 <!-- ═══ SHARE CARD OVERLAY ═══ -->
-<div id="runShareOverlay" style="display:none">
+<div id="runShareOverlay">
   <div class="runShareWrap">
     <!-- Title -->
     <div style="text-align:center;margin-bottom:4px">
@@ -16842,7 +16873,7 @@ function runFinish(){
   // Store elapsed for save
   RUN._pendingElapsed=elapsed;
   // Show modal
-  document.getElementById('runFinishModal').style.display='flex';
+  document.getElementById('runFinishModal').classList.add('open');
 }
 
 function runFinishUpdateStats(){
@@ -16857,7 +16888,7 @@ function runFinishUpdateStats(){
 
 function runDiscardFinish(){
   // Resume if they change mind
-  document.getElementById('runFinishModal').style.display='none';
+  document.getElementById('runFinishModal').classList.remove('open');
 }
 
 function runConfirmFinish(){
@@ -16892,7 +16923,7 @@ function runConfirmFinish(){
   // Reset state
   RUN.active=false;RUN.startTs=null;RUN.pausedSec=0;RUN.paused=false;
   clearInterval(RUN.timerInt);
-  document.getElementById('runFinishModal').style.display='none';
+  document.getElementById('runFinishModal').classList.remove('open');
   document.getElementById('run-active-view').style.display='none';
   document.getElementById('run-no-active').style.display='block';
   document.getElementById('run-active-banner').style.display='none';
@@ -17229,12 +17260,12 @@ function runOpenShare(runId){
   document.getElementById('runShareOverlay').dataset.runId=runId;
 
   // Show overlay
-  document.getElementById('runShareOverlay').style.display='flex';
+  document.getElementById('runShareOverlay').classList.add('open');
   document.body.style.overflow='hidden';
 }
 
 function runCloseShare(){
-  document.getElementById('runShareOverlay').style.display='none';
+  document.getElementById('runShareOverlay').classList.remove('open');
   document.body.style.overflow='';
 }
 
