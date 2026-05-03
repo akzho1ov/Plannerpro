@@ -20,6 +20,8 @@
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,300;12..96,400;12..96,500;12..96,600;12..96,700;12..96,800&family=Instrument+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
 <!-- DOMPurify — sanitizes innerHTML -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.1.5/purify.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<!-- html2canvas — for run share card download -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 <!-- Firebase -->
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
@@ -2958,8 +2960,241 @@ body.light-mode .skel{background:linear-gradient(90deg,var(--card2) 25%,#f0f2f7 
     margin:-8px auto 16px;
   }
 }
-</style>
-</head>
+/* ═══════════════════════════════════════════
+   RUN MODULE — БЕГ · STRAVA-STYLE
+═══════════════════════════════════════════ */
+.subTabs--orange .subTab.on{color:var(--orange);box-shadow:0 1px 4px rgba(0,0,0,.4),0 0 0 1px rgba(255,128,48,.3),0 0 12px rgba(255,128,48,.1)}
+body.light-mode .subTabs--orange .subTab.on{box-shadow:0 1px 4px rgba(30,40,90,.1),0 0 0 1px rgba(255,128,48,.4)}
+
+.runPane{display:none}.runPane.on{display:block}
+
+/* Stat row */
+.runStatRow{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px}
+@media(max-width:600px){.runStatRow{grid-template-columns:repeat(2,1fr)}}
+.runStatCard{background:var(--card);border:1px solid var(--border);border-radius:var(--r2);padding:12px 10px;text-align:center;transition:.2s}
+.runStatCard:hover{border-color:rgba(255,128,48,.3);background:var(--card2)}
+.runStatV{font-family:var(--font-display);font-size:20px;font-weight:800;color:var(--text)}
+.runStatL{font-size:9px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);font-weight:700;margin-top:3px}
+@media(max-width:600px){.runStatCard{padding:10px;border-radius:12px}.runStatV{font-size:18px}}
+
+/* Active run banner */
+.runActiveBanner{
+  display:flex;align-items:center;gap:10px;
+  background:linear-gradient(135deg,rgba(255,128,48,.12),rgba(255,128,48,.06));
+  border:1px solid rgba(255,128,48,.3);
+  border-radius:14px;padding:12px 16px;margin-bottom:14px;cursor:pointer;
+  animation:runBannerPulse 2s ease-in-out infinite;
+}
+@keyframes runBannerPulse{0%,100%{border-color:rgba(255,128,48,.3)}50%{border-color:rgba(255,128,48,.6)}}
+.runActivePulse{width:10px;height:10px;border-radius:50%;background:var(--orange);box-shadow:0 0 0 0 rgba(255,128,48,.7);animation:runPulseRing 1.5s ease-out infinite;flex-shrink:0}
+@keyframes runPulseRing{0%{box-shadow:0 0 0 0 rgba(255,128,48,.7)}70%{box-shadow:0 0 0 10px rgba(255,128,48,0)}100%{box-shadow:0 0 0 0 rgba(255,128,48,0)}}
+.runActiveName{flex:1;font-weight:700;font-size:13px;color:var(--text)}
+.runActiveTimer{font-family:var(--font-mono);font-size:15px;font-weight:700;color:var(--orange)}
+
+/* Active run hero */
+.runTimerHero{
+  background:linear-gradient(145deg,var(--card),var(--bg));
+  border:1px solid rgba(255,128,48,.2);border-radius:24px;
+  padding:28px 20px 20px;text-align:center;margin-bottom:14px;
+  position:relative;overflow:hidden;
+}
+.runTimerHero::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 50% 0%,rgba(255,128,48,.08),transparent 70%);pointer-events:none}
+.runTimerBig{font-family:var(--font-display);font-size:64px;font-weight:800;color:var(--text);letter-spacing:-2px;line-height:1;margin-bottom:4px}
+.runTimerLabel{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;font-weight:700}
+.runLiveStats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:16px}
+.runLiveStat{background:rgba(255,128,48,.06);border:1px solid rgba(255,128,48,.12);border-radius:12px;padding:10px 8px;text-align:center}
+.runLiveStatV{font-family:var(--font-display);font-size:18px;font-weight:800;color:var(--orange);line-height:1}
+.runLiveStatL{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;font-weight:700;margin-top:3px}
+.runCtrlBtns{display:flex;gap:10px;margin-top:14px}
+.runCtrlBtns .btn{flex:1;padding:13px;font-size:13px;font-weight:700}
+
+/* Map SVG container */
+.runMapWrap{
+  background:rgba(0,0,0,.3);border:1px solid rgba(255,128,48,.12);
+  border-radius:16px;overflow:hidden;margin-bottom:14px;
+  position:relative;
+}
+.runMapSvg{width:100%;height:180px;display:block}
+
+/* History items */
+.runHistItem{
+  display:flex;gap:12px;align-items:center;padding:14px 16px;
+  border-bottom:1px solid var(--border);cursor:pointer;transition:.15s;
+}
+.runHistItem:last-child{border-bottom:none}
+.runHistItem:hover{background:rgba(255,128,48,.04)}
+.runHistThumb{width:64px;height:48px;flex-shrink:0;background:rgba(0,0,0,.3);border:1px solid rgba(255,128,48,.15);border-radius:10px;overflow:hidden}
+.runHistThumb svg{width:100%;height:100%}
+.runHistMeta{flex:1;min-width:0}
+.runHistDate{font-size:10px;color:var(--muted);font-weight:600;margin-bottom:2px}
+.runHistName{font-size:13px;font-weight:700;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-bottom:4px}
+.runHistStatRow{display:flex;gap:10px;align-items:center}
+.runHistStat{font-size:10px;color:var(--text2);font-weight:600}
+.runHistStat span{color:var(--muted);font-weight:400}
+.runHistDist{font-family:var(--font-display);font-size:22px;font-weight:800;color:var(--orange);line-height:1;flex-shrink:0;text-align:right}
+.runHistDistUnit{font-size:10px;color:var(--muted);font-weight:700}
+
+/* Achievement badges */
+.runBadge{
+  display:inline-flex;align-items:center;gap:4px;
+  font-size:9px;font-weight:700;padding:3px 8px;border-radius:20px;
+  background:rgba(255,128,48,.1);border:1px solid rgba(255,128,48,.2);color:var(--orange);
+}
+.runBadge--pr{background:rgba(240,171,48,.1);border-color:rgba(240,171,48,.2);color:var(--gold)}
+.runBadge--green{background:rgba(15,221,170,.1);border-color:rgba(15,221,170,.2);color:var(--green)}
+
+/* Stats tab */
+.runPrCard{
+  background:var(--card);border:1px solid var(--border);border-radius:14px;
+  padding:14px 16px;display:flex;align-items:center;gap:12px;
+  transition:.15s;
+}
+.runPrCard:hover{border-color:rgba(255,128,48,.25);background:var(--card2)}
+.runPrIcon{font-size:24px}
+.runPrVal{font-family:var(--font-display);font-size:22px;font-weight:800;color:var(--text);line-height:1}
+.runPrLbl{font-size:10px;color:var(--muted);font-weight:600;margin-top:2px}
+
+/* Weekly chart bars */
+.runWeekChart{display:flex;align-items:flex-end;gap:5px;height:80px}
+.runWeekBar{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px}
+.runWeekBarInner{width:100%;border-radius:5px 5px 0 0;transition:height .4s var(--ease);min-height:3px;background:var(--border2)}
+.runWeekBarInner.active{background:linear-gradient(180deg,#FF8030,#e06520)}
+.runWeekBarInner.today{background:linear-gradient(180deg,#FF8030,#FF4F30);box-shadow:0 0 12px rgba(255,128,48,.4)}
+.runWeekBarLbl{font-size:9px;font-weight:700;color:var(--muted)}
+.runWeekBarVal{font-size:8px;font-family:var(--font-mono);color:var(--muted)}
+
+/* ═══ SHARE CARD OVERLAY ═══ */
+#runShareOverlay{
+  position:fixed;inset:0;z-index:9999;
+  background:rgba(0,0,0,.92);backdrop-filter:blur(8px);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding:16px;overflow-y:auto;
+}
+.runShareWrap{
+  width:100%;max-width:420px;
+  display:flex;flex-direction:column;align-items:center;gap:14px;
+}
+/* The share card itself */
+#runShareCard{
+  width:100%;max-width:420px;
+  background:linear-gradient(145deg,#07081A 0%,#130C2A 55%,#0D1B2A 100%);
+  border:1px solid rgba(255,128,48,.35);
+  border-radius:28px;padding:24px 22px 20px;
+  position:relative;overflow:hidden;
+  box-shadow:0 0 80px rgba(255,128,48,.15),0 32px 80px rgba(0,0,0,.8);
+}
+#runShareCard::before{
+  content:'';position:absolute;inset:0;
+  background:radial-gradient(ellipse at 50% 40%,rgba(255,128,48,.14) 0%,transparent 65%);
+  pointer-events:none;
+}
+/* Decorative grid lines on share card */
+#runShareCard::after{
+  content:'';position:absolute;inset:0;
+  background-image:
+    linear-gradient(rgba(255,255,255,.025) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(255,255,255,.025) 1px,transparent 1px);
+  background-size:40px 40px;
+  pointer-events:none;border-radius:28px;
+}
+.rscHeader{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;position:relative;z-index:1}
+.rscTag{
+  font-family:var(--font-mono);font-size:9px;font-weight:700;
+  color:var(--orange);letter-spacing:2px;text-transform:uppercase;
+  background:rgba(255,128,48,.12);padding:4px 10px;border-radius:20px;
+  border:1px solid rgba(255,128,48,.25);
+}
+.rscDate{font-size:10px;color:var(--muted);font-family:var(--font-mono)}
+.rscLocation{font-size:11px;color:var(--text2);margin-bottom:12px;font-weight:500;display:flex;align-items:center;gap:4px;position:relative;z-index:1}
+.rscRunName{font-family:var(--font-display);font-size:15px;font-weight:700;color:var(--text2);margin-bottom:10px;position:relative;z-index:1}
+/* Map area */
+.rscMapWrap{
+  width:100%;border-radius:16px;overflow:hidden;
+  background:rgba(0,0,0,.5);border:1px solid rgba(255,128,48,.12);
+  margin-bottom:16px;position:relative;z-index:1;
+}
+.rscMapSvg{width:100%;height:160px;display:block}
+/* Distance hero */
+.rscDistHero{text-align:center;margin-bottom:14px;position:relative;z-index:1}
+.rscDist{
+  font-family:var(--font-display);font-size:80px;font-weight:800;
+  color:#fff;line-height:1;letter-spacing:-3px;
+  text-shadow:0 0 40px rgba(255,128,48,.3);
+  display:block;
+}
+.rscDistUnit{
+  font-family:var(--font-display);font-size:22px;font-weight:600;
+  color:var(--orange);letter-spacing:1px;margin-top:-4px;display:block;
+}
+/* Stats row */
+.rscStats{
+  display:flex;justify-content:space-around;align-items:center;
+  background:rgba(255,255,255,.04);
+  border:1px solid rgba(255,255,255,.07);
+  border-radius:16px;padding:14px 6px;
+  margin-bottom:14px;position:relative;z-index:1;
+}
+.rscStat{text-align:center;flex:1}
+.rscStatVal{font-family:var(--font-display);font-size:18px;font-weight:800;color:var(--text);line-height:1}
+.rscStatLbl{font-size:8px;color:var(--muted);text-transform:uppercase;letter-spacing:.7px;margin-top:3px;font-weight:700}
+.rscStatDiv{width:1px;height:28px;background:rgba(255,255,255,.1);flex-shrink:0}
+/* Badges row on share card */
+.rscBadges{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px;position:relative;z-index:1}
+.rscBadgePill{
+  font-size:9.5px;font-weight:700;padding:4px 10px;border-radius:20px;
+  background:rgba(255,128,48,.1);border:1px solid rgba(255,128,48,.25);color:var(--orange);
+}
+.rscBadgePill.gold{background:rgba(240,171,48,.1);border-color:rgba(240,171,48,.25);color:var(--gold)}
+.rscBadgePill.green{background:rgba(15,221,170,.1);border-color:rgba(15,221,170,.25);color:var(--green)}
+/* Divider */
+.rscDivider{height:1px;background:linear-gradient(90deg,transparent,rgba(255,128,48,.4),transparent);margin-bottom:14px;position:relative;z-index:1}
+/* Branding */
+.rscBrand{display:flex;align-items:center;justify-content:center;gap:8px;position:relative;z-index:1}
+.rscBrandLogo{
+  font-size:16px;
+  background:linear-gradient(135deg,#f59e0b,#9b7cf4,#f472b6);
+  -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;
+}
+.rscBrandName{
+  font-family:var(--font-display);font-size:13px;font-weight:700;
+  color:rgba(255,255,255,.35);letter-spacing:2px;text-transform:uppercase;
+}
+.rscBrandTagline{font-size:9px;color:rgba(255,255,255,.2);margin-left:4px;letter-spacing:.5px}
+
+/* Share buttons */
+.runShareActions{display:flex;gap:10px;width:100%;max-width:420px}
+.runShareActions .btn{flex:1;padding:14px;font-size:13px;font-weight:700}
+.runShareHint{font-size:11px;color:rgba(255,255,255,.35);text-align:center}
+
+/* Manual log form */
+.runLogForm{
+  background:var(--card);border:1px solid var(--border);border-radius:18px;padding:20px;
+}
+.runFormGrid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media(max-width:500px){.runFormGrid{grid-template-columns:1fr}}
+.runFormFull{grid-column:1/-1}
+
+/* Quick start card */
+.runQuickStart{
+  background:linear-gradient(145deg,rgba(255,128,48,.08),rgba(255,128,48,.03));
+  border:1px solid rgba(255,128,48,.25);border-radius:20px;
+  padding:28px 20px;text-align:center;margin-bottom:16px;cursor:pointer;
+  transition:.2s;
+}
+.runQuickStart:hover{border-color:rgba(255,128,48,.5);background:rgba(255,128,48,.1);transform:translateY(-1px)}
+.runQSIcon{font-size:48px;margin-bottom:12px;display:block}
+.runQSTitle{font-family:var(--font-display);font-size:22px;font-weight:800;color:var(--text);margin-bottom:6px}
+.runQSSub{font-size:12px;color:var(--muted)}
+.runStartBtn{
+  width:100%;padding:16px;font-size:15px;font-weight:800;
+  background:linear-gradient(135deg,#FF8030,#e06520);
+  color:#fff;border:none;border-radius:14px;cursor:pointer;
+  transition:.2s;font-family:var(--font-display);letter-spacing:-.3px;
+  box-shadow:0 4px 20px rgba(255,128,48,.3);
+}
+.runStartBtn:hover{transform:translateY(-1px);box-shadow:0 6px 28px rgba(255,128,48,.4)}
+.runStartBtn:active{transform:translateY(0)}
+
 <body>
 <!-- Grain overlay handled by CSS body::before -->
 <!-- SVG filters for glow effects -->
@@ -3106,6 +3341,10 @@ body.light-mode .skel{background:linear-gradient(90deg,var(--card2) 25%,#f0f2f7 
               <button class="navDropItem" data-tab="gym" role="menuitem">
                 <div class="navDropIcon">💪</div>
                 <div><div class="navDropLabel">Тренировки</div><div class="navDropSub">Зал, вес, сон</div></div>
+              </button>
+              <button class="navDropItem" data-tab="run" role="menuitem">
+                <div class="navDropIcon">🏃</div>
+                <div><div class="navDropLabel">Бег</div><div class="navDropSub">Маршруты · темп · шеринг</div></div>
               </button>
             </div>
           </div>
@@ -5316,7 +5555,7 @@ function setSyncDot(state){
 
 // ── Re-render whichever tab is currently visible (called after cloud sync) ──
 function reRenderCurrentTab(){
-  const renders={dash:renderDash,weekly:renderWP,habits:renderHT,tasks:renderTP,routine:renderRoutine,calendar:renderCal,kanban:renderKanban,finance:renderFin,goals:renderGrowth,rewards:rwRender,gym:gymRender,analytics:renderAnalytics,pomodoro:renderPomodoro};
+  const renders={dash:renderDash,weekly:renderWP,habits:renderHT,tasks:renderTP,routine:renderRoutine,calendar:renderCal,kanban:renderKanban,finance:renderFin,goals:renderGrowth,rewards:rwRender,gym:gymRender,run:runRender,analytics:renderAnalytics,pomodoro:renderPomodoro};
   for(const[name,fn] of Object.entries(renders)){
     if(document.getElementById('tab-'+name)?.classList.contains('on')){
       try{fn();}catch(e){console.warn('rerender err',e);}
@@ -5756,6 +5995,7 @@ const MOB_GROUPS={
     items:[
       {tab:'habits',icon:'🔥', label:'Привычки',   sub:'Трекер и стрики'},
       {tab:'gym',   icon:'💪', label:'Тренировки', sub:'Зал, вес, сон'},
+      {tab:'run',   icon:'🏃', label:'Бег',         sub:'Маршруты и шеринг'},
     ]
   },
   progress:{
@@ -5837,7 +6077,7 @@ function navigateTo(tabName){
   // ── Run render ──
   const renders={dash:renderDash,weekly:renderWP,habits:renderHT,tasks:renderTP,
     routine:renderRoutine,calendar:renderCal,kanban:renderKanban,finance:renderFin,
-    goals:renderGrowth,rewards:rwRender,gym:gymRender,analytics:renderAnalytics,pomodoro:renderPomodoro};
+    goals:renderGrowth,rewards:rwRender,gym:gymRender,run:runRender,analytics:renderAnalytics,pomodoro:renderPomodoro};
   if(renders[tabName])renders[tabName]();
 
   window.scrollTo({top:0,behavior:'instant'});
@@ -13241,11 +13481,11 @@ function _initWeekTooltips(){} // legacy stub — delegation handles everything
    Цифры 1-9 для навигации (без модификаторов)
    Не конфликтует с Chrome
 ══════════════════════════════════════════ */
-const KB_TAB_ORDER = ['dash','weekly','habits','tasks','calendar','kanban','finance','goals','rewards','gym','pomodoro'];
+const KB_TAB_ORDER = ['dash','weekly','habits','tasks','calendar','kanban','finance','goals','rewards','gym','run','pomodoro'];
 const KB_TAB_NAMES = {
   'dash':'Дашборд','weekly':'Неделя','habits':'Привычки','tasks':'Задачи',
   'calendar':'Календарь','kanban':'Канбан','finance':'Финансы','goals':'Цели',
-  'rewards':'Награды','gym':'Тренировки','pomodoro':'Помодоро'
+  'rewards':'Награды','gym':'Тренировки','run':'Бег','pomodoro':'Помодоро'
 };
 
 // ── Защитная функция: безопасно ли перехватывать клавишу ──
@@ -14863,6 +15103,354 @@ function buildSleepAnalyticsHTML(){
 
 </script>
 
+<!-- ═══ RUN TAB — БЕГ ═══ -->
+<div id="tab-run" class="pane hInner">
+  <header class="paneHead">
+    <div class="paneHeadLeft">
+      <nav class="paneBreadcrumb">
+        <span onclick="navigateTo('dash')">PlannerPro</span>
+        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="m7 10 3 3 3-3"/><path d="m7 6 3 3 3-3"/></svg>
+        <span class="pbc-active">Здоровье</span>
+        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="m7 10 3 3 3-3"/><path d="m7 6 3 3 3-3"/></svg>
+        <span class="pbc-active">Бег</span>
+      </nav>
+      <div class="paneHeadRow">
+        <div class="paneHeadIcon" style="background:rgba(255,128,48,.1);border-color:rgba(255,128,48,.3)">🏃</div>
+        <div>
+          <h1 class="paneTitle">Бег</h1>
+          <p class="paneSubtitle">Запись · история · статистика · шеринг</p>
+        </div>
+      </div>
+    </div>
+    <div class="paneHeadActions">
+      <button class="btn" style="background:linear-gradient(135deg,rgba(255,128,48,.15),rgba(255,128,48,.08));border-color:rgba(255,128,48,.3);color:var(--orange);font-weight:700" onclick="runSubTab('log',document.querySelectorAll('#tab-run .subTab')[1])">+ Записать</button>
+    </div>
+  </header>
+
+  <!-- Active run banner -->
+  <div id="run-active-banner" class="runActiveBanner" style="display:none" onclick="runSubTab('track',document.querySelectorAll('#tab-run .subTab')[0])">
+    <div class="runActivePulse"></div>
+    <div class="runActiveName" id="run-banner-name">Пробежка идёт...</div>
+    <div class="runActiveTimer" id="run-banner-timer">00:00</div>
+    <div style="font-size:10px;color:var(--orange);font-weight:600">Открыть →</div>
+  </div>
+
+  <!-- Stats row -->
+  <div class="runStatRow">
+    <div class="runStatCard"><div class="runStatV" style="color:var(--orange)" id="run-stat-total">0</div><div class="runStatL">Пробежек</div></div>
+    <div class="runStatCard"><div class="runStatV" style="color:var(--cyan)" id="run-stat-week-km">0</div><div class="runStatL">Км на неделе</div></div>
+    <div class="runStatCard"><div class="runStatV" style="color:var(--gold)" id="run-stat-best-pace">—</div><div class="runStatL">Лучший темп</div></div>
+    <div class="runStatCard"><div class="runStatV" style="color:var(--green)" id="run-stat-streak">0</div><div class="runStatL">Серия (дней)</div></div>
+  </div>
+
+  <!-- Sub-tabs -->
+  <div class="subTabs subTabs--orange">
+    <button class="subTab on" onclick="runSubTab('track',this)">🏃 Тренировка</button>
+    <button class="subTab" onclick="runSubTab('log',this)">✏️ Записать</button>
+    <button class="subTab" onclick="runSubTab('history',this)">🕒 История</button>
+    <button class="subTab" onclick="runSubTab('stats',this)">📊 Статистика</button>
+  </div>
+
+  <!-- ── TRACK PANE ── -->
+  <div class="runPane on" id="runp-track">
+    <!-- No active run state -->
+    <div id="run-no-active">
+      <div class="runQuickStart" onclick="runBeginActive()">
+        <span class="runQSIcon">🏃‍♂️</span>
+        <div class="runQSTitle">Начать пробежку</div>
+        <div class="runQSSub">Таймер запустится — ты записываешь дистанцию</div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px">
+        <div style="background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px;text-align:center;cursor:pointer;transition:.15s" onclick="runSubTab('log',document.querySelectorAll('#tab-run .subTab')[1])" onmouseover="this.style.borderColor='rgba(255,128,48,.3)'" onmouseout="this.style.borderColor='var(--border)'">
+          <div style="font-size:24px;margin-bottom:6px">📝</div>
+          <div style="font-size:12px;font-weight:700;color:var(--text)">Записать вручную</div>
+          <div style="font-size:10px;color:var(--muted);margin-top:2px">Уже побегал? Добавь</div>
+        </div>
+        <div style="background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px;text-align:center;cursor:pointer;transition:.15s" onclick="runSubTab('history',document.querySelectorAll('#tab-run .subTab')[2])" onmouseover="this.style.borderColor='rgba(255,128,48,.3)'" onmouseout="this.style.borderColor='var(--border)'">
+          <div style="font-size:24px;margin-bottom:6px">🏆</div>
+          <div style="font-size:12px;font-weight:700;color:var(--text)">История бега</div>
+          <div style="font-size:10px;color:var(--muted);margin-top:2px">Все пробежки</div>
+        </div>
+      </div>
+      <!-- Last run preview -->
+      <div id="run-last-preview"></div>
+    </div>
+
+    <!-- Active run state -->
+    <div id="run-active-view" style="display:none">
+      <div class="runTimerHero">
+        <div class="runTimerLabel">🏃 ПРОБЕЖКА</div>
+        <div class="runTimerBig" id="run-timer-display">00:00</div>
+        <div class="runLiveStats">
+          <div class="runLiveStat">
+            <div class="runLiveStatV" id="run-live-km">0.0</div>
+            <div class="runLiveStatL">км</div>
+          </div>
+          <div class="runLiveStat">
+            <div class="runLiveStatV" id="run-live-pace">—:——</div>
+            <div class="runLiveStatL">темп</div>
+          </div>
+          <div class="runLiveStat">
+            <div class="runLiveStatV" id="run-live-cal">0</div>
+            <div class="runLiveStatL">ккал</div>
+          </div>
+        </div>
+        <!-- Distance input during run -->
+        <div style="margin-top:16px;display:flex;align-items:center;gap:10px">
+          <label style="font-size:11px;color:var(--muted);font-weight:700;white-space:nowrap">Дистанция:</label>
+          <input type="number" id="run-live-km-input" class="inp" step="0.1" min="0" placeholder="0.0"
+            style="flex:1;text-align:center;font-size:18px;font-weight:800;font-family:var(--font-display);color:var(--orange);border-color:rgba(255,128,48,.3)"
+            oninput="runUpdateLiveStats()" />
+          <span style="font-size:14px;font-weight:700;color:var(--muted)">км</span>
+        </div>
+      </div>
+      <!-- Animated route map -->
+      <div class="runMapWrap" style="margin-bottom:14px">
+        <svg class="runMapSvg" id="run-live-map" viewBox="0 0 400 180" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <filter id="run-glow"><feGaussianBlur stdDeviation="3" result="coloredBlur"/><feMerge><feMergeNode in="coloredBlur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+          </defs>
+          <!-- Grid -->
+          <line x1="0" y1="45" x2="400" y2="45" stroke="rgba(255,255,255,.04)" stroke-width="1"/>
+          <line x1="0" y1="90" x2="400" y2="90" stroke="rgba(255,255,255,.04)" stroke-width="1"/>
+          <line x1="0" y1="135" x2="400" y2="135" stroke="rgba(255,255,255,.04)" stroke-width="1"/>
+          <line x1="100" y1="0" x2="100" y2="180" stroke="rgba(255,255,255,.04)" stroke-width="1"/>
+          <line x1="200" y1="0" x2="200" y2="180" stroke="rgba(255,255,255,.04)" stroke-width="1"/>
+          <line x1="300" y1="0" x2="300" y2="180" stroke="rgba(255,255,255,.04)" stroke-width="1"/>
+          <!-- Route will be drawn here by JS -->
+          <path id="run-live-route-glow" fill="none" stroke="rgba(255,128,48,.4)" stroke-width="10" stroke-linecap="round" filter="url(#run-glow)"/>
+          <path id="run-live-route" fill="none" stroke="#FF8030" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"
+            stroke-dasharray="1000" stroke-dashoffset="1000" style="transition:stroke-dashoffset .5s ease"/>
+          <circle id="run-live-dot" cx="200" cy="90" r="7" fill="#FF8030" filter="url(#run-glow)"/>
+          <circle id="run-live-dot-inner" cx="200" cy="90" r="3.5" fill="white"/>
+        </svg>
+      </div>
+      <!-- Controls -->
+      <div class="runCtrlBtns">
+        <button id="run-pause-btn" class="btn" style="background:var(--card2);border-color:var(--border2);color:var(--text2);font-weight:700" onclick="runTogglePause()">⏸ Пауза</button>
+        <button class="btn" style="background:linear-gradient(135deg,#FF8030,#e06520);border:none;color:#fff;font-weight:800;box-shadow:0 4px 20px rgba(255,128,48,.35)" onclick="runFinish()">🏁 Завершить</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── LOG PANE (manual) ── -->
+  <div class="runPane" id="runp-log">
+    <div class="runLogForm">
+      <div style="font-family:var(--font-display);font-size:18px;font-weight:700;color:var(--orange);margin-bottom:16px">✏️ Записать пробежку</div>
+      <div class="runFormGrid">
+        <div>
+          <label class="lbl">Название</label>
+          <input class="inp" id="run-log-name" placeholder="Утренняя пробежка" />
+        </div>
+        <div>
+          <label class="lbl">Дата</label>
+          <input class="inp" id="run-log-date" type="date" />
+        </div>
+        <div>
+          <label class="lbl">Дистанция (км) *</label>
+          <input class="inp" id="run-log-km" type="number" step="0.01" min="0" placeholder="5.0" />
+        </div>
+        <div>
+          <label class="lbl">Время (мм:сс или ч:мм:сс)</label>
+          <input class="inp" id="run-log-time" placeholder="25:00" />
+        </div>
+        <div>
+          <label class="lbl">Калории</label>
+          <input class="inp" id="run-log-cal" type="number" placeholder="Авто" />
+        </div>
+        <div>
+          <label class="lbl">Пульс (уд/мин)</label>
+          <input class="inp" id="run-log-hr" type="number" placeholder="145" />
+        </div>
+        <div>
+          <label class="lbl">Набор высоты (м)</label>
+          <input class="inp" id="run-log-elev" type="number" placeholder="0" />
+        </div>
+        <div>
+          <label class="lbl">Погода</label>
+          <select class="inp" id="run-log-weather">
+            <option value="☀️">☀️ Солнечно</option>
+            <option value="🌤">🌤 Переменная</option>
+            <option value="⛅">⛅ Облачно</option>
+            <option value="🌧">🌧 Дождь</option>
+            <option value="❄️">❄️ Снег</option>
+            <option value="🌬">🌬 Ветер</option>
+            <option value="🌫">🌫 Туман</option>
+          </select>
+        </div>
+        <div class="runFormFull">
+          <label class="lbl">Место</label>
+          <input class="inp" id="run-log-location" placeholder="Бишкек, Парк Панфилова" />
+        </div>
+        <div class="runFormFull">
+          <label class="lbl">Заметка</label>
+          <textarea class="inp" id="run-log-notes" rows="2" placeholder="Как пробежка? Заметки о самочувствии..." style="resize:vertical"></textarea>
+        </div>
+      </div>
+      <button class="runStartBtn" style="margin-top:16px" onclick="runSaveManual()">💾 Сохранить пробежку</button>
+    </div>
+  </div>
+
+  <!-- ── HISTORY PANE ── -->
+  <div class="runPane" id="runp-history">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+      <div style="font-family:var(--font-display);font-size:20px;font-weight:700;color:var(--orange)">История пробежек</div>
+      <div id="run-hist-count" style="font-size:11px;color:var(--muted)"></div>
+    </div>
+    <div id="run-history-list"></div>
+  </div>
+
+  <!-- ── STATS PANE ── -->
+  <div class="runPane" id="runp-stats">
+    <div id="run-stats-content"></div>
+  </div>
+</div>
+
+<!-- ═══ FINISH RUN MODAL ═══ -->
+<div id="runFinishModal" class="modalOverlay" style="display:none" onclick="if(event.target===this){}">
+  <div class="modalBox" style="max-width:420px">
+    <div style="font-family:var(--font-display);font-size:22px;font-weight:800;color:var(--orange);margin-bottom:4px">🏁 Пробежка завершена!</div>
+    <div style="font-size:12px;color:var(--muted);margin-bottom:20px">Подтверди детали и сохрани</div>
+    <div style="background:linear-gradient(135deg,rgba(255,128,48,.1),rgba(255,128,48,.05));border:1px solid rgba(255,128,48,.2);border-radius:16px;padding:16px;margin-bottom:20px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;text-align:center">
+      <div><div class="runStatV" style="color:var(--orange);font-size:22px" id="rf-km">0.0</div><div class="runStatL">км</div></div>
+      <div><div class="runStatV" style="color:var(--cyan);font-size:22px" id="rf-time">00:00</div><div class="runStatL">время</div></div>
+      <div><div class="runStatV" style="color:var(--gold);font-size:22px" id="rf-pace">—</div><div class="runStatL">темп</div></div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px">
+      <div>
+        <label class="lbl">Название</label>
+        <input class="inp" id="rf-name" placeholder="Утренняя пробежка" />
+      </div>
+      <div>
+        <label class="lbl">Дистанция (км)</label>
+        <input class="inp" id="rf-km-input" type="number" step="0.01" min="0" oninput="runFinishUpdateStats()" />
+      </div>
+      <div>
+        <label class="lbl">Калории</label>
+        <input class="inp" id="rf-cal" type="number" placeholder="Авто" />
+      </div>
+      <div>
+        <label class="lbl">Пульс</label>
+        <input class="inp" id="rf-hr" type="number" placeholder="145" />
+      </div>
+      <div>
+        <label class="lbl">Набор высоты (м)</label>
+        <input class="inp" id="rf-elev" type="number" placeholder="0" />
+      </div>
+      <div>
+        <label class="lbl">Погода</label>
+        <select class="inp" id="rf-weather">
+          <option value="☀️">☀️ Солнечно</option>
+          <option value="🌤">🌤 Переменная</option>
+          <option value="⛅">⛅ Облачно</option>
+          <option value="🌧">🌧 Дождь</option>
+          <option value="❄️">❄️ Снег</option>
+          <option value="🌬">🌬 Ветер</option>
+          <option value="🌫">🌫 Туман</option>
+        </select>
+      </div>
+      <div style="grid-column:1/-1">
+        <label class="lbl">Место</label>
+        <input class="inp" id="rf-location" placeholder="Бишкек" />
+      </div>
+    </div>
+    <div style="display:flex;gap:10px">
+      <button class="btn" style="flex:1;background:var(--card2);color:var(--text2);border-color:var(--border2)" onclick="runDiscardFinish()">Отменить</button>
+      <button class="btn" style="flex:2;background:linear-gradient(135deg,#FF8030,#e06520);border:none;color:#fff;font-weight:800" onclick="runConfirmFinish()">✦ Сохранить и поделиться</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ SHARE CARD OVERLAY ═══ -->
+<div id="runShareOverlay" style="display:none">
+  <div class="runShareWrap">
+    <!-- Title -->
+    <div style="text-align:center;margin-bottom:4px">
+      <div style="font-family:var(--font-display);font-size:20px;font-weight:800;color:var(--text)">Поделись пробежкой 🔥</div>
+      <div style="font-size:11px;color:var(--muted);margin-top:4px">Сделай скриншот или скачай карточку</div>
+    </div>
+
+    <!-- The share card -->
+    <div id="runShareCard">
+      <!-- Header row -->
+      <div class="rscHeader">
+        <div class="rscTag" id="rsc-tag">ПРОБЕЖКА</div>
+        <div class="rscDate" id="rsc-date">—</div>
+      </div>
+      <!-- Run name -->
+      <div class="rscRunName" id="rsc-name">Утренняя пробежка</div>
+      <!-- Location -->
+      <div class="rscLocation"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg> <span id="rsc-location">—</span></div>
+      <!-- Route map SVG -->
+      <div class="rscMapWrap">
+        <svg class="rscMapSvg" id="rsc-map-svg" viewBox="0 0 380 160" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <filter id="rsc-glow"><feGaussianBlur stdDeviation="4" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+            <filter id="rsc-glow2"><feGaussianBlur stdDeviation="8" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+          </defs>
+          <!-- Grid lines -->
+          <line x1="0" y1="40" x2="380" y2="40" stroke="rgba(255,255,255,.04)" stroke-width="1"/>
+          <line x1="0" y1="80" x2="380" y2="80" stroke="rgba(255,255,255,.04)" stroke-width="1"/>
+          <line x1="0" y1="120" x2="380" y2="120" stroke="rgba(255,255,255,.04)" stroke-width="1"/>
+          <line x1="95" y1="0" x2="95" y2="160" stroke="rgba(255,255,255,.04)" stroke-width="1"/>
+          <line x1="190" y1="0" x2="190" y2="160" stroke="rgba(255,255,255,.04)" stroke-width="1"/>
+          <line x1="285" y1="0" x2="285" y2="160" stroke="rgba(255,255,255,.04)" stroke-width="1"/>
+          <!-- Route drawn by JS -->
+          <path id="rsc-route-glow" fill="none" stroke="rgba(255,128,48,.5)" stroke-width="14" stroke-linecap="round" stroke-linejoin="round" filter="url(#rsc-glow2)"/>
+          <path id="rsc-route-main" fill="none" stroke="#FF8030" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" filter="url(#rsc-glow)"/>
+          <circle id="rsc-start-dot" cx="0" cy="0" r="0" fill="#FF8030" filter="url(#rsc-glow)"/>
+          <circle id="rsc-start-inner" cx="0" cy="0" r="0" fill="white"/>
+          <circle id="rsc-end-dot" cx="0" cy="0" r="0" fill="#fff" opacity=".9"/>
+        </svg>
+      </div>
+      <!-- Distance hero -->
+      <div class="rscDistHero">
+        <span class="rscDist" id="rsc-dist">0.0</span>
+        <span class="rscDistUnit">километров</span>
+      </div>
+      <!-- Stats row -->
+      <div class="rscStats">
+        <div class="rscStat">
+          <div class="rscStatVal" id="rsc-time">—</div>
+          <div class="rscStatLbl">Время</div>
+        </div>
+        <div class="rscStatDiv"></div>
+        <div class="rscStat">
+          <div class="rscStatVal" id="rsc-pace">—</div>
+          <div class="rscStatLbl">Темп/км</div>
+        </div>
+        <div class="rscStatDiv"></div>
+        <div class="rscStat">
+          <div class="rscStatVal" id="rsc-cal">—</div>
+          <div class="rscStatLbl">Ккал</div>
+        </div>
+        <div class="rscStatDiv"></div>
+        <div class="rscStat">
+          <div class="rscStatVal" id="rsc-hr">—</div>
+          <div class="rscStatLbl">Пульс</div>
+        </div>
+      </div>
+      <!-- Achievement badges -->
+      <div class="rscBadges" id="rsc-badges"></div>
+      <!-- Divider -->
+      <div class="rscDivider"></div>
+      <!-- Branding -->
+      <div class="rscBrand">
+        <span class="rscBrandLogo">✦</span>
+        <span class="rscBrandName">PlannerPro</span>
+        <span class="rscBrandTagline">— твой план на каждый день</span>
+      </div>
+    </div>
+
+    <!-- Action buttons -->
+    <div class="runShareActions">
+      <button class="btn" style="background:var(--card2);border-color:var(--border2);color:var(--text2);font-weight:700" onclick="runCloseShare()">✕ Закрыть</button>
+      <button class="btn" style="background:linear-gradient(135deg,#FF8030,#e06520);border:none;color:#fff;font-weight:800;box-shadow:0 4px 20px rgba(255,128,48,.3)" onclick="runDownloadCard()">⬇️ Скачать карточку</button>
+    </div>
+    <div class="runShareHint">📸 Или просто сделай скриншот и поделись в Instagram</div>
+  </div>
+</div>
+
 <!-- ═══ POMODORO TAB ═══ -->
 <div id="tab-pomodoro" class="pane hInner">
   <header class="paneHead">
@@ -15885,8 +16473,799 @@ function renderPomodoro(){
     pomUpdateTimerDisplay();
   }
 }
-</script>
+/* ═══════════════════════════════════════════════════════
+   RUN MODULE — БЕГ v1.0
+   Strava-style run tracker with share card
+═══════════════════════════════════════════════════════ */
 
-</div><!-- /appWrap -->
+// ── Data accessor ──
+function runD(){
+  if(!G.run)G.run={runs:[],weekGoalKm:25,weekGoalRuns:4};
+  return G.run;
+}
+
+// ── State ──
+const RUN={
+  active:false,
+  startTs:null,
+  pausedSec:0,
+  pauseTs:null,
+  paused:false,
+  timerInt:null,
+  bannerInt:null,
+  seed:Math.random()
+};
+
+// ── Utilities ──
+function runFmtTime(sec){
+  if(!sec&&sec!==0)return'--:--';
+  const h=Math.floor(sec/3600),m=Math.floor((sec%3600)/60),s=sec%60;
+  if(h>0)return`${h}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+  return`${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+}
+
+function runParseDuration(str){
+  if(!str)return 0;
+  const parts=str.trim().split(':').map(Number);
+  if(parts.length===3)return parts[0]*3600+parts[1]*60+parts[2];
+  if(parts.length===2)return parts[0]*60+parts[1];
+  return parseInt(str)||0;
+}
+
+function runCalcPace(km,sec){
+  if(!km||!sec||km<=0)return'—:——';
+  const s=Math.round(sec/km);
+  return`${Math.floor(s/60)}:${String(s%60).padStart(2,'0')}`;
+}
+
+function runPaceSeconds(km,sec){
+  if(!km||!sec||km<=0)return null;
+  return Math.round(sec/km);
+}
+
+function runCalcCal(km,weightKg=70){
+  return Math.round(km*weightKg*1.036);
+}
+
+function runFmtDate(isoDate){
+  if(!isoDate)return'—';
+  const d=new Date(isoDate+'T00:00:00');
+  const days=['вс','пн','вт','ср','чт','пт','сб'];
+  const months=['янв','фев','мар','апр','мая','июн','июл','авг','сен','окт','ноя','дек'];
+  return`${d.getDate()} ${months[d.getMonth()]}, ${days[d.getDay()]}`;
+}
+
+function runGetElapsed(){
+  if(!RUN.startTs)return RUN.pausedSec;
+  if(RUN.paused)return RUN.pausedSec;
+  return RUN.pausedSec+Math.floor((Date.now()-RUN.startTs)/1000);
+}
+
+// ── Route generation (city-block style) ──
+function runMakeRng(seed){
+  let s=Math.abs(seed*233280)%233280||12345;
+  return()=>{s=(s*9301+49297)%233280;return s/233280};
+}
+
+function runGenRoute(seed,W,H,marginX,marginY){
+  const rng=runMakeRng(seed||0.42);
+  const mX=W*(marginX||0.1),mY=H*(marginY||0.12);
+  const aW=W-2*mX,aH=H-2*mY;
+  const pts=[];
+  // Start bottom-center-ish
+  let x=mX+aW*(0.35+rng()*0.3);
+  let y=mY+aH*0.82;
+  const sx=x,sy=y;
+  pts.push({x,y});
+  const steps=9+Math.floor(rng()*5);
+  for(let i=0;i<steps;i++){
+    const t=(i+1)/(steps+1);
+    const biasAngle=t*Math.PI*1.8-Math.PI*0.3;
+    const noise=(rng()-0.5)*Math.PI*0.9;
+    const angle=biasAngle+noise;
+    // Snap to 45° increments for city-block feel
+    const snapped=Math.round(angle/(Math.PI/4))*(Math.PI/4);
+    const stepLen=(0.08+rng()*0.14);
+    x=Math.max(mX+4,Math.min(W-mX-4,x+Math.cos(snapped)*aW*stepLen));
+    y=Math.max(mY+4,Math.min(H-mY-4,y+Math.sin(snapped)*aH*stepLen));
+    pts.push({x,y});
+  }
+  // Close back
+  pts.push({x:sx+(rng()-0.5)*20,y:sy});
+  pts.push({x:sx,y:sy});
+  return pts;
+}
+
+function runPtsToPath(pts){
+  if(!pts||pts.length<2)return'';
+  let d=`M${pts[0].x.toFixed(1)} ${pts[0].y.toFixed(1)}`;
+  for(let i=1;i<pts.length;i++){
+    // Smooth with quadratic bezier
+    if(i<pts.length-1){
+      const mx=((pts[i].x+pts[i+1].x)/2).toFixed(1);
+      const my=((pts[i].y+pts[i+1].y)/2).toFixed(1);
+      d+=` Q${pts[i].x.toFixed(1)} ${pts[i].y.toFixed(1)} ${mx} ${my}`;
+    } else {
+      d+=` L${pts[i].x.toFixed(1)} ${pts[i].y.toFixed(1)}`;
+    }
+  }
+  return d;
+}
+
+// ── Main render ──
+function runRender(){
+  const d=runD();
+  const runs=d.runs||[];
+
+  // Stats
+  document.getElementById('run-stat-total').textContent=runs.length;
+
+  // Week km
+  const wStart=getMon(t0());
+  const weekRuns=runs.filter(r=>new Date(r.date+'T00:00:00')>=wStart);
+  const weekKm=weekRuns.reduce((a,r)=>a+(r.distanceKm||0),0);
+  document.getElementById('run-stat-week-km').textContent=weekKm.toFixed(1);
+
+  // Best pace
+  const paces=runs.map(r=>runPaceSeconds(r.distanceKm,r.durationSec)).filter(Boolean);
+  if(paces.length){
+    const best=Math.min(...paces);
+    document.getElementById('run-stat-best-pace').textContent=`${Math.floor(best/60)}:${String(best%60).padStart(2,'0')}`;
+  } else {
+    document.getElementById('run-stat-best-pace').textContent='—';
+  }
+
+  // Streak (consecutive days with a run)
+  const dates=new Set(runs.map(r=>r.date));
+  let streak=0;const today=dk(new Date());
+  let d2=new Date();
+  while(true){
+    const k=dk(d2);
+    if(dates.has(k)){streak++;d2.setDate(d2.getDate()-1);}
+    else if(k===today){d2.setDate(d2.getDate()-1);}// today without run yet OK
+    else break;
+    if(streak>365)break;
+  }
+  document.getElementById('run-stat-streak').textContent=streak;
+
+  // Active banner
+  const banner=document.getElementById('run-active-banner');
+  if(RUN.active&&banner){banner.style.display='flex';}
+  else if(banner){banner.style.display='none';}
+
+  // Last run preview on track tab
+  runRenderLastPreview();
+
+  // If on history, re-render
+  if(document.getElementById('runp-history')?.classList.contains('on'))runRenderHistory();
+  if(document.getElementById('runp-stats')?.classList.contains('on'))runRenderStats();
+
+  // Init log form date
+  const logDate=document.getElementById('run-log-date');
+  if(logDate&&!logDate.value)logDate.value=dk(new Date());
+}
+
+function runRenderLastPreview(){
+  const el=document.getElementById('run-last-preview');
+  if(!el)return;
+  const runs=runD().runs||[];
+  if(!runs.length){
+    el.innerHTML=`<div style="text-align:center;padding:32px 20px;color:var(--muted)">
+      <div style="font-size:40px;margin-bottom:12px">🏃‍♂️</div>
+      <div style="font-size:14px;font-weight:600;margin-bottom:6px">Нет пробежек</div>
+      <div style="font-size:11px">Запусти первую пробежку или запиши вручную</div>
+    </div>`;
+    return;
+  }
+  const r=runs[0];
+  el.innerHTML=`<div style="background:var(--card);border:1px solid var(--border);border-radius:18px;padding:16px;margin-bottom:4px">
+    <div style="font-size:10px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">🕒 Последняя пробежка</div>
+    <div style="display:flex;align-items:center;gap:12px">
+      <div style="width:70px;height:52px;background:rgba(0,0,0,.3);border:1px solid rgba(255,128,48,.15);border-radius:10px;overflow:hidden;flex-shrink:0">
+        ${runThumbSVG(r.routeSeed,70,52)}
+      </div>
+      <div style="flex:1">
+        <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:4px">${esc(r.name||'Пробежка')}</div>
+        <div style="font-size:10px;color:var(--muted)">${runFmtDate(r.date)} ${r.time?'· '+r.time:''} ${r.weather||''}</div>
+        <div style="display:flex;gap:10px;margin-top:4px">
+          <span style="font-size:10px;color:var(--text2);font-weight:700">${(r.distanceKm||0).toFixed(2)} км</span>
+          <span style="font-size:10px;color:var(--muted)">${runFmtTime(r.durationSec)}</span>
+          <span style="font-size:10px;color:var(--muted)">${runCalcPace(r.distanceKm,r.durationSec)}/км</span>
+        </div>
+      </div>
+      <div style="text-align:right;flex-shrink:0">
+        <div style="font-family:var(--font-display);font-size:26px;font-weight:800;color:var(--orange);line-height:1">${(r.distanceKm||0).toFixed(1)}</div>
+        <div style="font-size:10px;color:var(--muted);font-weight:700">км</div>
+        <button onclick="runOpenShare('${r.id}')" style="margin-top:6px;border:none;background:rgba(255,128,48,.12);color:var(--orange);font-size:10px;font-weight:700;padding:4px 8px;border-radius:8px;cursor:pointer;border:1px solid rgba(255,128,48,.25)">↗ Поделиться</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+function runThumbSVG(seed,W,H){
+  const pts=runGenRoute(seed||0.5,W,H,0.08,0.1);
+  const d=runPtsToPath(pts);
+  const start=pts[0];
+  return`<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}">
+    <defs><filter id="tg${W}"><feGaussianBlur stdDeviation="1.5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>
+    <path d="${d}" fill="none" stroke="rgba(255,128,48,.3)" stroke-width="5" stroke-linecap="round"/>
+    <path d="${d}" fill="none" stroke="#FF8030" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    <circle cx="${start.x.toFixed(1)}" cy="${start.y.toFixed(1)}" r="3.5" fill="#FF8030"/>
+    <circle cx="${start.x.toFixed(1)}" cy="${start.y.toFixed(1)}" r="1.8" fill="white"/>
+  </svg>`;
+}
+
+// ── Sub-tab switch ──
+function runSubTab(name,btn){
+  document.querySelectorAll('#tab-run .subTab').forEach(e=>e.classList.remove('on'));
+  document.querySelectorAll('.runPane').forEach(e=>e.classList.remove('on'));
+  const pane=document.getElementById('runp-'+name);
+  if(pane)pane.classList.add('on');
+  if(btn)btn.classList.add('on');
+  if(name==='history')runRenderHistory();
+  if(name==='stats')runRenderStats();
+  if(name==='track'){
+    if(RUN.active){
+      document.getElementById('run-no-active').style.display='none';
+      document.getElementById('run-active-view').style.display='block';
+    } else {
+      document.getElementById('run-no-active').style.display='block';
+      document.getElementById('run-active-view').style.display='none';
+    }
+  }
+  if(name==='log'){
+    const logDate=document.getElementById('run-log-date');
+    if(logDate&&!logDate.value)logDate.value=dk(new Date());
+  }
+}
+
+// ── Active run tracking ──
+function runBeginActive(){
+  RUN.active=true;
+  RUN.startTs=Date.now();
+  RUN.pausedSec=0;
+  RUN.pauseTs=null;
+  RUN.paused=false;
+  RUN.seed=Math.random();
+
+  clearInterval(RUN.timerInt);
+  RUN.timerInt=setInterval(runTick,1000);
+
+  // Setup live map
+  runSetupLiveMap();
+
+  // Show active view
+  document.getElementById('run-no-active').style.display='none';
+  document.getElementById('run-active-view').style.display='block';
+  document.getElementById('run-active-banner').style.display='flex';
+  document.getElementById('run-banner-name').textContent='Пробежка идёт...';
+
+  // Switch to track tab
+  runSubTab('track',document.querySelectorAll('#tab-run .subTab')[0]);
+}
+
+function runSetupLiveMap(){
+  const pts=runGenRoute(RUN.seed,400,180,0.1,0.12);
+  const pathD=runPtsToPath(pts);
+  const start=pts[0];
+  const glowEl=document.getElementById('run-live-route-glow');
+  const routeEl=document.getElementById('run-live-route');
+  const dot=document.getElementById('run-live-dot');
+  const dotInner=document.getElementById('run-live-dot-inner');
+  if(glowEl)glowEl.setAttribute('d',pathD);
+  if(routeEl){
+    routeEl.setAttribute('d',pathD);
+    const len=routeEl.getTotalLength?routeEl.getTotalLength():800;
+    routeEl.style.strokeDasharray=len;
+    routeEl.style.strokeDashoffset=len;
+    RUN._mapLen=len;
+    RUN._mapPts=pts;
+  }
+  if(dot){dot.setAttribute('cx',start.x.toFixed(1));dot.setAttribute('cy',start.y.toFixed(1));}
+  if(dotInner){dotInner.setAttribute('cx',start.x.toFixed(1));dotInner.setAttribute('cy',start.y.toFixed(1));}
+}
+
+function runTick(){
+  const elapsed=runGetElapsed();
+  const disp=document.getElementById('run-timer-display');
+  if(disp)disp.textContent=runFmtTime(elapsed);
+  // Banner
+  const bt=document.getElementById('run-banner-timer');
+  if(bt)bt.textContent=runFmtTime(elapsed);
+  // Animate map
+  runAnimateMap(elapsed);
+  // Update live stats
+  runUpdateLiveStats();
+}
+
+function runAnimateMap(elapsed){
+  const routeEl=document.getElementById('run-live-route');
+  const dot=document.getElementById('run-live-dot');
+  const dotInner=document.getElementById('run-live-dot-inner');
+  if(!routeEl||!RUN._mapLen||!RUN._mapPts)return;
+  // Animate offset: draw in over 40 minutes
+  const totalSec=40*60;
+  const progress=Math.min(elapsed/totalSec,1);
+  routeEl.style.strokeDashoffset=RUN._mapLen*(1-progress);
+  // Move dot along path
+  if(routeEl.getPointAtLength){
+    const pt=routeEl.getPointAtLength(RUN._mapLen*progress);
+    dot.setAttribute('cx',pt.x.toFixed(1));dot.setAttribute('cy',pt.y.toFixed(1));
+    dotInner.setAttribute('cx',pt.x.toFixed(1));dotInner.setAttribute('cy',pt.y.toFixed(1));
+  }
+}
+
+function runUpdateLiveStats(){
+  const el=document.getElementById('run-live-km-input');
+  const km=parseFloat(el?.value)||0;
+  const elapsed=runGetElapsed();
+  document.getElementById('run-live-km').textContent=km.toFixed(2);
+  document.getElementById('run-live-pace').textContent=runCalcPace(km,elapsed);
+  document.getElementById('run-live-cal').textContent=runCalcCal(km);
+}
+
+function runTogglePause(){
+  if(RUN.paused){
+    // Resume
+    RUN.startTs=Date.now();
+    RUN.paused=false;
+    RUN.pauseTs=null;
+    document.getElementById('run-pause-btn').textContent='⏸ Пауза';
+    clearInterval(RUN.timerInt);
+    RUN.timerInt=setInterval(runTick,1000);
+  } else {
+    // Pause
+    RUN.pausedSec=runGetElapsed();
+    RUN.paused=true;
+    RUN.startTs=null;
+    clearInterval(RUN.timerInt);
+    document.getElementById('run-pause-btn').textContent='▶ Продолжить';
+  }
+}
+
+function runFinish(){
+  // Open finish modal
+  clearInterval(RUN.timerInt);
+  const elapsed=runGetElapsed();
+  const km=parseFloat(document.getElementById('run-live-km-input')?.value)||0;
+  const pace=runCalcPace(km,elapsed);
+  // Fill modal
+  document.getElementById('rf-km').textContent=(km||0).toFixed(2);
+  document.getElementById('rf-time').textContent=runFmtTime(elapsed);
+  document.getElementById('rf-pace').textContent=pace;
+  document.getElementById('rf-km-input').value=km||'';
+  document.getElementById('rf-cal').value=runCalcCal(km)||'';
+  document.getElementById('rf-hr').value='';
+  document.getElementById('rf-elev').value='';
+  document.getElementById('rf-name').value='';
+  document.getElementById('rf-location').value='';
+  // Store elapsed for save
+  RUN._pendingElapsed=elapsed;
+  // Show modal
+  document.getElementById('runFinishModal').style.display='flex';
+}
+
+function runFinishUpdateStats(){
+  const km=parseFloat(document.getElementById('rf-km-input')?.value)||0;
+  const elapsed=RUN._pendingElapsed||0;
+  document.getElementById('rf-km').textContent=km.toFixed(2);
+  document.getElementById('rf-pace').textContent=runCalcPace(km,elapsed);
+  if(!document.getElementById('rf-cal').value){
+    // auto update calories
+  }
+}
+
+function runDiscardFinish(){
+  // Resume if they change mind
+  document.getElementById('runFinishModal').style.display='none';
+}
+
+function runConfirmFinish(){
+  const km=parseFloat(document.getElementById('rf-km-input')?.value)||0;
+  const elapsed=RUN._pendingElapsed||0;
+  const name=document.getElementById('rf-name').value.trim()||'Пробежка';
+  const cal=parseInt(document.getElementById('rf-cal').value)||runCalcCal(km);
+  const hr=parseInt(document.getElementById('rf-hr').value)||null;
+  const elev=parseInt(document.getElementById('rf-elev').value)||0;
+  const weather=document.getElementById('rf-weather').value;
+  const location=document.getElementById('rf-location').value.trim();
+
+  const run={
+    id:uid(),
+    date:dk(new Date()),
+    time:new Date().toLocaleTimeString('ru',{hour:'2-digit',minute:'2-digit'}),
+    name,
+    distanceKm:km,
+    durationSec:elapsed,
+    calories:cal,
+    heartRate:hr,
+    elevation:elev,
+    weather,
+    location,
+    notes:'',
+    routeSeed:RUN.seed
+  };
+
+  runD().runs.unshift(run);
+  saveD();
+
+  // Reset state
+  RUN.active=false;RUN.startTs=null;RUN.pausedSec=0;RUN.paused=false;
+  clearInterval(RUN.timerInt);
+  document.getElementById('runFinishModal').style.display='none';
+  document.getElementById('run-active-view').style.display='none';
+  document.getElementById('run-no-active').style.display='block';
+  document.getElementById('run-active-banner').style.display='none';
+
+  runRender();
+
+  // Open share card
+  setTimeout(()=>runOpenShare(run.id),300);
+}
+
+// ── Manual save ──
+function runSaveManual(){
+  const km=parseFloat(document.getElementById('run-log-km')?.value);
+  if(!km||km<=0){alert('Укажи дистанцию в километрах');return;}
+  const timeStr=document.getElementById('run-log-time').value;
+  const sec=runParseDuration(timeStr);
+  const name=document.getElementById('run-log-name').value.trim()||'Пробежка';
+  const dateVal=document.getElementById('run-log-date').value||dk(new Date());
+  const cal=parseInt(document.getElementById('run-log-cal').value)||runCalcCal(km);
+  const hr=parseInt(document.getElementById('run-log-hr').value)||null;
+  const elev=parseInt(document.getElementById('run-log-elev').value)||0;
+  const weather=document.getElementById('run-log-weather').value;
+  const location=document.getElementById('run-log-location').value.trim();
+  const notes=document.getElementById('run-log-notes').value.trim();
+
+  const run={
+    id:uid(),
+    date:dateVal,
+    time:'',
+    name,
+    distanceKm:km,
+    durationSec:sec,
+    calories:cal,
+    heartRate:hr,
+    elevation:elev,
+    weather,
+    location,
+    notes,
+    routeSeed:Math.random()
+  };
+  runD().runs.unshift(run);
+  runD().runs.sort((a,b)=>b.date.localeCompare(a.date));
+  saveD();
+
+  // Reset form
+  ['run-log-km','run-log-time','run-log-name','run-log-cal','run-log-hr','run-log-elev','run-log-location','run-log-notes'].forEach(id=>{
+    const el=document.getElementById(id);if(el)el.value='';
+  });
+
+  runRender();
+  // Switch to track tab and show share
+  runSubTab('track',document.querySelectorAll('#tab-run .subTab')[0]);
+  setTimeout(()=>runOpenShare(run.id),300);
+}
+
+// ── History render ──
+function runRenderHistory(){
+  const el=document.getElementById('run-history-list');
+  const cnt=document.getElementById('run-hist-count');
+  if(!el)return;
+  const runs=runD().runs||[];
+  if(cnt)cnt.textContent=`${runs.length} пробежек`;
+  if(!runs.length){
+    el.innerHTML=`<div style="text-align:center;padding:40px 20px;color:var(--muted)">
+      <div style="font-size:36px;margin-bottom:10px">🏃‍♂️</div>
+      <div style="font-size:13px;font-weight:600">История пуста</div>
+      <div style="font-size:11px;margin-top:4px">Твои пробежки появятся здесь</div>
+    </div>`;
+    return;
+  }
+  // Group by month
+  const grouped={};
+  runs.forEach(r=>{
+    const key=r.date?r.date.slice(0,7):'';
+    if(!grouped[key])grouped[key]=[];
+    grouped[key].push(r);
+  });
+  const months=['Январь','Февраль','Март','Апрель','Май','Июнь','Июль','Август','Сентябрь','Октябрь','Ноябрь','Декабрь'];
+  let html='';
+  for(const[key,grp] of Object.entries(grouped)){
+    const [yr,mo]=key.split('-');
+    const monthKm=grp.reduce((a,r)=>a+(r.distanceKm||0),0);
+    html+=`<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 4px 6px">
+      <div style="font-size:11px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.5px">${months[parseInt(mo)-1]||''} ${yr}</div>
+      <div style="font-size:11px;font-weight:700;color:var(--orange)">${monthKm.toFixed(1)} км · ${grp.length} пробежек</div>
+    </div>
+    <div style="background:var(--card);border:1px solid var(--border);border-radius:18px;overflow:hidden;margin-bottom:12px">`;
+    grp.forEach(r=>{
+      const badges=runGetBadges(r,runs);
+      html+=`<div class="runHistItem" onclick="runOpenShare('${r.id}')">
+        <div class="runHistThumb">${runThumbSVG(r.routeSeed,64,48)}</div>
+        <div class="runHistMeta">
+          <div class="runHistDate">${runFmtDate(r.date)} ${r.time?'· '+r.time:''} ${r.weather||''}</div>
+          <div class="runHistName">${esc(r.name||'Пробежка')}</div>
+          <div class="runHistStatRow">
+            <span class="runHistStat">${runFmtTime(r.durationSec)} <span>время</span></span>
+            <span style="color:var(--border2)">·</span>
+            <span class="runHistStat">${runCalcPace(r.distanceKm,r.durationSec)}<span>/км</span></span>
+            ${r.calories?`<span style="color:var(--border2)">·</span><span class="runHistStat">${r.calories}<span>ккал</span></span>`:''}
+          </div>
+          ${badges.length?`<div style="display:flex;gap:4px;margin-top:5px;flex-wrap:wrap">${badges.map(b=>`<span class="runBadge ${b.cls||''}">${b.label}</span>`).join('')}</div>`:''}
+        </div>
+        <div style="text-align:right;flex-shrink:0">
+          <div class="runHistDist">${(r.distanceKm||0).toFixed(1)}</div>
+          <div class="runHistDistUnit">км</div>
+          <button onclick="event.stopPropagation();runDeleteRun('${r.id}')" style="margin-top:6px;border:none;background:none;color:rgba(255,255,255,.2);font-size:13px;cursor:pointer;transition:.15s" onmouseover="this.style.color='var(--red)'" onmouseout="this.style.color='rgba(255,255,255,.2)'">🗑</button>
+        </div>
+      </div>`;
+    });
+    html+=`</div>`;
+  }
+  safeHTML(el,html);
+}
+
+function runDeleteRun(id){
+  if(!confirm('Удалить пробежку?'))return;
+  const d=runD();
+  d.runs=d.runs.filter(r=>r.id!==id);
+  saveD();runRender();runRenderHistory();
+}
+
+// ── Achievement badges ──
+function runGetBadges(run,allRuns){
+  const badges=[];
+  const km=run.distanceKm||0;
+  const sec=run.durationSec||0;
+  const pace=runPaceSeconds(km,sec);
+
+  // PR pace
+  const otherPaces=allRuns.filter(r=>r.id!==run.id).map(r=>runPaceSeconds(r.distanceKm,r.durationSec)).filter(Boolean);
+  if(pace&&otherPaces.length&&pace<Math.min(...otherPaces))badges.push({label:'🏅 Рекорд темпа',cls:'runBadge--pr'});
+
+  // PR distance
+  const otherDists=allRuns.filter(r=>r.id!==run.id).map(r=>r.distanceKm||0);
+  if(km&&otherDists.length&&km>Math.max(...otherDists))badges.push({label:'📏 Рекорд дистанции',cls:'runBadge--pr'});
+
+  // Distance milestones
+  if(km>=42.195)badges.push({label:'🦁 Марафон',cls:'runBadge--green'});
+  else if(km>=21.1)badges.push({label:'⭐ Полумарафон',cls:'runBadge--green'});
+  else if(km>=10)badges.push({label:'💎 10 км+',cls:'runBadge--green'});
+
+  // Fast pace
+  if(pace&&pace<300)badges.push({label:'💨 Быстрый темп',cls:''});
+
+  // Time of day
+  if(run.time){
+    const h=parseInt(run.time.split(':')[0]);
+    if(h<8)badges.push({label:'🌅 Утренняя',cls:''});
+    else if(h>=20)badges.push({label:'🌙 Ночная',cls:''});
+  }
+
+  return badges.slice(0,3);
+}
+
+// ── Stats render ──
+function runRenderStats(){
+  const el=document.getElementById('run-stats-content');
+  if(!el)return;
+  const runs=runD().runs||[];
+  if(!runs.length){
+    el.innerHTML=`<div style="text-align:center;padding:40px 20px;color:var(--muted)">
+      <div style="font-size:36px;margin-bottom:10px">📊</div>
+      <div style="font-size:13px;font-weight:600">Нет данных</div>
+      <div style="font-size:11px;margin-top:4px">Статистика появится после первых пробежек</div>
+    </div>`;
+    return;
+  }
+
+  // Weekly chart
+  const last7=[],today=new Date();
+  const dayNames=['Вс','Пн','Вт','Ср','Чт','Пт','Сб'];
+  for(let i=6;i>=0;i--){
+    const d=new Date(today);d.setDate(d.getDate()-i);
+    const k=dk(d);
+    const dayKm=runs.filter(r=>r.date===k).reduce((a,r)=>a+(r.distanceKm||0),0);
+    last7.push({label:dayNames[d.getDay()],km:dayKm,isToday:i===0});
+  }
+  const maxKm=Math.max(...last7.map(d=>d.km),1);
+  const weekBars=last7.map(d=>{
+    const h=Math.round((d.km/maxKm)*70);
+    const cls=d.isToday?'today':d.km>0?'active':'';
+    return`<div class="runWeekBar">
+      <div class="runWeekBarVal">${d.km?d.km.toFixed(1):''}</div>
+      <div class="runWeekBarInner ${cls}" style="height:${Math.max(h,d.km?4:2)}px"></div>
+      <div class="runWeekBarLbl" style="${d.isToday?'color:var(--orange)':''}">${d.label}</div>
+    </div>`;
+  }).join('');
+
+  // All-time PRs
+  const totalKm=runs.reduce((a,r)=>a+(r.distanceKm||0),0);
+  const totalRuns=runs.length;
+  const allPaces=runs.map(r=>runPaceSeconds(r.distanceKm,r.durationSec)).filter(Boolean);
+  const bestPaceSec=allPaces.length?Math.min(...allPaces):null;
+  const longestKm=Math.max(...runs.map(r=>r.distanceKm||0));
+  const longestRun=runs.find(r=>r.distanceKm===longestKm);
+  const totalCal=runs.reduce((a,r)=>a+(r.calories||0),0);
+
+  // Monthly progress
+  const monthMap={};
+  runs.forEach(r=>{
+    const k=r.date?r.date.slice(0,7):'';
+    if(!monthMap[k])monthMap[k]={km:0,count:0};
+    monthMap[k].km+=r.distanceKm||0;monthMap[k].count++;
+  });
+  const months=['янв','фев','мар','апр','май','июн','июл','авг','сен','окт','ноя','дек'];
+  const monthKeys=Object.keys(monthMap).sort().slice(-6);
+  const maxMonthKm=Math.max(...monthKeys.map(k=>monthMap[k].km),1);
+  const monthBars=monthKeys.map(k=>{
+    const [yr,mo]=k.split('-');
+    const {km,count}=monthMap[k];
+    const h=Math.round((km/maxMonthKm)*70);
+    const isCur=k===dk(new Date()).slice(0,7);
+    return`<div class="runWeekBar" style="flex:1">
+      <div class="runWeekBarVal">${km.toFixed(0)}</div>
+      <div class="runWeekBarInner ${isCur?'today':'active'}" style="height:${Math.max(h,3)}px"></div>
+      <div class="runWeekBarLbl" style="font-size:8px;${isCur?'color:var(--orange)':''}">${months[parseInt(mo)-1]}</div>
+    </div>`;
+  }).join('');
+
+  let html=`
+  <!-- Weekly chart -->
+  <div style="background:linear-gradient(145deg,var(--card),var(--bg));border:1px solid var(--border);border-radius:18px;padding:16px 18px;margin-bottom:12px">
+    <div style="font-size:9.5px;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:14px">📈 Последние 7 дней (км)</div>
+    <div class="runWeekChart">${weekBars}</div>
+  </div>
+
+  <!-- Monthly chart -->
+  <div style="background:linear-gradient(145deg,var(--card),var(--bg));border:1px solid var(--border);border-radius:18px;padding:16px 18px;margin-bottom:12px">
+    <div style="font-size:9.5px;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:14px">📅 По месяцам (км)</div>
+    <div class="runWeekChart">${monthBars}</div>
+  </div>
+
+  <!-- All-time stats -->
+  <div style="background:linear-gradient(145deg,var(--card),var(--bg));border:1px solid var(--border);border-radius:18px;padding:16px 18px;margin-bottom:12px">
+    <div style="font-size:9.5px;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:14px">🏆 За всё время</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+      <div style="text-align:center;background:var(--card2);border-radius:12px;padding:12px">
+        <div style="font-family:var(--font-display);font-size:24px;font-weight:800;color:var(--orange)">${totalKm.toFixed(1)}</div>
+        <div style="font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;font-weight:700;margin-top:2px">км пробежано</div>
+      </div>
+      <div style="text-align:center;background:var(--card2);border-radius:12px;padding:12px">
+        <div style="font-family:var(--font-display);font-size:24px;font-weight:800;color:var(--cyan)">${totalRuns}</div>
+        <div style="font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;font-weight:700;margin-top:2px">пробежек</div>
+      </div>
+      <div style="text-align:center;background:var(--card2);border-radius:12px;padding:12px">
+        <div style="font-family:var(--font-display);font-size:24px;font-weight:800;color:var(--gold)">${totalCal.toLocaleString('ru')}</div>
+        <div style="font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;font-weight:700;margin-top:2px">ккал сожжено</div>
+      </div>
+      <div style="text-align:center;background:var(--card2);border-radius:12px;padding:12px">
+        <div style="font-family:var(--font-display);font-size:24px;font-weight:800;color:var(--green)">${(totalKm/6371*1000).toFixed(1)}%</div>
+        <div style="font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;font-weight:700;margin-top:2px">от длины экватора</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Personal records -->
+  <div style="background:linear-gradient(145deg,var(--card),var(--bg));border:1px solid var(--border);border-radius:18px;padding:16px 18px;margin-bottom:12px">
+    <div style="font-size:9.5px;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:12px">🏅 Личные рекорды</div>
+    <div style="display:flex;flex-direction:column;gap:8px">
+      <div class="runPrCard">
+        <div class="runPrIcon">⚡</div>
+        <div>
+          <div class="runPrVal">${bestPaceSec?`${Math.floor(bestPaceSec/60)}:${String(bestPaceSec%60).padStart(2,'0')}/км`:'—'}</div>
+          <div class="runPrLbl">Лучший темп</div>
+        </div>
+      </div>
+      <div class="runPrCard">
+        <div class="runPrIcon">📏</div>
+        <div>
+          <div class="runPrVal">${longestKm.toFixed(2)} км</div>
+          <div class="runPrLbl">Самая длинная пробежка${longestRun?' · '+runFmtDate(longestRun.date):''}</div>
+        </div>
+      </div>
+      <div class="runPrCard">
+        <div class="runPrIcon">🔥</div>
+        <div>
+          <div class="runPrVal">${runD().runs.length} пробежек</div>
+          <div class="runPrLbl">Всего записано</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  `;
+  safeHTML(el,html);
+}
+
+// ── Share card ──
+function runOpenShare(runId){
+  const run=(runD().runs||[]).find(r=>r.id===runId);
+  if(!run)return;
+
+  // Fill card data
+  const badges=runGetBadges(run,runD().runs||[]);
+
+  const dateObj=new Date((run.date||dk(new Date()))+'T00:00:00');
+  const months=['янв','фев','мар','апр','мая','июн','июл','авг','сен','окт','ноя','дек'];
+  const dateStr=`${dateObj.getDate()} ${months[dateObj.getMonth()]} ${run.time?'· '+run.time:''}`;
+
+  document.getElementById('rsc-tag').textContent=(run.weather||'🏃')+' ПРОБЕЖКА';
+  document.getElementById('rsc-date').textContent=dateStr;
+  document.getElementById('rsc-name').textContent=run.name||'Пробежка';
+  document.getElementById('rsc-location').textContent=run.location||'Бишкек';
+  document.getElementById('rsc-dist').textContent=(run.distanceKm||0).toFixed(2);
+  document.getElementById('rsc-time').textContent=runFmtTime(run.durationSec);
+  document.getElementById('rsc-pace').textContent=runCalcPace(run.distanceKm,run.durationSec);
+  document.getElementById('rsc-cal').textContent=run.calories?run.calories+'ккал':'—';
+  document.getElementById('rsc-hr').textContent=run.heartRate?run.heartRate+'уд':'—';
+
+  // Badges
+  const badgesEl=document.getElementById('rsc-badges');
+  if(badgesEl){
+    badgesEl.innerHTML=badges.map(b=>`<span class="rscBadgePill ${b.cls==='runBadge--pr'?'gold':b.cls==='runBadge--green'?'green':''}">${b.label}</span>`).join('');
+  }
+
+  // Draw route on share card
+  const pts=runGenRoute(run.routeSeed||0.5,380,160,0.09,0.1);
+  const d=runPtsToPath(pts);
+  const start=pts[0];
+  const end=pts[pts.length-1];
+
+  document.getElementById('rsc-route-glow').setAttribute('d',d);
+  document.getElementById('rsc-route-main').setAttribute('d',d);
+  document.getElementById('rsc-start-dot').setAttribute('cx',start.x.toFixed(1));
+  document.getElementById('rsc-start-dot').setAttribute('cy',start.y.toFixed(1));
+  document.getElementById('rsc-start-dot').setAttribute('r','9');
+  document.getElementById('rsc-start-inner').setAttribute('cx',start.x.toFixed(1));
+  document.getElementById('rsc-start-inner').setAttribute('cy',start.y.toFixed(1));
+  document.getElementById('rsc-start-inner').setAttribute('r','4.5');
+  document.getElementById('rsc-end-dot').setAttribute('cx',end.x.toFixed(1));
+  document.getElementById('rsc-end-dot').setAttribute('cy',end.y.toFixed(1));
+  document.getElementById('rsc-end-dot').setAttribute('r','6');
+
+  // Store run id for download
+  document.getElementById('runShareOverlay').dataset.runId=runId;
+
+  // Show overlay
+  document.getElementById('runShareOverlay').style.display='flex';
+  document.body.style.overflow='hidden';
+}
+
+function runCloseShare(){
+  document.getElementById('runShareOverlay').style.display='none';
+  document.body.style.overflow='';
+}
+
+function runDownloadCard(){
+  const card=document.getElementById('runShareCard');
+  if(!card)return;
+
+  // Try html2canvas
+  if(typeof html2canvas==='function'){
+    const btn=event.target;
+    btn.textContent='⏳ Генерируем...';btn.disabled=true;
+    html2canvas(card,{
+      backgroundColor:null,
+      scale:2,
+      useCORS:true,
+      logging:false
+    }).then(canvas=>{
+      const link=document.createElement('a');
+      const run=(runD().runs||[]).find(r=>r.id===document.getElementById('runShareOverlay').dataset.runId);
+      link.download=`run_${(run?.distanceKm||0).toFixed(1)}km_${run?.date||dk(new Date())}.png`;
+      link.href=canvas.toDataURL('image/png');
+      link.click();
+      btn.textContent='⬇️ Скачать карточку';btn.disabled=false;
+    }).catch(()=>{
+      btn.textContent='⬇️ Скачать карточку';btn.disabled=false;
+      alert('Не удалось скачать. Сделай скриншот вручную 📸');
+    });
+  } else {
+    alert('Сделай скриншот экрана 📸 и поделись в Instagram!');
+  }
+}
+</script>
 </body>
 </html>
