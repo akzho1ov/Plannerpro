@@ -11763,7 +11763,7 @@ function renderAnalytics(){
     const lMin=ltUniq.filter(t=>t.time&&t.endTime&&taskMin(t)>0).reduce((s,t)=>s+taskMin(t),0);
     const lActual=ltUniq.reduce((s,t)=>s+(t.actualDuration||0),0);
     return{id:l.id,name:l.name,color:l.color,count:ltUniq.length,min:lMin,actual:lActual};
-  }).filter(l=>l.count>0).sort((a,b)=>(b.actual||b.min)-(a.actual||a.min)||b.count-a.count);
+  }).filter(l=>l.count>0).sort((a,b)=>b.min-a.min||b.count-a.count);
   const totalLblMin=lblStats.reduce((s,l)=>s+l.min,0)||1;
   // Group filter for label breakdown
   const selLblGroup=S.lblGroup?groups.find(g=>g.id===S.lblGroup):null;
@@ -12049,8 +12049,8 @@ function renderAnalytics(){
       </div>
       <div style="display:flex;flex-direction:column;gap:10px;max-height:260px;overflow-y:auto;padding-right:2px">
         ${visLblStats.length?visLblStats.map(l=>{
-          const sortVal=l.actual||l.min;
-          const maxVal=Math.max(...visLblStats.map(x=>x.actual||x.min),1);
+          const sortVal=l.min;
+          const maxVal=Math.max(...visLblStats.map(x=>x.min),1);
           const barW=Math.round(sortVal/maxVal*100);
           const pct=totalVisLblMin?Math.round(l.min/totalVisLblMin*100):0;
           return`<div>
@@ -12163,7 +12163,7 @@ function renderAnalytics(){
       const dow=(d.getDay()||7)-1;
       return dow===wi;
     });
-    const wdMin=wdTasks.filter(t=>t.time&&t.endTime&&taskMin(t)>0).reduce((s,t)=>s+taskMin(t),0)+wdTasks.reduce((s,t)=>s+(t.actualDuration||0),0);
+    const wdMin=wdTasks.filter(t=>t.time&&t.endTime&&taskMin(t)>0).reduce((s,t)=>s+taskMin(t),0);
     return{name:weekdayNames[wi],count:wdTasks.length,min:wdMin};
   });
   const maxWdCount=Math.max(...weekdayData.map(d=>d.count),1);
@@ -12316,8 +12316,8 @@ function renderAnalytics(){
 
 function anlDrawPie(lblStats){
   if(!lblStats||!lblStats.length)return'';
-  // Use actual duration if available, else planned min
-  const getVal=(l)=>l.actual||l.min;
+  // Always use planned min for pie chart (actual shown separately)
+  const getVal=(l)=>l.min;
   const totalMin=lblStats.reduce((s,l)=>s+getVal(l),0);
   if(!totalMin)return'';
   const cx=90,cy=90,r=76,r2=42,size=180;
@@ -12487,6 +12487,9 @@ function anlSetCustomTo(v){window._anlState.customTo=v;if(window._anlState.custo
     _pickerEl.id='anlCalPop';
     _pickerEl.style.cssText='position:fixed;z-index:9000;background:linear-gradient(160deg,#0e0f24,#0a0b18);border:1px solid rgba(155,143,245,.3);border-radius:16px;box-shadow:0 16px 60px rgba(0,0,0,.7),0 0 0 1px rgba(155,143,245,.1);overflow:hidden;animation:paneIn .18s var(--ease) both;min-width:236px';
     document.body.appendChild(_pickerEl);
+    // Prevent clicks INSIDE the picker from bubbling to the outside-click handler
+    // (important: after innerHTML rerenders, e.target becomes detached — this stops it cleanly)
+    _pickerEl.addEventListener('click',e=>e.stopPropagation());
 
     // Position near trigger button
     const btnId=field==='from'?'anlFromBtn':'anlToBtn';
@@ -12535,12 +12538,18 @@ function anlSetCustomTo(v){window._anlState.customTo=v;if(window._anlState.custo
       if(!S.customTo||iso>S.customTo){
         _pickerField='to';
       }else{
-        // Both set — close & apply
+        // Both set, from <= to — close & apply
         _closeEl();renderAnalytics();return;
       }
     }else{
+      if(S.customFrom&&iso<S.customFrom){
+        // User picked an earlier date as 'to' — swap so range is always from<to
+        S.customTo=S.customFrom;
+        S.customFrom=iso;
+        _closeEl();renderAnalytics();return;
+      }
       S.customTo=iso;
-      if(!S.customFrom||iso<S.customFrom){
+      if(!S.customFrom){
         _pickerField='from';
       }else{
         _closeEl();renderAnalytics();return;
