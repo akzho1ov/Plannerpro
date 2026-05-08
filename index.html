@@ -3369,7 +3369,7 @@ body.light-mode .skel{background:linear-gradient(90deg,var(--card2) 25%,#f0f2f7 
       <div id="dashRewardsList" style="display:flex;flex-direction:column;gap:4px"></div>
     </div>
     <!-- Next events -->
-    <div class="dashCard">
+    <div class="dashCard" id="dashUpcomingCard">
       <div class="dashCardLbl">📆 Ближайшие события</div>
       <div id="dashUpcoming" style="display:flex;flex-direction:column;gap:5px;margin-top:2px"></div>
     </div>
@@ -6124,15 +6124,26 @@ function renderWP(){
   <button class="dAddTask" onclick="wTaskAdd('${key}')">+ добавить задачу</button>
 </div>
 <div>
-  <div class="dSecLbl">Заметки</div>
-  <textarea class="dNotesArea" placeholder="Заметки дня..." oninput="updD('${key}','notes',this.value)">${esc(data.notes)}</textarea>
-</div>
-<div>
-  <div class="dSecLbl">Улучшить:</div>
-  ${impr.map((v,j)=>`<div style="display:flex;align-items:center;gap:5px;margin-top:4px">
-    <span style="font-size:9px;color:var(--muted);width:10px;font-weight:700">${j+1}</span>
-    <input class="dImprInp" value="${esc(v)}" placeholder="..." oninput="updImpr('${key}',${j},this.value)">
-  </div>`).join('')}
+  <div class="dSecLbl" style="margin-bottom:5px">📋 3 задачи</div>
+  ${(()=>{
+    const todayKey=dk(t0());
+    const next3=tpD()
+      .filter(t=>!t.done&&t.deadline&&t.deadline>=todayKey&&t.deadline!==key)
+      .sort((a,b)=>a.deadline.localeCompare(b.deadline)||(a.time||'99:99').localeCompare(b.time||'99:99'))
+      .slice(0,3);
+    const undone=dayTasks.filter(t=>!t.done).slice(0,3);
+    const show=undone.length?undone:next3;
+    if(!show.length)return'<div style="font-size:10px;color:var(--muted);padding:2px 0">Нет задач</div>';
+    return show.map(t=>{
+      const lbls=getTaskLabels(t);
+      const col=lbls.length?lbls[0].color:'var(--border3)';
+      const fromFuture=!undone.length&&t.deadline&&t.deadline!==key;
+      const dayLabel=fromFuture?(()=>{const dd=new Date(t.deadline+'T00:00:00');return`<span style="font-size:8px;color:var(--muted);margin-left:3px">${dd.getDate()}.${dd.getMonth()+1}</span>`;})():'';
+      return`<div style="display:flex;align-items:center;gap:5px;padding:4px 5px;border-left:2px solid ${col};border-radius:2px;margin-top:3px">
+        <span style="font-size:11px;color:var(--text2);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(t.text||'Без названия')}</span>${dayLabel}
+      </div>`;
+    }).join('');
+  })()}
 </div>`;
     g.appendChild(card);
   }
@@ -10213,27 +10224,39 @@ function renderDashRewards(){
 
 function renderDashUpcoming(){
   const el=document.getElementById('dashUpcoming');if(!el)return;
-  const today=t0();const items=[];
-  const calEvts=calEventsD();
-  // Next 7 days events
-  for(let i=0;i<7;i++){
-    const d=new Date(today);d.setDate(d.getDate()+i);
-    const key=dk(d);
-    const evts=calEvts[key]||[];
-    const dayLabel=i===0?'Сегодня':i===1?'Завтра':`${d.getDate()} ${['янв','фев','мар','апр','май','июн','июл','авг','сен','окт','ноя','дек'][d.getMonth()]}`;
-    evts.slice(0,2).forEach(e=>{
-      items.push({label:dayLabel,text:e.text,time:e.time||'',color:i===0?'var(--blue)':i===1?'var(--purple)':'var(--muted)'});
-    });
+  const card=document.getElementById('dashUpcomingCard');
+  const todayKey=dk(t0());
+  const today=t0();
+
+  // Upcoming undone tasks with a deadline within next 14 days
+  const upcoming=tpD()
+    .filter(t=>!t.done&&t.deadline&&t.deadline>=todayKey)
+    .sort((a,b)=>a.deadline.localeCompare(b.deadline)||(a.time||'99:99').localeCompare(b.time||'99:99'))
+    .slice(0,5);
+
+  if(!upcoming.length){
+    if(card)card.style.display='none';
+    return;
   }
-  if(!items.length){el.innerHTML='<div style="font-size:11px;color:var(--muted);padding:4px 0">Нет событий на неделю</div>';return;}
-  el.innerHTML=items.slice(0,5).map(it=>`
-    <div style="display:flex;align-items:center;gap:8px;padding:6px 8px;background:var(--card2);border:1px solid var(--border);border-radius:9px">
-      <div style="width:3px;height:28px;border-radius:2px;background:${it.color};flex-shrink:0"></div>
+  if(card)card.style.display='';
+
+  const MONTHS_SHORT=['янв','фев','мар','апр','май','июн','июл','авг','сен','окт','ноя','дек'];
+  el.innerHTML=upcoming.map(t=>{
+    const lbls=getTaskLabels(t);
+    const col=lbls.length&&lbls[0].color?lbls[0].color:'var(--muted)';
+    const dDate=new Date(t.deadline+'T00:00:00');
+    const diff=Math.round((dDate-today)/86400000);
+    const dayLabel=diff===0?'Сегодня':diff===1?'Завтра':`${dDate.getDate()} ${MONTHS_SHORT[dDate.getMonth()]}`;
+    const timeLabel=t.time?` · ${t.time}`:'';
+    const urgentCol=diff===0?'var(--red)':diff===1?'var(--orange)':'var(--muted)';
+    return`<div style="display:flex;align-items:center;gap:8px;padding:6px 8px;background:var(--card2);border:1px solid var(--border);border-radius:9px">
+      <div style="width:3px;height:28px;border-radius:2px;background:${col};flex-shrink:0"></div>
       <div style="flex:1;min-width:0">
-        <div style="font-size:11px;color:var(--text2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(it.text)}</div>
-        <div style="font-size:9px;color:var(--muted);margin-top:1px">${esc(it.label)}${it.time?' · '+esc(it.time):''}</div>
+        <div style="font-size:11px;color:var(--text2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(t.text||'Без названия')}</div>
+        <div style="font-size:9px;color:${urgentCol};margin-top:1px;font-weight:${diff<=1?700:400}">${dayLabel}${timeLabel}</div>
       </div>
-    </div>`).join('');
+    </div>`;
+  }).join('');
 }
 
 function renderDashLabelDonut(filteredTasks, period){
@@ -10247,7 +10270,7 @@ function renderDashLabelDonut(filteredTasks, period){
   if(donutCard){
     const lbl=donutCard.querySelector('.dashCardLbl');
     const periodNames={day:'сегодня',week:'эта неделя',month:'этот месяц'};
-    if(lbl)lbl.innerHTML='🏷 Задачи по меткам <span class="dashPeriodTag">'+(periodNames[period]||'')+'</span>';
+    if(lbl)lbl.innerHTML='🏷 Задачи — Внимание <span class="dashPeriodTag">'+(periodNames[period]||'')+'</span>';
   }
 
   // Resolve actual CSS colours for Canvas (Canvas ignores CSS vars)
@@ -10264,21 +10287,19 @@ function renderDashLabelDonut(filteredTasks, period){
   ctx.clearRect(0,0,SIZE,SIZE);
   const cx=SIZE/2, cy=SIZE/2, R=38, r=23;
 
-  // Count tasks by label from the period-filtered set
+  // Count tasks — only labels from "Внимание" group (lg2)
+  const attnGroup=labelGroupsD().find(g=>g.id==='lg2');
+  const attnLabelIds=new Set((attnGroup?attnGroup.labels:[]).map(l=>l.id));
+
   const tasks=filteredTasks||tpD();
   const labelMap={};
   tasks.forEach(t=>{
-    const tLabels=getTaskLabels(t);
-    if(tLabels.length){
-      tLabels.forEach(l=>{
-        const key=l.id||l.name;
-        if(!labelMap[key])labelMap[key]={name:l.name,color:l.color&&l.color.startsWith('#')?l.color:'#9B8FF5',count:0};
-        labelMap[key].count++;
-      });
-    } else {
-      if(!labelMap['__none__'])labelMap['__none__']={name:'Без метки',color:'#4A5280',count:0};
-      labelMap['__none__'].count++;
-    }
+    const tLabels=getTaskLabels(t).filter(l=>attnLabelIds.has(l.id));
+    tLabels.forEach(l=>{
+      const key=l.id||l.name;
+      if(!labelMap[key])labelMap[key]={name:l.name,color:l.color&&l.color.startsWith('#')?l.color:'#9B8FF5',count:0};
+      labelMap[key].count++;
+    });
   });
 
   const segments=Object.values(labelMap).filter(s=>s.count>0).sort((a,b)=>b.count-a.count).slice(0,7);
