@@ -6053,7 +6053,7 @@ function _scrollTodayIntoView(){
 function wkToday(){curMon=getMon(t0());renderWP()}
 function wkKey(){return 'w_'+dk(curMon)}
 function wkD(){if(!G[wkKey()])G[wkKey()]={days:{}};return G[wkKey()]}
-function dayD(k){const w=wkD();if(!w.days[k])w.days[k]={focus:'',tasks:[],notes:'',impr:['','','','']};return w.days[k]}
+function dayD(k){const w=wkD();if(!w.days[k])w.days[k]={focus:'',tasks:[],notes:'',impr:['','','',''],focus3:[{t:'',d:false},{t:'',d:false},{t:'',d:false}]};const day=w.days[k];if(!day.focus3)day.focus3=[{t:'',d:false},{t:'',d:false},{t:'',d:false}];return day}
 
 function renderWP(){
   const g=document.getElementById('wGrid');
@@ -6094,8 +6094,11 @@ function renderWP(){
   </div>
 </div>
 <div>
-  <div class="dSecLbl">Фокус дня</div>
-  <textarea class="dFocusInp" placeholder="Главный фокус..." oninput="updD('${key}','focus',this.value)">${esc(data.focus)}</textarea>
+  <div class="dSecLbl" style="margin-bottom:5px">🎯 Фокус дня — 3 приоритета</div>
+  ${data.focus3.map((f,j)=>`<div style="display:flex;align-items:center;gap:5px;margin-top:4px">
+    <input type="checkbox" ${f.d?'checked':''} onchange="updFoc3D('${key}',${j},this.checked);event.stopPropagation()" style="accent-color:var(--p);flex-shrink:0;width:13px;height:13px">
+    <input class="dImprInp" value="${esc(f.t)}" placeholder="Приоритет ${j+1}..." oninput="updFoc3T('${key}',${j},this.value)" style="${f.d?'text-decoration:line-through;opacity:.5':''}">
+  </div>`).join('')}
 </div>
 <div class="dStats">
   <div class="dStat"><div class="sl">готово</div><div class="sv">${done}</div></div>
@@ -6122,28 +6125,6 @@ function renderWP(){
     </div>`;
   }).join('')}</div>
   <button class="dAddTask" onclick="wTaskAdd('${key}')">+ добавить задачу</button>
-</div>
-<div>
-  <div class="dSecLbl" style="margin-bottom:5px">📋 3 задачи</div>
-  ${(()=>{
-    const todayKey=dk(t0());
-    const next3=tpD()
-      .filter(t=>!t.done&&t.deadline&&t.deadline>=todayKey&&t.deadline!==key)
-      .sort((a,b)=>a.deadline.localeCompare(b.deadline)||(a.time||'99:99').localeCompare(b.time||'99:99'))
-      .slice(0,3);
-    const undone=dayTasks.filter(t=>!t.done).slice(0,3);
-    const show=undone.length?undone:next3;
-    if(!show.length)return'<div style="font-size:10px;color:var(--muted);padding:2px 0">Нет задач</div>';
-    return show.map(t=>{
-      const lbls=getTaskLabels(t);
-      const col=lbls.length?lbls[0].color:'var(--border3)';
-      const fromFuture=!undone.length&&t.deadline&&t.deadline!==key;
-      const dayLabel=fromFuture?(()=>{const dd=new Date(t.deadline+'T00:00:00');return`<span style="font-size:8px;color:var(--muted);margin-left:3px">${dd.getDate()}.${dd.getMonth()+1}</span>`;})():'';
-      return`<div style="display:flex;align-items:center;gap:5px;padding:4px 5px;border-left:2px solid ${col};border-radius:2px;margin-top:3px">
-        <span style="font-size:11px;color:var(--text2);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(t.text||'Без названия')}</span>${dayLabel}
-      </div>`;
-    }).join('');
-  })()}
 </div>`;
     g.appendChild(card);
   }
@@ -6183,6 +6164,8 @@ function wTaskAdd(dateKey){
 
 function updD(k,f,v){dayD(k)[f]=v;saveD()}
 function updImpr(k,i,v){const d=dayD(k);if(!d.impr)d.impr=['','','',''];d.impr[i]=v;saveD()}
+function updFoc3T(k,i,v){const d=dayD(k);d.focus3[i].t=v;saveD()}
+function updFoc3D(k,i,c){const d=dayD(k);d.focus3[i].d=c;saveD();renderWP()}
 // Legacy stubs kept for backward compat
 function addWT(k){wTaskAdd(k)}
 function toggleWT(k,i,c){/* legacy - no-op, handled by unified tasks */}
@@ -10232,7 +10215,7 @@ function renderDashUpcoming(){
   const upcoming=tpD()
     .filter(t=>!t.done&&t.deadline&&t.deadline>=todayKey)
     .sort((a,b)=>a.deadline.localeCompare(b.deadline)||(a.time||'99:99').localeCompare(b.time||'99:99'))
-    .slice(0,5);
+    .slice(0,3);
 
   if(!upcoming.length){
     if(card)card.style.display='none';
