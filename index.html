@@ -4834,7 +4834,11 @@ body.light-mode .skel{background:linear-gradient(90deg,var(--card2) 25%,#f0f2f7 
       </div>
     </div>
     <div class="fldGrp"><div class="fldLbl">Сумма</div><input type="number" class="inp" id="finAmt" placeholder="0.00" min="0" step="0.01"></div>
-    <div class="fldGrp"><div class="fldLbl">Категория</div><select class="inp" id="finCat"></select></div>
+    <div class="fldGrp">
+      <div class="fldLbl">Категория</div>
+      <div id="finCatPicker" style="display:flex;flex-direction:column;gap:8px"></div>
+      <input type="hidden" id="finCat">
+    </div>
     <div class="fldGrp"><div class="fldLbl">Счёт</div><select class="inp" id="finAcctSel"></select></div>
     <div class="fldGrp"><div class="fldLbl">Описание</div><input class="inp" id="finNote" placeholder="Примечание..."></div>
     <div class="fldGrp"><div class="fldLbl">Дата</div><input type="date" class="inp" id="finDate" style="color-scheme:dark"></div>
@@ -8645,9 +8649,12 @@ function renderCatBudgetBars(totalExp, txs){
     return;
   }
   let html='';
-  FIN_CATS.filter(c=>c.type==='out').forEach(cat=>{
+  FIN_CATS.filter(c=>c.type==='out'&&!c.parentId).forEach(cat=>{
     const limit=budgets[cat.id]||0;if(!limit)return;
-    const spent=txs.filter(t=>t.type==='out'&&t.category===cat.id).reduce((a,t)=>a+Number(t.amount),0);
+    // Include all subcategory transactions toward parent limit
+    const subIds=finCatsD().filter(c=>c.parentId===cat.id).map(c=>c.id);
+    const allIds=new Set([cat.id,...subIds]);
+    const spent=txs.filter(t=>t.type==='out'&&allIds.has(t.category)).reduce((a,t)=>a+Number(t.amount),0);
     const pct=Math.min(100,Math.round(spent/limit*100));
     const over=spent>limit;
     const col=over?'var(--red)':pct>=75?'var(--gold)':'var(--green)';
@@ -8806,8 +8813,7 @@ function openFinModal(editId){
   const acctSel=document.getElementById('finAcctSel');
   acctSel.innerHTML='<option value="">Без счёта</option>';
   finAccountsD().forEach(a=>{const o=document.createElement('option');o.value=a.id;o.textContent=`${a.icon} ${a.name}`;if(tx&&tx.acctId===a.id)o.selected=true;acctSel.appendChild(o);});
-  updateFinCatSelect(type);
-  if(tx)document.getElementById('finCat').value=tx.category||'';
+  updateFinCatSelect(type, tx?tx.category:'');
   document.getElementById('finOverlay').style.display='flex';
   setTimeout(()=>document.getElementById('finAmt')?.focus(),80);
 }
@@ -8820,46 +8826,140 @@ function setFinType(type){
   finTypeVal=type;
   document.getElementById('finTypeIn').className='kbPriBtn'+(type==='in'?' sel':'');
   document.getElementById('finTypeOut').className='kbPriBtn'+(type==='out'?' sel':'');
-  updateFinCatSelect(type);
+  _finSelCatId='';_finPickerStep='parent';_finPickerParent=null;
+  updateFinCatSelect(type,'');
 }
-// Build category select with parent/subcategory grouping
-function updateFinCatSelect(type){
-  const sel=document.getElementById('finCat');sel.innerHTML='';
-  const cats=finCatsD();
-  const parents=cats.filter(c=>c.type===type&&!c.parentId);
-  parents.forEach(parent=>{
-    const subs=cats.filter(c=>c.parentId===parent.id);
-    if(subs.length){
-      // Add parent as optgroup label (disabled option)
-      const groupLabel=document.createElement('option');
-      groupLabel.disabled=true;
-      groupLabel.textContent=`── ${parent.icon} ${parent.name} ──`;
-      groupLabel.style.fontWeight='800';
-      groupLabel.style.color='var(--muted)';
-      sel.appendChild(groupLabel);
-      // Add parent itself as selectable
-      const parentOpt=document.createElement('option');
-      parentOpt.value=parent.id;
-      parentOpt.textContent=`  ${parent.icon} ${parent.name}`;
-      sel.appendChild(parentOpt);
-      // Add subcategories
-      subs.forEach(sub=>{
-        const o=document.createElement('option');
-        o.value=sub.id;
-        o.textContent=`    └ ${sub.icon} ${sub.name}`;
-        sel.appendChild(o);
-      });
-    } else {
-      const o=document.createElement('option');
-      o.value=parent.id;
-      o.textContent=`${parent.icon} ${parent.name}`;
-      sel.appendChild(o);
+// ── Step-based category picker ─────────────────────────
+let _finSelCatId='';
+let _finPickerStep='parent'; // 'parent' | 'sub'
+let _finPickerParent=null;   // parent cat object when in sub-step
+
+function updateFinCatSelect(type, preselect){
+  _finPickerStep='parent';
+  _finPickerParent=null;
+  _finSelCatId=preselect||'';
+  // If presetting to a subcategory, figure out the parent
+  if(_finSelCatId){
+    const cats=finCatsD();
+    const selCat=cats.find(c=>c.id===_finSelCatId);
+    if(selCat&&selCat.parentId){
+      _finPickerParent=cats.find(c=>c.id===selCat.parentId)||null;
+      if(_finPickerParent) _finPickerStep='sub';
     }
-  });
+  }
+  _renderFinCatPicker(type);
+}
+
+function _renderFinCatPicker(type){
+  const picker=document.getElementById('finCatPicker');
+  const hiddenSel=document.getElementById('finCat');
+  if(!picker)return;
+  const cats=finCatsD();
+  const curType=type||(document.getElementById('finTypeIn')?.classList.contains('sel')?'in':'out');
+  const parents=cats.filter(c=>c.type===curType&&!c.parentId);
+
+  if(_finPickerStep==='parent'){
+    // Step 1 — grid of parent categories
+    const rows=parents.map(cat=>{
+      const subs=cats.filter(c=>c.parentId===cat.id);
+      const isSelected=_finSelCatId===cat.id;
+      const hasSubs=subs.length>0;
+      return`<button type="button" onclick="finPickCat('${cat.id}','${curType}')"
+        style="display:flex;align-items:center;gap:8px;padding:9px 12px;border-radius:11px;cursor:pointer;text-align:left;transition:all .15s;width:100%;font-family:var(--font-body);
+          background:${isSelected?`${cat.color}22`:'var(--card2)'};
+          border:1.5px solid ${isSelected?cat.color:'var(--border)'};
+          color:${isSelected?'var(--text)':'var(--text2)'};
+          box-shadow:${isSelected?`0 0 12px ${cat.color}44`:''}"
+        onmouseover="if(!${isSelected})this.style.borderColor='var(--border2)';this.style.background='var(--card3)'"
+        onmouseout="this.style.background='${isSelected?cat.color+'22':'var(--card2)'}';this.style.borderColor='${isSelected?cat.color:'var(--border)'}'">
+        <span style="font-size:18px;line-height:1">${cat.icon}</span>
+        <span style="font-size:12px;font-weight:600;flex:1">${cat.name}</span>
+        ${hasSubs?`<span style="font-size:9px;color:var(--muted);background:var(--card3);padding:2px 6px;border-radius:10px;font-weight:700">${subs.length} ▸</span>`:''}
+        ${isSelected&&!hasSubs?`<span style="font-size:12px;color:${cat.color}">✓</span>`:''}
+      </button>`;
+    }).join('');
+    picker.innerHTML=`<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">${rows}</div>`;
+  } else {
+    // Step 2 — selected parent + its subcategories
+    const parent=_finPickerParent;
+    if(!parent){_finPickerStep='parent';_renderFinCatPicker(curType);return;}
+    const subs=cats.filter(c=>c.parentId===parent.id);
+    const subRows=subs.map(sub=>{
+      const isSel=_finSelCatId===sub.id;
+      return`<button type="button" onclick="finPickSub('${sub.id}','${curType}')"
+        style="display:flex;align-items:center;gap:8px;padding:8px 12px;border-radius:10px;cursor:pointer;text-align:left;transition:all .15s;width:100%;font-family:var(--font-body);
+          background:${isSel?`${sub.color||parent.color}22`:'var(--card3)'};
+          border:1.5px solid ${isSel?sub.color||parent.color:'var(--border)'};
+          color:${isSel?'var(--text)':'var(--text2)'};"
+        onmouseover="this.style.background='rgba(255,255,255,.05)'"
+        onmouseout="this.style.background='${isSel?(sub.color||parent.color)+'22':'var(--card3)'}'">
+        <span style="font-size:16px;line-height:1;margin-left:6px">${sub.icon}</span>
+        <span style="font-size:12px;font-weight:600;flex:1">${sub.name}</span>
+        ${isSel?`<span style="font-size:12px;color:${sub.color||parent.color}">✓</span>`:''}
+      </button>`;
+    }).join('');
+    const parentSel=_finSelCatId===parent.id;
+    picker.innerHTML=`
+      <button type="button" onclick="finPickerBack('${curType}')"
+        style="display:flex;align-items:center;gap:7px;padding:7px 12px;background:var(--card3);border:1px solid var(--border);border-radius:10px;cursor:pointer;color:var(--muted);font-size:11px;font-family:var(--font-body);transition:.15s;width:fit-content"
+        onmouseover="this.style.color='var(--p)';this.style.borderColor='var(--p)'"
+        onmouseout="this.style.color='var(--muted)';this.style.borderColor='var(--border)'">
+        ‹ Назад
+      </button>
+      <div style="display:flex;align-items:center;gap:8px;padding:8px 12px;background:${parent.color}18;border:1.5px solid ${parent.color}66;border-radius:11px">
+        <span style="font-size:18px">${parent.icon}</span>
+        <span style="font-size:12px;font-weight:700;color:var(--text);flex:1">${parent.name}</span>
+        <span style="font-size:9px;color:var(--muted)">Выбери подкатегорию:</span>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:5px;padding-left:12px;border-left:2px solid ${parent.color}44">
+        ${subRows}
+        <button type="button" onclick="finPickSub('${parent.id}','${curType}')"
+          style="display:flex;align-items:center;gap:8px;padding:7px 12px;border-radius:9px;cursor:pointer;text-align:left;width:100%;font-family:var(--font-body);
+            background:${parentSel?parent.color+'22':'transparent'};border:1px dashed ${parentSel?parent.color:'var(--border2)'};color:var(--muted);font-size:11px;transition:.15s"
+          onmouseover="this.style.borderColor='var(--border3)'"
+          onmouseout="this.style.borderColor='${parentSel?parent.color:'var(--border2)'}'">
+          <span style="font-size:14px">≡</span>
+          <span>Вся категория «${parent.name}»</span>
+          ${parentSel?`<span style="color:${parent.color};margin-left:auto">✓</span>`:''}
+        </button>
+      </div>`;
+  }
+  if(hiddenSel)hiddenSel.value=_finSelCatId;
+}
+
+function finPickCat(catId, type){
+  const cats=finCatsD();
+  const cat=cats.find(c=>c.id===catId);
+  if(!cat)return;
+  const subs=cats.filter(c=>c.parentId===catId);
+  if(subs.length){
+    // Has subcategories — go to step 2
+    _finPickerParent=cat;
+    _finPickerStep='sub';
+    _finSelCatId=''; // force user to pick subcategory
+    _renderFinCatPicker(type);
+  } else {
+    // No subcategories — select directly
+    _finSelCatId=catId;
+    _renderFinCatPicker(type);
+  }
+}
+function finPickSub(catId, type){
+  _finSelCatId=catId;
+  const hiddenSel=document.getElementById('finCat');
+  if(hiddenSel)hiddenSel.value=catId;
+  _renderFinCatPicker(type);
+}
+function finPickerBack(type){
+  _finPickerStep='parent';
+  _finPickerParent=null;
+  _renderFinCatPicker(type);
 }
 function addFinTx(){
   const amt=parseFloat(document.getElementById('finAmt').value);if(!amt||amt<=0)return;
-  const data={date:document.getElementById('finDate').value||dk(t0()),amount:amt,type:finTypeVal,category:document.getElementById('finCat').value,note:document.getElementById('finNote').value,acctId:document.getElementById('finAcctSel').value};
+  const catId=_finSelCatId||document.getElementById('finCat').value;
+  if(!catId){alert('Выбери категорию');return;}
+  const data={date:document.getElementById('finDate').value||dk(t0()),amount:amt,type:finTypeVal,category:catId,note:document.getElementById('finNote').value,acctId:document.getElementById('finAcctSel').value};
   if(_finEditId){
     const idx=finTxD().findIndex(t=>t.id===_finEditId);
     if(idx>=0)finTxD()[idx]={...finTxD()[idx],...data};
