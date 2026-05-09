@@ -3386,15 +3386,15 @@ body.light-mode .skel{background:linear-gradient(90deg,var(--card2) 25%,#f0f2f7 
     <!-- Labels Donut -->
     <div class="dashCard dashDonutCard" style="position:relative">
       <div class="dashCardLbl">🏷 Задачи по меткам</div>
-      <div style="display:flex;align-items:center;gap:14px;margin-top:6px">
-        <div style="position:relative;flex-shrink:0;width:90px;height:90px">
-          <canvas id="dashLabelDonut" width="90" height="90" style="display:block"></canvas>
+      <div id="dashDonutWrap" style="display:flex;align-items:center;gap:14px;margin-top:6px;flex-wrap:wrap">
+        <div style="position:relative;flex-shrink:0;width:100px;height:100px;margin:0 auto">
+          <canvas id="dashLabelDonut" width="100" height="100" style="display:block"></canvas>
           <div id="dashDonutCenter" style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;pointer-events:none">
-            <div style="font-family:var(--font-display);font-size:20px;font-weight:800;color:var(--text);line-height:1" id="dashDonutTotal">0</div>
+            <div style="font-family:var(--font-display);font-size:22px;font-weight:800;color:var(--text);line-height:1" id="dashDonutTotal">0</div>
             <div style="font-size:8px;color:var(--muted);font-weight:600;margin-top:2px">задач</div>
           </div>
         </div>
-        <div id="dashLabelLegend" style="flex:1;display:flex;flex-direction:column;gap:5px;min-width:0"></div>
+        <div id="dashLabelLegend" style="flex:1;min-width:140px;display:flex;flex-direction:column;gap:5px"></div>
       </div>
     </div>
   </div>
@@ -7436,7 +7436,7 @@ const HOUR_H=60; // px per hour in time grid — fits 4 tasks per hour
 const DS_RU=['Вс','Пн','Вт','Ср','Чт','Пт','Сб'];
 const DS_SHORT=['вс','пн','вт','ср','чт','пт','сб'];
 
-let plView='week';           // 'day'|'3day'|'week'|'month'
+let plView=(window.innerWidth<700?'3day':'week');  // mobile default = 3 дня
 let plAnchor=dk(t0());       // anchor date string YYYY-MM-DD
 let plMiniY=t0().getFullYear(),plMiniM=t0().getMonth();
 let plSelColor=CAL_COLORS[0];
@@ -7583,6 +7583,11 @@ function renderCal(){
   renderMini();
   updateDateLabel();
   plRenderUpcoming();
+  // Sync view buttons to current plView
+  document.querySelectorAll('.plCal-vBtn').forEach(b=>{
+    const v=b.getAttribute('onclick').match(/'([^']+)'/)?.[1];
+    b.classList.toggle('on',v===plView);
+  });
   const main=document.getElementById('plCal-main');main.innerHTML='';
   if(plView==='month')plRenderMonth(main);
   else plRenderGrid(main);
@@ -10044,7 +10049,14 @@ function renderDash(){
   const bigTxt=document.getElementById('dashGreetBig');
   if(focusSub&&bigTxt){
     const pending=tasks.filter(t=>taskAppearsOnDate(t,todK)&&!(t.repeat?(t.doneDates||[]).includes(todK):t.done));
-    const topTask=tasks.find(t=>!t.done&&!t.deadline)||tasks.find(t=>!t.done);
+    // Sort by time, then no-time tasks last
+    const sortedPending=[...pending].sort((a,b)=>{
+      if(a.time&&b.time)return a.time.localeCompare(b.time);
+      if(a.time)return -1;
+      if(b.time)return 1;
+      return 0;
+    });
+    const topTask=sortedPending[0]||null;
     if(pending.length){
       bigTxt.textContent=`${pending.length} ${pending.length===1?'задача':(pending.length<5?'задачи':'задач')} на сегодня`;
       focusSub.textContent=topTask?`Следующая: ${topTask.text}`:'Всё выглядит отлично!';
@@ -10492,13 +10504,14 @@ function renderDashLabelDonut(filteredTasks, period){
   const mutedColor=csRoot.getPropertyValue('--muted').trim()||'#8490B8';
 
   const DPR=window.devicePixelRatio||1;
-  const SIZE=90;
+  const isMobD=window.innerWidth<700;
+  const SIZE=isMobD?100:90;
   cv.width=SIZE*DPR; cv.height=SIZE*DPR;
   cv.style.width=SIZE+'px'; cv.style.height=SIZE+'px';
   const ctx=cv.getContext('2d');
   ctx.scale(DPR,DPR);
   ctx.clearRect(0,0,SIZE,SIZE);
-  const cx=SIZE/2, cy=SIZE/2, R=38, r=23;
+  const cx=SIZE/2, cy=SIZE/2, R=isMobD?43:38, r=isMobD?26:23;
 
   // Count tasks — only labels from "Внимание" group (lg2)
   const attnGroup=labelGroupsD().find(g=>g.id==='lg2');
@@ -10560,11 +10573,12 @@ function renderDashLabelDonut(filteredTasks, period){
   ctx.restore();
 
   // Legend
+  const isMobLeg=window.innerWidth<700;
   legendEl.innerHTML=drawn.map(({seg,pct})=>
-    '<div style="display:flex;align-items:center;gap:5px;min-width:0">'+
-    '<div style="width:7px;height:7px;border-radius:50%;background:'+seg.color+';flex-shrink:0;box-shadow:0 0 5px '+seg.color+'99"></div>'+
-    '<div style="flex:1;font-size:9.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text2)">'+esc(seg.name)+'</div>'+
-    '<div style="font-size:9px;font-weight:700;color:var(--text);font-family:monospace;flex-shrink:0">'+seg.count+' <span style="color:var(--muted);font-weight:400">('+pct+'%)</span></div>'+
+    '<div style="display:flex;align-items:center;gap:6px;min-width:0;padding:'+(isMobLeg?'2px 0':'1px 0')+'">'+
+    '<div style="width:'+(isMobLeg?9:7)+'px;height:'+(isMobLeg?9:7)+'px;border-radius:50%;background:'+seg.color+';flex-shrink:0;box-shadow:0 0 5px '+seg.color+'99"></div>'+
+    '<div style="flex:1;font-size:'+(isMobLeg?11:9.5)+'px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text2);font-weight:500">'+esc(seg.name)+'</div>'+
+    '<div style="font-size:'+(isMobLeg?10:9)+'px;font-weight:700;color:var(--text);font-family:monospace;flex-shrink:0">'+seg.count+' <span style="color:var(--muted);font-weight:400">('+pct+'%)</span></div>'+
     '</div>'
   ).join('');
 }
