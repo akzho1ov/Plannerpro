@@ -3073,7 +3073,6 @@ body.light-mode .skel{background:linear-gradient(90deg,var(--card2) 25%,#f0f2f7 
       <div class="aiPanelSub" id="aiStatusLbl">Готов помочь с планированием</div>
     </div>
     <button onclick="clearAiChat()" title="Очистить" style="border:none;background:none;color:var(--muted);cursor:pointer;font-size:14px;padding:4px 6px;border-radius:8px;transition:.15s" onmouseover="this.style.color='var(--red)'" onmouseout="this.style.color='var(--muted)'">🗑</button>
-    <button onclick="_aiChangeKey()" title="API ключ" style="border:none;background:none;color:var(--muted);cursor:pointer;font-size:13px;padding:4px 6px;border-radius:8px;transition:.15s" onmouseover="this.style.color='var(--gold)'" onmouseout="this.style.color='var(--muted)'">🔑</button>
     <button onclick="toggleAiPanel()" style="border:none;background:none;color:var(--muted);cursor:pointer;font-size:18px;padding:4px 6px;line-height:1">×</button>
   </div>
   <div class="aiSuggestions" id="aiSuggestions">
@@ -16273,9 +16272,8 @@ function renderPomodoro(){
 // ════════════════════════════════════════════════
 // AI ASSISTANT
 // ════════════════════════════════════════════════
-const AI_MODEL='google/gemma-4-31b-it:free';
-function _getAiKey(){return localStorage.getItem('ai_api_key')||'';}
-function _setAiKey(k){localStorage.setItem('ai_api_key',k.trim());}
+const AI_API_KEY='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';
+const AI_MODEL='openai/gpt-4o-mini';
 let _aiOpen=false;
 let _aiHistory=[]; // {role,content}
 let _aiTyping=false;
@@ -16291,43 +16289,11 @@ function toggleAiPanel(){
 }
 
 function _aiGreet(){
-  if(!_getAiKey()){
-    _aiAddMsg('bot',`👋 Привет! Я AI-ассистент по планированию.\n\nЧтобы начать, введи свой **OpenRouter API ключ**:\n\n1. Зайди на [openrouter.ai/keys](https://openrouter.ai/keys)\n2. Создай бесплатный ключ\n3. Вставь его ниже и нажми ✓`);
-    _aiShowKeySetup();
-    return;
-  }
   const hour=new Date().getHours();
   const greeting=hour<12?'Доброе утро':hour<17?'Добрый день':'Добрый вечер';
   const tasks=tpD().filter(t=>!t.done&&t.deadline===dk(t0()));
   const taskLine=tasks.length?`У тебя ${tasks.length} задач на сегодня.`:'На сегодня нет срочных задач.';
   _aiAddMsg('bot',`${greeting}! 👋 Я твой персональный AI-ассистент по планированию.\n\n${taskLine}\n\nСпроси меня о задачах, финансах, привычках или о том, как провести день эффективнее!`);
-}
-
-function _aiShowKeySetup(){
-  const box=document.getElementById('aiMessages');
-  if(!box)return;
-  const div=document.createElement('div');
-  div.id='aiKeySetup';
-  div.style.cssText='display:flex;gap:6px;padding:10px 14px 0;align-items:center';
-  div.innerHTML=`
-    <input id="aiKeyInp" type="password" placeholder="sk-or-v1-..." style="flex:1;background:var(--card2);border:1px solid var(--border2);border-radius:10px;padding:8px 12px;font-size:12px;color:var(--text);font-family:monospace;outline:none">
-    <button onclick="_aiSaveKey()" style="background:var(--green);border:none;border-radius:10px;color:#fff;padding:8px 12px;cursor:pointer;font-size:14px;font-weight:700">✓</button>`;
-  box.appendChild(div);
-  box.scrollTop=box.scrollHeight;
-}
-
-function _aiSaveKey(){
-  const inp=document.getElementById('aiKeyInp');
-  const k=(inp?.value||'').trim();
-  if(!k.startsWith('sk-')){
-    inp.style.borderColor='var(--red)';
-    setTimeout(()=>inp.style.borderColor='',1500);
-    return;
-  }
-  _setAiKey(k);
-  const setup=document.getElementById('aiKeySetup');
-  if(setup)setup.remove();
-  clearAiChat();
 }
 
 function _buildContext(){
@@ -16391,12 +16357,6 @@ async function sendAiMsg(){
   const inp=document.getElementById('aiInput');
   const text=(inp.value||'').trim();
   if(!text||_aiTyping)return;
-  const apiKey=_getAiKey();
-  if(!apiKey){
-    _aiAddMsg('bot','🔑 Сначала введи API ключ.');
-    _aiShowKeySetup();
-    return;
-  }
   inp.value='';inp.style.height='auto';
   _aiAddMsg('user',text);
   _aiTyping=true;
@@ -16421,9 +16381,10 @@ async function sendAiMsg(){
     const resp=await fetch('https://openrouter.ai/api/v1/chat/completions',{
       method:'POST',
       headers:{
-        'Authorization':'Bearer '+apiKey,
+        'Authorization':'Bearer '+AI_API_KEY,
         'Content-Type':'application/json',
-        'X-Title':'PlannerPro'
+        'HTTP-Referer':window.location.href,
+        'X-Title':'PlannerPro AI'
       },
       body:JSON.stringify({
         model:AI_MODEL,
@@ -16433,24 +16394,13 @@ async function sendAiMsg(){
       })
     });
 
-    if(!resp.ok){
-      const errBody=await resp.json().catch(()=>({}));
-      const errMsg=errBody?.error?.message||errBody?.message||'Неизвестная ошибка';
-      console.error('OpenRouter error',resp.status,errBody);
-      throw new Error(`${resp.status}: ${errMsg}`);
-    }
-
     const data=await resp.json();
-    const reply=data?.choices?.[0]?.message?.content||'Пустой ответ от AI.';
+    const reply=data?.choices?.[0]?.message?.content||'Извини, не смог ответить. Попробуй ещё раз.';
     _aiTyping=false;
     _aiAddMsg('bot',reply);
   }catch(e){
     _aiTyping=false;
-    const msg=e.message||'';
-    if(msg.includes('401'))_aiAddMsg('bot','⚠️ Ошибка авторизации (401) — API ключ недействителен или истёк. Обнови ключ в настройках.');
-    else if(msg.includes('429'))_aiAddMsg('bot','⏳ Превышен лимит запросов. Подожди минуту и попробуй снова.');
-    else if(msg.includes('402'))_aiAddMsg('bot','💳 Недостаточно кредитов на OpenRouter. Пополни баланс на openrouter.ai');
-    else _aiAddMsg('bot',`⚠️ Ошибка: ${msg||'Проверь интернет и попробуй снова.'}`);
+    _aiAddMsg('bot','⚠️ Ошибка подключения. Проверь интернет и попробуй снова.');
   }
   document.getElementById('aiSendBtn').disabled=false;
   document.getElementById('aiStatusLbl').textContent='Готов помочь';
@@ -16462,13 +16412,6 @@ function aiSuggest(text){
   if(inp){inp.value=text;sendAiMsg();}
 }
 
-function _aiChangeKey(){
-  localStorage.removeItem('ai_api_key');
-  _aiHistory=[];
-  _aiTyping=false;
-  const sug=document.getElementById('aiSuggestions');if(sug)sug.style.display='';
-  _aiGreet();
-}
 function clearAiChat(){
   _aiHistory=[];
   _aiTyping=false;
