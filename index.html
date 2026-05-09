@@ -1054,6 +1054,16 @@ select.inp option{background:var(--card2);color:var(--text)}
 .tGroupTooltip{position:fixed;z-index:999;background:var(--card2);border:1px solid var(--border2);border-radius:10px;padding:8px 10px;box-shadow:var(--shadow2);min-width:160px;pointer-events:none;animation:fadeIn .12s}
 .tpGroupBtn.tpGroupOn{background:var(--pdim2)!important;color:var(--p)!important;border:1px solid var(--p)!important;box-shadow:0 0 12px var(--pglow2)!important}
 .trOv td{background:rgba(248,113,113,.05)!important}.trTd td{background:rgba(251,146,60,.05)!important}.trSo td{background:rgba(245,158,11,.04)!important}.trDn td{background:rgba(45,212,166,.04)!important}
+/* Task group separator */
+.tGroupSepRow td{padding:10px 10px 4px;border:none!important;background:transparent!important}
+.tGroupSepInner{display:flex;align-items:center;gap:10px}
+.tGroupSepLine{flex:1;height:1px}
+.tGroupSepLabel{font-size:9.5px;font-weight:800;text-transform:uppercase;letter-spacing:1.2px;padding:3px 10px;border-radius:20px;white-space:nowrap;display:flex;align-items:center;gap:5px}
+.tGroupSepCount{font-size:9px;opacity:.7;font-weight:600;margin-left:2px}
+/* Mobile group separator */
+.mGroupSep{display:flex;align-items:center;gap:10px;padding:14px 4px 6px;margin-top:4px}
+.mGroupSepLabel{font-size:9.5px;font-weight:800;text-transform:uppercase;letter-spacing:1.2px;padding:3px 10px;border-radius:20px;white-space:nowrap;display:flex;align-items:center;gap:5px}
+.mGroupSepLine{flex:1;height:1px}
 .tCb{width:15px;height:15px;cursor:pointer;accent-color:var(--green);transition:transform .1s,opacity .15s;opacity:0}.tCb:hover{transform:scale(1.15)}.tTbl tbody tr:hover .tCb{opacity:1}.tCb:checked{opacity:1}
 .tNameInp{border:none;background:transparent;font-family:var(--font-body);font-size:12px;font-weight:700;color:var(--text);outline:none;width:100%}
 .tDateInp{border:1px solid var(--border2);border-radius:7px;padding:4px 7px;font-family:var(--font-mono);font-size:11px;outline:none;background:var(--card2);color:var(--text);color-scheme:dark;transition:border-color var(--dur) var(--ease)}
@@ -6552,12 +6562,56 @@ function renderTP(){
   const isMob=window.innerWidth<=700;
 
   if(!isMob){
-    // ── Desktop table ──
+    // ── Desktop table with date group separators ──
     const tbody=document.getElementById('tBody');tbody.innerHTML='';
+    const todayStr=dk(td);
+    const tomStr=(()=>{const d=new Date(td);d.setDate(d.getDate()+1);return dk(d);})();
+
+    function _getGroup(t){
+      const effInfo=getTaskListDueInfo(t,td);
+      if(effInfo&&effInfo.done)return'done';
+      if(!effInfo||!effInfo.dstr)return'noDl';
+      if(effInfo.diff<0)return'over';
+      if(effInfo.diff===0)return'today';
+      if(effInfo.diff===1)return'tom';
+      if(effInfo.diff<=6)return'week';
+      return'later';
+    }
+    const GROUP_META={
+      over:{label:'🔴 Просрочено',color:'var(--red)',bg:'rgba(248,113,113,.12)',line:'rgba(248,113,113,.3)'},
+      today:{label:'⚡ Сегодня',color:'var(--orange)',bg:'rgba(251,146,60,.15)',line:'rgba(251,146,60,.4)'},
+      tom:{label:'📅 Завтра',color:'var(--gold)',bg:'rgba(245,158,11,.12)',line:'rgba(245,158,11,.3)'},
+      week:{label:'📆 На этой неделе',color:'var(--p)',bg:'rgba(155,143,245,.1)',line:'rgba(155,143,245,.25)'},
+      later:{label:'🗓 Позже',color:'var(--muted)',bg:'rgba(255,255,255,.06)',line:'rgba(255,255,255,.1)'},
+      noDl:{label:'📋 Без срока',color:'var(--muted)',bg:'rgba(255,255,255,.05)',line:'rgba(255,255,255,.08)'},
+      done:{label:'✅ Выполнено',color:'var(--green)',bg:'rgba(15,221,170,.08)',line:'rgba(15,221,170,.2)'},
+    };
+    const GROUP_ORDER=['over','today','tom','week','later','noDl','done'];
+    const groupCounts={};
+    filtered.forEach(t=>{const g=_getGroup(t);groupCounts[g]=(groupCounts[g]||0)+1;});
+    let lastGroup=null;
+    let rowNum=0;
     filtered.forEach((t,i)=>{
+      const grp=_getGroup(t);
+      if(grp!==lastGroup){
+        lastGroup=grp;
+        const m=GROUP_META[grp];
+        const cnt=groupCounts[grp]||0;
+        const sepTr=document.createElement('tr');
+        sepTr.className='tGroupSepRow';
+        sepTr.innerHTML=`<td colspan="8">
+          <div class="tGroupSepInner">
+            <span class="tGroupSepLabel" style="background:${m.bg};color:${m.color};border:1px solid ${m.line}">
+              ${m.label}<span class="tGroupSepCount">${cnt}</span>
+            </span>
+            <div class="tGroupSepLine" style="background:${m.line}"></div>
+          </div>
+        </td>`;
+        tbody.appendChild(sepTr);
+      }
+      rowNum++;
       const realIdx=tasks.indexOf(t);
       const tr=document.createElement('tr');
-      // Use effective due info (handles recurring correctly)
       const effInfo=getTaskListDueInfo(t,td);
       const effDstr=effInfo?effInfo.dstr:(t.deadline||'');
       const effDiff=effInfo?effInfo.diff:null;
@@ -6589,7 +6643,7 @@ function renderTP(){
       const stPill=stMiniHtml(t);
       const timeDisplay=t.time?`<span style="font-family:var(--font-mono);font-size:10.5px;color:var(--p);font-weight:600">${t.time}${t.endTime?' – '+t.endTime:''}</span>`:'<span style="color:var(--border3)">—</span>';
       tr.innerHTML=`
-        <td style="color:var(--muted);font-size:10px;padding-left:10px">${i+1}</td>
+        <td style="color:var(--muted);font-size:10px;padding-left:10px">${rowNum}</td>
         <td><input type="checkbox" class="tCb" ${effDone?'checked':''} onchange="toggleTById('${t.id}',this.checked,this)"></td>
         <td style="cursor:pointer" onclick="openTaskModal('${t.id}')">
           <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
@@ -6605,14 +6659,46 @@ function renderTP(){
       tbody.appendChild(tr);
     });
   } else {
-    // ── Mobile card view ──
+    // ── Mobile card view with group separators ──
     const mob=document.getElementById('tBodyMobile');mob.innerHTML='';
+    const GROUP_META_M={
+      over:{label:'🔴 Просрочено',color:'var(--red)',bg:'rgba(248,113,113,.12)',line:'rgba(248,113,113,.3)'},
+      today:{label:'⚡ Сегодня',color:'var(--orange)',bg:'rgba(251,146,60,.15)',line:'rgba(251,146,60,.4)'},
+      tom:{label:'📅 Завтра',color:'var(--gold)',bg:'rgba(245,158,11,.12)',line:'rgba(245,158,11,.3)'},
+      week:{label:'📆 На неделе',color:'var(--p)',bg:'rgba(155,143,245,.1)',line:'rgba(155,143,245,.25)'},
+      later:{label:'🗓 Позже',color:'var(--muted)',bg:'rgba(255,255,255,.06)',line:'rgba(255,255,255,.1)'},
+      noDl:{label:'📋 Без срока',color:'var(--muted)',bg:'rgba(255,255,255,.05)',line:'rgba(255,255,255,.08)'},
+      done:{label:'✅ Выполнено',color:'var(--green)',bg:'rgba(15,221,170,.08)',line:'rgba(15,221,170,.2)'},
+    };
+    function _getGroupM(t){
+      const effInfo=getTaskListDueInfo(t,td);
+      if(effInfo&&effInfo.done)return'done';
+      if(!effInfo||!effInfo.dstr)return'noDl';
+      if(effInfo.diff<0)return'over';
+      if(effInfo.diff===0)return'today';
+      if(effInfo.diff===1)return'tom';
+      if(effInfo.diff<=6)return'week';
+      return'later';
+    }
+    const groupCountsM={};
+    filtered.forEach(t=>{const g=_getGroupM(t);groupCountsM[g]=(groupCountsM[g]||0)+1;});
+    let lastGroupM=null;
     filtered.forEach((t,i)=>{
+      const grp=_getGroupM(t);
+      if(grp!==lastGroupM){
+        lastGroupM=grp;
+        const m=GROUP_META_M[grp];
+        const cnt=groupCountsM[grp]||0;
+        const sep=document.createElement('div');
+        sep.className='mGroupSep';
+        sep.innerHTML=`<span class="mGroupSepLabel" style="background:${m.bg};color:${m.color};border:1px solid ${m.line}">${m.label}<span style="font-size:9px;opacity:.7;margin-left:3px;font-weight:600">${cnt}</span></span>
+          <div class="mGroupSepLine" style="background:${m.line}"></div>`;
+        mob.appendChild(sep);
+      }
       const realIdx=tasks.indexOf(t);
       const taskLbls=getTaskLabels(t);
       const label=taskLbls[0]||null;
       const col=label?label.color:'transparent';
-      // Use effective due info (handles recurring correctly)
       const effInfoM=getTaskListDueInfo(t,td);
       const effDstrM=effInfoM?effInfoM.dstr:(t.deadline||'');
       const effDiffM=effInfoM?effInfoM.diff:null;
@@ -6625,7 +6711,6 @@ function renderTP(){
       const div=document.createElement('div');
       div.className=cls;
       div.style.borderLeft=`3px solid ${col||'var(--border)'}`;
-      // date display
       let dateStr='';
       if(effDstrM&&effDiffM!==null){
         const dl=new Date(effDstrM+'T00:00:00');
@@ -6651,7 +6736,6 @@ function renderTP(){
       div.addEventListener('click',e=>{if(e.target.classList.contains('mTaskCb')||e.target.tagName==='BUTTON')return;openTaskModal(t.id);});
       mob.appendChild(div);
     });
-    // Add task button on mobile
     const addDiv=document.createElement('div');
     addDiv.innerHTML=`<button class="dAddTask" style="width:100%;padding:12px;font-size:13px;border-radius:10px" onclick="openTaskModal(-1)">＋ Добавить задачу</button>`;
     mob.appendChild(addDiv);
@@ -6786,24 +6870,53 @@ async function delRecurringTask(id, dstr){
   const t=tpD().find(x=>x.id===id);
   if(!t)return;
   if(!t.repeat){
-    // Not recurring — just delete normally
     delTById(id);
     return;
   }
-  const scope=await showRecurringDialog(t.text,'delete',dstr);
-  if(!scope)return; // cancelled
-  if(scope==='all'){
+  // Simple 3-choice native dialog instead of overlay (overlay had z-index/visibility issues)
+  const taskName=t.text||'задачу';
+  const choice=await _showDelChoicePopup(taskName, dstr);
+  if(!choice)return;
+  if(choice==='all'){
     delTById(id);
-  } else if(scope==='one'){
-    // Add this date to exceptions
+  } else if(choice==='one'&&dstr){
     if(!t.exceptions)t.exceptions=[];
     if(!t.exceptions.includes(dstr))t.exceptions.push(dstr);
     saveD();_refreshAllTaskViews();
-  } else if(scope==='future'){
-    // Stop repeating before this date (set repeatEnd to day before)
+  } else if(choice==='future'&&dstr){
     t.repeatEnd=_prevDstr(dstr);
     saveD();_refreshAllTaskViews();
   }
+}
+
+function _showDelChoicePopup(taskName, dstr){
+  return new Promise(resolve=>{
+    // Remove any existing popup
+    const old=document.getElementById('_delChoicePopup');if(old)old.remove();
+    const dateLabel=dstr?` (${dstr.split('-').reverse().join('.')})` : '';
+    const div=document.createElement('div');
+    div.id='_delChoicePopup';
+    div.style.cssText='position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.7);display:flex;align-items:center;justify-content:center;backdrop-filter:blur(6px)';
+    div.innerHTML=`<div style="background:var(--card);border:1px solid var(--border2);border-radius:18px;padding:24px 22px;max-width:340px;width:90%;box-shadow:0 20px 60px rgba(0,0,0,.6)">
+      <div style="font-size:15px;font-weight:800;color:var(--text);margin-bottom:6px;font-family:var(--font-display)">Удалить повторяющуюся задачу?</div>
+      <div style="font-size:11px;color:var(--text2);margin-bottom:20px;line-height:1.5">«${taskName}»${dateLabel}</div>
+      <div style="display:flex;flex-direction:column;gap:8px">
+        ${dstr?`<button onclick="this.closest('#_delChoicePopup')._resolve('one')" style="text-align:left;border:1px solid var(--border2);background:var(--card2);color:var(--text);border-radius:12px;padding:11px 14px;cursor:pointer;font-size:12px;font-weight:600;font-family:var(--font-body);transition:.15s" onmouseover="this.style.borderColor='var(--p)'" onmouseout="this.style.borderColor='var(--border2)'">
+          <div>🗓 Только эту</div><div style="font-size:10px;color:var(--muted);font-weight:400;margin-top:2px">Удалить только это вхождение</div>
+        </button>`:''}
+        ${dstr?`<button onclick="this.closest('#_delChoicePopup')._resolve('future')" style="text-align:left;border:1px solid var(--border2);background:var(--card2);color:var(--text);border-radius:12px;padding:11px 14px;cursor:pointer;font-size:12px;font-weight:600;font-family:var(--font-body);transition:.15s" onmouseover="this.style.borderColor='var(--gold)'" onmouseout="this.style.borderColor='var(--border2)'">
+          <div>⏩ Эту и будущие</div><div style="font-size:10px;color:var(--muted);font-weight:400;margin-top:2px">Остановить повторение с этой даты</div>
+        </button>`:''}
+        <button onclick="this.closest('#_delChoicePopup')._resolve('all')" style="text-align:left;border:1px solid rgba(248,113,113,.4);background:rgba(248,113,113,.08);color:var(--red);border-radius:12px;padding:11px 14px;cursor:pointer;font-size:12px;font-weight:600;font-family:var(--font-body);transition:.15s" onmouseover="this.style.background='rgba(248,113,113,.15)'" onmouseout="this.style.background='rgba(248,113,113,.08)'">
+          <div>🗑 Удалить все повторения</div><div style="font-size:10px;color:var(--muted);font-weight:400;margin-top:2px">Полностью убрать задачу</div>
+        </button>
+        <button onclick="this.closest('#_delChoicePopup')._resolve(null)" style="border:1px solid var(--border);background:transparent;color:var(--muted);border-radius:12px;padding:9px 14px;cursor:pointer;font-size:11px;font-family:var(--font-body)">Отмена</button>
+      </div>
+    </div>`;
+    div._resolve=(val)=>{div.remove();resolve(val);};
+    div.addEventListener('click',e=>{if(e.target===div){div.remove();resolve(null);}});
+    document.body.appendChild(div);
+  });
 }
 
 function tmSelRepeat(v){
