@@ -1408,8 +1408,56 @@ select.inp option{background:var(--card2);color:var(--text)}
 .cmdFooter{padding:10px 18px;border-top:1px solid var(--border);display:flex;gap:16px;font-size:10.5px;color:var(--muted)}
 .cmdFooter kbd{background:var(--card3);border:1px solid var(--border);border-radius:4px;padding:1px 6px;font-family:var(--font-mono);font-size:9px;margin:0 2px}
 
-/* Quick add floating button */
-#quickAddBtn{
+/* ── AI Assistant ── */
+#aiBtn{
+  position:fixed;bottom:88px;right:20px;z-index:500;
+  width:50px;height:50px;border-radius:16px;
+  background:linear-gradient(135deg,#7B5EA7,#22CCE8);
+  border:none;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  font-size:22px;color:#fff;
+  box-shadow:0 4px 20px rgba(34,204,232,.4),0 0 0 1px rgba(255,255,255,.15) inset;
+  transition:all .2s;
+}
+#aiBtn:hover{transform:scale(1.1);box-shadow:0 6px 28px rgba(34,204,232,.6)}
+#aiBtn .aiBadge{position:absolute;top:-4px;right:-4px;width:14px;height:14px;border-radius:50%;background:var(--green);border:2px solid var(--bg);display:none}
+#aiPanel{
+  position:fixed;bottom:0;right:0;z-index:800;
+  width:380px;max-width:100vw;
+  height:580px;max-height:90vh;
+  background:var(--card);
+  border:1px solid var(--border2);
+  border-radius:22px 22px 0 0;
+  display:flex;flex-direction:column;
+  box-shadow:0 -8px 40px rgba(0,0,0,.5);
+  transform:translateY(100%);
+  transition:transform .3s cubic-bezier(.4,0,.2,1);
+}
+#aiPanel.open{transform:translateY(0)}
+@media(max-width:600px){#aiBtn{bottom:76px;right:14px}#aiPanel{width:100vw;border-radius:20px 20px 0 0}}
+.aiPanelHead{display:flex;align-items:center;gap:10px;padding:14px 16px 10px;border-bottom:1px solid var(--border);flex-shrink:0}
+.aiAvatar{width:36px;height:36px;border-radius:12px;background:linear-gradient(135deg,#7B5EA7,#22CCE8);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.aiPanelTitle{font-size:14px;font-weight:800;color:var(--text);font-family:var(--font-display)}
+.aiPanelSub{font-size:10px;color:var(--muted);margin-top:1px}
+.aiMessages{flex:1;overflow-y:auto;padding:12px 14px;display:flex;flex-direction:column;gap:10px;scroll-behavior:smooth}
+.aiMsg{display:flex;gap:8px;align-items:flex-end;max-width:100%}
+.aiMsg.user{flex-direction:row-reverse}
+.aiMsgBubble{padding:10px 13px;border-radius:16px;font-size:12.5px;line-height:1.55;max-width:82%;word-break:break-word}
+.aiMsg.bot .aiMsgBubble{background:var(--card2);border:1px solid var(--border);color:var(--text);border-radius:4px 16px 16px 16px}
+.aiMsg.user .aiMsgBubble{background:linear-gradient(135deg,#7B5EA7,#5B8DF5);color:#fff;border-radius:16px 4px 16px 16px}
+.aiMsg.bot .aiMsgAvatar{width:26px;height:26px;border-radius:8px;background:linear-gradient(135deg,#7B5EA7,#22CCE8);display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0}
+.aiTyping{display:flex;gap:4px;padding:10px 14px;align-items:center}
+.aiTyping span{width:6px;height:6px;border-radius:50%;background:var(--muted);animation:aiDot 1.2s infinite}
+.aiTyping span:nth-child(2){animation-delay:.2s}.aiTyping span:nth-child(3){animation-delay:.4s}
+@keyframes aiDot{0%,80%,100%{transform:scale(.6);opacity:.4}40%{transform:scale(1);opacity:1}}
+.aiInputRow{display:flex;gap:8px;padding:10px 12px;border-top:1px solid var(--border);flex-shrink:0;background:var(--card);border-radius:0 0 0 0}
+.aiInput{flex:1;background:var(--card2);border:1px solid var(--border);border-radius:12px;padding:9px 12px;font-size:12.5px;color:var(--text);font-family:var(--font-body);resize:none;outline:none;max-height:80px;overflow-y:auto;line-height:1.4}
+.aiInput:focus{border-color:var(--p)}
+.aiSendBtn{width:38px;height:38px;border-radius:11px;background:var(--p);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:16px;color:#fff;flex-shrink:0;transition:.15s}
+.aiSendBtn:hover{background:var(--pdark)}.aiSendBtn:disabled{opacity:.4;cursor:not-allowed}
+.aiSuggestions{display:flex;gap:6px;padding:8px 12px 0;flex-wrap:wrap;flex-shrink:0}
+.aiSugPill{background:var(--card2);border:1px solid var(--border2);color:var(--text2);font-size:11px;padding:5px 10px;border-radius:20px;cursor:pointer;transition:.15s;white-space:nowrap;font-family:var(--font-body)}
+.aiSugPill:hover{border-color:var(--p);color:var(--p)}
   position:fixed;bottom:24px;right:24px;z-index:400;
   width:48px;height:48px;border-radius:14px;
   background:var(--p);
@@ -3011,6 +3059,37 @@ body.light-mode .skel{background:linear-gradient(90deg,var(--card2) 25%,#f0f2f7 
 </div>
 
 <!-- ══ QUICK ADD FAB ══ -->
+<!-- ═══ AI ASSISTANT ═══ -->
+<button id="aiBtn" onclick="toggleAiPanel()" title="AI Ассистент">
+  🤖
+  <div class="aiBadge" id="aiBadge"></div>
+</button>
+
+<div id="aiPanel">
+  <div class="aiPanelHead">
+    <div class="aiAvatar">🤖</div>
+    <div style="flex:1">
+      <div class="aiPanelTitle">AI Ассистент</div>
+      <div class="aiPanelSub" id="aiStatusLbl">Готов помочь с планированием</div>
+    </div>
+    <button onclick="clearAiChat()" title="Очистить" style="border:none;background:none;color:var(--muted);cursor:pointer;font-size:14px;padding:4px 6px;border-radius:8px;transition:.15s" onmouseover="this.style.color='var(--red)'" onmouseout="this.style.color='var(--muted)'">🗑</button>
+    <button onclick="toggleAiPanel()" style="border:none;background:none;color:var(--muted);cursor:pointer;font-size:18px;padding:4px 6px;line-height:1">×</button>
+  </div>
+  <div class="aiSuggestions" id="aiSuggestions">
+    <span class="aiSugPill" onclick="aiSuggest('Что мне сделать сегодня?')">📋 Что делать сегодня?</span>
+    <span class="aiSugPill" onclick="aiSuggest('Проанализируй мои финансы')">💰 Анализ финансов</span>
+    <span class="aiSugPill" onclick="aiSuggest('Помоги расставить приоритеты')">🎯 Приоритеты</span>
+    <span class="aiSugPill" onclick="aiSuggest('Что я выполнил на этой неделе?')">✅ Итоги недели</span>
+  </div>
+  <div class="aiMessages" id="aiMessages"></div>
+  <div class="aiInputRow">
+    <textarea class="aiInput" id="aiInput" placeholder="Спроси что-нибудь..." rows="1"
+      onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendAiMsg()}"
+      oninput="this.style.height='auto';this.style.height=Math.min(this.scrollHeight,80)+'px'"></textarea>
+    <button class="aiSendBtn" id="aiSendBtn" onclick="sendAiMsg()">➤</button>
+  </div>
+</div>
+
 <button id="quickAddBtn" onclick="openCmdPalette()" title="Команды (⌘K)">＋</button>
 <div class="bg-glow"></div>
 <div class="bg-glow-mid"></div>
@@ -16189,6 +16268,164 @@ function renderPomodoro(){
     pomUpdateTimerDisplay();
   }
 }
+
+// ════════════════════════════════════════════════
+// AI ASSISTANT
+// ════════════════════════════════════════════════
+const AI_API_KEY='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';
+const AI_MODEL='openai/gpt-4o-mini';
+let _aiOpen=false;
+let _aiHistory=[]; // {role,content}
+let _aiTyping=false;
+
+function toggleAiPanel(){
+  _aiOpen=!_aiOpen;
+  const panel=document.getElementById('aiPanel');
+  panel.classList.toggle('open',_aiOpen);
+  if(_aiOpen){
+    if(_aiHistory.length===0) _aiGreet();
+    setTimeout(()=>document.getElementById('aiInput')?.focus(),300);
+  }
+}
+
+function _aiGreet(){
+  const hour=new Date().getHours();
+  const greeting=hour<12?'Доброе утро':hour<17?'Добрый день':'Добрый вечер';
+  const tasks=tpD().filter(t=>!t.done&&t.deadline===dk(t0()));
+  const taskLine=tasks.length?`У тебя ${tasks.length} задач на сегодня.`:'На сегодня нет срочных задач.';
+  _aiAddMsg('bot',`${greeting}! 👋 Я твой персональный AI-ассистент по планированию.\n\n${taskLine}\n\nСпроси меня о задачах, финансах, привычках или о том, как провести день эффективнее!`);
+}
+
+function _buildContext(){
+  try{
+    const today=dk(t0());
+    const tasks=tpD();
+    const todayTasks=tasks.filter(t=>t.deadline===today||taskAppearsOnDate(t,today));
+    const overdue=tasks.filter(t=>!t.done&&t.deadline&&t.deadline<today);
+    const upcoming=tasks.filter(t=>!t.done&&t.deadline&&t.deadline>today).slice(0,5);
+
+    const txs=finTxD?finTxD():[]; 
+    const thisMonth=dk(t0()).slice(0,7);
+    const monthTxs=txs.filter(t=>t.date&&t.date.startsWith(thisMonth));
+    const income=monthTxs.filter(t=>t.type==='in').reduce((s,t)=>s+Number(t.amount),0);
+    const expense=monthTxs.filter(t=>t.type==='out').reduce((s,t)=>s+Number(t.amount),0);
+
+    const habits=htD?htD():[];
+    const todayHabits=habits.map(h=>`${h.done?'✅':'⬜'} ${h.name}`).join(', ');
+
+    const goals=G.goals?G.goals.slice(0,3).map(g=>`"${g.title}" (${g.status||'активна'})`).join(', '):'нет';
+
+    return `Контекст пользователя (${new Date().toLocaleDateString('ru-RU',{weekday:'long',day:'numeric',month:'long'})}):
+
+ЗАДАЧИ СЕГОДНЯ (${todayTasks.length}): ${todayTasks.slice(0,6).map(t=>`${t.done||t.doneDates?.includes(today)?'✅':'⬜'} ${t.text}`).join(' | ')||'нет'}
+ПРОСРОЧЕННЫЕ: ${overdue.slice(0,4).map(t=>t.text).join(', ')||'нет'}
+БЛИЖАЙШИЕ: ${upcoming.map(t=>`${t.text} (${t.deadline})`).join(' | ')||'нет'}
+ПРИВЫЧКИ: ${todayHabits||'не настроены'}
+ФИНАНСЫ МЕСЯЦА: доходы ${income.toLocaleString('ru')}, расходы ${expense.toLocaleString('ru')}, баланс ${(income-expense).toLocaleString('ru')}
+ЦЕЛИ: ${goals}
+
+Ты — персональный помощник по планированию. Отвечай кратко (3-5 предложений), по-русски, дружелюбно и по делу. Давай конкретные советы основываясь на данных выше. Используй эмодзи умеренно.`;
+  }catch(e){
+    return'Ты персональный ассистент по планированию. Отвечай по-русски кратко и по делу.';
+  }
+}
+
+function _aiAddMsg(role,text){
+  _aiHistory.push({role,content:text});
+  _aiRenderMessages();
+}
+
+function _aiRenderMessages(){
+  const box=document.getElementById('aiMessages');
+  if(!box)return;
+  box.innerHTML=_aiHistory.map(m=>{
+    const isBot=m.role==='bot'||m.role==='assistant';
+    const txt=m.content.replace(/\n/g,'<br>');
+    if(isBot){
+      return`<div class="aiMsg bot"><div class="aiMsgAvatar">🤖</div><div class="aiMsgBubble">${txt}</div></div>`;
+    }else{
+      return`<div class="aiMsg user"><div class="aiMsgBubble">${txt}</div></div>`;
+    }
+  }).join('');
+  if(_aiTyping){
+    box.innerHTML+=`<div class="aiMsg bot" id="aiTypingRow"><div class="aiMsgAvatar">🤖</div><div class="aiMsgBubble" style="padding:8px 14px"><div class="aiTyping"><span></span><span></span><span></span></div></div></div>`;
+  }
+  box.scrollTop=box.scrollHeight;
+}
+
+async function sendAiMsg(){
+  const inp=document.getElementById('aiInput');
+  const text=(inp.value||'').trim();
+  if(!text||_aiTyping)return;
+  inp.value='';inp.style.height='auto';
+  _aiAddMsg('user',text);
+  _aiTyping=true;
+  document.getElementById('aiSendBtn').disabled=true;
+  document.getElementById('aiStatusLbl').textContent='Думаю...';
+  _aiRenderMessages();
+
+  // Hide suggestions after first message
+  const sug=document.getElementById('aiSuggestions');
+  if(sug&&_aiHistory.filter(m=>m.role==='user').length===1)sug.style.display='none';
+
+  try{
+    const systemPrompt=_buildContext();
+    const messages=[
+      {role:'system',content:systemPrompt},
+      ..._aiHistory.filter(m=>m.role==='user'||m.role==='assistant').slice(-10).map(m=>({
+        role:m.role==='bot'?'assistant':m.role,
+        content:m.content
+      }))
+    ];
+
+    const resp=await fetch('https://openrouter.ai/api/v1/chat/completions',{
+      method:'POST',
+      headers:{
+        'Authorization':'Bearer '+AI_API_KEY,
+        'Content-Type':'application/json',
+        'HTTP-Referer':window.location.href,
+        'X-Title':'PlannerPro AI'
+      },
+      body:JSON.stringify({
+        model:AI_MODEL,
+        messages,
+        max_tokens:500,
+        temperature:0.7
+      })
+    });
+
+    const data=await resp.json();
+    const reply=data?.choices?.[0]?.message?.content||'Извини, не смог ответить. Попробуй ещё раз.';
+    _aiTyping=false;
+    _aiAddMsg('bot',reply);
+  }catch(e){
+    _aiTyping=false;
+    _aiAddMsg('bot','⚠️ Ошибка подключения. Проверь интернет и попробуй снова.');
+  }
+  document.getElementById('aiSendBtn').disabled=false;
+  document.getElementById('aiStatusLbl').textContent='Готов помочь';
+  _aiRenderMessages();
+}
+
+function aiSuggest(text){
+  const inp=document.getElementById('aiInput');
+  if(inp){inp.value=text;sendAiMsg();}
+}
+
+function clearAiChat(){
+  _aiHistory=[];
+  _aiTyping=false;
+  const sug=document.getElementById('aiSuggestions');
+  if(sug)sug.style.display='';
+  _aiGreet();
+}
+
+// Close AI panel on outside click
+document.addEventListener('click',e=>{
+  if(_aiOpen&&!e.target.closest('#aiPanel')&&!e.target.closest('#aiBtn')){
+    toggleAiPanel();
+  }
+});
 </script>
 
 </div><!-- /appWrap -->
