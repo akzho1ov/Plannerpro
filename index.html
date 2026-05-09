@@ -1426,7 +1426,7 @@ select.inp option{background:var(--card2);color:var(--text)}
 /* ══════════════════════════════
    6. FINANCE
 ══════════════════════════════ */
-.finMonNav{display:flex;align-items:center;gap:8px;margin-bottom:16px;flex-wrap:wrap}
+.finMonNav{display:flex;align-items:center;gap:8px;margin-bottom:12px}
 .finMonName{font-family:var(--font-display);font-size:24px;font-weight:800;font-style:italic;color:var(--gold);text-shadow:0 0 20px rgba(240,171,48,.3)}
 /* Finance search bar */
 .finSearchBar{display:flex;align-items:center;gap:8px;margin-bottom:12px;flex-wrap:wrap}
@@ -2808,12 +2808,9 @@ body.light-mode .skel{background:linear-gradient(90deg,var(--card2) 25%,#f0f2f7 
   #missionHorizonPills > div{padding:3px 8px}
 
   /* ── Finance ── */
-  .finSummaryGrid{grid-template-columns:1fr 1fr;gap:8px}
-  .finLayout2{grid-template-columns:1fr}
   .finSumCard{padding:12px 12px;border-radius:12px}
-  #finAccountsRow{grid-template-columns:repeat(auto-fill,minmax(110px,1fr))!important;gap:6px!important}
-  .finMonNav > div:last-child{width:100%;display:grid!important;grid-template-columns:1fr 1fr!important;gap:6px!important}
-  .finMonNav > div:last-child .btn{justify-content:center;font-size:11px!important;padding:7px 8px!important}
+  #finAccountsRow{grid-template-columns:repeat(2,1fr)!important;gap:6px!important}
+  .finCatSpendCard{border-radius:14px}
 
   /* ── Habit tracker — horizontal scroll ── */
   #htTbl{min-width:580px}
@@ -3793,87 +3790,109 @@ body.light-mode .skel{background:linear-gradient(90deg,var(--card2) 25%,#f0f2f7 
     </div>
     <div class="paneHeadActions" id="finHeadActions" style="display:none"></div>
   </header>
+  <!-- Month nav + action buttons -->
   <div class="finMonNav">
-    <button class="btn btnG" onclick="finNav(-1)" style="padding:7px 12px;font-size:14px">◀</button>
-    <div class="finMonName" id="finMonName"></div>
-    <button class="btn btnG" onclick="finNav(1)" style="padding:7px 12px;font-size:14px">▶</button>
-    <div style="margin-left:auto;display:flex;gap:7px;flex-wrap:wrap">
-      <button class="btn btnO" style="font-size:12px;padding:8px 14px;font-weight:700" onclick="openFinModal()">＋ Транзакция</button>
-      <button class="btn btnB" style="font-size:12px;padding:8px 14px;font-weight:700" onclick="openTransferModal()">↔ Перевод</button>
-      <button class="btn btnG" style="font-size:12px;padding:8px 14px;font-weight:700" onclick="openAccountModal(null)">🏦 Счета</button>
-      <button class="btn btnG" style="font-size:12px;padding:8px 14px;font-weight:700" onclick="openFinCatsModal()">🏷 Категории</button>
+    <button class="btn btnG" onclick="finNav(-1)" style="padding:8px 13px;font-size:15px;flex-shrink:0">◀</button>
+    <div class="finMonName" id="finMonName" style="flex:1;text-align:center"></div>
+    <button class="btn btnG" onclick="finNav(1)" style="padding:8px 13px;font-size:15px;flex-shrink:0">▶</button>
+  </div>
+  <!-- Primary actions -->
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
+    <button class="btn btnO" style="font-size:13px;padding:11px 8px;font-weight:800;border-radius:14px" onclick="openFinModal()">＋ Транзакция</button>
+    <button class="btn btnB" style="font-size:13px;padding:11px 8px;font-weight:800;border-radius:14px" onclick="openTransferModal()">↔ Перевод</button>
+  </div>
+  <!-- Secondary actions -->
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px">
+    <button class="btn btnG" style="font-size:12px;padding:9px 8px;border-radius:12px" onclick="openAccountModal(null)">🏦 Счета</button>
+    <button class="btn btnG" style="font-size:12px;padding:9px 8px;border-radius:12px" onclick="openFinCatsModal()">🏷 Категории</button>
+  </div>
+
+  <!-- Summary: Доход + Расходы row, then Баланс full -->
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
+    <div class="finSumCard" style="background:linear-gradient(135deg,rgba(15,221,170,.1),var(--card));border-color:rgba(15,221,170,.2)">
+      <div class="finSumLbl" style="color:var(--green)">📈 Доходы</div>
+      <div class="finSumVal finInc" id="finIncVal" style="font-size:22px">0</div>
+      <div class="finSumSub">за месяц</div>
+    </div>
+    <div class="finSumCard" style="background:linear-gradient(135deg,rgba(248,113,113,.1),var(--card));border-color:rgba(248,113,113,.2)">
+      <div class="finSumLbl" style="color:var(--red)">📉 Расходы</div>
+      <div class="finSumVal finExp" id="finExpVal" style="font-size:22px">0</div>
+      <div class="finSumSub">за месяц</div>
     </div>
   </div>
-  <!-- Summary cards -->
-  <div class="finSummaryGrid">
-    <div class="finSumCard"><div class="finSumLbl">Доходы</div><div class="finSumVal finInc" id="finIncVal">0</div><div class="finSumSub" id="finIncAcct">за месяц</div></div>
-    <div class="finSumCard"><div class="finSumLbl">Расходы</div><div class="finSumVal finExp" id="finExpVal">0</div><div class="finSumSub">за месяц</div></div>
-    <div class="finSumCard"><div class="finSumLbl">Баланс</div><div class="finSumVal finBal" id="finBalVal">0</div><div class="finSumSub">остаток</div></div>
+  <div class="finSumCard" style="margin-bottom:14px;background:linear-gradient(135deg,rgba(155,143,245,.1),var(--card));border-color:rgba(155,143,245,.2);display:flex;align-items:center;justify-content:space-between;padding:14px 18px">
+    <div>
+      <div class="finSumLbl" style="color:var(--p)">💼 Баланс</div>
+      <div class="finSumSub">остаток на счетах</div>
+    </div>
+    <div class="finSumVal finBal" id="finBalVal" style="font-size:26px;font-weight:900">0</div>
   </div>
+
   <!-- Accounts row -->
-  <div id="finAccountsRow" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:8px;margin-bottom:12px"></div>
+  <div id="finAccountsRow" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:8px;margin-bottom:14px"></div>
+
+  <!-- Expense category breakdown — ABOVE chart on mobile -->
+  <div class="card finCatSpendCard" style="padding:14px 16px;margin-bottom:12px">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+      <div class="secLbl" style="margin:0">📊 Расходы по категориям</div>
+      <button onclick="exportFinCSV()" style="border:none;background:var(--card2);border:1px solid var(--border);color:var(--muted);font-size:10px;font-weight:700;cursor:pointer;padding:4px 10px;border-radius:7px;transition:.15s">📥 CSV</button>
+    </div>
+    <div id="finCatList" class="finCatList"></div>
+  </div>
+
+  <!-- Budget by categories -->
+  <div class="finBudgetWrap" style="margin-bottom:12px">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+      <span class="cardTitle" style="flex:1">🎯 Бюджет / Лимиты</span>
+      <button class="btn btnG" style="font-size:10.5px;padding:5px 10px" onclick="openCatBudgetModal()">⚙ Настроить</button>
+    </div>
+    <div id="finCatBudgetList" class="finCatList"></div>
+  </div>
+
   <!-- Income/Expense Line Chart -->
   <div class="card" style="padding:14px 16px;margin-bottom:12px">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;flex-wrap:wrap;gap:8px">
-      <div class="secLbl" style="margin:0">Доходы и расходы</div>
-      <div style="display:flex;gap:4px">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;flex-wrap:wrap;gap:6px">
+      <div class="secLbl" style="margin:0">📈 Доходы и расходы</div>
+      <div style="display:flex;gap:4px;flex-wrap:wrap">
         <button class="finPeriodBtn active" data-period="week" onclick="setFinChartPeriod('week',this)">Неделя</button>
         <button class="finPeriodBtn" data-period="month3" onclick="setFinChartPeriod('month3',this)">3 мес.</button>
         <button class="finPeriodBtn" data-period="month6" onclick="setFinChartPeriod('month6',this)">6 мес.</button>
         <button class="finPeriodBtn" data-period="year" onclick="setFinChartPeriod('year',this)">Год</button>
       </div>
-      <div style="display:flex;gap:10px;font-size:10px;font-weight:700">
-        <span style="display:flex;align-items:center;gap:4px"><span style="display:inline-block;width:10px;height:3px;background:var(--green);border-radius:2px"></span>Доходы</span>
-        <span style="display:flex;align-items:center;gap:4px"><span style="display:inline-block;width:10px;height:3px;background:var(--red);border-radius:2px"></span>Расходы</span>
-      </div>
+    </div>
+    <div style="display:flex;gap:12px;font-size:10px;font-weight:700;margin-bottom:10px">
+      <span style="display:flex;align-items:center;gap:4px"><span style="display:inline-block;width:12px;height:3px;background:var(--green);border-radius:2px"></span>Доходы</span>
+      <span style="display:flex;align-items:center;gap:4px"><span style="display:inline-block;width:12px;height:3px;background:var(--red);border-radius:2px"></span>Расходы</span>
     </div>
     <canvas id="finLineChart" height="100" style="width:100%;display:block"></canvas>
   </div>
+
   <!-- Expense Pie Chart -->
   <div class="card" style="padding:14px 16px;margin-bottom:12px">
-    <div class="secLbl" style="margin-bottom:12px">Структура расходов</div>
+    <div class="secLbl" style="margin-bottom:12px">🥧 Структура расходов</div>
     <div style="display:flex;align-items:center;gap:20px;flex-wrap:wrap">
       <canvas id="finPieChart" width="160" height="160" style="flex-shrink:0;margin:0 auto"></canvas>
       <div id="finPieLegend" style="flex:1;min-width:140px;display:flex;flex-direction:column;gap:6px"></div>
     </div>
   </div>
-  <!-- Budget by categories -->
-  <div class="finBudgetWrap" style="margin-bottom:12px">
-    <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:10px">
-      <span class="cardTitle" style="flex:1">Бюджет по категориям</span>
-      <button class="btn btnG" style="font-size:10.5px;padding:5px 10px" onclick="openCatBudgetModal()">⚙ Лимиты</button>
+
+  <!-- Transactions -->
+  <div>
+    <div class="finSearchBar" style="margin-bottom:8px">
+      <div class="finSearchWrap">
+        <input class="finSearchInp" id="finSearchInp" placeholder="🔍 Поиск транзакций..." oninput="renderFinTxList()">
+      </div>
+      <select class="inp" id="finAcctFilter" onchange="renderFin()" style="width:auto;font-size:11px;padding:8px 10px;flex-shrink:0">
+        <option value="">Все счета</option>
+      </select>
     </div>
-    <div id="finCatBudgetList" class="finCatList"></div>
-  </div>
-  <div class="finLayout2">
-    <div>
-      <!-- Search & Filter bar -->
-      <div class="finSearchBar">
-        <div class="finSearchWrap">
-          <input class="finSearchInp" id="finSearchInp" placeholder="Поиск транзакций..." oninput="renderFinTxList()">
-        </div>
-        <select class="inp" id="finAcctFilter" onchange="renderFin()" style="width:auto;font-size:11px;padding:8px 10px;flex-shrink:0">
-          <option value="">Все счета</option>
-        </select>
-      </div>
-      <!-- Filter pills by type -->
-      <div class="finFilterPills" style="margin-bottom:10px" id="finTypePills">
-        <span class="finFilterPill on" data-type="" onclick="setFinFilter('')">Все</span>
-        <span class="finFilterPill" data-type="out" onclick="setFinFilter('out')">💸 Расходы</span>
-        <span class="finFilterPill" data-type="in" onclick="setFinFilter('in')">💰 Доходы</span>
-      </div>
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
-        <div class="secLbl" style="margin:0">Транзакции</div>
-        <button onclick="exportFinCSV()" style="border:none;background:var(--card2);border:1px solid var(--border);color:var(--muted);font-size:10px;font-weight:700;cursor:pointer;padding:4px 10px;border-radius:7px;transition:.15s" onmouseover="this.style.color='var(--gold)';this.style.borderColor='var(--gold)'" onmouseout="this.style.color='var(--muted)';this.style.borderColor='var(--border)'">📥 CSV</button>
-      </div>
-      <div id="finTxList" class="finTxList"></div>
+    <div class="finFilterPills" style="margin-bottom:10px" id="finTypePills">
+      <span class="finFilterPill on" data-type="" onclick="setFinFilter('')">Все</span>
+      <span class="finFilterPill" data-type="out" onclick="setFinFilter('out')">💸 Расходы</span>
+      <span class="finFilterPill" data-type="in" onclick="setFinFilter('in')">💰 Доходы</span>
     </div>
-    <div>
-      <div class="card" style="padding:14px 16px">
-        <div class="secLbl">Расходы по категориям</div>
-        <div id="finCatList" class="finCatList"></div>
-      </div>
-    </div>
+    <div class="secLbl" style="margin-bottom:8px">Транзакции</div>
+    <div id="finTxList" class="finTxList"></div>
   </div>
 </div>
 
