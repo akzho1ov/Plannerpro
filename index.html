@@ -6889,10 +6889,11 @@ async function delRecurringTask(id, dstr){
   }
 }
 
+let _delChoiceResolve=null;
 function _showDelChoicePopup(taskName, dstr){
   return new Promise(resolve=>{
-    // Remove any existing popup
     const old=document.getElementById('_delChoicePopup');if(old)old.remove();
+    _delChoiceResolve=resolve;
     const dateLabel=dstr?` (${dstr.split('-').reverse().join('.')})` : '';
     const div=document.createElement('div');
     div.id='_delChoicePopup';
@@ -6901,22 +6902,25 @@ function _showDelChoicePopup(taskName, dstr){
       <div style="font-size:15px;font-weight:800;color:var(--text);margin-bottom:6px;font-family:var(--font-display)">Удалить повторяющуюся задачу?</div>
       <div style="font-size:11px;color:var(--text2);margin-bottom:20px;line-height:1.5">«${taskName}»${dateLabel}</div>
       <div style="display:flex;flex-direction:column;gap:8px">
-        ${dstr?`<button onclick="this.closest('#_delChoicePopup')._resolve('one')" style="text-align:left;border:1px solid var(--border2);background:var(--card2);color:var(--text);border-radius:12px;padding:11px 14px;cursor:pointer;font-size:12px;font-weight:600;font-family:var(--font-body);transition:.15s" onmouseover="this.style.borderColor='var(--p)'" onmouseout="this.style.borderColor='var(--border2)'">
+        ${dstr?`<button onclick="_delChoicePickVal('one')" style="text-align:left;border:1px solid var(--border2);background:var(--card2);color:var(--text);border-radius:12px;padding:11px 14px;cursor:pointer;font-size:12px;font-weight:600;font-family:var(--font-body)">
           <div>🗓 Только эту</div><div style="font-size:10px;color:var(--muted);font-weight:400;margin-top:2px">Удалить только это вхождение</div>
         </button>`:''}
-        ${dstr?`<button onclick="this.closest('#_delChoicePopup')._resolve('future')" style="text-align:left;border:1px solid var(--border2);background:var(--card2);color:var(--text);border-radius:12px;padding:11px 14px;cursor:pointer;font-size:12px;font-weight:600;font-family:var(--font-body);transition:.15s" onmouseover="this.style.borderColor='var(--gold)'" onmouseout="this.style.borderColor='var(--border2)'">
+        ${dstr?`<button onclick="_delChoicePickVal('future')" style="text-align:left;border:1px solid var(--border2);background:var(--card2);color:var(--text);border-radius:12px;padding:11px 14px;cursor:pointer;font-size:12px;font-weight:600;font-family:var(--font-body)">
           <div>⏩ Эту и будущие</div><div style="font-size:10px;color:var(--muted);font-weight:400;margin-top:2px">Остановить повторение с этой даты</div>
         </button>`:''}
-        <button onclick="this.closest('#_delChoicePopup')._resolve('all')" style="text-align:left;border:1px solid rgba(248,113,113,.4);background:rgba(248,113,113,.08);color:var(--red);border-radius:12px;padding:11px 14px;cursor:pointer;font-size:12px;font-weight:600;font-family:var(--font-body);transition:.15s" onmouseover="this.style.background='rgba(248,113,113,.15)'" onmouseout="this.style.background='rgba(248,113,113,.08)'">
+        <button onclick="_delChoicePickVal('all')" style="text-align:left;border:1px solid rgba(248,113,113,.4);background:rgba(248,113,113,.08);color:var(--red);border-radius:12px;padding:11px 14px;cursor:pointer;font-size:12px;font-weight:600;font-family:var(--font-body)">
           <div>🗑 Удалить все повторения</div><div style="font-size:10px;color:var(--muted);font-weight:400;margin-top:2px">Полностью убрать задачу</div>
         </button>
-        <button onclick="this.closest('#_delChoicePopup')._resolve(null)" style="border:1px solid var(--border);background:transparent;color:var(--muted);border-radius:12px;padding:9px 14px;cursor:pointer;font-size:11px;font-family:var(--font-body)">Отмена</button>
+        <button onclick="_delChoicePickVal(null)" style="border:1px solid var(--border);background:transparent;color:var(--muted);border-radius:12px;padding:9px 14px;cursor:pointer;font-size:11px;font-family:var(--font-body)">Отмена</button>
       </div>
     </div>`;
-    div._resolve=(val)=>{div.remove();resolve(val);};
-    div.addEventListener('click',e=>{if(e.target===div){div.remove();resolve(null);}});
+    div.addEventListener('click',e=>{if(e.target===div)_delChoicePickVal(null);});
     document.body.appendChild(div);
   });
+}
+function _delChoicePickVal(val){
+  const el=document.getElementById('_delChoicePopup');if(el)el.remove();
+  if(_delChoiceResolve){_delChoiceResolve(val);_delChoiceResolve=null;}
 }
 
 function tmSelRepeat(v){
