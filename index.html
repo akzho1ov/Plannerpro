@@ -14276,6 +14276,16 @@ function toggleSleepTag(id){
   });
 }
 
+function slpPickMood(val){
+  document.getElementById('slp-mood').value=val;
+  ['energetic','ok','groggy','tired'].forEach(v=>{
+    const b=document.getElementById('slpMoodBtn_'+v);
+    if(!b)return;
+    const active=v===val;
+    b.style.borderColor=active?'var(--p)':'var(--border)';
+    b.style.background=active?'var(--pdim)':'var(--card3)';
+  });
+}
 function sleepSave(){
   const date=document.getElementById('slp-date').value;
   const bedtime=document.getElementById('slp-bed').value;
@@ -14512,31 +14522,42 @@ function renderSleepTracker(){
 
   // Add Form
   var formDisplay=todayEntry?'none':'block';
-  html+='<div id="slp-add-form" style="display:'+formDisplay+';background:linear-gradient(135deg,var(--card2),rgba(10,11,22,.97));border:1px solid rgba(34,204,232,.2);border-radius:20px;padding:20px 22px;margin-bottom:20px">';
-  html+='<div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1.2px;color:var(--cyan);margin-bottom:16px">📝 '+(todayEntry?'Редактировать':'Новая запись')+'</div>';
-  html+='<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:12px;margin-bottom:14px">';
-  html+='<div><div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);margin-bottom:5px">📅 Дата</div><input type="date" class="inp" id="slp-date" value="'+today+'" style="color-scheme:dark;font-size:12px"></div>';
-  html+='<div><div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--red);margin-bottom:5px">🌛 Лёг спать</div><input type="time" class="inp" id="slp-bed" value="'+(todayEntry?todayEntry.bedtime:'')+'" placeholder="23:00" style="color-scheme:dark;font-size:14px;font-family:var(--font-mono);font-weight:700;color:var(--red)"></div>';
-  html+='<div><div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--green);margin-bottom:5px">☀️ Проснулся</div><input type="time" class="inp" id="slp-wake" value="'+(todayEntry?todayEntry.wakeup:'')+'" placeholder="07:00" style="color-scheme:dark;font-size:14px;font-family:var(--font-mono);font-weight:700;color:var(--green)"></div>';
-  html+='<div><div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--gold);margin-bottom:5px">⭐ Качество</div><input type="range" id="slp-quality" min="1" max="5" value="'+(todayEntry&&todayEntry.quality?todayEntry.quality:4)+'" style="width:100%;accent-color:var(--gold);cursor:pointer;height:20px" oninput="updateSleepQualityDisplay()"><div id="slp-quality-lbl" style="font-size:11px;font-weight:700;margin-top:3px;text-align:center"></div></div>';
-  html+='<div><div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--p);margin-bottom:5px">😴 Самочувствие</div>';
-  html+='<select class="inp" id="slp-mood" style="font-size:12px">';
-  html+='<option value="">— выбери —</option>';
-  html+='<option value="energetic"'+(todayEntry&&todayEntry.mood==='energetic'?' selected':'')+'>⚡ Заряженный</option>';
-  html+='<option value="ok"'+(todayEntry&&todayEntry.mood==='ok'?' selected':'')+'>👌 Нормально</option>';
-  html+='<option value="groggy"'+(todayEntry&&todayEntry.mood==='groggy'?' selected':'')+'>🥱 Разбитый</option>';
-  html+='<option value="tired"'+(todayEntry&&todayEntry.mood==='tired'?' selected':'')+'>😪 Уставший</option>';
-  html+='</select></div>';
+  html+='<div id="slp-add-form" style="display:'+formDisplay+';background:var(--card2);border:1px solid rgba(34,204,232,.2);border-radius:20px;padding:18px 16px;margin-bottom:20px">';
+  html+='<div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:1.2px;color:var(--cyan);margin-bottom:14px">📝 '+(todayEntry?'Редактировать':'Новая запись')+'</div>';
+
+  // Date row
+  html+='<div style="margin-bottom:12px"><div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);margin-bottom:5px">📅 Дата</div>';
+  html+='<input type="date" class="inp" id="slp-date" value="'+today+'" style="color-scheme:dark;font-size:12px;width:100%"></div>';
+
+  // Bed / Wake side by side
+  html+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px">';
+  html+='<div style="background:rgba(248,113,113,.08);border:1px solid rgba(248,113,113,.25);border-radius:14px;padding:12px">';
+  html+='<div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--red);margin-bottom:6px">🌛 Лёг спать</div>';
+  html+='<input type="time" id="slp-bed" value="'+(todayEntry?todayEntry.bedtime:'')+'" placeholder="23:00" style="color-scheme:dark;background:transparent;border:none;outline:none;font-size:22px;font-family:var(--font-mono);font-weight:800;color:var(--red);width:100%"></div>';
+  html+='<div style="background:rgba(15,221,170,.08);border:1px solid rgba(15,221,170,.25);border-radius:14px;padding:12px">';
+  html+='<div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--green);margin-bottom:6px">☀️ Проснулся</div>';
+  html+='<input type="time" id="slp-wake" value="'+(todayEntry?todayEntry.wakeup:'')+'" placeholder="07:00" style="color-scheme:dark;background:transparent;border:none;outline:none;font-size:22px;font-family:var(--font-mono);font-weight:800;color:var(--green);width:100%"></div>';
   html+='</div>';
+
+  // Mood
+  html+='<div style="margin-bottom:14px"><div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);margin-bottom:8px">😴 Самочувствие</div>';
+  const moods=[{v:'energetic',e:'⚡',l:'Заряженный'},{v:'ok',e:'👌',l:'Нормально'},{v:'groggy',e:'🥱',l:'Разбитый'},{v:'tired',e:'😪',l:'Уставший'}];
+  html+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">';
+  moods.forEach(m=>{
+    const sel=todayEntry&&todayEntry.mood===m.v;
+    html+=`<button type="button" id="slpMoodBtn_${m.v}" onclick="slpPickMood('${m.v}')" style="padding:8px 6px;border-radius:11px;border:1.5px solid ${sel?'var(--p)':'var(--border)'};background:${sel?'var(--pdim)':'var(--card3)'};color:var(--text);cursor:pointer;display:flex;align-items:center;gap:6px;font-size:12px;font-weight:600;font-family:var(--font-body);transition:.15s">
+      <span style="font-size:16px">${m.e}</span><span style="color:var(--text2)">${m.l}</span>
+    </button>`;
+  });
+  html+='</div><input type="hidden" id="slp-mood" value="'+(todayEntry&&todayEntry.mood?todayEntry.mood:'')+'"></div>';
+
   // Tags
   html+='<div style="margin-bottom:14px"><div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);margin-bottom:8px">🏷️ Что повлияло на сон</div>';
   html+='<div style="display:flex;flex-wrap:wrap;gap:6px">'+tagsHTML+'</div></div>';
-  // Note
-  html+='<div style="margin-bottom:14px"><div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);margin-bottom:5px">📝 Заметка</div>';
-  html+='<input class="inp" id="slp-note" value="'+esc(todayEntry&&todayEntry.note?todayEntry.note:'')+'" placeholder="Как спалось? Что мешало?.." style="font-size:12px"></div>';
+
   html+='<div style="display:flex;gap:8px">';
-  html+='<button class="btn btnB" onclick="sleepSave()" style="font-weight:800;min-width:120px">💾 Сохранить</button>';
-  html+='<button class="btn btnG" onclick="document.getElementById(\'slp-add-form\').style.display=\'none\'" style="font-size:11px">Отмена</button>';
+  html+='<button class="btn btnB" onclick="sleepSave()" style="font-weight:800;flex:1;padding:13px">💾 Сохранить</button>';
+  html+='<button class="btn btnG" onclick="document.getElementById(\'slp-add-form\').style.display=\'none\'" style="font-size:12px;padding:13px 16px">Отмена</button>';
   html+='</div></div>';
 
   // Score ring
@@ -14648,15 +14669,19 @@ function slpToggleForm(){
 function slpDrawMainChart(entries){
   const cv=document.getElementById('slp-main-chart');if(!cv)return;
   const recent=[...entries].slice(-30);
-  const W=cv.parentElement?.scrollWidth||600;
-  cv.width=W;cv.height=150;
-  const ctx=cv.getContext('2d'),H=cv.height;
+  const DPR=window.devicePixelRatio||1;
+  const W=cv.parentElement?.clientWidth||340;
+  const H=170;
+  cv.width=W*DPR; cv.height=H*DPR;
+  cv.style.width=W+'px'; cv.style.height=H+'px';
+  const ctx=cv.getContext('2d');
+  ctx.scale(DPR,DPR);
   ctx.clearRect(0,0,W,H);
   if(recent.length<2){
-    ctx.fillStyle='rgba(90,99,130,.4)';ctx.font='12px Instrument Sans,sans-serif';ctx.textAlign='center';
+    ctx.fillStyle='rgba(90,99,130,.5)';ctx.font='12px Instrument Sans,sans-serif';ctx.textAlign='center';
     ctx.fillText('Добавь минимум 2 записи для графика',W/2,H/2);return;
   }
-  const pad={t:10,r:16,b:28,l:44};
+  const pad={t:12,r:14,b:30,l:48};
   const cW=W-pad.l-pad.r,cH=H-pad.t-pad.b;
   const n=recent.length;
 
@@ -14664,38 +14689,52 @@ function slpDrawMainChart(entries){
     if(!t)return 0;
     const[h,m]=t.split(':').map(Number);
     let v=h+m/60;
-    if(v<12)v+=24;// normalize: treat <12 as next day
+    if(v<12)v+=24;
     return v;
+  }
+  function hToLabel(v){
+    let h=v%24;if(h<0)h+=24;
+    const hh=Math.floor(h),mm=Math.round((h-hh)*60);
+    return`${String(hh).padStart(2,'0')}:${String(mm).padStart(2,'0')}`;
   }
 
   const bedVals=recent.map(e=>timeToH(e.bedtime));
   const wakeVals=recent.map(e=>{
     const w=timeToH(e.wakeup);
-    // wakeup should be after bedtime on same "night axis"
-    return w<=bedVals[recent.indexOf(e)]?w+24:w;
+    const b=bedVals[recent.indexOf(e)];
+    return w<=b?w+24:w;
   });
 
   const allVals=[...bedVals.filter(Boolean),...wakeVals.filter(Boolean)];
   if(!allVals.length)return;
-  const minV=Math.min(...allVals)-0.5,maxV=Math.max(...allVals)+0.5;
+  const minV=Math.min(...allVals)-0.75, maxV=Math.max(...allVals)+0.75;
+  const range=maxV-minV;
 
-  const sx=i=>pad.l+n<=1?pad.l+cW/2:pad.l+(i/(n-1))*cW;
-  const sy=v=>pad.t+cH*(1-(v-minV)/(maxV-minV));
+  const sx=i=>pad.l+(n<=1?cW/2:(i/(n-1))*cW);
+  const sy=v=>pad.t+cH*(1-(v-minV)/range);
 
-  // Grid lines
-  ctx.strokeStyle='rgba(255,255,255,.04)';ctx.lineWidth=1;
-  for(let i=0;i<=4;i++){const y=pad.t+(cH/4)*i;ctx.beginPath();ctx.moveTo(pad.l,y);ctx.lineTo(W-pad.r,y);ctx.stroke();}
+  // Grid lines with time labels
+  ctx.textAlign='right'; ctx.font=`bold 9px Instrument Sans,sans-serif`;
+  const yTicks=5;
+  for(let i=0;i<=yTicks;i++){
+    const v=minV+(range/yTicks)*i;
+    const y=sy(v);
+    ctx.strokeStyle='rgba(255,255,255,.05)';ctx.lineWidth=1;
+    ctx.beginPath();ctx.moveTo(pad.l,y);ctx.lineTo(W-pad.r,y);ctx.stroke();
+    ctx.fillStyle='rgba(255,255,255,.35)';
+    ctx.fillText(hToLabel(v),pad.l-5,y+3.5);
+  }
 
-  // Reference lines: 23:00 bed, 07:00 wake
-  [{time:'23:00',color:'rgba(255,79,114,.2)',lbl:'23:00'},{time:'07:00',color:'rgba(15,221,170,.2)',lbl:'07:00'}].forEach(ref=>{
+  // Reference lines
+  [{time:'23:00',color:'rgba(255,79,114,.3)',label:'23:00'},{time:'07:00',color:'rgba(15,221,170,.3)',label:'07:00'}].forEach(ref=>{
     const rv=timeToH(ref.time);
     const y=sy(rv);
     if(y>=pad.t&&y<=pad.t+cH){
-      ctx.strokeStyle=ref.color;ctx.lineWidth=1;ctx.setLineDash([4,4]);
+      ctx.strokeStyle=ref.color;ctx.lineWidth=1.5;ctx.setLineDash([5,4]);
       ctx.beginPath();ctx.moveTo(pad.l,y);ctx.lineTo(W-pad.r,y);ctx.stroke();
       ctx.setLineDash([]);
-      ctx.fillStyle=ref.color.replace(/\.[0-9]+\)$/,'.7)');ctx.font='8px Instrument Sans,sans-serif';ctx.textAlign='left';
-      ctx.fillText(ref.lbl,pad.l+2,y-2);
+      ctx.fillStyle=ref.color.replace(/[\d.]+\)$/,'0.8)');ctx.font='8px Instrument Sans,sans-serif';ctx.textAlign='left';
+      ctx.fillText(ref.label,pad.l+3,y-3);
     }
   });
 
@@ -14703,55 +14742,44 @@ function slpDrawMainChart(entries){
   ctx.beginPath();ctx.moveTo(sx(0),sy(bedVals[0]));
   for(let i=1;i<n;i++)ctx.lineTo(sx(i),sy(bedVals[i]));
   for(let i=n-1;i>=0;i--)ctx.lineTo(sx(i),sy(wakeVals[i]));
-  ctx.closePath();ctx.fillStyle='rgba(155,143,245,.05)';ctx.fill();
+  ctx.closePath();ctx.fillStyle='rgba(155,143,245,.07)';ctx.fill();
 
-  // Wakeup line (green)
-  ctx.beginPath();ctx.moveTo(sx(0),sy(wakeVals[0]));
-  for(let i=1;i<n;i++){const x0=sx(i-1),y0=sy(wakeVals[i-1]),x1=sx(i),y1=sy(wakeVals[i]),cp=(x1-x0)/3;ctx.bezierCurveTo(x0+cp,y0,x1-cp,y1,x1,y1);}
-  ctx.strokeStyle='#0FDDAA';ctx.lineWidth=2.5;ctx.stroke();
-
-  // Bedtime line (red)
-  ctx.beginPath();ctx.moveTo(sx(0),sy(bedVals[0]));
-  for(let i=1;i<n;i++){const x0=sx(i-1),y0=sy(bedVals[i-1]),x1=sx(i),y1=sy(bedVals[i]),cp=(x1-x0)/3;ctx.bezierCurveTo(x0+cp,y0,x1-cp,y1,x1,y1);}
-  ctx.strokeStyle='#FF4F72';ctx.lineWidth=2.5;ctx.stroke();
-
-  // Quality dashed line (scaled to chart area, gold)
-  const qualEntries=recent.filter(e=>e.quality);
-  if(qualEntries.length>=2){
-    const qMin=minV,qMax=maxV,qRange=qMax-qMin;
-    ctx.beginPath();
-    let first=true;
-    recent.forEach((e,i)=>{
-      if(!e.quality)return;
-      // scale quality 1-5 to chart range with some offset
-      const qY=pad.t+cH*(1-((e.quality-1)/4*0.6+0.2)); // 20%-80% of chart height
-      if(first){ctx.moveTo(sx(i),qY);first=false;}
-      else ctx.lineTo(sx(i),qY);
-    });
-    ctx.strokeStyle='rgba(240,171,48,.6)';ctx.lineWidth=1.5;ctx.setLineDash([4,4]);ctx.stroke();ctx.setLineDash([]);
+  // Lines
+  function drawLine(vals, color){
+    ctx.beginPath();ctx.moveTo(sx(0),sy(vals[0]));
+    for(let i=1;i<n;i++){const x0=sx(i-1),y0=sy(vals[i-1]),x1=sx(i),y1=sy(vals[i]),cp=(x1-x0)/3;ctx.bezierCurveTo(x0+cp,y0,x1-cp,y1,x1,y1);}
+    ctx.strokeStyle=color;ctx.lineWidth=2.5;ctx.stroke();
   }
+  drawLine(wakeVals,'#0FDDAA');
+  drawLine(bedVals,'#FF4F72');
 
-  // Dots
+  // Dots + time tooltip on last point
   recent.forEach((e,i)=>{
-    if(bedVals[i]){ctx.beginPath();ctx.arc(sx(i),sy(bedVals[i]),3.5,0,Math.PI*2);ctx.fillStyle='#FF4F72';ctx.fill();}
-    if(wakeVals[i]){ctx.beginPath();ctx.arc(sx(i),sy(wakeVals[i]),3.5,0,Math.PI*2);ctx.fillStyle='#0FDDAA';ctx.fill();}
+    if(bedVals[i]){
+      ctx.beginPath();ctx.arc(sx(i),sy(bedVals[i]),3.5,0,Math.PI*2);
+      ctx.fillStyle='#FF4F72';ctx.fill();
+    }
+    if(wakeVals[i]){
+      ctx.beginPath();ctx.arc(sx(i),sy(wakeVals[i]),3.5,0,Math.PI*2);
+      ctx.fillStyle='#0FDDAA';ctx.fill();
+    }
+    // Show time on last point
+    if(i===n-1){
+      ctx.font='bold 9px Instrument Sans,sans-serif';ctx.textAlign='center';
+      if(e.bedtime){ctx.fillStyle='#FF4F72';ctx.fillText(e.bedtime,sx(i),sy(bedVals[i])-8);}
+      if(e.wakeup){ctx.fillStyle='#0FDDAA';ctx.fillText(e.wakeup,sx(i),sy(wakeVals[i])+15);}
+    }
   });
 
-  // X labels
-  ctx.fillStyle='rgba(255,255,255,.28)';ctx.font='7.5px Instrument Sans,sans-serif';ctx.textAlign='center';
-  const step=Math.max(1,Math.floor(n/8));
+  // X labels (dates)
+  const step=Math.max(1,Math.floor(n/7));
+  ctx.fillStyle='rgba(255,255,255,.3)';ctx.font='8px Instrument Sans,sans-serif';ctx.textAlign='center';
   recent.forEach((e,i)=>{
-    if(i%step===0){const d=new Date(e.date+'T00:00:00');ctx.fillText(d.getDate()+'.'+(d.getMonth()+1),sx(i),H-4);}
+    if(i%step===0||i===n-1){
+      const d=new Date(e.date+'T00:00:00');
+      ctx.fillText(`${d.getDate()}.${d.getMonth()+1}`,sx(i),H-5);
+    }
   });
-
-  // Y labels (convert back to clock time)
-  ctx.textAlign='right';ctx.fillStyle='rgba(255,255,255,.28)';ctx.font='8px Instrument Sans,sans-serif';
-  for(let i=0;i<=4;i++){
-    const v=minV+(maxV-minV)*(1-i/4);
-    let h=v%24; if(h<0)h+=24;
-    const hh=Math.floor(h),mm=Math.round((h-hh)*60);
-    ctx.fillText(`${String(hh).padStart(2,'0')}:${String(mm).padStart(2,'0')}`,pad.l-5,pad.t+(cH/4)*i+4);
-  }
 }
 
 /* ── Duration bar chart ── */
