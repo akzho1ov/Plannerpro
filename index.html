@@ -16273,7 +16273,7 @@ function renderPomodoro(){
 // AI ASSISTANT
 // ════════════════════════════════════════════════
 const AI_API_KEY='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';
-const AI_MODEL='openai/gpt-4o-mini';
+const AI_MODEL='openai/gpt-4o-mini:free';
 let _aiOpen=false;
 let _aiHistory=[]; // {role,content}
 let _aiTyping=false;
@@ -16383,8 +16383,7 @@ async function sendAiMsg(){
       headers:{
         'Authorization':'Bearer '+AI_API_KEY,
         'Content-Type':'application/json',
-        'HTTP-Referer':window.location.href,
-        'X-Title':'PlannerPro AI'
+        'X-Title':'PlannerPro'
       },
       body:JSON.stringify({
         model:AI_MODEL,
@@ -16394,13 +16393,24 @@ async function sendAiMsg(){
       })
     });
 
+    if(!resp.ok){
+      const errBody=await resp.json().catch(()=>({}));
+      const errMsg=errBody?.error?.message||errBody?.message||'Неизвестная ошибка';
+      console.error('OpenRouter error',resp.status,errBody);
+      throw new Error(`${resp.status}: ${errMsg}`);
+    }
+
     const data=await resp.json();
-    const reply=data?.choices?.[0]?.message?.content||'Извини, не смог ответить. Попробуй ещё раз.';
+    const reply=data?.choices?.[0]?.message?.content||'Пустой ответ от AI.';
     _aiTyping=false;
     _aiAddMsg('bot',reply);
   }catch(e){
     _aiTyping=false;
-    _aiAddMsg('bot','⚠️ Ошибка подключения. Проверь интернет и попробуй снова.');
+    const msg=e.message||'';
+    if(msg.includes('401'))_aiAddMsg('bot','⚠️ Ошибка авторизации (401) — API ключ недействителен или истёк. Обнови ключ в настройках.');
+    else if(msg.includes('429'))_aiAddMsg('bot','⏳ Превышен лимит запросов. Подожди минуту и попробуй снова.');
+    else if(msg.includes('402'))_aiAddMsg('bot','💳 Недостаточно кредитов на OpenRouter. Пополни баланс на openrouter.ai');
+    else _aiAddMsg('bot',`⚠️ Ошибка: ${msg||'Проверь интернет и попробуй снова.'}`);
   }
   document.getElementById('aiSendBtn').disabled=false;
   document.getElementById('aiStatusLbl').textContent='Готов помочь';
