@@ -7039,6 +7039,11 @@ function openTaskModal(idx,prefillDate,dstr){
     t=tpD()[idx]||null;
   }
   _taskModalId=t?t.id:''; // store id, not index — immune to reorder/sync
+  // For recurring tasks, compute effective occurrence dstr if not provided
+  if(t&&t.repeat&&!dstr){
+    const info=getTaskListDueInfo(t,t0());
+    dstr=info?info.dstr:(t.deadline||'');
+  }
   _taskModalDstr=dstr||''; // date context for recurring instance
   document.getElementById('taskModalTitle').textContent=t?'Редактировать задачу':'Новая задача';
   document.getElementById('tm-id').value=t?.id||'';
@@ -9623,13 +9628,16 @@ function openLabelPicker(taskIdx, anchorEl){
   }
   const drop=document.createElement('div');
   drop.className='labelPickerDrop';
-  drop.style.cssText='position:fixed;z-index:1200;background:var(--card2);border:1px solid var(--border2);border-radius:14px;padding:10px 8px;box-shadow:var(--shadow2);min-width:200px;max-width:240px;';
+  drop.style.cssText='position:fixed;z-index:1200;background:var(--card2);border:1px solid var(--border2);border-radius:14px;padding:10px 8px;box-shadow:var(--shadow2);min-width:200px;max-width:240px;overflow-y:auto;';
   const rect=anchorEl.getBoundingClientRect();
+  const maxH=Math.min(380, window.innerHeight-20);
   let top=rect.bottom+6, left=rect.left;
-  if(top+360>window.innerHeight) top=rect.top-360;
   if(left+240>window.innerWidth) left=window.innerWidth-245;
+  // If not enough space below, open upward
+  if(top+maxH>window.innerHeight) top=Math.max(10, rect.top-maxH-6);
   drop.style.top=top+'px';
   drop.style.left=left+'px';
+  drop.style.maxHeight=maxH+'px';
 
   // Header
   const hdr=document.createElement('div');
