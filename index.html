@@ -16273,7 +16273,7 @@ function renderPomodoro(){
 // ════════════════════════════════════════════════
 // AI ASSISTANT
 // ════════════════════════════════════════════════
-const AI_MODEL='deepseek/deepseek-chat-v3-0324:free';
+const AI_MODEL='qwen/qwen3-next-80b-a3b-instruct:free';
 function _getAiKey(){return localStorage.getItem('ai_api_key')||'';}
 function _setAiKey(k){localStorage.setItem('ai_api_key',k.trim());}
 let _aiOpen=false;
