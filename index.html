@@ -6796,19 +6796,24 @@ function toggleTById(id,checked,evtTarget){
   const t=tasks.find(x=>x.id===id);
   if(!t)return;
   if(t.repeat){
-    // For recurring tasks, toggle the effective next occurrence date
     const td=t0();
     const info=getTaskListDueInfo(t,td);
     const dstr=info?info.dstr:'';
     if(dstr){
+      // Toggle this specific occurrence via doneDates
       if(!t.doneDates)t.doneDates=[];
       if(checked){if(!t.doneDates.includes(dstr))t.doneDates.push(dstr);}
       else{t.doneDates=t.doneDates.filter(d=>d!==dstr);}
-      saveD();
-      if(checked&&evtTarget){
-        const row=evtTarget.closest('tr')||evtTarget.closest('.mTaskCard');
-        if(row){row.style.transition='opacity .3s';row.style.opacity='.6';setTimeout(()=>{row.style.opacity='';},400);}
-      }
+    } else {
+      // No upcoming occurrences — mark whole task done/undone
+      t.done=checked;
+    }
+    saveD();
+    if(checked&&evtTarget){
+      const row=evtTarget.closest('tr')||evtTarget.closest('.mTaskCard');
+      if(row){row.style.transition='opacity .4s';row.style.opacity='0';setTimeout(()=>_refreshAllTaskViews(),380);}
+      else{_refreshAllTaskViews();}
+    } else {
       _refreshAllTaskViews();
     }
   } else {
