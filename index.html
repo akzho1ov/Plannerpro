@@ -15276,6 +15276,19 @@ function buildSleepAnalyticsHTML(){
         </label>
       </div>
 
+      <!-- Flow Mode -->
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;background:var(--card2);border:1px solid var(--border);border-radius:12px">
+        <div>
+          <div style="font-size:12px;font-weight:700;color:var(--text)">🌊 Режим потока (Flow Mode)</div>
+          <div style="font-size:10px;color:var(--muted);margin-top:2px">Таймер не прерывает — переходит в +сверхурочный счёт</div>
+        </div>
+        <label style="position:relative;display:inline-block;width:38px;height:22px;flex-shrink:0">
+          <input type="checkbox" id="pom-set-flow" style="opacity:0;width:0;height:0">
+          <span onclick="this.previousElementSibling.click()" style="position:absolute;cursor:pointer;inset:0;background:var(--border2);border-radius:11px;transition:.25s" id="pom-flow-track"></span>
+          <span id="pom-flow-thumb" style="position:absolute;content:'';height:16px;width:16px;left:3px;bottom:3px;background:white;border-radius:50%;transition:.25s;pointer-events:none"></span>
+        </label>
+      </div>
+
       <!-- Уведомления браузера -->
       <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;background:var(--card2);border:1px solid var(--border);border-radius:12px">
         <div>
@@ -15437,6 +15450,58 @@ function buildSleepAnalyticsHTML(){
 body.light-mode .pomRingBg{stroke:rgba(0,0,0,.06)}
 body.light-mode .pomCycleDot{background:rgba(0,0,0,.06);border-color:rgba(0,0,0,.12)}
 body.light-mode .pomHistItem:hover{background:rgba(0,0,0,.02)}
+
+/* ── FLOW MODE styles ── */
+.pomRingWrap.flow-mode::before{
+  background:radial-gradient(circle,rgba(15,221,170,.14) 0%,transparent 70%);
+  animation:flowGlowPulse 2.5s ease-in-out infinite;
+}
+@keyframes flowGlowPulse{
+  0%,100%{opacity:.6;transform:translateX(-50%) scale(1)}
+  50%{opacity:1;transform:translateX(-50%) scale(1.08)}
+}
+.pomModeBadge.flow{
+  background:rgba(15,221,170,.12);
+  border-color:rgba(15,221,170,.35);
+  color:var(--green);
+  animation:flowBadgePulse 2.5s ease-in-out infinite;
+}
+@keyframes flowBadgePulse{
+  0%,100%{box-shadow:0 0 0 0 rgba(15,221,170,0)}
+  50%{box-shadow:0 0 16px rgba(15,221,170,.25)}
+}
+.pomBtnMain.flow-btn{
+  background:var(--green);
+  box-shadow:0 0 32px rgba(15,221,170,.5),0 4px 16px rgba(0,0,0,.3);
+  animation:flowBtnPulse 2.5s ease-in-out infinite;
+}
+.pomBtnMain.flow-btn:hover{
+  transform:scale(1.07);
+  box-shadow:0 0 48px rgba(15,221,170,.65),0 6px 20px rgba(0,0,0,.4);
+}
+@keyframes flowBtnPulse{
+  0%,100%{box-shadow:0 0 28px rgba(15,221,170,.4),0 4px 16px rgba(0,0,0,.3)}
+  50%{box-shadow:0 0 48px rgba(15,221,170,.6),0 4px 16px rgba(0,0,0,.3)}
+}
+/* Flow mode ring fill — green with glow */
+.pomRingWrap.flow-mode #pom-ring-fill{
+  filter:drop-shadow(0 0 6px rgba(15,221,170,.5));
+  transition:stroke-dashoffset 1s cubic-bezier(.16,1,.3,1),stroke .4s;
+}
+/* Flow mode timer number */
+.pomRingWrap.flow-mode #pom-timer-num{
+  animation:flowNumPulse 2.5s ease-in-out infinite;
+}
+@keyframes flowNumPulse{
+  0%,100%{text-shadow:0 0 0 rgba(15,221,170,0)}
+  50%{text-shadow:0 0 20px rgba(15,221,170,.4)}
+}
+/* Toggle switch for flow mode */
+#pom-set-flow:checked + #pom-flow-track{background:var(--green);}
+#pom-set-flow:checked ~ #pom-flow-thumb{transform:translateX(16px);}
+/* Autostart toggle (existing but needs explicit selector) */
+#pom-set-autostart:checked + #pom-autostart-track{background:var(--p);}
+#pom-set-autostart:checked ~ #pom-autostart-thumb{transform:translateX(16px);}
 </style>
 
 <script>
@@ -15459,6 +15524,7 @@ function pomD(){
   if(s.volume===undefined)s.volume=60;
   if(s.dailyGoal===undefined)s.dailyGoal=8;
   if(!s.notifications===undefined)s.notifications=false;
+  if(s.flowMode===undefined)s.flowMode=false;
   if(!G.pomodoro.pauseLog)G.pomodoro.pauseLog=[];
   return G.pomodoro;
 }
@@ -15476,23 +15542,35 @@ const POM={
   _startTs:null,        // Date.now() when timer last started/resumed
   _pausedSec:0,
   _baseSecondsLeft:0,   // secondsLeft at the moment of last start/resume
+  // ── Flow Mode ──
+  flowOvertime:false,   // true when in overtime (focus expired, flow mode active)
+  overtimeSec:0,        // seconds elapsed in overtime
+  _overtimeStart:null,  // timestamp when overtime began
 };
 
 /* ── Helpers ── */
 function pomSettings(){return pomD().settings;}
 function pomFmtTime(s){const m=Math.floor(s/60),ss=s%60;return `${String(m).padStart(2,'0')}:${String(ss).padStart(2,'0')}`}
 function pomModeColor(){
+  if(POM.flowOvertime)return 'var(--green)';
   if(POM.mode==='sbreak')return 'var(--green)';
   if(POM.mode==='lbreak')return 'var(--blue)';
   return 'var(--red)';
 }
 function pomModeName(){
+  if(POM.flowOvertime)return '🌊 В потоке';
   if(POM.mode==='sbreak')return '☕ Короткий перерыв';
   if(POM.mode==='lbreak')return '🌿 Длинный перерыв';
   return '🍅 Фокус';
 }
-function pomModeClass(){return POM.mode==='work'?'work':POM.mode==='sbreak'?'sbreak':'lbreak'}
-function pomMainBtnClass(){return POM.mode==='sbreak'?'break':POM.mode==='lbreak'?'lbreak':''}
+function pomModeClass(){
+  if(POM.flowOvertime)return 'flow';
+  return POM.mode==='work'?'work':POM.mode==='sbreak'?'sbreak':'lbreak';
+}
+function pomMainBtnClass(){
+  if(POM.flowOvertime)return 'flow-btn';
+  return POM.mode==='sbreak'?'break':POM.mode==='lbreak'?'lbreak':'';
+}
 
 /* Get task planned minutes from time+endTime */
 function pomTaskPlannedMin(task){
@@ -15519,19 +15597,47 @@ function pomInitMode(mode){
   POM._startTs=null;
   clearInterval(POM._iv);
   POM._iv=null;
+  // Reset flow overtime state
+  POM.flowOvertime=false;
+  POM.overtimeSec=0;
+  POM._overtimeStart=null;
   pomUpdateUI();
 }
 
 /* ── Start / pause ── */
 function pomToggle(){
   if(POM.running){
-    // ── PAUSE: snapshot current secondsLeft from real time ──
+    // ── PAUSE / STOP ──
     POM.running=false;
+    clearInterval(POM._iv);POM._iv=null;
+
+    // ── FLOW OVERTIME: save full session and offer break ──
+    if(POM.flowOvertime){
+      const workMinBase=pomSettings().workMin;
+      const bonusSec=Math.floor((Date.now()-POM._overtimeStart)/1000);
+      POM.overtimeSec=bonusSec;
+      const totalWorkMin=workMinBase+Math.round(bonusSec/60);
+      pomSaveSession(totalWorkMin);
+      if(POM.taskId){
+        const t=tpD().find(t=>t.id===POM.taskId);
+        if(t){t.actualDuration=(t.actualDuration||0)+totalWorkMin;saveD();}
+      }
+      POM.cyclesDone++;
+      const bonusMin=Math.round(bonusSec/60);
+      pomShowNotif('🌊 Поток: '+totalWorkMin+'м (+'+(bonusMin>0?bonusMin+'м сверхурочно':'<1м')+')'+'  Отлично!');
+      pomPlaySound('work');
+      const s=pomSettings();
+      const isLong=POM.cyclesDone>0&&POM.cyclesDone%s.cycles===0;
+      pomBrowserNotif('🌊 Поток завершён!',isLong?'Заслуженный длинный отдых 🌿':'Короткий перерыв ☕');
+      pomInitMode(isLong?'lbreak':'sbreak');
+      if(s.autoStart){setTimeout(()=>{if(!POM.running){pomToggle();}},1200);}
+      return;
+    }
+
+    // ── NORMAL PAUSE ──
     const elapsed=Math.floor((Date.now()-POM._startTs)/1000);
     POM.secondsLeft=Math.max(0,POM._baseSecondsLeft-elapsed);
-    clearInterval(POM._iv);POM._iv=null;
     pomUpdateUI();
-    // Пауза с комментарием — только в режиме работы
     if(POM.mode==='work'){
       POM._pauseStartSec=POM.secondsLeft;
       pomShowPauseComment();
@@ -15594,11 +15700,17 @@ function pomSavePauseComment(){
 /* ── Tick ── */
 function pomTick(){
   if(!POM.running)return;
-  // ── Timestamp-based: always calculate from real elapsed time ──
-  // This is accurate even when tab is throttled, hidden, or switched
+
+  // ── FLOW OVERTIME MODE: count up ──
+  if(POM.flowOvertime){
+    POM.overtimeSec=Math.floor((Date.now()-POM._overtimeStart)/1000);
+    pomUpdateTimerDisplay();
+    return;
+  }
+
+  // ── NORMAL MODE: timestamp-based countdown ──
   const elapsed=Math.floor((Date.now()-POM._startTs)/1000);
   const newSecondsLeft=Math.max(0,POM._baseSecondsLeft-elapsed);
-  // Only update sessionWorkMin by the actual delta
   if(POM.mode==='work'){
     const delta=POM.secondsLeft-newSecondsLeft;
     if(delta>0) POM.sessionWorkMin+=(delta/60);
@@ -15614,6 +15726,21 @@ function pomTick(){
 function pomOnComplete(){
   clearInterval(POM._iv);POM._iv=null;POM.running=false;
   const s=pomSettings();
+
+  // ── FLOW MODE: don't interrupt — enter overtime ──
+  if(s.flowMode && POM.mode==='work' && !POM.flowOvertime){
+    POM.flowOvertime=true;
+    POM._overtimeStart=Date.now();
+    POM.overtimeSec=0;
+    POM.secondsLeft=0;
+    POM.running=true;
+    POM._iv=setInterval(pomTick,500);
+    pomPlaySound('work'); // soft chime — time's up but keep going
+    pomShowNotif('🌊 Поток! Таймер продолжает — останови когда готов');
+    pomBrowserNotif('🌊 Фокус-время вышло','Ты в потоке — таймер считает сверхурочные');
+    pomUpdateUI();
+    return;
+  }
 
   if(POM.mode==='work'){
     POM.cyclesDone++;
@@ -15641,6 +15768,11 @@ function pomOnComplete(){
 
 /* ── Skip / Reset ── */
 function pomSkip(){
+  // If in flow overtime, skip = end flow and save
+  if(POM.flowOvertime){
+    pomToggle(); // reuse toggle's overtime-end logic
+    return;
+  }
   if(POM.mode==='work'&&POM.secondsLeft<POM.totalSeconds){
     // Record partial work
     const partialMin=Math.round((POM.totalSeconds-POM.secondsLeft)/60);
@@ -15670,7 +15802,13 @@ function pomReset(){
 /* ── Visibility change: resync timer when tab becomes visible ── */
 document.addEventListener('visibilitychange',()=>{
   if(document.visibilityState==='visible'&&POM.running){
-    // Recalculate exact secondsLeft from real elapsed time
+    if(POM.flowOvertime){
+      // Overtime: just update the display (timestamp-based, no resync needed)
+      POM.overtimeSec=Math.floor((Date.now()-POM._overtimeStart)/1000);
+      pomUpdateTimerDisplay();
+      return;
+    }
+    // Normal mode: recalculate exact secondsLeft from real elapsed time
     const elapsed=Math.floor((Date.now()-POM._startTs)/1000);
     POM.secondsLeft=Math.max(0,POM._baseSecondsLeft-elapsed);
     // Restart interval cleanly (avoids drift from stacked intervals)
@@ -15804,6 +15942,7 @@ function pomOpenSettings(){
   document.getElementById('pom-set-long').value=s.longMin;
   document.getElementById('pom-set-cycles').value=s.cycles;
   document.getElementById('pom-set-autostart').checked=s.autoStart||false;
+  document.getElementById('pom-set-flow').checked=s.flowMode||false;
   document.getElementById('pom-set-sound').value=s.sound||'bell';
   document.getElementById('pom-set-volume').value=s.volume!==undefined?s.volume:60;
   document.getElementById('pom-set-volume-lbl').textContent=(s.volume!==undefined?s.volume:60)+'%';
@@ -15817,6 +15956,7 @@ function pomSaveSettings(){
   s.longMin=parseInt(document.getElementById('pom-set-long').value)||15;
   s.cycles=parseInt(document.getElementById('pom-set-cycles').value)||4;
   s.autoStart=document.getElementById('pom-set-autostart').checked;
+  s.flowMode=document.getElementById('pom-set-flow').checked;
   s.sound=document.getElementById('pom-set-sound').value||'bell';
   s.volume=parseInt(document.getElementById('pom-set-volume').value)||60;
   s.dailyGoal=parseInt(document.getElementById('pom-set-goal').value)||8;
@@ -15863,13 +16003,33 @@ function pomExportCSV(){
 function pomUpdateTimerDisplay(){
   const numEl=document.getElementById('pom-timer-num');
   const fillEl=document.getElementById('pom-ring-fill');
+  const lblEl=document.getElementById('pom-timer-lbl');
   if(!numEl)return;
+
+  // ── FLOW OVERTIME: count up ──
+  if(POM.flowOvertime){
+    numEl.textContent='+'+pomFmtTime(POM.overtimeSec);
+    numEl.style.color='var(--green)';
+    if(fillEl){
+      const r=88;const C=2*Math.PI*r;
+      // Ring slowly fills back up over 30 minutes of overtime
+      const maxOvertimeSec=30*60;
+      const pct=Math.min(POM.overtimeSec/maxOvertimeSec,1);
+      fillEl.style.strokeDashoffset=(C-(C*pct)).toFixed(2);
+      fillEl.style.stroke='var(--green)';
+    }
+    if(lblEl)lblEl.textContent='сверхурочно · останови когда готов';
+    return;
+  }
+
+  // ── NORMAL: countdown ──
   numEl.textContent=pomFmtTime(POM.secondsLeft);
-  // Ring
+  numEl.style.color=pomModeColor();
   if(fillEl){
     const r=88;const C=2*Math.PI*r;
     const pct=POM.totalSeconds>0?POM.secondsLeft/POM.totalSeconds:0;
-    fillEl.style.strokeDashoffset=C-(C*pct);
+    fillEl.style.strokeDashoffset=(C-(C*pct)).toFixed(2);
+    fillEl.style.stroke=pomModeColor();
   }
 }
 
@@ -15880,21 +16040,42 @@ function pomUpdateUI(){
   if(badge){badge.textContent=pomModeName();badge.className='pomModeBadge '+pomModeClass();}
   // Wrap class
   const wrap=document.getElementById('pom-ring-wrap');
-  if(wrap){wrap.className='pomRingWrap '+(POM.mode==='work'?'':POM.mode==='sbreak'?'break-mode':'long-mode');}
+  if(wrap){
+    let cls='pomRingWrap ';
+    if(POM.flowOvertime) cls+='flow-mode';
+    else if(POM.mode==='sbreak') cls+='break-mode';
+    else if(POM.mode==='lbreak') cls+='long-mode';
+    wrap.className=cls;
+  }
   // Ring color
   const fill=document.getElementById('pom-ring-fill');
   if(fill)fill.style.stroke=pomModeColor();
   // Timer num color
   const num=document.getElementById('pom-timer-num');
   if(num)num.style.color=pomModeColor();
+  // Timer label
+  const lbl=document.getElementById('pom-timer-lbl');
+  if(lbl){
+    if(POM.flowOvertime) lbl.textContent='сверхурочно · останови когда готов';
+    else lbl.textContent=POM.mode==='work'?pomSettings().workMin+'м рабочий':POM.mode==='sbreak'?pomSettings().breakMin+'м перерыв':pomSettings().longMin+'м отдых';
+  }
   // Main btn
   const btn=document.getElementById('pom-main-btn');
   if(btn){
-    btn.innerHTML=POM.running
-      ?'<svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></svg>'
-      :'<svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><polygon points="5,3 19,12 5,21"/></svg>';
-    btn.className='pomBtn pomBtnMain '+pomMainBtnClass();
+    if(POM.flowOvertime){
+      btn.innerHTML='<svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></svg>';
+      btn.className='pomBtn pomBtnMain flow-btn';
+    } else {
+      btn.innerHTML=POM.running
+        ?'<svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></svg>'
+        :'<svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><polygon points="5,3 19,12 5,21"/></svg>';
+      btn.className='pomBtn pomBtnMain '+pomMainBtnClass();
+    }
   }
+  // Flow overtime banner
+  const flowBanner=document.getElementById('pom-flow-banner');
+  if(flowBanner)flowBanner.style.display=POM.flowOvertime?'flex':'none';
+
   pomUpdateTimerDisplay();
   pomUpdateCycles();
 }
@@ -15946,8 +16127,15 @@ function renderPomodoro(){
 
   // Ring params
   const r=88;const C=(2*Math.PI*r).toFixed(2);
-  const pct=POM.totalSeconds>0?POM.secondsLeft/POM.totalSeconds:0;
-  const offset=(C*(1-pct)).toFixed(2);
+  let pct, offset;
+  if(POM.flowOvertime){
+    const maxOvertimeSec=30*60;
+    pct=Math.min(POM.overtimeSec/maxOvertimeSec,1);
+    offset=(C*(1-pct)).toFixed(2);
+  } else {
+    pct=POM.totalSeconds>0?POM.secondsLeft/POM.totalSeconds:0;
+    offset=(C*(1-pct)).toFixed(2);
+  }
 
   // Sessions history (last 8)
   const recentSess=sessions.slice(0,8);
@@ -15958,8 +16146,16 @@ function renderPomodoro(){
     <div style="display:flex;flex-direction:column;gap:16px">
 
       <!-- Ring card -->
-      <div class="pomRingWrap ${POM.mode==='work'?'':POM.mode==='sbreak'?'break-mode':'long-mode'}" id="pom-ring-wrap">
+      <div class="pomRingWrap ${POM.flowOvertime?'flow-mode':POM.mode==='work'?'':POM.mode==='sbreak'?'break-mode':'long-mode'}" id="pom-ring-wrap">
         <div class="pomModeBadge ${pomModeClass()}" id="pom-mode-badge">${pomModeName()}</div>
+
+        <!-- Flow overtime banner -->
+        <div id="pom-flow-banner" style="display:${POM.flowOvertime?'flex':'none'};align-items:center;gap:8px;padding:6px 14px;background:rgba(15,221,170,.1);border:1px solid rgba(15,221,170,.3);border-radius:20px;margin-bottom:12px;margin-top:-10px">
+          <span style="font-size:12px">🌊</span>
+          <span style="font-size:10.5px;font-weight:800;color:var(--green);letter-spacing:.3px">РЕЖИМ ПОТОКА — ты в зоне</span>
+          <span style="font-size:10px;color:rgba(15,221,170,.7)">·</span>
+          <span style="font-size:10px;color:rgba(15,221,170,.8);font-family:var(--font-mono)">нажми ⏸ чтобы завершить</span>
+        </div>
 
         <!-- SVG Ring -->
         <div class="pomRingSvg" style="position:relative;width:220px;height:220px;margin-bottom:8px">
@@ -15972,8 +16168,8 @@ function renderPomodoro(){
               style="transform:rotate(-90deg);transform-origin:50% 50%;"/>
           </svg>
           <div class="pomTimerTxt">
-            <div class="pomTimerNum" id="pom-timer-num" style="color:${pomModeColor()}">${pomFmtTime(POM.secondsLeft)}</div>
-            <div class="pomTimerLbl">${POM.mode==='work'?s.workMin+'м рабочий':POM.mode==='sbreak'?s.breakMin+'м перерыв':s.longMin+'м отдых'}</div>
+            <div class="pomTimerNum" id="pom-timer-num" style="color:${pomModeColor()}">${POM.flowOvertime?'+'+pomFmtTime(POM.overtimeSec):pomFmtTime(POM.secondsLeft)}</div>
+            <div class="pomTimerLbl" id="pom-timer-lbl">${POM.flowOvertime?'сверхурочно · останови когда готов':POM.mode==='work'?s.workMin+'м рабочий':POM.mode==='sbreak'?s.breakMin+'м перерыв':s.longMin+'м отдых'}</div>
           </div>
         </div>
 
@@ -15994,10 +16190,16 @@ function renderPomodoro(){
         </div>
 
         <!-- Mode switcher -->
-        <div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:center">
-          <button onclick="pomInitMode('work')" style="border:1px solid ${POM.mode==='work'?'rgba(255,79,114,.45)':'var(--border2)'};background:${POM.mode==='work'?'rgba(255,79,114,.12)':'var(--card2)'};color:${POM.mode==='work'?'var(--red)':'var(--text2)'};border-radius:20px;padding:5px 14px;font-size:10.5px;font-weight:700;cursor:pointer;transition:.15s">🍅 Фокус</button>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:center;margin-bottom:8px">
+          <button onclick="pomInitMode('work')" style="border:1px solid ${!POM.flowOvertime&&POM.mode==='work'?'rgba(255,79,114,.45)':'var(--border2)'};background:${!POM.flowOvertime&&POM.mode==='work'?'rgba(255,79,114,.12)':'var(--card2)'};color:${!POM.flowOvertime&&POM.mode==='work'?'var(--red)':'var(--text2)'};border-radius:20px;padding:5px 14px;font-size:10.5px;font-weight:700;cursor:pointer;transition:.15s">🍅 Фокус</button>
           <button onclick="pomInitMode('sbreak')" style="border:1px solid ${POM.mode==='sbreak'?'rgba(15,221,170,.45)':'var(--border2)'};background:${POM.mode==='sbreak'?'rgba(15,221,170,.12)':'var(--card2)'};color:${POM.mode==='sbreak'?'var(--green)':'var(--text2)'};border-radius:20px;padding:5px 14px;font-size:10.5px;font-weight:700;cursor:pointer;transition:.15s">☕ Перерыв</button>
           <button onclick="pomInitMode('lbreak')" style="border:1px solid ${POM.mode==='lbreak'?'rgba(91,149,255,.45)':'var(--border2)'};background:${POM.mode==='lbreak'?'rgba(91,149,255,.12)':'var(--card2)'};color:${POM.mode==='lbreak'?'var(--blue)':'var(--text2)'};border-radius:20px;padding:5px 14px;font-size:10.5px;font-weight:700;cursor:pointer;transition:.15s">🌿 Длинный</button>
+        </div>
+
+        <!-- Flow mode indicator pill -->
+        <div onclick="pomOpenSettings()" style="cursor:pointer;display:inline-flex;align-items:center;gap:5px;padding:4px 12px;border-radius:20px;border:1px solid ${s.flowMode?'rgba(15,221,170,.35)':'var(--border)'};background:${s.flowMode?'rgba(15,221,170,.07)':'transparent'};transition:.2s" title="${s.flowMode?'Flow Mode включён — нажми для настроек':'Flow Mode выключен — нажми для включения'}">
+          <span style="font-size:11px">🌊</span>
+          <span style="font-size:10px;font-weight:700;color:${s.flowMode?'var(--green)':'var(--muted)'}">${s.flowMode?'Flow Mode ON':'Flow Mode OFF'}</span>
         </div>
       </div>
 
