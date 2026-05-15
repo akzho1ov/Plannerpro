@@ -15269,10 +15269,10 @@ function buildSleepAnalyticsHTML(){
           <div style="font-size:12px;font-weight:700;color:var(--text)">⚡ Автозапуск следующей сессии</div>
           <div style="font-size:10px;color:var(--muted);margin-top:2px">Перерыв/работа начинается автоматически</div>
         </div>
-        <label style="position:relative;display:inline-block;width:38px;height:22px;flex-shrink:0">
-          <input type="checkbox" id="pom-set-autostart" style="opacity:0;width:0;height:0">
-          <span onclick="this.previousElementSibling.click()" style="position:absolute;cursor:pointer;inset:0;background:var(--border2);border-radius:11px;transition:.25s" id="pom-autostart-track"></span>
-          <span id="pom-autostart-thumb" style="position:absolute;content:'';height:16px;width:16px;left:3px;bottom:3px;background:white;border-radius:50%;transition:.25s;pointer-events:none"></span>
+        <label class="pom-toggle-label" for="pom-set-autostart">
+          <input type="checkbox" id="pom-set-autostart" class="pom-toggle-inp">
+          <span class="pom-toggle-track" id="pom-autostart-track"></span>
+          <span class="pom-toggle-thumb" id="pom-autostart-thumb"></span>
         </label>
       </div>
 
@@ -15282,10 +15282,10 @@ function buildSleepAnalyticsHTML(){
           <div style="font-size:12px;font-weight:700;color:var(--text)">🌊 Режим потока (Flow Mode)</div>
           <div style="font-size:10px;color:var(--muted);margin-top:2px">Таймер не прерывает — переходит в +сверхурочный счёт</div>
         </div>
-        <label style="position:relative;display:inline-block;width:38px;height:22px;flex-shrink:0">
-          <input type="checkbox" id="pom-set-flow" style="opacity:0;width:0;height:0">
-          <span onclick="this.previousElementSibling.click()" style="position:absolute;cursor:pointer;inset:0;background:var(--border2);border-radius:11px;transition:.25s" id="pom-flow-track"></span>
-          <span id="pom-flow-thumb" style="position:absolute;content:'';height:16px;width:16px;left:3px;bottom:3px;background:white;border-radius:50%;transition:.25s;pointer-events:none"></span>
+        <label class="pom-toggle-label" for="pom-set-flow">
+          <input type="checkbox" id="pom-set-flow" class="pom-toggle-inp">
+          <span class="pom-toggle-track" id="pom-flow-track"></span>
+          <span class="pom-toggle-thumb" id="pom-flow-thumb"></span>
         </label>
       </div>
 
@@ -15295,7 +15295,7 @@ function buildSleepAnalyticsHTML(){
           <div style="font-size:12px;font-weight:700;color:var(--text)">🔔 Браузерные уведомления</div>
           <div style="font-size:10px;color:var(--muted);margin-top:2px">Работает когда вкладка свёрнута</div>
         </div>
-        <button onclick="pomRequestNotif()" id="pom-notif-btn" style="padding:6px 12px;background:var(--pdim);border:1px solid rgba(155,143,245,.3);border-radius:8px;color:var(--p);font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap" onclick="pomRequestNotif()">${Notification.permission==='granted'?'✅ Включено':Notification.permission==='denied'?'🚫 Заблокировано':'Включить'}</button
+        <button onclick="pomRequestNotif()" id="pom-notif-btn" style="padding:6px 12px;background:var(--pdim);border:1px solid rgba(155,143,245,.3);border-radius:8px;color:var(--p);font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0">Включить</button>
       </div>
     </div>
 
@@ -15314,9 +15314,30 @@ function buildSleepAnalyticsHTML(){
 @media(max-width:900px){.pomWrap{grid-template-columns:1fr}}
 
 
-/* ── Pomodoro toggle switch ── */
-#pom-set-autostart:checked + #pom-autostart-track{background:var(--p);}
-#pom-set-autostart:checked ~ #pom-autostart-thumb{transform:translateX(16px);}
+/* ── Pomodoro toggle switches (unified) ── */
+.pom-toggle-label{
+  position:relative;display:inline-flex;width:42px;height:24px;flex-shrink:0;cursor:pointer;
+}
+.pom-toggle-inp{
+  position:absolute;opacity:0;width:0;height:0;
+}
+.pom-toggle-track{
+  position:absolute;inset:0;
+  background:var(--border2);border-radius:12px;
+  transition:background .25s;
+}
+.pom-toggle-thumb{
+  position:absolute;
+  height:18px;width:18px;left:3px;bottom:3px;
+  background:white;border-radius:50%;
+  transition:transform .25s;pointer-events:none;
+}
+/* Autostart: violet */
+#pom-set-autostart:checked ~ .pom-toggle-track{ background:var(--p); }
+#pom-set-autostart:checked ~ .pom-toggle-thumb{ transform:translateX(18px); }
+/* Flow Mode: green */
+#pom-set-flow:checked ~ .pom-toggle-track{ background:var(--green); }
+#pom-set-flow:checked ~ .pom-toggle-thumb{ transform:translateX(18px); }
 /* ── Pause modal chips ── */
 #pom-pause-chips button.sel{background:var(--pdim2);border-color:var(--p);color:var(--p);}
 /* Ring timer */
@@ -15496,12 +15517,7 @@ body.light-mode .pomHistItem:hover{background:rgba(0,0,0,.02)}
   0%,100%{text-shadow:0 0 0 rgba(15,221,170,0)}
   50%{text-shadow:0 0 20px rgba(15,221,170,.4)}
 }
-/* Toggle switch for flow mode */
-#pom-set-flow:checked + #pom-flow-track{background:var(--green);}
-#pom-set-flow:checked ~ #pom-flow-thumb{transform:translateX(16px);}
-/* Autostart toggle (existing but needs explicit selector) */
-#pom-set-autostart:checked + #pom-autostart-track{background:var(--p);}
-#pom-set-autostart:checked ~ #pom-autostart-thumb{transform:translateX(16px);}
+/* Toggle switch for flow mode — handled by unified .pom-toggle-* classes above */
 </style>
 
 <script>
@@ -15911,6 +15927,12 @@ function pomRequestNotif(){
   if(Notification.permission==='default'){
     Notification.requestPermission().then(p=>{
       pomShowNotif(p==='granted'?'🔔 Уведомления включены':'🔕 Уведомления отклонены');
+      // Refresh button in settings if open
+      const notifBtn=document.getElementById('pom-notif-btn');
+      if(notifBtn){
+        if(p==='granted'){notifBtn.textContent='✅ Включено';notifBtn.style.color='var(--green)';notifBtn.style.borderColor='rgba(15,221,170,.3)';notifBtn.style.background='rgba(15,221,170,.08)';}
+        else{notifBtn.textContent='🚫 Заблокировано';notifBtn.style.color='var(--red)';notifBtn.style.borderColor='rgba(255,79,114,.3)';notifBtn.style.background='rgba(255,79,114,.08)';}
+      }
       renderPomodoro();
     });
   }
@@ -15948,6 +15970,13 @@ function pomOpenSettings(){
   document.getElementById('pom-set-volume-lbl').textContent=(s.volume!==undefined?s.volume:60)+'%';
   document.getElementById('pom-set-goal').value=s.dailyGoal||8;
   document.getElementById('pomSettingsOverlay').style.display='flex';
+  // Notification button — set text based on current permission
+  const notifBtn=document.getElementById('pom-notif-btn');
+  if(notifBtn){
+    if(Notification.permission==='granted'){notifBtn.textContent='✅ Включено';notifBtn.style.color='var(--green)';notifBtn.style.borderColor='rgba(15,221,170,.3)';notifBtn.style.background='rgba(15,221,170,.08)';}
+    else if(Notification.permission==='denied'){notifBtn.textContent='🚫 Заблокировано';notifBtn.style.color='var(--red)';notifBtn.style.borderColor='rgba(255,79,114,.3)';notifBtn.style.background='rgba(255,79,114,.08)';}
+    else{notifBtn.textContent='Включить';notifBtn.style.color='var(--p)';notifBtn.style.borderColor='rgba(155,143,245,.3)';notifBtn.style.background='var(--pdim)';}
+  }
 }
 function pomSaveSettings(){
   const s=pomSettings();
