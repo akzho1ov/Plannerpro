@@ -15239,9 +15239,9 @@ function buildSleepAnalyticsHTML(){
         <input type="number" class="inp" id="pom-set-goal" min="1" max="20" value="8" style="font-family:var(--font-mono);font-size:16px;font-weight:700;max-width:100px">
       </div>
 
-      <!-- Звук -->
+      <!-- Звук уведомления -->
       <div class="fldGrp">
-        <div class="fldLbl">🔊 Звук уведомления</div>
+        <div class="fldLbl">🔔 Звук уведомления (конец сессии)</div>
         <div style="display:flex;gap:8px;align-items:center">
           <select class="inp sel" id="pom-set-sound" style="flex:1;font-size:12px">
             <option value="bell">🔔 Колокол</option>
@@ -15250,17 +15250,40 @@ function buildSleepAnalyticsHTML(){
             <option value="coffee">☕ Кофе-машина</option>
             <option value="none">🔇 Без звука</option>
           </select>
-          <button onclick="pomPlaySound('work')" style="padding:7px 12px;background:var(--card2);border:1px solid var(--border2);border-radius:8px;color:var(--text2);font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap">▶ Тест</button>
+          <button onclick="pomPreviewNotifSound()" style="padding:7px 12px;background:var(--card2);border:1px solid var(--border2);border-radius:8px;color:var(--text2);font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap">▶ Тест</button>
         </div>
       </div>
 
-      <!-- Громкость -->
+      <!-- Громкость уведомления -->
       <div class="fldGrp">
         <div class="fldLbl" style="display:flex;justify-content:space-between">
-          <span>🔉 Громкость</span>
+          <span>🔉 Громкость уведомления</span>
           <span id="pom-set-volume-lbl" style="color:var(--p);font-family:var(--font-mono);font-weight:700">60%</span>
         </div>
         <input type="range" id="pom-set-volume" min="0" max="100" value="60" style="width:100%;accent-color:var(--p)" oninput="document.getElementById('pom-set-volume-lbl').textContent=this.value+'%'">
+      </div>
+
+      <!-- Разделитель -->
+      <div style="height:1px;background:var(--border);margin:2px 0"></div>
+
+      <!-- Фоновый ambient-звук -->
+      <div class="fldGrp">
+        <div class="fldLbl">🎵 Фоновый звук во время фокуса</div>
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:10px" id="pom-ambient-cards">
+          <!-- Rendered by JS in pomOpenSettings -->
+        </div>
+        <input type="hidden" id="pom-set-ambient" value="none">
+        <!-- Ambient volume (hidden when none) -->
+        <div id="pom-ambient-vol-row" style="display:none">
+          <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--muted);font-weight:700;margin-bottom:4px">
+            <span>🔈 Громкость фона</span>
+            <span id="pom-set-ambient-vol-lbl" style="color:var(--green);font-family:var(--font-mono);font-weight:700">35%</span>
+          </div>
+          <div style="display:flex;gap:8px;align-items:center">
+            <input type="range" id="pom-set-ambient-vol" min="0" max="100" value="35" style="flex:1;accent-color:var(--green)" oninput="document.getElementById('pom-set-ambient-vol-lbl').textContent=this.value+'%'">
+            <button id="pom-ambient-preview-btn" onclick="pomPreviewAmbient()" style="padding:7px 12px;background:var(--card2);border:1px solid var(--border2);border-radius:8px;color:var(--text2);font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap">▶ Тест</button>
+          </div>
+        </div>
       </div>
 
       <!-- Автозапуск -->
@@ -15541,6 +15564,8 @@ function pomD(){
   if(s.dailyGoal===undefined)s.dailyGoal=8;
   if(!s.notifications===undefined)s.notifications=false;
   if(s.flowMode===undefined)s.flowMode=false;
+  if(!s.ambientSound)s.ambientSound='none';
+  if(s.ambientVolume===undefined)s.ambientVolume=35;
   if(!G.pomodoro.pauseLog)G.pomodoro.pauseLog=[];
   return G.pomodoro;
 }
@@ -15642,6 +15667,7 @@ function pomToggle(){
       const bonusMin=Math.round(bonusSec/60);
       pomShowNotif('🌊 Поток: '+totalWorkMin+'м (+'+(bonusMin>0?bonusMin+'м сверхурочно':'<1м')+')'+'  Отлично!');
       pomPlaySound('work');
+      pomAmbientStop();
       const s=pomSettings();
       const isLong=POM.cyclesDone>0&&POM.cyclesDone%s.cycles===0;
       pomBrowserNotif('🌊 Поток завершён!',isLong?'Заслуженный длинный отдых 🌿':'Короткий перерыв ☕');
@@ -15653,6 +15679,7 @@ function pomToggle(){
     // ── NORMAL PAUSE ──
     const elapsed=Math.floor((Date.now()-POM._startTs)/1000);
     POM.secondsLeft=Math.max(0,POM._baseSecondsLeft-elapsed);
+    pomAmbientStop();
     pomUpdateUI();
     if(POM.mode==='work'){
       POM._pauseStartSec=POM.secondsLeft;
@@ -15667,6 +15694,8 @@ function pomToggle(){
     POM._baseSecondsLeft=POM.secondsLeft;
     POM._iv=setInterval(pomTick,500);
     pomUpdateUI();
+    // Start ambient if focus mode
+    if(POM.mode==='work'||POM.flowOvertime) pomAmbientStart();
     pomShowNotif(POM.mode==='work'?'🍅 Фокус начат!':'☕ Отдых начат!');
   }
 }
@@ -15768,6 +15797,7 @@ function pomOnComplete(){
     }
     pomShowNotif('✅ Помодоро завершён! +'+workMinDone+'мин');
     pomPlaySound('work');
+    pomAmbientStop();
     const isLong=POM.cyclesDone>0&&POM.cyclesDone%s.cycles===0;
     const nextMode=isLong?'lbreak':'sbreak';
     pomBrowserNotif('🍅 Помодоро завершён!', isLong?'Время для длинного перерыва 🌿':'Короткий перерыв ☕');
@@ -15916,6 +15946,269 @@ function pomPlaySound(type){
   }catch(e){}
 }
 
+    }
+  }catch(e){}
+}
+
+/* ══════════════════════════════════════════════
+   🎵 AMBIENT SOUND ENGINE
+   Procedural Web Audio — no external files
+   Sounds: rain · white · brown · cafe · forest · ocean · lofi
+══════════════════════════════════════════════ */
+const AMBIENT={
+  ctx:null,
+  masterGain:null,
+  sources:[],   // BufferSourceNodes + OscillatorNodes to stop
+  running:false,
+};
+
+function pomAmbientStop(fadeMs=800){
+  if(!AMBIENT.running&&!AMBIENT.masterGain)return;
+  const g=AMBIENT.masterGain;
+  if(g&&AMBIENT.ctx){
+    const now=AMBIENT.ctx.currentTime;
+    g.gain.cancelScheduledValues(now);
+    g.gain.setValueAtTime(g.gain.value,now);
+    g.gain.linearRampToValueAtTime(0,now+fadeMs/1000);
+  }
+  setTimeout(()=>{
+    AMBIENT.sources.forEach(s=>{try{s.stop();}catch(e){}});
+    AMBIENT.sources=[];
+    if(AMBIENT.masterGain){AMBIENT.masterGain.disconnect();AMBIENT.masterGain=null;}
+    if(AMBIENT.ctx){try{AMBIENT.ctx.close();}catch(e){} AMBIENT.ctx=null;}
+    AMBIENT.running=false;
+    pomUpdateAmbientUI();
+  },fadeMs+100);
+}
+
+function pomAmbientStart(){
+  pomAmbientStop(0);
+  const s=pomSettings();
+  const type=s.ambientSound||'none';
+  if(type==='none')return;
+  const vol=(s.ambientVolume!==undefined?s.ambientVolume:35)/100*0.55;
+  if(vol<=0)return;
+  try{
+    AMBIENT.ctx=new(window.AudioContext||window.webkitAudioContext)();
+    AMBIENT.masterGain=AMBIENT.ctx.createGain();
+    AMBIENT.masterGain.gain.setValueAtTime(0,AMBIENT.ctx.currentTime);
+    AMBIENT.masterGain.gain.linearRampToValueAtTime(vol,AMBIENT.ctx.currentTime+1.5);
+    AMBIENT.masterGain.connect(AMBIENT.ctx.destination);
+    const ac=AMBIENT.ctx,mg=AMBIENT.masterGain;
+    // ── Generate chosen ambient ──
+    if(type==='rain')      _ambRain(ac,mg);
+    else if(type==='white') _ambWhite(ac,mg);
+    else if(type==='brown') _ambBrown(ac,mg);
+    else if(type==='cafe')  _ambCafe(ac,mg);
+    else if(type==='forest')_ambForest(ac,mg);
+    else if(type==='ocean') _ambOcean(ac,mg);
+    else if(type==='lofi')  _ambLofi(ac,mg);
+    AMBIENT.running=true;
+    pomUpdateAmbientUI();
+  }catch(e){console.warn('Ambient error:',e);}
+}
+
+/* Helper: make a looping noise buffer */
+function _noiseBuffer(ac,sec,color='white'){
+  const len=Math.ceil(ac.sampleRate*sec);
+  const buf=ac.createBuffer(1,len,ac.sampleRate);
+  const d=buf.getChannelData(0);
+  if(color==='white'){
+    for(let i=0;i<len;i++)d[i]=Math.random()*2-1;
+  } else if(color==='brown'){
+    let last=0;
+    for(let i=0;i<len;i++){d[i]=last=(last+(Math.random()*2-1)*0.02)*0.998;d[i]=Math.max(-1,Math.min(1,d[i]*8));}
+  } else if(color==='pink'){
+    let b0=0,b1=0,b2=0,b3=0,b4=0,b5=0;
+    for(let i=0;i<len;i++){
+      const w=Math.random()*2-1;
+      b0=0.99886*b0+w*0.0555179;b1=0.99332*b1+w*0.0750759;b2=0.96900*b2+w*0.1538520;
+      b3=0.86650*b3+w*0.3104856;b4=0.55000*b4+w*0.5329522;b5=-0.7616*b5-w*0.0168980;
+      d[i]=(b0+b1+b2+b3+b4+b5+w*0.5362)*0.11;
+    }
+  }
+  return buf;
+}
+function _loopNoise(ac,parent,buf,filterType,freq,Q=1,gain=1){
+  const src=ac.createBufferSource();src.buffer=buf;src.loop=true;
+  const filt=ac.createBiquadFilter();filt.type=filterType;filt.frequency.value=freq;filt.Q.value=Q;
+  const g=ac.createGain();g.gain.value=gain;
+  src.connect(filt);filt.connect(g);g.connect(parent);
+  src.start();AMBIENT.sources.push(src);
+  return{src,filt,g};
+}
+
+/* ── Rain ── */
+function _ambRain(ac,mg){
+  const buf=_noiseBuffer(ac,4,'pink');
+  // Main rain wash
+  _loopNoise(ac,mg,buf,'bandpass',600,0.5,1.1);
+  _loopNoise(ac,mg,buf,'lowpass',900,0.3,0.6);
+  // Heavy drops layer
+  _loopNoise(ac,mg,buf,'bandpass',2200,3,0.25);
+  // Low rumble
+  _loopNoise(ac,mg,buf,'lowpass',180,0.6,0.4);
+}
+
+/* ── White noise ── */
+function _ambWhite(ac,mg){
+  const buf=_noiseBuffer(ac,3,'white');
+  _loopNoise(ac,mg,buf,'lowpass',3500,0.5,0.9);
+}
+
+/* ── Brown / Deep noise ── */
+function _ambBrown(ac,mg){
+  const buf=_noiseBuffer(ac,4,'brown');
+  _loopNoise(ac,mg,buf,'lowpass',500,0.4,1.8);
+  _loopNoise(ac,mg,buf,'lowpass',200,0.3,0.8);
+}
+
+/* ── Cafe ── */
+function _ambCafe(ac,mg){
+  // Background chatter: band-limited pink noise
+  const buf=_noiseBuffer(ac,5,'pink');
+  _loopNoise(ac,mg,buf,'bandpass',800,0.4,0.5);
+  _loopNoise(ac,mg,buf,'bandpass',2000,0.6,0.15);
+  // Low room hum
+  _loopNoise(ac,mg,buf,'lowpass',250,0.5,0.3);
+  // Distant clink — random amplitude LFO
+  const lfo=ac.createOscillator();lfo.type='sine';lfo.frequency.value=0.3;
+  const lfoGain=ac.createGain();lfoGain.gain.value=0.12;
+  lfo.connect(lfoGain);lfoGain.connect(mg.gain);
+  lfo.start();AMBIENT.sources.push(lfo);
+}
+
+/* ── Forest ── */
+function _ambForest(ac,mg){
+  // Wind: brown noise through slowly modulated filter
+  const buf=_noiseBuffer(ac,5,'brown');
+  const{filt}=_loopNoise(ac,mg,buf,'bandpass',400,0.5,1.2);
+  // Wind swell LFO
+  const lfo=ac.createOscillator();lfo.type='sine';lfo.frequency.value=0.07;
+  const lfoAmt=ac.createGain();lfoAmt.gain.value=250;
+  lfo.connect(lfoAmt);lfoAmt.connect(filt.frequency);
+  lfo.start();AMBIENT.sources.push(lfo);
+  // High leaves rustle
+  const buf2=_noiseBuffer(ac,3,'white');
+  _loopNoise(ac,mg,buf2,'highpass',4000,0.5,0.18);
+  // Bird chirps — periodic sine blips
+  const makeBird=()=>{
+    if(!AMBIENT.running)return;
+    try{
+      const b=ac.createOscillator();b.type='sine';
+      const f=2200+Math.random()*1800;
+      b.frequency.setValueAtTime(f,ac.currentTime);
+      b.frequency.linearRampToValueAtTime(f*1.15,ac.currentTime+0.06);
+      b.frequency.linearRampToValueAtTime(f*0.9,ac.currentTime+0.12);
+      const bg=ac.createGain();bg.gain.setValueAtTime(0,ac.currentTime);
+      bg.gain.linearRampToValueAtTime(0.06,ac.currentTime+0.02);
+      bg.gain.exponentialRampToValueAtTime(0.001,ac.currentTime+0.14);
+      b.connect(bg);bg.connect(mg);
+      b.start(ac.currentTime);b.stop(ac.currentTime+0.15);
+      AMBIENT.sources.push(b);
+    }catch(e){}
+    setTimeout(makeBird,1500+Math.random()*4000);
+  };
+  setTimeout(makeBird,1200);
+}
+
+/* ── Ocean ── */
+function _ambOcean(ac,mg){
+  const buf=_noiseBuffer(ac,6,'pink');
+  const{filt,g}=_loopNoise(ac,mg,buf,'lowpass',600,1,1.4);
+  // Wave swell — slow LFO on gain
+  const lfo=ac.createOscillator();lfo.type='sine';lfo.frequency.value=0.12;
+  const lfoGain=ac.createGain();lfoGain.gain.value=0.35;
+  lfo.connect(lfoGain);lfoGain.connect(g.gain);
+  lfo.start();AMBIENT.sources.push(lfo);
+  // Foam hiss
+  const buf2=_noiseBuffer(ac,3,'white');
+  _loopNoise(ac,mg,buf2,'bandpass',2500,2,0.15);
+}
+
+/* ── Lo-fi ── */
+function _ambLofi(ac,mg){
+  // Vinyl crackle
+  const buf=_noiseBuffer(ac,4,'white');
+  _loopNoise(ac,mg,buf,'highpass',6000,0.5,0.06);
+  _loopNoise(ac,mg,buf,'bandpass',1200,2,0.04);
+  // Warm chord: stacked detuned sines (Cmaj7-ish)
+  const chord=[261.6,329.6,392,493.9,523.2];
+  chord.forEach((freq,i)=>{
+    const o=ac.createOscillator();o.type='triangle';
+    o.frequency.value=freq+(i%2===0?1.2:-0.8); // slight detune for warmth
+    const g=ac.createGain();g.gain.value=0.055;
+    o.connect(g);g.connect(mg);
+    o.start();AMBIENT.sources.push(o);
+  });
+  // Slow filter sweep
+  const sweep=ac.createBiquadFilter();sweep.type='lowpass';sweep.frequency.value=1200;
+  const lfo=ac.createOscillator();lfo.type='sine';lfo.frequency.value=0.04;
+  const lfoAmt=ac.createGain();lfoAmt.gain.value=400;
+  lfo.connect(lfoAmt);lfoAmt.connect(sweep.frequency);
+  lfo.start();AMBIENT.sources.push(lfo);
+  // Sub bass hum
+  const bass=ac.createOscillator();bass.type='sine';bass.frequency.value=65.4;
+  const bg=ac.createGain();bg.gain.value=0.07;
+  bass.connect(bg);bg.connect(mg);
+  bass.start();AMBIENT.sources.push(bass);
+}
+
+/* Update ambient UI icon in timer */
+function pomUpdateAmbientUI(){
+  const btn=document.getElementById('pom-ambient-btn');
+  if(!btn)return;
+  const s=pomSettings();
+  const type=s.ambientSound||'none';
+  const icons={none:'🔇',rain:'🌧',white:'📻',brown:'🟫',cafe:'☕',forest:'🌲',ocean:'🌊',lofi:'🎵'};
+  const icon=icons[type]||'🎵';
+  if(AMBIENT.running){
+    btn.innerHTML=`<span>${icon}</span><span style="font-size:9px;font-weight:800;color:var(--green)">ON</span>`;
+    btn.style.borderColor='rgba(15,221,170,.4)';
+    btn.style.background='rgba(15,221,170,.08)';
+  } else {
+    btn.innerHTML=`<span>${icon}</span><span style="font-size:9px;font-weight:700;color:var(--muted)">${type==='none'?'OFF':'OFF'}</span>`;
+    btn.style.borderColor='var(--border2)';
+    btn.style.background='var(--card2)';
+  }
+}
+
+/* Called from timer toggle button in UI */
+function pomAmbientToggle(){
+  if(AMBIENT.running){pomAmbientStop();}
+  else{pomAmbientStart();}
+}
+
+/* Preview ambient in settings for 4 sec */
+function pomPreviewAmbient(){
+  const sel=document.getElementById('pom-set-ambient');
+  const volEl=document.getElementById('pom-set-ambient-vol');
+  if(!sel)return;
+  const s=pomSettings();
+  const origType=s.ambientSound,origVol=s.ambientVolume;
+  s.ambientSound=sel.value;
+  s.ambientVolume=volEl?parseInt(volEl.value):origVol;
+  pomAmbientStart();
+  const btn=document.getElementById('pom-ambient-preview-btn');
+  if(btn){btn.textContent='⏹ Стоп';btn.onclick=()=>{pomAmbientStop();s.ambientSound=origType;s.ambientVolume=origVol;if(btn){btn.textContent='▶ Тест';btn.onclick=pomPreviewAmbient;}};}
+  setTimeout(()=>{
+    pomAmbientStop();
+    s.ambientSound=origType;s.ambientVolume=origVol;
+    if(btn){btn.textContent='▶ Тест';btn.onclick=pomPreviewAmbient;}
+  },4000);
+}
+
+/* Preview notification sound using dropdown value (not saved setting) */
+function pomPreviewNotifSound(){
+  const sel=document.getElementById('pom-set-sound');
+  if(!sel)return;
+  const s=pomSettings();
+  const orig=s.sound;
+  s.sound=sel.value;
+  pomPlaySound('work');
+  s.sound=orig;
+}
+
 /* ── Browser push notification ── */
 function pomBrowserNotif(title,body){
   if(Notification.permission==='granted'){
@@ -15969,6 +16262,41 @@ function pomOpenSettings(){
   document.getElementById('pom-set-volume').value=s.volume!==undefined?s.volume:60;
   document.getElementById('pom-set-volume-lbl').textContent=(s.volume!==undefined?s.volume:60)+'%';
   document.getElementById('pom-set-goal').value=s.dailyGoal||8;
+
+  // ── Ambient cards ──
+  const ambients=[
+    {id:'none', icon:'🔇', label:'Выкл'},
+    {id:'rain',  icon:'🌧', label:'Дождь'},
+    {id:'white', icon:'📻', label:'Белый шум'},
+    {id:'brown', icon:'🌫', label:'Коричневый'},
+    {id:'cafe',  icon:'☕', label:'Кафе'},
+    {id:'forest',icon:'🌲', label:'Лес'},
+    {id:'ocean', icon:'🌊', label:'Океан'},
+    {id:'lofi',  icon:'🎵', label:'Lo-Fi'},
+  ];
+  const cur=s.ambientSound||'none';
+  const cards=document.getElementById('pom-ambient-cards');
+  if(cards){
+    cards.innerHTML=ambients.map(a=>`
+      <button onclick="pomSelectAmbient('${a.id}')" id="pom-amb-card-${a.id}" style="
+        padding:8px 4px;border-radius:10px;cursor:pointer;transition:.15s;
+        border:2px solid ${cur===a.id?'rgba(15,221,170,.5)':'var(--border)'};
+        background:${cur===a.id?'rgba(15,221,170,.1)':'var(--card2)'};
+        display:flex;flex-direction:column;align-items:center;gap:3px
+      ">
+        <span style="font-size:18px">${a.icon}</span>
+        <span style="font-size:9px;font-weight:700;color:${cur===a.id?'var(--green)':'var(--muted)'}">${a.label}</span>
+      </button>`).join('');
+  }
+  document.getElementById('pom-set-ambient').value=cur;
+  const ambVol=s.ambientVolume!==undefined?s.ambientVolume:35;
+  const volEl=document.getElementById('pom-set-ambient-vol');
+  const volLbl=document.getElementById('pom-set-ambient-vol-lbl');
+  if(volEl)volEl.value=ambVol;
+  if(volLbl)volLbl.textContent=ambVol+'%';
+  const volRow=document.getElementById('pom-ambient-vol-row');
+  if(volRow)volRow.style.display=cur==='none'?'none':'block';
+
   document.getElementById('pomSettingsOverlay').style.display='flex';
   // Notification button — set text based on current permission
   const notifBtn=document.getElementById('pom-notif-btn');
@@ -15977,6 +16305,23 @@ function pomOpenSettings(){
     else if(Notification.permission==='denied'){notifBtn.textContent='🚫 Заблокировано';notifBtn.style.color='var(--red)';notifBtn.style.borderColor='rgba(255,79,114,.3)';notifBtn.style.background='rgba(255,79,114,.08)';}
     else{notifBtn.textContent='Включить';notifBtn.style.color='var(--p)';notifBtn.style.borderColor='rgba(155,143,245,.3)';notifBtn.style.background='var(--pdim)';}
   }
+}
+
+/* Select ambient card in settings */
+function pomSelectAmbient(id){
+  document.getElementById('pom-set-ambient').value=id;
+  // Update card visuals
+  const ambients=['none','rain','white','brown','cafe','forest','ocean','lofi'];
+  ambients.forEach(a=>{
+    const card=document.getElementById('pom-amb-card-'+a);
+    if(!card)return;
+    const isSelected=a===id;
+    card.style.border='2px solid '+(isSelected?'rgba(15,221,170,.5)':'var(--border)');
+    card.style.background=isSelected?'rgba(15,221,170,.1)':'var(--card2)';
+    card.querySelector('span:last-child').style.color=isSelected?'var(--green)':'var(--muted)';
+  });
+  const volRow=document.getElementById('pom-ambient-vol-row');
+  if(volRow)volRow.style.display=id==='none'?'none':'block';
 }
 function pomSaveSettings(){
   const s=pomSettings();
@@ -15989,8 +16334,14 @@ function pomSaveSettings(){
   s.sound=document.getElementById('pom-set-sound').value||'bell';
   s.volume=parseInt(document.getElementById('pom-set-volume').value)||60;
   s.dailyGoal=parseInt(document.getElementById('pom-set-goal').value)||8;
+  const ambSel=document.getElementById('pom-set-ambient');
+  const ambVolEl=document.getElementById('pom-set-ambient-vol');
+  if(ambSel)s.ambientSound=ambSel.value||'none';
+  if(ambVolEl)s.ambientVolume=parseInt(ambVolEl.value)||35;
   saveD();
   document.getElementById('pomSettingsOverlay').style.display='none';
+  // Restart ambient if it was playing, or stop if changed to none
+  if(AMBIENT.running){pomAmbientStop();if(POM.running&&POM.mode==='work')setTimeout(pomAmbientStart,900);}
   if(!POM.running)pomInitMode(POM.mode);
   renderPomodoro();
   pomShowNotif('✅ Настройки сохранены');
@@ -16225,10 +16576,32 @@ function renderPomodoro(){
           <button onclick="pomInitMode('lbreak')" style="border:1px solid ${POM.mode==='lbreak'?'rgba(91,149,255,.45)':'var(--border2)'};background:${POM.mode==='lbreak'?'rgba(91,149,255,.12)':'var(--card2)'};color:${POM.mode==='lbreak'?'var(--blue)':'var(--text2)'};border-radius:20px;padding:5px 14px;font-size:10.5px;font-weight:700;cursor:pointer;transition:.15s">🌿 Длинный</button>
         </div>
 
-        <!-- Flow mode indicator pill -->
-        <div onclick="pomOpenSettings()" style="cursor:pointer;display:inline-flex;align-items:center;gap:5px;padding:4px 12px;border-radius:20px;border:1px solid ${s.flowMode?'rgba(15,221,170,.35)':'var(--border)'};background:${s.flowMode?'rgba(15,221,170,.07)':'transparent'};transition:.2s" title="${s.flowMode?'Flow Mode включён — нажми для настроек':'Flow Mode выключен — нажми для включения'}">
-          <span style="font-size:11px">🌊</span>
-          <span style="font-size:10px;font-weight:700;color:${s.flowMode?'var(--green)':'var(--muted)'}">${s.flowMode?'Flow Mode ON':'Flow Mode OFF'}</span>
+        <!-- Flow mode + Ambient pills row -->
+        <div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:center;align-items:center">
+          <!-- Flow mode pill -->
+          <div onclick="pomOpenSettings()" style="cursor:pointer;display:inline-flex;align-items:center;gap:5px;padding:4px 12px;border-radius:20px;border:1px solid ${s.flowMode?'rgba(15,221,170,.35)':'var(--border)'};background:${s.flowMode?'rgba(15,221,170,.07)':'transparent'};transition:.2s" title="${s.flowMode?'Flow Mode включён':'Flow Mode выключен'}">
+            <span style="font-size:11px">🌊</span>
+            <span style="font-size:10px;font-weight:700;color:${s.flowMode?'var(--green)':'var(--muted)'}">${s.flowMode?'Flow ON':'Flow OFF'}</span>
+          </div>
+          <!-- Ambient sound pill -->
+          ${(()=>{
+            const ambIcons={none:'🔇',rain:'🌧',white:'📻',brown:'🌫',cafe:'☕',forest:'🌲',ocean:'🌊',lofi:'🎵'};
+            const ambType=s.ambientSound||'none';
+            const ambIcon=ambIcons[ambType]||'🎵';
+            const isOn=AMBIENT.running;
+            return `<button id="pom-ambient-btn" onclick="pomAmbientToggle()" style="
+              cursor:pointer;display:inline-flex;align-items:center;gap:5px;
+              padding:4px 12px;border-radius:20px;
+              border:1px solid ${isOn?'rgba(15,221,170,.4)':'var(--border)'};
+              background:${isOn?'rgba(15,221,170,.08)':'transparent'};
+              transition:.2s
+            " title="${ambType==='none'?'Фоновый звук выкл (настроить в ⚙)':'isOn?Стоп ambient':'Старт ambient'}">
+              <span style="font-size:11px">${ambIcon}</span>
+              <span style="font-size:10px;font-weight:700;color:${isOn?'var(--green)':ambType==='none'?'var(--muted)':'var(--text2)'}">
+                ${ambType==='none'?'Звук выкл':isOn?'Стоп фон':'Фон'}
+              </span>
+            </button>`;
+          })()}
         </div>
       </div>
 
