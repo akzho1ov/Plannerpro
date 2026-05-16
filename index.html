@@ -15946,10 +15946,6 @@ function pomPlaySound(type){
   }catch(e){}
 }
 
-    }
-  }catch(e){}
-}
-
 /* ══════════════════════════════════════════════
    🎵 AMBIENT SOUND ENGINE
    Procedural Web Audio — no external files
@@ -16152,6 +16148,23 @@ function _ambLofi(ac,mg){
   const bg=ac.createGain();bg.gain.value=0.07;
   bass.connect(bg);bg.connect(mg);
   bass.start();AMBIENT.sources.push(bass);
+}
+
+/* Render ambient pill HTML (called from renderPomodoro template) */
+function pomRenderAmbientPill(s){
+  const icons={none:'🔇',rain:'🌧',white:'📻',brown:'🌫',cafe:'☕',forest:'🌲',ocean:'🌊',lofi:'🎵'};
+  const type=s.ambientSound||'none';
+  const icon=icons[type]||'🎵';
+  const isOn=AMBIENT.running;
+  const border=isOn?'rgba(15,221,170,.4)':'var(--border)';
+  const bg=isOn?'rgba(15,221,170,.08)':'transparent';
+  const color=isOn?'var(--green)':type==='none'?'var(--muted)':'var(--text2)';
+  const label=type==='none'?'Фон выкл':isOn?'Стоп фон':'Вкл фон';
+  const title=type==='none'?'Фоновый звук — настроить в ⚙':isOn?'Остановить фоновый звук':'Включить фоновый звук';
+  return '<button id="pom-ambient-btn" onclick="pomAmbientToggle()" title="'+title+'" style="cursor:pointer;display:inline-flex;align-items:center;gap:5px;padding:4px 12px;border-radius:20px;border:1px solid '+border+';background:'+bg+';transition:.2s">'
+    +'<span style="font-size:11px">'+icon+'</span>'
+    +'<span style="font-size:10px;font-weight:700;color:'+color+'">'+label+'</span>'
+    +'</button>';
 }
 
 /* Update ambient UI icon in timer */
@@ -16584,24 +16597,7 @@ function renderPomodoro(){
             <span style="font-size:10px;font-weight:700;color:${s.flowMode?'var(--green)':'var(--muted)'}">${s.flowMode?'Flow ON':'Flow OFF'}</span>
           </div>
           <!-- Ambient sound pill -->
-          ${(()=>{
-            const ambIcons={none:'🔇',rain:'🌧',white:'📻',brown:'🌫',cafe:'☕',forest:'🌲',ocean:'🌊',lofi:'🎵'};
-            const ambType=s.ambientSound||'none';
-            const ambIcon=ambIcons[ambType]||'🎵';
-            const isOn=AMBIENT.running;
-            return `<button id="pom-ambient-btn" onclick="pomAmbientToggle()" style="
-              cursor:pointer;display:inline-flex;align-items:center;gap:5px;
-              padding:4px 12px;border-radius:20px;
-              border:1px solid ${isOn?'rgba(15,221,170,.4)':'var(--border)'};
-              background:${isOn?'rgba(15,221,170,.08)':'transparent'};
-              transition:.2s
-            " title="${ambType==='none'?'Фоновый звук выкл (настроить в ⚙)':'isOn?Стоп ambient':'Старт ambient'}">
-              <span style="font-size:11px">${ambIcon}</span>
-              <span style="font-size:10px;font-weight:700;color:${isOn?'var(--green)':ambType==='none'?'var(--muted)':'var(--text2)'}">
-                ${ambType==='none'?'Звук выкл':isOn?'Стоп фон':'Фон'}
-              </span>
-            </button>`;
-          })()}
+          ${pomRenderAmbientPill(s)}
         </div>
       </div>
 
