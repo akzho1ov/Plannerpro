@@ -1612,8 +1612,8 @@ select.inp option{background:var(--card2);color:var(--text)}
 @media(max-width:1100px){.dashGrid{grid-template-columns:repeat(2,1fr)}.dashGrid2{grid-template-columns:1fr 1fr}}
 @media(max-width:768px){
   .dashGrid,.dashGrid2,.dashGrid3{grid-template-columns:1fr}
-  /* Donut card full-width + bigger chart on mobile */
-  #dashLabelDonut{width:120px!important;height:120px!important}
+  /* Donut card full-width on mobile */
+  #dashLabelDonut{width:90px!important;height:90px!important}
   .dashDonutCard{grid-column:1/-1}
 }
 .dashGrowthRow{align-items:stretch!important}
@@ -3383,15 +3383,15 @@ body.light-mode .skel{background:linear-gradient(90deg,var(--card2) 25%,#f0f2f7 
     <!-- Labels Donut -->
     <div class="dashCard dashDonutCard" style="position:relative">
       <div class="dashCardLbl">🏷 Задачи по меткам</div>
-      <div id="dashDonutWrap" style="display:flex;align-items:center;gap:14px;margin-top:6px;flex-wrap:wrap">
-        <div style="position:relative;flex-shrink:0;width:100px;height:100px;margin:0 auto">
-          <canvas id="dashLabelDonut" width="100" height="100" style="display:block"></canvas>
+      <div id="dashDonutWrap" style="display:flex;align-items:center;gap:16px;margin-top:8px;flex-wrap:nowrap">
+        <div style="position:relative;flex-shrink:0;width:90px;height:90px">
+          <canvas id="dashLabelDonut" width="90" height="90" style="display:block"></canvas>
           <div id="dashDonutCenter" style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;pointer-events:none">
-            <div style="font-family:var(--font-display);font-size:22px;font-weight:800;color:var(--text);line-height:1" id="dashDonutTotal">0</div>
+            <div style="font-family:var(--font-display);font-size:20px;font-weight:800;color:var(--text);line-height:1" id="dashDonutTotal">0</div>
             <div style="font-size:8px;color:var(--muted);font-weight:600;margin-top:2px">задач</div>
           </div>
         </div>
-        <div id="dashLabelLegend" style="flex:1;min-width:140px;display:flex;flex-direction:column;gap:5px"></div>
+        <div id="dashLabelLegend" style="flex:1;min-width:0;display:flex;flex-direction:column;gap:6px;justify-content:center"></div>
       </div>
     </div>
   </div>
@@ -5510,7 +5510,12 @@ function saveD(){
   try{localStorage.setItem(SKEY+'_cache',JSON.stringify(G));}catch{}
   // 2. Save photos to localStorage separately (keeps Firestore doc tiny)
   savePhotosLocally();
-  // 3. Debounce Firestore write — 500ms
+  // 3. Mark write time IMMEDIATELY so isOwnEcho works correctly for any
+  //    incoming Firestore snapshot that arrives before the 500ms debounce fires.
+  //    Without this, G=incoming could overwrite local data (e.g. sleep entries)
+  //    before our Firestore write even started.
+  _myLastWriteAt=Date.now();
+  // 4. Debounce Firestore write — 500ms
   clearTimeout(_saveTimer);
   // ── BUG FIX: setSyncDot('syncing') moved INSIDE the timeout ──
   // Before: dot went yellow immediately on every saveD() call — even when debounced away.
@@ -5521,7 +5526,7 @@ function saveD(){
     if(_isSaving){_pendingSave=true;return;}
     _isSaving=true;
     _pendingSave=false;
-    _myLastWriteAt=Date.now();
+    _myLastWriteAt=Date.now(); // refresh timestamp right before actual write
     try{
       const payload=cleanForFirestoreNoPhotos(G);
       await db.collection('users').doc(currentUser.uid).set(payload);
@@ -10523,14 +10528,13 @@ function renderDashLabelDonut(filteredTasks, period){
   const mutedColor=csRoot.getPropertyValue('--muted').trim()||'#8490B8';
 
   const DPR=window.devicePixelRatio||1;
-  const isMobD=window.innerWidth<700;
-  const SIZE=isMobD?100:90;
+  const SIZE=90;
   cv.width=SIZE*DPR; cv.height=SIZE*DPR;
   cv.style.width=SIZE+'px'; cv.style.height=SIZE+'px';
   const ctx=cv.getContext('2d');
   ctx.scale(DPR,DPR);
   ctx.clearRect(0,0,SIZE,SIZE);
-  const cx=SIZE/2, cy=SIZE/2, R=isMobD?43:38, r=isMobD?26:23;
+  const cx=SIZE/2, cy=SIZE/2, R=38, r=23;
 
   // Count tasks — only labels from "Внимание" group (lg2)
   const attnGroup=labelGroupsD().find(g=>g.id==='lg2');
@@ -10553,14 +10557,26 @@ function renderDashLabelDonut(filteredTasks, period){
 
   // Empty state
   if(!total){
+    // Draw subtle ring
     ctx.beginPath();
     ctx.arc(cx,cy,R,0,Math.PI*2);
     ctx.arc(cx,cy,r,Math.PI*2,0,true);
-    ctx.fillStyle='rgba(255,255,255,.07)';
+    ctx.fillStyle='rgba(255,255,255,.06)';
     ctx.fill('evenodd');
     ctx.beginPath();ctx.arc(cx,cy,r-1,0,Math.PI*2);
     ctx.fillStyle=bgColor;ctx.fill();
-    legendEl.innerHTML='<div style="font-size:10px;color:'+mutedColor+'">Нет задач за период</div>';
+    // Dashed border
+    ctx.save();
+    ctx.setLineDash([4,4]);
+    ctx.lineWidth=1.5;
+    ctx.strokeStyle='rgba(255,255,255,.15)';
+    ctx.beginPath();ctx.arc(cx,cy,(R+r)/2,0,Math.PI*2);ctx.stroke();
+    ctx.restore();
+    legendEl.innerHTML=
+      '<div style="display:flex;flex-direction:column;gap:6px">'
+      +'<div style="font-size:12px;font-weight:700;color:'+mutedColor+'">Нет задач</div>'
+      +'<div style="font-size:10px;color:'+mutedColor+';line-height:1.4;opacity:.7">Добавь задачи с меткой группы «Внимание»<br>и они появятся здесь</div>'
+      +'</div>';
     return;
   }
 
@@ -10592,12 +10608,11 @@ function renderDashLabelDonut(filteredTasks, period){
   ctx.restore();
 
   // Legend
-  const isMobLeg=window.innerWidth<700;
   legendEl.innerHTML=drawn.map(({seg,pct})=>
-    '<div style="display:flex;align-items:center;gap:6px;min-width:0;padding:'+(isMobLeg?'2px 0':'1px 0')+'">'+
-    '<div style="width:'+(isMobLeg?9:7)+'px;height:'+(isMobLeg?9:7)+'px;border-radius:50%;background:'+seg.color+';flex-shrink:0;box-shadow:0 0 5px '+seg.color+'99"></div>'+
-    '<div style="flex:1;font-size:'+(isMobLeg?11:9.5)+'px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text2);font-weight:500">'+esc(seg.name)+'</div>'+
-    '<div style="font-size:'+(isMobLeg?10:9)+'px;font-weight:700;color:var(--text);font-family:monospace;flex-shrink:0">'+seg.count+' <span style="color:var(--muted);font-weight:400">('+pct+'%)</span></div>'+
+    '<div style="display:flex;align-items:center;gap:7px;min-width:0;padding:2px 0">'+
+    '<div style="width:8px;height:8px;border-radius:50%;flex-shrink:0;background:'+seg.color+';box-shadow:0 0 5px '+seg.color+'80"></div>'+
+    '<div style="flex:1;font-size:11px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text2);font-weight:500">'+esc(seg.name)+'</div>'+
+    '<div style="font-size:10px;font-weight:700;color:var(--text);font-family:monospace;flex-shrink:0">'+seg.count+'<span style="color:var(--muted);font-weight:400;font-size:9px"> ('+pct+'%)</span></div>'+
     '</div>'
   ).join('');
 }
