@@ -24,6 +24,7 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-storage-compat.js"></script>
 <script>
 // ⬇️ ТВОЙ Firebase config (замени на свой из Firebase Console → Project Settings)
 const firebaseConfig = {
@@ -38,6 +39,7 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
+const storage = firebase.storage();
 let currentUser = null;
 
 // ── Offline persistence — data available without internet ──
@@ -4250,7 +4252,7 @@ body.light-mode .skel{background:linear-gradient(90deg,var(--card2) 25%,#f0f2f7 
     <div class="card" style="padding:14px 16px;margin-bottom:14px">
       <div class="secLbl" style="margin-bottom:10px">Добавить запись</div>
       <div class="wtAddRow">
-        <input type="date" class="inp" id="wt-date" style="flex:1;min-width:130px;color-scheme:dark">
+        <input type="date" class="inp" id="wt-date" min="2000-01-01" max="2099-12-31" style="flex:1;min-width:130px;color-scheme:dark">
         <input type="number" class="inp" id="wt-val" placeholder="Вес (кг)" step="0.1" min="20" max="300" style="flex:1;min-width:100px">
         <input class="inp" id="wt-note" placeholder="Заметка..." style="flex:2;min-width:150px">
         <button class="btn btnB" onclick="wtAdd()">Добавить</button>
@@ -4476,7 +4478,7 @@ body.light-mode .skel{background:linear-gradient(90deg,var(--card2) 25%,#f0f2f7 
     <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:4px">
       <div class="fldGrp" style="flex:1;min-width:130px">
         <div class="fldLbl">Дата</div>
-        <input type="date" class="inp" id="kz-date" style="color-scheme:dark">
+        <input type="date" class="inp" id="kz-date" min="2000-01-01" max="2099-12-31" style="color-scheme:dark">
       </div>
       <div class="fldGrp" style="flex:1;min-width:120px">
         <div class="fldLbl">Оценка дня (1-10)</div>
@@ -4531,7 +4533,7 @@ body.light-mode .skel{background:linear-gradient(90deg,var(--card2) 25%,#f0f2f7 
     <div class="tmField">
       <label class="tmLabel">Срок выполнения</label>
       <div style="display:flex;gap:8px;align-items:center">
-        <input type="date" class="inp" id="tm-deadline" style="color-scheme:dark;flex:1">
+        <input type="date" class="inp" id="tm-deadline" min="2000-01-01" max="2099-12-31" style="color-scheme:dark;flex:1">
         <input type="time" class="inp" id="tm-deadline-time" placeholder="—" style="color-scheme:dark;max-width:100px;font-family:var(--font-mono);font-size:13px;font-weight:700" title="Время дедлайна">
       </div>
     </div>
@@ -4679,7 +4681,7 @@ body.light-mode .skel{background:linear-gradient(90deg,var(--card2) 25%,#f0f2f7 
     <div style="display:flex;gap:8px;flex-wrap:wrap">
       <div class="fldGrp" style="flex:1;min-width:100px">
         <div class="fldLbl">Дата</div>
-        <input type="date" class="inp" id="plCal-edate" style="color-scheme:dark">
+        <input type="date" class="inp" id="plCal-edate" min="2000-01-01" max="2099-12-31" style="color-scheme:dark">
       </div>
       <div class="fldGrp" style="flex:1;min-width:90px">
         <div class="fldLbl">Начало</div>
@@ -4729,7 +4731,7 @@ body.light-mode .skel{background:linear-gradient(90deg,var(--card2) 25%,#f0f2f7 
     <!-- Deadline -->
     <div class="tmField">
       <label class="tmLabel">Срок выполнения</label>
-      <input type="date" class="inp" id="kbCardDl" style="color-scheme:dark">
+      <input type="date" class="inp" id="kbCardDl" min="2000-01-01" max="2099-12-31" style="color-scheme:dark">
     </div>
 
     <!-- Time row — identical to task modal -->
@@ -4870,7 +4872,7 @@ body.light-mode .skel{background:linear-gradient(90deg,var(--card2) 25%,#f0f2f7 
     </div>
     <div class="fldGrp"><div class="fldLbl">Счёт</div><select class="inp" id="finAcctSel"></select></div>
     <div class="fldGrp"><div class="fldLbl">Описание</div><input class="inp" id="finNote" placeholder="Примечание..."></div>
-    <div class="fldGrp"><div class="fldLbl">Дата</div><input type="date" class="inp" id="finDate" style="color-scheme:dark"></div>
+    <div class="fldGrp"><div class="fldLbl">Дата</div><input type="date" class="inp" id="finDate" min="2000-01-01" max="2099-12-31" style="color-scheme:dark"></div>
     <div style="display:flex;gap:8px">
       <button class="btn btnR" id="finDeleteBtn" style="display:none" onclick="deleteFinTx()">🗑</button>
       <button class="btn btnG" style="flex:1;justify-content:center" onclick="closeFinModal()">Отмена</button>
@@ -4928,7 +4930,7 @@ body.light-mode .skel{background:linear-gradient(90deg,var(--card2) 25%,#f0f2f7 
     </div>
     <div class="fldGrp">
       <div class="fldLbl">Дата</div>
-      <input type="date" class="inp" id="trDate" style="color-scheme:dark">
+      <input type="date" class="inp" id="trDate" min="2000-01-01" max="2099-12-31" style="color-scheme:dark">
     </div>
     <div class="fldGrp">
       <div class="fldLbl">Примечание (необязательно)</div>
@@ -5031,7 +5033,7 @@ body.light-mode .skel{background:linear-gradient(90deg,var(--card2) 25%,#f0f2f7 
     <div class="fldGrp"><div class="fldLbl">Зачем это нужно (Аффирмация / Мотивация)</div><textarea class="kbTxtarea" id="goalWhyInp" placeholder="Я достигну этого потому что..." style="min-height:55px"></textarea></div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
       <div class="fldGrp"><div class="fldLbl">Категория</div><select class="inp" id="goalCatInp"></select></div>
-      <div class="fldGrp"><div class="fldLbl">Срок достижения</div><input type="date" class="inp" id="goalDlInp" style="color-scheme:dark"></div>
+      <div class="fldGrp"><div class="fldLbl">Срок достижения</div><input type="date" class="inp" id="goalDlInp" min="2000-01-01" max="2099-12-31" style="color-scheme:dark"></div>
     </div>
     <div class="fldGrp">
       <div class="fldLbl">Шаги / Вехи (по одному на строку)</div>
@@ -5054,7 +5056,7 @@ body.light-mode .skel{background:linear-gradient(90deg,var(--card2) 25%,#f0f2f7 
     <!-- Date + Mood — always stack on mobile -->
     <div class="tmField">
       <div class="fldLbl">Дата</div>
-      <input type="date" class="inp" id="jDateInp" style="color-scheme:dark">
+      <input type="date" class="inp" id="jDateInp" min="2000-01-01" max="2099-12-31" style="color-scheme:dark">
     </div>
     <div class="tmField">
       <div class="fldLbl">Настроение</div>
@@ -5396,9 +5398,9 @@ function restorePhotosFromLocal(){
 }
 
 function cleanForFirestoreNoPhotos(obj){
-  // Deep-clone and strip base64 photo fields to keep Firestore doc small & fast
+  // Deep-clone and strip ONLY base64 photo fields (cloud URLs are small, keep them)
   const clone = JSON.parse(JSON.stringify(obj, (_k, v) => v === undefined ? null : v));
-  if(clone.goals) clone.goals = clone.goals.map(g => ({ ...g, photo: g.photo && !g.photo.startsWith('data:') ? g.photo : '' }));
+  if(clone.goals) clone.goals = clone.goals.map(g => ({ ...g, photo: (g.photo && g.photo.startsWith('data:')) ? '' : (g.photo||'') }));
   if(clone.mission) {
     Object.keys(clone.mission).forEach(id => {
       if(clone.mission[id] && clone.mission[id].photo && clone.mission[id].photo.startsWith('data:'))
@@ -5585,7 +5587,13 @@ async function authSubmit(){
 }
 
 function showUserMenu(){
-  if(confirm('Выйти из аккаунта?'))auth.signOut();
+  const html=`<div style="position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:9999;display:flex;align-items:flex-start;justify-content:flex-end;padding:60px 12px 0" id="userMenuOverlay" onclick="if(event.target.id==='userMenuOverlay')document.getElementById('userMenuOverlay').remove()">
+  <div style="background:var(--card);border:1px solid var(--border);border-radius:14px;padding:8px;min-width:200px">
+    <button class="btn btnG" style="width:100%;justify-content:flex-start;margin-bottom:4px" onclick="document.getElementById('userMenuOverlay').remove();openCalendarExportModal()">📅 Экспорт в Календарь</button>
+    <button class="btn btnR" style="width:100%;justify-content:flex-start" onclick="document.getElementById('userMenuOverlay').remove();if(confirm('Выйти из аккаунта?'))auth.signOut()">🚪 Выйти</button>
+  </div>
+</div>`;
+  document.body.insertAdjacentHTML('beforeend',html);
 }
 
 function updateUserUI(user){
@@ -9447,18 +9455,64 @@ function openGoalModal(id){
   document.getElementById('goalOverlay').style.display='flex';
 }
 
-function handleGoalPhoto(input){
+function _compressImage(file, maxW, maxH, quality){
+  return new Promise(resolve=>{
+    const reader=new FileReader();
+    reader.onload=ev=>{
+      const img=new Image();
+      img.onload=()=>{
+        let w=img.width,h=img.height;
+        const ratio=Math.min(maxW/w,maxH/h,1);
+        w=Math.round(w*ratio);h=Math.round(h*ratio);
+        const canvas=document.createElement('canvas');
+        canvas.width=w;canvas.height=h;
+        canvas.getContext('2d').drawImage(img,0,0,w,h);
+        resolve(canvas.toDataURL('image/jpeg',quality));
+      };
+      img.src=ev.target.result;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+async function handleGoalPhoto(input){
   const file=input.files[0];if(!file)return;
-  if(file.size>4*1024*1024){alert('Файл слишком большой (максимум 4MB)');return}
-  const reader=new FileReader();
-  reader.onload=e=>{
-    _goalPhotoData=e.target.result;
+  if(file.size>15*1024*1024){alert('Файл слишком большой (максимум 15MB)');return;}
+  // Show loading
+  const ph=document.getElementById('goalPhotoPlaceholder');
+  const origHTML=ph.innerHTML;
+  ph.innerHTML='<div style="color:var(--p);font-size:12px">⏳ Загрузка...</div>';
+  try{
+    // Compress to max 1200x1200, quality 0.82
+    const compressed=await _compressImage(file,1200,1200,0.82);
+    // Show preview immediately
+    _goalPhotoData=compressed;
     const img=document.getElementById('goalPhotoImg');
-    img.src=_goalPhotoData;img.style.display='block';
-    document.getElementById('goalPhotoPlaceholder').style.display='none';
+    img.src=compressed;img.style.display='block';
+    ph.style.display='none';
     document.getElementById('goalPhotoRemove').style.display='flex';
-  };
-  reader.readAsDataURL(file);
+    // Upload to Firebase Storage in background for cross-device sync
+    if(currentUser){
+      const ext='jpg';
+      const path=`goalPhotos/${currentUser.uid}/${Date.now()}.${ext}`;
+      const ref=storage.ref(path);
+      // Convert base64 to blob
+      const res=await fetch(compressed);
+      const blob=await res.blob();
+      const snap=await ref.put(blob);
+      const url=await snap.ref.getDownloadURL();
+      // Replace local base64 with cloud URL
+      _goalPhotoData=url;
+      img.src=url;
+    }
+  }catch(err){
+    console.error('Photo upload error',err);
+    ph.innerHTML=origHTML;ph.style.display='flex';
+    // Keep compressed local version as fallback if upload failed
+    if(!_goalPhotoData){
+      alert('Ошибка загрузки фото. Попробуй ещё раз.');
+    }
+  }
 }
 
 function removeGoalPhoto(){
@@ -9489,6 +9543,104 @@ function saveGoal(){
 
 function delGoal(id){if(!confirm('Удалить цель?'))return;const i=goalsD().findIndex(x=>x.id===id);if(i>=0){goalsD().splice(i,1);saveD();renderGoals()}}
 function toggleMs(gid,idx,c){const g=goalsD().find(x=>x.id===gid);if(g&&g.milestones&&g.milestones[idx])g.milestones[idx].done=c;saveD();renderGoals()}
+
+/* ══════════════════════════════════════════
+   ICS CALENDAR EXPORT — Google/Apple Calendar
+══════════════════════════════════════════ */
+function _icsDate(dstr,timeStr){
+  // dstr = 'YYYY-MM-DD', timeStr = 'HH:MM' or ''
+  if(!dstr)return null;
+  const [y,m,d]=dstr.split('-');
+  if(timeStr){
+    const [h,min]=timeStr.split(':');
+    return `${y}${m}${d}T${h}${min}00`;
+  }
+  return `${y}${m}${d}`;
+}
+function _icsEscape(s){return (s||'').replace(/\\/g,'\\\\').replace(/;/g,'\\;').replace(/,/g,'\\,').replace(/\n/g,'\\n');}
+function _icsWrap(s){
+  // Fold lines > 75 chars per RFC 5545
+  const lines=[];let cur='';
+  for(const ch of s){if(cur.length>=75){lines.push(cur);cur=' '+ch;}else cur+=ch;}
+  if(cur)lines.push(cur);
+  return lines.join('\r\n');
+}
+function exportCalendarICS(mode){
+  // mode: 'tasks' | 'goals' | 'all'
+  const now=new Date();
+  const stamp=now.toISOString().replace(/[-:]/g,'').replace(/\.\d+/,'');
+  let events=[];
+  // Tasks with deadlines
+  if(mode==='tasks'||mode==='all'){
+    tpD().filter(t=>t.deadline&&!t.done).forEach(t=>{
+      const dtStart=_icsDate(t.deadline,t.time);
+      const dtEnd=_icsDate(t.deadline,t.endTime||t.time);
+      if(!dtStart)return;
+      const isAllDay=!t.time;
+      let ev='BEGIN:VEVENT\r\n';
+      ev+=`UID:task-${t.id}@plannerpro\r\n`;
+      ev+=`DTSTAMP:${stamp}Z\r\n`;
+      if(isAllDay){ev+=`DTSTART;VALUE=DATE:${dtStart}\r\n`;ev+=`DTEND;VALUE=DATE:${dtStart}\r\n`;}
+      else{ev+=`DTSTART:${dtStart}\r\n`;ev+=`DTEND:${dtEnd||dtStart}\r\n`;}
+      ev+=_icsWrap(`SUMMARY:${_icsEscape(t.text)}`)+'\r\n';
+      if(t.notes)ev+=_icsWrap(`DESCRIPTION:${_icsEscape(t.notes)}`)+'\r\n';
+      ev+='END:VEVENT\r\n';
+      events.push(ev);
+    });
+  }
+  // Goals with deadlines
+  if(mode==='goals'||mode==='all'){
+    goalsD().filter(g=>g.deadline).forEach(g=>{
+      const dtStart=_icsDate(g.deadline,'');
+      if(!dtStart)return;
+      let ev='BEGIN:VEVENT\r\n';
+      ev+=`UID:goal-${g.id}@plannerpro\r\n`;
+      ev+=`DTSTAMP:${stamp}Z\r\n`;
+      ev+=`DTSTART;VALUE=DATE:${dtStart}\r\n`;
+      ev+=`DTEND;VALUE=DATE:${dtStart}\r\n`;
+      ev+=_icsWrap(`SUMMARY:🎯 ${_icsEscape(g.title)}`)+'\r\n';
+      if(g.why)ev+=_icsWrap(`DESCRIPTION:${_icsEscape(g.why)}`)+'\r\n';
+      ev+='END:VEVENT\r\n';
+      events.push(ev);
+    });
+  }
+  if(!events.length){showSaveStatus('error','⚠ Нет событий с датами');return;}
+  const cal=[
+    'BEGIN:VCALENDAR',
+    'VERSION:2.0',
+    'PRODID:-//PlannerPro//KG',
+    'CALSCALE:GREGORIAN',
+    'METHOD:PUBLISH',
+    'X-WR-CALNAME:PlannerPro',
+    ...events,
+    'END:VCALENDAR'
+  ].join('\r\n');
+  const blob=new Blob([cal],{type:'text/calendar;charset=utf-8'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download='plannerpro.ics';
+  document.body.appendChild(a);a.click();
+  setTimeout(()=>{document.body.removeChild(a);URL.revokeObjectURL(a.href);},1000);
+  showSaveStatus('saved',`✓ Скачано ${events.length} событий`);
+}
+
+function openCalendarExportModal(){
+  const cnt=tpD().filter(t=>t.deadline&&!t.done).length+goalsD().filter(g=>g.deadline).length;
+  const html=`<div style="position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:9999;display:flex;align-items:center;justify-content:center;padding:16px" id="icsModal" onclick="if(event.target.id==='icsModal')document.getElementById('icsModal').remove()">
+  <div style="background:var(--card);border:1px solid var(--border);border-radius:16px;padding:22px;max-width:360px;width:100%">
+    <div style="font-size:15px;font-weight:700;margin-bottom:6px">📅 Экспорт в Календарь</div>
+    <div style="font-size:12px;color:var(--text2);margin-bottom:16px">Скачай .ics файл и открой в Google Calendar / Apple Calendar / Outlook. Найдено ${cnt} событий с датами.</div>
+    <div style="display:flex;flex-direction:column;gap:8px">
+      <button class="btn btnB" style="justify-content:center" onclick="exportCalendarICS('all');document.getElementById('icsModal').remove()">📥 Все (задачи + цели)</button>
+      <button class="btn btnG" style="justify-content:center" onclick="exportCalendarICS('tasks');document.getElementById('icsModal').remove()">✅ Только задачи</button>
+      <button class="btn btnG" style="justify-content:center" onclick="exportCalendarICS('goals');document.getElementById('icsModal').remove()">🎯 Только цели</button>
+      <div style="font-size:10px;color:var(--muted);margin-top:4px;text-align:center">Google: Настройки → Импорт/Экспорт → Импорт<br>Apple: Просто открой файл на iPhone/Mac</div>
+      <button class="btn" style="justify-content:center;margin-top:4px" onclick="document.getElementById('icsModal').remove()">Отмена</button>
+    </div>
+  </div>
+</div>`;
+  document.body.insertAdjacentHTML('beforeend',html);
+}
 
 function renderJournal(){
   const list=document.getElementById('journalList');if(!list)return;
@@ -9541,7 +9693,7 @@ const J_DEFAULT_QUESTIONS=[
   'Что я узнал / чему научился?',
   'Что можно было сделать лучше?',
 ];
-function jQuestionsD(){if(!G.jQuestions)G.jQuestions=[...J_DEFAULT_QUESTIONS];return G.jQuestions}
+function jQuestionsD(){if(!G.jQuestions||G.jQuestions.length===0)G.jQuestions=[...J_DEFAULT_QUESTIONS];return G.jQuestions}
 
 let _jEditId=null;
 function openJournalModal(editId){
@@ -9570,9 +9722,10 @@ function selMood(m){
 function saveJEntry(){
   const questions=jQuestionsD();
   const answers=questions.map((_,i)=>document.getElementById('jQ-'+i)?.value||'');
+  const dateVal=document.getElementById('jDateInp').value||dk(t0());
   const entry={
     id:_jEditId||uid(),
-    date:document.getElementById('jDateInp').value||dk(t0()),
+    date:dateVal,
     mood:jMoodSel,
     answers
   };
@@ -9580,7 +9733,9 @@ function saveJEntry(){
     const idx=journalD().findIndex(x=>x.id===_jEditId);
     if(idx>=0)journalD()[idx]=entry;else journalD().push(entry);
   } else {journalD().push(entry);}
-  saveD();closeJournalModal();renderJournal();
+  saveD();
+  showSaveStatus('saved','✓ Запись сохранена');
+  closeJournalModal();renderJournal();
 }
 function jDeleteEntry(){
   if(!_jEditId||!confirm('Удалить запись?'))return;
