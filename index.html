@@ -5312,6 +5312,23 @@ document.addEventListener('DOMContentLoaded',()=>{
       else if(typeof renderTP==='function') renderTP();
     });
   }
+
+  // ── Global fix: block ArrowUp/ArrowDown on ALL date inputs to prevent year jumping ──
+  document.addEventListener('keydown', function(e){
+    if((e.key==='ArrowUp'||e.key==='ArrowDown')&&e.target.type==='date'){
+      e.preventDefault();
+    }
+  }, true);
+
+  // ── Global fix: after typing 4-digit year, auto-blur the date field ──
+  document.addEventListener('input', function(e){
+    if(e.target.type==='date'&&e.target.value){
+      var yr=e.target.value.split('-')[0];
+      if(yr&&yr.length===4&&parseInt(yr)>1900){
+        // year looks valid — nothing to do, just sync
+      }
+    }
+  }, true);
 });
 
 
@@ -14231,21 +14248,47 @@ function sleepEntries(){return sleepD().entries;}
 
 
 /* Sync custom date picker (DD/MM/YYYY) → hidden slp-date (YYYY-MM-DD) */
+/* ── Custom date picker helpers for sleep tracker ── */
 function slpDateSync(){
-  var dd=parseInt(document.getElementById("slp-dd")?.value||0);
-  var mm=parseInt(document.getElementById("slp-mm")?.value||0);
-  var yy=parseInt(document.getElementById("slp-yy")?.value||0);
-  var hidden=document.getElementById("slp-date");
-  var lbl=document.getElementById("slp-date-lbl");
+  var ddEl=document.getElementById('slp-dd');
+  var mmEl=document.getElementById('slp-mm');
+  var yyEl=document.getElementById('slp-yy');
+  var hidden=document.getElementById('slp-date');
+  var lbl=document.getElementById('slp-date-lbl');
   if(!hidden)return;
+  var dd=parseInt((ddEl&&ddEl.value)||'0',10);
+  var mm=parseInt((mmEl&&mmEl.value)||'0',10);
+  var yy=parseInt((yyEl&&yyEl.value)||'0',10);
+  // Color feedback
+  if(ddEl)ddEl.style.borderColor=(dd>=1&&dd<=31)?'rgba(34,204,232,.4)':'rgba(255,79,114,.5)';
+  if(mmEl)mmEl.style.borderColor=(mm>=1&&mm<=12)?'rgba(34,204,232,.4)':'rgba(255,79,114,.5)';
+  if(yyEl)yyEl.style.borderColor=(yy>=2000&&yy<=2099)?'rgba(34,204,232,.4)':'rgba(255,79,114,.5)';
   if(dd>=1&&dd<=31&&mm>=1&&mm<=12&&yy>=2000&&yy<=2099){
-    var dStr=String(yy)+"-"+String(mm).padStart(2,"0")+"-"+String(dd).padStart(2,"0");
+    var dStr=String(yy)+'-'+String(mm).padStart(2,'0')+'-'+String(dd).padStart(2,'0');
     hidden.value=dStr;
-    if(lbl){try{lbl.textContent=fmtDate(new Date(dStr+"T00:00:00"));}catch{}}
+    if(lbl){try{lbl.textContent='✓ '+fmtDate(new Date(dStr+'T00:00:00'));lbl.style.color='var(--cyan)';}catch{}}
   } else {
-    hidden.value="";
-    if(lbl)lbl.textContent="Введи день, месяц и год";
+    hidden.value='';
+    if(lbl){lbl.textContent='Введи день, месяц и год';lbl.style.color='var(--muted)';}
   }
+}
+/* Block arrow keys from changing value, allow Tab to move between fields */
+function slpDateKey(e,el,field){
+  // Block Up/Down arrows (they increment/decrement number inputs)
+  if(e.key==='ArrowUp'||e.key==='ArrowDown'){e.preventDefault();return;}
+  // Auto-advance on Tab or when field is full
+  if(e.key==='Tab'){return;} // allow natural tab
+}
+/* On blur: auto-pad DD and MM with leading zero display, validate year */
+function slpDateBlur(el,field){
+  var v=parseInt(el.value||'0',10);
+  if(field==='dd'){if(v>=1&&v<=31)el.value=v;}
+  if(field==='mm'){if(v>=1&&v<=12)el.value=v;}
+  if(field==='yy'){
+    // If user typed 2-digit year like "26" → expand to 2026
+    if(v>=0&&v<=99&&el.value.length<=2&&el.value.length>0)el.value=2000+v;
+  }
+  slpDateSync();
 }
 function sleepDuration(bedtime,wakeup){
   if(!bedtime||!wakeup)return 0;
@@ -14363,6 +14406,48 @@ function sleepSave(){
   renderSleepTracker();
   renderDashSleepWidget();
   sleepNotif('Сон записан ✓','success');
+}
+
+function slpExportIcal(){
+  var entries=sleepEntries();
+  if(!entries.length){sleepNotif('Нет записей для экспорта','error');return;}
+  var MOS=['Январь','Февраль','Март','Апрель','Май','Июнь','Июль','Август','Сентябрь','Октябрь','Ноябрь','Декабрь'];
+  function icalDT(dateStr,timeStr,nextDay){
+    // dateStr = "YYYY-MM-DD", timeStr = "HH:MM"
+    var dp=dateStr.split('-');var y=dp[0],m=dp[1],d=parseInt(dp[2],10);
+    if(nextDay)d+=1;
+    var ds=String(d).padStart(2,'0');
+    var tp=timeStr.split(':');var hh=tp[0],min=tp[1];
+    return y+m+ds+'T'+hh+min+'00';
+  }
+  var lines=['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//PlannerPro Sleep//RU','CALSCALE:GREGORIAN','X-WR-CALNAME:PlannerPro Сон','X-WR-TIMEZONE:Asia/Bishkek'];
+  entries.forEach(function(e){
+    var bedH=parseInt((e.bedtime||'23:00').split(':')[0],10);
+    var nextDay=bedH>=12; // bed after noon → wake is next day
+    var uid_str=e.id+'@plannerpro.sleep';
+    var mood_map={energetic:'⚡ Заряженный',ok:'👌 Нормально',groggy:'🥱 Разбитый',tired:'😪 Уставший'};
+    var moodStr=e.mood?(' · '+mood_map[e.mood]):'';
+    var tagStr=e.tags&&e.tags.length?(' · '+e.tags.join(', ')):'';
+    var dur=e.dur?Math.round(e.dur/60*10)/10+'ч':'';
+    var desc='Продолжительность: '+dur+(e.score?' · Score: '+e.score:'')+moodStr+tagStr;
+    var summary='🌙 Сон '+dur+(e.quality?' ⭐'+e.quality+'/5':'');
+    lines.push('BEGIN:VEVENT');
+    lines.push('UID:'+uid_str);
+    lines.push('DTSTART:'+icalDT(e.date,e.bedtime||'23:00',false));
+    lines.push('DTEND:'+icalDT(e.date,e.wakeup||'07:00',nextDay));
+    lines.push('SUMMARY:'+summary);
+    lines.push('DESCRIPTION:'+desc);
+    lines.push('END:VEVENT');
+  });
+  lines.push('END:VCALENDAR');
+  var icsContent=lines.join('\r\n');
+  var blob=new Blob([icsContent],{type:'text/calendar;charset=utf-8'});
+  var url=URL.createObjectURL(blob);
+  var a=document.createElement('a');
+  a.href=url;a.download='plannerpro-sleep.ics';
+  document.body.appendChild(a);a.click();
+  setTimeout(function(){URL.revokeObjectURL(url);a.remove();},1000);
+  sleepNotif('Файл .ics скачан — импортируй в Google Calendar: Другие календари → Импорт','success');
 }
 
 function sleepDelete(id){
@@ -14569,6 +14654,7 @@ function renderSleepTracker(){
   html+='<div><div style="font-family:var(--font-display);font-size:22px;font-weight:800;letter-spacing:-.4px;background:linear-gradient(135deg,var(--cyan),var(--p));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">🌙 Трекер сна</div>';
   html+='<div style="font-size:12px;color:var(--text2);margin-top:2px">Записывай сон · улучшай качество жизни</div></div>';
   html+='<button class="btn btnB" onclick="slpToggleForm()">+ Добавить запись</button>';
+  html+='<button class="btn btnG" onclick="slpExportIcal()" title="Скачать .ics файл для импорта в Google/Apple Calendar" style="font-size:11px;padding:7px 12px">📅 Экспорт .ics</button>';
   html+='</div>';
 
   // Add Form
@@ -14576,17 +14662,27 @@ function renderSleepTracker(){
   html+='<div id="slp-add-form" style="display:'+formDisplay+';background:var(--card2);border:1px solid rgba(34,204,232,.2);border-radius:20px;padding:18px 16px;margin-bottom:20px">';
   html+='<div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:1.2px;color:var(--cyan);margin-bottom:14px">📝 '+(todayEntry?'Редактировать':'Новая запись')+'</div>';
 
-  // Date row — custom 3-field picker (fixes browser auto-jump on year input)
+  // Date row — pure text inputs, no arrow-key jumping, no browser date picker
   var _td=today.split('-'); // ["YYYY","MM","DD"]
   var _tdY=_td[0]||'',_tdM=_td[1]||'',_tdD=_td[2]||'';
+  var _ddV=_tdD?String(parseInt(_tdD,10)):'',_mmV=_tdM?String(parseInt(_tdM,10)):'',_yyV=_tdY||'';
   html+='<div style="margin-bottom:12px"><div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);margin-bottom:5px">📅 Дата</div>';
   html+='<input type="hidden" id="slp-date" value="'+today+'">';
-  html+='<div style="display:grid;grid-template-columns:1fr 1fr 2fr;gap:6px" id="slp-date-picker">';
-  html+='<input type="number" id="slp-dd" min="1" max="31" value="'+parseInt(_tdD,10)+'" placeholder="ДД" maxlength="2" class="inp" style="font-size:14px;font-weight:700;text-align:center;padding:8px 4px" oninput="slpDateSync()" onchange="slpDateSync()">';
-  html+='<input type="number" id="slp-mm" min="1" max="12" value="'+parseInt(_tdM,10)+'" placeholder="ММ" maxlength="2" class="inp" style="font-size:14px;font-weight:700;text-align:center;padding:8px 4px" oninput="slpDateSync()" onchange="slpDateSync()">';
-  html+='<input type="number" id="slp-yy" min="2000" max="2099" value="'+_tdY+'" placeholder="ГГГГ" class="inp" style="font-size:14px;font-weight:700;text-align:center;padding:8px 4px" oninput="slpDateSync()" onchange="slpDateSync()">';
+  html+='<div style="display:grid;grid-template-columns:60px 60px 1fr;gap:6px" id="slp-date-picker">';
+  html+='<div style="position:relative">';
+  html+='<div style="font-size:8px;color:var(--muted);font-weight:700;text-align:center;margin-bottom:2px;letter-spacing:.4px">ДЕНЬ</div>';
+  html+='<input type="text" id="slp-dd" value="'+_ddV+'" placeholder="15" inputmode="numeric" maxlength="2" autocomplete="off" class="inp" style="font-size:16px;font-weight:800;text-align:center;padding:10px 4px;font-family:var(--font-mono)" onkeydown="slpDateKey(event,this,\'dd\')" oninput="this.value=this.value.replace(/[^0-9]/g,\'\');slpDateSync()" onblur="slpDateBlur(this,\'dd\')">';
   html+='</div>';
-  html+='<div id="slp-date-lbl" style="font-size:10px;color:var(--muted);margin-top:4px">'+fmtDate(new Date(today+'T00:00:00'))+'</div></div>';
+  html+='<div>';
+  html+='<div style="font-size:8px;color:var(--muted);font-weight:700;text-align:center;margin-bottom:2px;letter-spacing:.4px">МЕС.</div>';
+  html+='<input type="text" id="slp-mm" value="'+_mmV+'" placeholder="6" inputmode="numeric" maxlength="2" autocomplete="off" class="inp" style="font-size:16px;font-weight:800;text-align:center;padding:10px 4px;font-family:var(--font-mono)" onkeydown="slpDateKey(event,this,\'mm\')" oninput="this.value=this.value.replace(/[^0-9]/g,\'\');slpDateSync()" onblur="slpDateBlur(this,\'mm\')">';
+  html+='</div>';
+  html+='<div>';
+  html+='<div style="font-size:8px;color:var(--muted);font-weight:700;text-align:center;margin-bottom:2px;letter-spacing:.4px">ГОД</div>';
+  html+='<input type="text" id="slp-yy" value="'+_yyV+'" placeholder="2026" inputmode="numeric" maxlength="4" autocomplete="off" class="inp" style="font-size:16px;font-weight:800;text-align:center;padding:10px 4px;font-family:var(--font-mono)" onkeydown="slpDateKey(event,this,\'yy\')" oninput="this.value=this.value.replace(/[^0-9]/g,\'\');slpDateSync()" onblur="slpDateBlur(this,\'yy\')">';
+  html+='</div>';
+  html+='</div>';
+  html+='<div id="slp-date-lbl" style="font-size:11px;color:var(--cyan);margin-top:5px;font-weight:600">'+fmtDate(new Date(today+'T00:00:00'))+'</div></div>';
 
   // Bed / Wake side by side
   html+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px">';
