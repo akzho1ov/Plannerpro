@@ -5320,22 +5320,43 @@ document.addEventListener('DOMContentLoaded',()=>{
     }
   }, true);
 
-  // ── Initialize makeDatePicker for all static HTML containers ──
-  // Each wrapper div gets filled once on page load; dpSetValue() updates values later.
-  var _dpInits=[
-    {wrap:'wt-date-wrap',  id:'wt-date',      val:dk(t0()), compact:false},
-    {wrap:'kz-date-dp',    id:'kz-date',      val:dk(t0()), compact:false},
-    {wrap:'tm-deadline-dp',id:'tm-deadline',  val:'',        compact:false},
-    {wrap:'plCal-edate-dp',id:'plCal-edate',  val:dk(t0()), compact:false},
-    {wrap:'kbCardDl-dp',   id:'kbCardDl',     val:'',        compact:false},
-    {wrap:'finDate-dp',    id:'finDate',       val:dk(t0()), compact:false},
-    {wrap:'trDate-dp',     id:'trDate',        val:dk(t0()), compact:false},
-    {wrap:'goalDlInp-dp',  id:'goalDlInp',    val:'',        compact:false},
-    {wrap:'jDateInp-dp',   id:'jDateInp',     val:dk(t0()), compact:false},
+  // ── Initialize compact date pickers for all static HTML containers ──
+  // mdpBtn: маленькая кнопка ДД.ММ.ГГГГ → клик открывает попап-календарь
+  // dpSetValue() синхронизирует скрытый input + метку кнопки
+  function _mdpInit(btnId, hiddenId, val, onPickJs){
+    var wrap=document.getElementById(btnId+'-wrap')||document.getElementById(hiddenId+'-dp')||document.getElementById(btnId.replace(/-btn$/,'')+'-dp');
+    // inject hidden input sibling first, then button
+    var hidEl=document.getElementById(hiddenId);
+    if(!hidEl){
+      hidEl=document.createElement('input');
+      hidEl.type='hidden';hidEl.id=hiddenId;hidEl.value=val||'';
+      if(wrap)wrap.appendChild(hidEl);
+    } else {if(val&&!hidEl.value)hidEl.value=val;}
+    if(wrap&&!document.getElementById(btnId)){
+      wrap.innerHTML=mdpBtn(btnId,val||'',onPickJs)+'<input type="hidden" id="'+hiddenId+'" value="'+(val||'')+'">';
+    }
+  }
+
+  var _today=dk(t0());
+  // Helper: update hidden input when mdpBtn picks a date
+  function _dpOnPick(hiddenId){return 'var _h=document.getElementById(\''+hiddenId+'\');if(_h)_h.value=v;var _hk=window[\'_dpOnChange_\'+\''+hiddenId.replace(/-/g,'_')+'\'];if(typeof _hk===\'function\')_hk(v);';}
+
+  var _mdpCfgs=[
+    {wrap:'wt-date-wrap',   btn:'wt-date-btn',   hidden:'wt-date',     val:_today},
+    {wrap:'kz-date-dp',     btn:'kz-date-btn',   hidden:'kz-date',     val:_today},
+    {wrap:'tm-deadline-dp', btn:'tm-deadline-btn',hidden:'tm-deadline', val:''},
+    {wrap:'plCal-edate-dp', btn:'plCal-edate-btn',hidden:'plCal-edate',val:_today},
+    {wrap:'kbCardDl-dp',    btn:'kbCardDl-btn',   hidden:'kbCardDl',   val:''},
+    {wrap:'finDate-dp',     btn:'finDate-btn',    hidden:'finDate',     val:_today},
+    {wrap:'trDate-dp',      btn:'trDate-btn',     hidden:'trDate',      val:_today},
+    {wrap:'goalDlInp-dp',   btn:'goalDlInp-btn',  hidden:'goalDlInp',  val:''},
+    {wrap:'jDateInp-dp',    btn:'jDateInp-btn',   hidden:'jDateInp',   val:_today},
   ];
-  _dpInits.forEach(function(cfg){
-    var el=document.getElementById(cfg.wrap);
-    if(el)el.innerHTML=makeDatePicker(cfg.id,cfg.val,'',cfg.compact);
+  _mdpCfgs.forEach(function(c){
+    var wrap=document.getElementById(c.wrap);
+    if(!wrap)return;
+    var onJs=_dpOnPick(c.hidden);
+    wrap.innerHTML=mdpBtn(c.btn,c.val,onJs)+'<input type="hidden" id="'+c.hidden+'" value="'+(c.val||'')+'">';
   });
 });
 
@@ -5836,19 +5857,28 @@ function _dpBlur(id,field){
   if(field==='yy'&&el.value.length<=2&&v>0){el.value=2000+v;}
   _dpSync(id);
 }
-/* Programmatically set a makeDatePicker from an ISO date string (YYYY-MM-DD) */
+/* Programmatically set a date picker from an ISO date string (YYYY-MM-DD).
+   Works for both makeDatePicker (hidden+fields) and mdpBtn (hidden+button). */
 function dpSetValue(id,isoDate){
-  if(!isoDate)return;
-  var p=isoDate.split('-');
+  // Update hidden input
+  var hEl=document.getElementById(id);
+  if(hEl)hEl.value=isoDate||'';
+  // Update mdpBtn label (btn id = id+'-btn')
+  var btn=document.getElementById(id+'-btn');
+  if(btn){
+    btn.dataset.iso=isoDate||'';
+    if(isoDate){var p=isoDate.split('-');btn.textContent=p[2]+'.'+p[1]+'.'+p[0];}
+    else btn.textContent='—';
+  }
+  // Update makeDatePicker sub-fields if they exist
+  var p=isoDate?isoDate.split('-'):['','',''];
   var yy=p[0]||'',mm=p[1]?String(parseInt(p[1],10)):'',dd=p[2]?String(parseInt(p[2],10)):'';
   var ddEl=document.getElementById(id+'_dd');
   var mmEl=document.getElementById(id+'_mm');
   var yyEl=document.getElementById(id+'_yy');
-  var hEl=document.getElementById(id);
   if(ddEl)ddEl.value=dd;
   if(mmEl)mmEl.value=mm;
   if(yyEl)yyEl.value=yy;
-  if(hEl)hEl.value=isoDate;
 }
 
 /* ── THEME TOGGLE ── */
@@ -6782,7 +6812,7 @@ function renderTP(){
           </div>
         </td>
         <td>${labelHtml}</td>
-        <td><span style="display:inline-block">${makeDatePicker('tDl_'+t.id,t.deadline||'','updTFieldById(\''+t.id+'\',\'deadline\',document.getElementById(\'tDl_'+t.id+'\').value)',true)}</span></td>
+        <td>${mdpBtn('tDl_'+t.id, t.deadline||'', 'updTFieldById(\''+t.id+'\',\'deadline\',document.getElementById(\'tDl_'+t.id+'\').dataset.iso||\'\')')}</td>
         <td>${timeDisplay}</td>
         <td style="text-align:center;font-weight:700;font-size:11px">${dlHtml}</td>
         <td><button class="tDelBtn" onclick="delRecurringTask('${t.id}','${effDstr}')">×</button></td>`;
@@ -12964,6 +12994,97 @@ function anlSetCustomTo(v){window._anlState.customTo=v;if(window._anlState.custo
     }
   };
 })();
+
+/* ══════════════════════════════════════════
+   MINI DATE PICKER — маленькая кнопка + попап
+   mdpOpen(btnId, currentIso, onPickFn)
+   onPickFn(iso) вызывается когда дата выбрана
+══════════════════════════════════════════ */
+(function(){
+  let _el=null,_year=null,_month=null,_onPick=null,_btnId=null;
+  const MR=['Январь','Февраль','Март','Апрель','Май','Июнь','Июль','Август','Сентябрь','Октябрь','Ноябрь','Декабрь'];
+  const DR=['Пн','Вт','Ср','Чт','Пт','Сб','Вс'];
+  function pad(n){return String(n).padStart(2,'0');}
+  function toIso(y,m,d){return y+'-'+pad(m)+'-'+pad(d);}
+  function fmtBtn(iso){if(!iso)return'—';const[y,m,d]=iso.split('-');return d+'.'+m+'.'+y;}
+
+  function render(selectedIso){
+    if(!_el)return;
+    const now=new Date();
+    const y=_year,m=_month;
+    const first=new Date(y,m-1,1).getDay();
+    const off=first===0?6:first-1;
+    const dim=new Date(y,m,0).getDate();
+    const dimp=new Date(y,m-1,0).getDate();
+    let cells='';
+    for(let i=off-1;i>=0;i--)cells+=`<div style="width:28px;height:28px;display:flex;align-items:center;justify-content:center;font-size:10px;color:var(--muted);opacity:.3">${dimp-i}</div>`;
+    for(let d=1;d<=dim;d++){
+      const iso=toIso(y,m,d);
+      const isSel=selectedIso===iso;
+      const isToday=now.getFullYear()===y&&(now.getMonth()+1)===m&&now.getDate()===d;
+      const bg=isSel?'var(--p)':'transparent';
+      const col=isSel?'#fff':isToday?'var(--p)':'var(--text)';
+      const fw=isSel||isToday?800:400;
+      cells+=`<div onclick="window._mdpDay('${iso}')" style="width:28px;height:28px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:${fw};color:${col};background:${bg};border-radius:50%;cursor:pointer;transition:background .12s;position:relative" onmouseover="if(!${isSel})this.style.background='var(--pdim2)'" onmouseout="this.style.background='${bg}'">${d}${isToday&&!isSel?'<span style="position:absolute;bottom:2px;left:50%;transform:translateX(-50%);width:3px;height:3px;border-radius:50%;background:var(--p)"></span>':''}</div>`;
+    }
+    const rem=(7-(off+dim)%7)%7;
+    for(let d=1;d<=rem;d++)cells+=`<div style="width:28px;height:28px;display:flex;align-items:center;justify-content:center;font-size:10px;color:var(--muted);opacity:.3">${d}</div>`;
+    _el.innerHTML=`<div style="padding:12px 12px 10px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+        <button onclick="window._mdpNav(-1)" style="border:none;background:var(--card3);color:var(--text2);width:26px;height:26px;border-radius:7px;cursor:pointer;font-size:13px;display:flex;align-items:center;justify-content:center" onmouseover="this.style.background='var(--pdim2)'" onmouseout="this.style.background='var(--card3)'">‹</button>
+        <div style="display:flex;align-items:center;gap:6px">
+          <span style="font-size:12px;font-weight:700;color:var(--text)">${MR[m-1]}</span>
+          <input id="_mdpYearInp" type="text" inputmode="numeric" maxlength="4" value="${y}" style="width:46px;text-align:center;background:var(--card3);border:1px solid var(--border2);border-radius:6px;padding:2px 4px;font-size:12px;font-weight:700;color:var(--p);font-family:var(--font-mono);outline:none" onfocus="this.select()" onblur="window._mdpSetYear(this.value)" onkeydown="if(event.key==='Enter'){event.preventDefault();window._mdpSetYear(this.value);this.blur()}" oninput="this.value=this.value.replace(/[^0-9]/g,'')">
+        </div>
+        <button onclick="window._mdpNav(1)" style="border:none;background:var(--card3);color:var(--text2);width:26px;height:26px;border-radius:7px;cursor:pointer;font-size:13px;display:flex;align-items:center;justify-content:center" onmouseover="this.style.background='var(--pdim2)'" onmouseout="this.style.background='var(--card3)'">›</button>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(7,28px);gap:1px;margin-bottom:3px">${DR.map(d=>`<div style="width:28px;height:20px;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:800;color:var(--muted);text-transform:uppercase">${d}</div>`).join('')}</div>
+      <div style="display:grid;grid-template-columns:repeat(7,28px);gap:1px">${cells}</div>
+      ${selectedIso?`<div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center"><span style="font-size:10px;color:var(--muted)">${fmtBtn(selectedIso)}</span><button onclick="window._mdpClear()" style="border:none;background:transparent;color:var(--muted);font-size:11px;cursor:pointer;padding:2px 6px;border-radius:5px" onmouseover="this.style.color='var(--red)'" onmouseout="this.style.color='var(--muted)'">✕ Убрать</button></div>`:''}
+    </div>`;
+  }
+
+  function _close(){if(_el){_el.remove();_el=null;}document.removeEventListener('click',_out);}
+  function _out(e){if(_el&&!_el.contains(e.target)){const b=_btnId&&document.getElementById(_btnId);if(b&&b.contains(e.target))return;_close();}}
+
+  window.mdpOpen=function(btnId,currentIso,onPickFn,e){
+    e&&e.stopPropagation();
+    if(_el&&_btnId===btnId){_close();return;}
+    _close();
+    _btnId=btnId;_onPick=onPickFn;
+    const ref=currentIso?currentIso.split('-'):null;
+    const now=new Date();
+    _year=ref?parseInt(ref[0]):now.getFullYear();
+    _month=ref?parseInt(ref[1]):(now.getMonth()+1);
+    _el=document.createElement('div');
+    _el.style.cssText='position:fixed;z-index:9100;background:linear-gradient(160deg,#0e0f24,#0a0b18);border:1px solid rgba(155,143,245,.3);border-radius:14px;box-shadow:0 12px 48px rgba(0,0,0,.7);overflow:hidden;animation:paneIn .15s var(--ease) both;min-width:212px';
+    _el.addEventListener('click',e=>e.stopPropagation());
+    document.body.appendChild(_el);
+    const btn=document.getElementById(btnId);
+    if(btn){
+      const r=btn.getBoundingClientRect();
+      let left=r.left,top=r.bottom+4;
+      if(left+220>window.innerWidth)left=window.innerWidth-226;
+      if(top+320>window.innerHeight)top=r.top-320;
+      if(left<4)left=4;
+      _el.style.left=left+'px';_el.style.top=top+'px';
+    } else {_el.style.left='50%';_el.style.top='50%';_el.style.transform='translate(-50%,-50%)';}
+    render(currentIso||'');
+    setTimeout(()=>document.addEventListener('click',_out),10);
+  };
+  window._mdpDay=function(iso){if(_onPick)_onPick(iso);_close();};
+  window._mdpClear=function(){if(_onPick)_onPick('');_close();};
+  window._mdpNav=function(dir){_month+=dir;if(_month>12){_month=1;_year++;}if(_month<1){_month=12;_year--;}const btn=_btnId&&document.getElementById(_btnId);const cur=btn&&btn.dataset.iso||'';render(cur);};
+  window._mdpSetYear=function(val){const y=parseInt(val,10);if(!isNaN(y)&&y>=1900&&y<=2200){_year=y;const btn=_btnId&&document.getElementById(_btnId);const cur=btn&&btn.dataset.iso||'';render(cur);}else{const inp=document.getElementById('_mdpYearInp');if(inp)inp.value=_year;}};
+})();
+/* Создаёт HTML маленькой кнопки-триггера для mdp */
+function mdpBtn(btnId,iso,onPickJs){
+  function fmtD(s){if(!s)return'—';const[y,m,d]=s.split('-');return d+'.'+m+'.'+y;}
+  const lbl=fmtD(iso);
+  const col=iso?'var(--text)':'var(--muted)';
+  const bord=iso?'var(--border2)':'var(--border)';
+  return`<button id="${btnId}" data-iso="${iso||''}" onclick="mdpOpen('${btnId}','${iso||''}',function(v){document.getElementById('${btnId}').dataset.iso=v;document.getElementById('${btnId}').innerHTML=(v?v.split('-').reverse().join('.'):'—');${onPickJs}},event)" style="display:inline-flex;align-items:center;gap:4px;padding:3px 8px;background:var(--card2);border:1px solid ${bord};border-radius:7px;cursor:pointer;font-family:var(--font-mono);font-size:11px;font-weight:600;color:${col};white-space:nowrap;transition:all .15s" onmouseover="this.style.borderColor='var(--p)';this.style.color='var(--p)'" onmouseout="this.style.borderColor='${bord}';this.style.color='${col}'">${lbl}</button>`;
+}
 function anlSetLblGroup(gid){window._anlState.lblGroup=window._anlState.lblGroup===gid?null:gid;renderAnalytics();}
 function anlSetLabels(arr){window._anlState.labelIds=arr;renderAnalytics();}
 function anlToggleLbl(id){
@@ -14749,9 +14870,10 @@ function renderSleepTracker(){
   html+='<div id="slp-add-form" style="display:'+formDisplay+';background:var(--card2);border:1px solid rgba(34,204,232,.2);border-radius:20px;padding:18px 16px;margin-bottom:20px">';
   html+='<div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:1.2px;color:var(--cyan);margin-bottom:14px">📝 '+(todayEntry?'Редактировать':'Новая запись')+'</div>';
 
-  // Date row — using universal makeDatePicker (same as tasks/analytics)
-  html+='<div style="margin-bottom:12px"><div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);margin-bottom:5px">📅 Дата</div>';
-  html+=makeDatePicker('slp-date',today,'',false);
+  // Date row — compact button picker
+  html+='<div style="margin-bottom:12px;display:flex;align-items:center;gap:8px"><div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--muted)">📅 Дата</div>';
+  html+=mdpBtn('slp-date-btn', today, 'var h=document.getElementById(\'slp-date\');if(h)h.value=v;');
+  html+='<input type="hidden" id="slp-date" value="'+today+'">';
   html+='</div>';
 
   // Bed / Wake side by side
@@ -14881,9 +15003,11 @@ function slpToggleForm(){
   f.style.display=show?'block':'none';
   if(show){
     var di=document.getElementById('slp-date');
-    if(di&&!di.value){
-      dpSetValue('slp-date',dk(t0()));
-    }
+    var _todVal=dk(t0());
+    if(di&&!di.value)di.value=_todVal;
+    // sync button label
+    var _btn=document.getElementById('slp-date-btn');
+    if(_btn&&di){var _p=di.value.split('-');_btn.textContent=_p[2]+'.'+_p[1]+'.'+_p[0];_btn.dataset.iso=di.value;}
     _slpActiveTags=new Set();
     document.querySelectorAll('.slp-tag-btn').forEach(function(b){
       b.style.opacity='0.45';b.style.borderColor='rgba(255,255,255,.1)';b.style.background='rgba(255,255,255,.03)';b.style.transform='';
