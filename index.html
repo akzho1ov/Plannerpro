@@ -1891,6 +1891,104 @@ select.inp option{background:var(--card2);color:var(--text)}
 .rwInfoBox b{color:var(--text);font-weight:700}
 
 /* ══════════════════════════════
+   CHALLENGES SYSTEM
+══════════════════════════════ */
+.chStatsStrip{display:flex;gap:22px;align-items:center;flex-wrap:wrap;margin-bottom:16px}
+.chStat{text-align:center}
+.chStatL{font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.7px;color:var(--text2)}
+.chStatV{font-size:22px;font-weight:800;color:var(--text);font-family:var(--font-display);letter-spacing:-.5px}
+
+.chTplRow{display:flex;gap:8px;overflow-x:auto;padding:2px 1px 8px;margin-bottom:18px;scrollbar-width:none;-ms-overflow-style:none}
+.chTplRow::-webkit-scrollbar{display:none;height:0}
+.chTplChip{flex-shrink:0;display:flex;align-items:center;gap:9px;padding:9px 14px;background:var(--card2);border:1px dashed var(--border2);border-radius:14px;cursor:pointer;transition:all var(--dur) var(--ease);white-space:nowrap}
+.chTplChip:hover{border-color:var(--p);border-style:solid;background:var(--pdim);transform:translateY(-1px)}
+.chTplEmoji{font-size:17px}
+.chTplInfo{display:flex;flex-direction:column;line-height:1.3}
+.chTplName{font-size:11.5px;font-weight:700;color:var(--text)}
+.chTplDays{font-size:9px;color:var(--muted);font-weight:600}
+
+.chSecLbl{font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:1.8px;color:var(--text2);margin:24px 0 12px;display:flex;align-items:center;gap:10px}
+.chSecLbl::after{content:'';flex:1;height:1px;background:linear-gradient(90deg,var(--border),transparent)}
+
+.chGrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px}
+
+.chCard{background:linear-gradient(135deg,var(--card) 0%,rgba(12,13,30,.95) 100%);border-radius:var(--r);border:1px solid var(--border);box-shadow:var(--shadow);padding:16px;position:relative;overflow:hidden;transition:all var(--dur2) var(--ease)}
+.chCard::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--CC)}
+.chCard:hover{border-color:var(--border2);transform:translateY(-2px);box-shadow:var(--shadow2)}
+.chCard.chDone{opacity:.92}
+.chCard.chEnded{opacity:.74}
+
+.chTop{display:flex;align-items:flex-start;gap:11px;margin-bottom:13px}
+.chEmoji{width:40px;height:40px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:19px;background:var(--CL);border:1px solid var(--CL);flex-shrink:0}
+.chInfo{flex:1;min-width:0}
+.chTitle{font-family:var(--font-display);font-size:14px;font-weight:700;color:var(--text);letter-spacing:-.2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.chWhy{font-size:10.5px;color:var(--text2);margin-top:3px;line-height:1.4;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.chKebab{display:flex;flex-direction:column;align-items:flex-end;gap:6px;flex-shrink:0}
+.chKebabBtns{display:flex;gap:4px}
+.chKebabBtn{width:23px;height:23px;border-radius:7px;border:1px solid var(--border2);background:var(--card2);color:var(--text2);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:11px;transition:.15s;flex-shrink:0}
+.chKebabBtn:hover{color:var(--text);border-color:var(--border3)}
+
+.chMid{display:flex;align-items:center;gap:14px;margin-bottom:11px}
+.chMidStats{flex:1;display:flex;flex-direction:column;gap:6px;min-width:0}
+.chDayLbl{font-size:11px;color:var(--text2);font-weight:600}
+.chDayLbl b{color:var(--text);font-family:var(--font-display);font-weight:800}
+.chFireRow{display:flex;gap:12px}
+.chFireChip{display:flex;align-items:center;gap:4px;font-size:10.5px;font-weight:700;color:var(--text2)}
+.chFireChip b{color:var(--gold);font-family:var(--font-display);font-size:12px}
+
+.chDots{display:flex;gap:3px;overflow-x:auto;padding:2px 1px 7px;margin-bottom:9px;scrollbar-width:none;-ms-overflow-style:none}
+.chDots::-webkit-scrollbar{display:none;height:0}
+.chDot{width:9px;height:9px;border-radius:3px;flex-shrink:0;background:var(--card3);border:1px solid transparent}
+.chDot.on{background:var(--CC);box-shadow:0 0 6px var(--CC)}
+.chDot.today{border-color:var(--CC)}
+.chDot.miss{background:var(--reddim)}
+.chDot.future{background:var(--card2)}
+
+.chMotiv{display:flex;align-items:flex-start;gap:6px;font-size:11px;color:var(--text2);font-style:italic;line-height:1.45;margin-bottom:12px;padding:8px 10px;background:var(--card2);border-radius:10px;border-left:2px solid var(--CC)}
+
+.chFoot{display:flex;gap:8px}
+.chCheckBtn{flex:1;border:none;border-radius:10px;padding:10px;font-family:var(--font-body);font-size:12.5px;font-weight:700;cursor:pointer;transition:all var(--dur) var(--ease);display:flex;align-items:center;justify-content:center;gap:6px;background:var(--CC);color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.25)}
+.chCheckBtn:hover{filter:brightness(1.08);transform:translateY(-1px)}
+.chCheckBtn.done{background:var(--card3);color:var(--CC);border:1px solid var(--CC);text-shadow:none}
+.chQtyRow{flex:1;display:flex;align-items:center;justify-content:space-between;background:var(--card2);border:1px solid var(--border2);border-radius:10px;padding:6px 6px 6px 12px}
+.chQtyLbl{font-size:10.5px;color:var(--text2);font-weight:700}
+.chQtyBtns{display:flex;align-items:center;gap:7px}
+.chQtyBtn{width:25px;height:25px;border-radius:8px;border:none;background:var(--card3);color:var(--text);font-size:14px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1}
+.chQtyBtn:disabled{opacity:.3;cursor:default}
+.chQtyNum{min-width:22px;text-align:center;font-family:var(--font-display);font-weight:800;font-size:13px;color:var(--CC)}
+
+.chBadge{font-size:8.5px;font-weight:800;text-transform:uppercase;letter-spacing:.6px;padding:3px 9px;border-radius:20px;flex-shrink:0;white-space:nowrap;background:var(--CL);color:var(--CC)}
+.chBadgeDone{background:var(--greendim);color:var(--green)}
+.chBadgeEnded{background:var(--card3);color:var(--muted)}
+
+.chEmptyState{text-align:center;padding:48px 20px;color:var(--text2);background:var(--card2);border:1.5px dashed var(--border2);border-radius:var(--r)}
+
+.chColorRow{display:flex;gap:8px;flex-wrap:wrap}
+.chColorDot{width:27px;height:27px;border-radius:50%;cursor:pointer;border:2px solid transparent;transition:.15s;flex-shrink:0}
+.chColorDot.sel{border-color:var(--text);transform:scale(1.14)}
+.chDaysRow{display:flex;gap:6px;flex-wrap:wrap}
+.chDayChip{padding:6px 13px;border-radius:9px;border:1px solid var(--border2);background:none;font-size:11px;font-weight:700;cursor:pointer;color:var(--text2);transition:.15s}
+.chDayChip.sel{background:var(--pdim2);border-color:var(--p);color:var(--p)}
+.chStartRow{display:flex;gap:6px}
+.chStartChip{flex:1;padding:8px;border-radius:9px;border:1px solid var(--border2);background:none;font-size:11.5px;font-weight:700;cursor:pointer;color:var(--text2);text-align:center;transition:.15s}
+.chStartChip.sel{background:var(--pdim2);border-color:var(--p);color:var(--p)}
+.chHint{font-size:10px;color:var(--muted);line-height:1.4}
+
+.chCelebBox{text-align:center;padding:10px 4px 4px;position:relative}
+.chCelebEmoji{font-size:54px;margin-bottom:8px;animation:chPop .5s var(--ease-spring);display:inline-block}
+@keyframes chPop{0%{transform:scale(0)}60%{transform:scale(1.2)}100%{transform:scale(1)}}
+.chCelebTitle{font-family:var(--font-display);font-size:19px;font-weight:800;color:var(--text);margin-bottom:7px}
+.chCelebSub{font-size:12.5px;color:var(--text2);line-height:1.55;margin-bottom:18px;padding:0 6px}
+.chConfettiWrap{position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;overflow:hidden}
+.chConfettiPiece{position:absolute;top:-12px;width:7px;height:7px;opacity:.9;animation:chFall linear forwards;border-radius:1px}
+@keyframes chFall{to{transform:translateY(440px) rotate(540deg);opacity:0}}
+
+@media(max-width:700px){
+  .chGrid{grid-template-columns:1fr}
+  .chStatsStrip{gap:16px}
+}
+
+/* ══════════════════════════════
    GYM / WORKOUT SYSTEM
 ══════════════════════════════ */
 /* gymSubTabs → unified .subTabs (see Stage-2 system) */
@@ -3137,6 +3235,10 @@ body.light-mode .skel{background:linear-gradient(90deg,var(--card2) 25%,#f0f2f7 
                 <div class="navDropIcon">🌱</div>
                 <div><div class="navDropLabel">Цели</div><div class="navDropSub">Рост и миссия</div></div>
               </button>
+              <button class="navDropItem" data-tab="challenges" role="menuitem">
+                <div class="navDropIcon">🏁</div>
+                <div><div class="navDropLabel">Челленджи</div><div class="navDropSub">Дни, стрики, дисциплина</div></div>
+              </button>
               <button class="navDropItem" data-tab="rewards" role="menuitem">
                 <div class="navDropIcon">🏆</div>
                 <div><div class="navDropLabel">Награды</div><div class="navDropSub">Очки и достижения</div></div>
@@ -3374,6 +3476,11 @@ body.light-mode .skel{background:linear-gradient(90deg,var(--card2) 25%,#f0f2f7 
         <div><div class="dashBigNum" style="color:var(--purple)" id="dStreak">0</div><div style="font-size:9px;color:var(--muted)">стрик дн</div></div>
       </div>
       <div id="dashRewardsList" style="display:flex;flex-direction:column;gap:4px"></div>
+    </div>
+    <!-- Active challenges -->
+    <div class="dashCard" id="dashChallengesCard" style="display:none">
+      <div class="dashCardLbl">🏁 Активные челленджи</div>
+      <div id="dashChallengesList" style="display:flex;flex-direction:column;gap:5px;margin-top:2px"></div>
     </div>
     <!-- Next events -->
     <div class="dashCard" id="dashUpcomingCard">
@@ -4034,6 +4141,51 @@ body.light-mode .skel{background:linear-gradient(90deg,var(--card2) 25%,#f0f2f7 
 
 </div>
 
+<!-- ═══ 7.5 CHALLENGES ═══ -->
+<div id="tab-challenges" class="pane hInner">
+  <header class="paneHead">
+    <div class="paneHeadLeft">
+      <nav class="paneBreadcrumb">
+        <span onclick="navigateTo('dash')">PlannerPro</span>
+        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="m7 10 3 3 3-3"/><path d="m7 6 3 3 3-3"/></svg>
+        <span class="pbc-active">Прогресс</span>
+        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="m7 10 3 3 3-3"/><path d="m7 6 3 3 3-3"/></svg>
+        <span class="pbc-active">Челленджи</span>
+      </nav>
+      <div class="paneHeadRow">
+        <div class="paneHeadIcon" style="background:rgba(155,143,245,.1);border-color:rgba(155,143,245,.25)">🏁</div>
+        <div>
+          <h1 class="paneTitle">Челленджи</h1>
+          <p class="paneSubtitle">Дисциплина в игру · Дни, стрики и награда в конце</p>
+        </div>
+      </div>
+    </div>
+    <div class="paneHeadActions">
+      <button class="btn btnB" onclick="chOpenModal()">+ Челлендж</button>
+    </div>
+  </header>
+
+  <!-- Stats strip -->
+  <div class="chStatsStrip">
+    <div class="chStat"><div class="chStatL">Активных</div><div class="chStatV" id="chActiveV">0</div></div>
+    <div class="chStat"><div class="chStatL">Завершено</div><div class="chStatV" id="chDoneV">0</div></div>
+    <div class="chStat"><div class="chStatL">Лучший стрик</div><div class="chStatV" id="chStreakV">0</div></div>
+    <div class="chStat"><div class="chStatL">Баллов заработано</div><div class="chStatV" style="color:var(--gold)" id="chPtsV">0</div></div>
+  </div>
+
+  <!-- Quick-start templates -->
+  <div class="chTplRow" id="chTplRow"></div>
+
+  <!-- Active challenges -->
+  <div class="chGrid" id="chActiveGrid"></div>
+
+  <!-- Archive -->
+  <div id="chArchiveSection" style="display:none">
+    <div class="chSecLbl">Архив</div>
+    <div class="chGrid" id="chArchiveGrid"></div>
+  </div>
+</div>
+
 <!-- ═══ 8. REWARDS SYSTEM ═══ -->
 <div id="tab-rewards" class="pane hInner">
   <header class="paneHead">
@@ -4437,6 +4589,77 @@ body.light-mode .skel{background:linear-gradient(90deg,var(--card2) 25%,#f0f2f7 
 
 <!-- Notif bar -->
 <div class="rwNotifBar" id="rw-notif"></div>
+
+<!-- ═══ CHALLENGE CREATE/EDIT MODAL ═══ -->
+<div class="overlay" id="chModal" style="display:none">
+  <div class="modalBox" style="max-width:460px">
+    <div class="modalHead"><span class="modalTitle" id="chModalTitle">Новый челлендж</span><button class="modalClose" onclick="chCloseModal()">✕</button></div>
+    <input type="hidden" id="ch-id">
+    <div style="display:flex;gap:10px">
+      <div class="fldGrp" style="width:74px;flex-shrink:0">
+        <div class="fldLbl">Эмодзи</div>
+        <input class="inp" id="ch-emoji" maxlength="4" style="text-align:center;font-size:18px;padding:7px 4px">
+      </div>
+      <div class="fldGrp" style="flex:1">
+        <div class="fldLbl">Название</div>
+        <input class="inp" id="ch-title" placeholder="Например: Без сахара">
+      </div>
+    </div>
+    <div class="fldGrp">
+      <div class="fldLbl">Зачем тебе это? (мотивация)</div>
+      <textarea class="kbTxtarea" id="ch-why" placeholder="Опиши честно — зачем ты это начинаешь" style="min-height:54px"></textarea>
+    </div>
+    <div class="fldGrp">
+      <div class="fldLbl">Длительность, дней</div>
+      <div class="chDaysRow" id="chDaysRow"></div>
+      <input class="inp" id="ch-days" type="number" min="1" max="365" value="30" style="margin-top:6px">
+    </div>
+    <div class="fldGrp" id="chStartRow">
+      <div class="fldLbl">Начать</div>
+      <div class="chStartRow">
+        <button type="button" class="chStartChip sel" onclick="chSelStart(0,this)">Сегодня</button>
+        <button type="button" class="chStartChip" onclick="chSelStart(1,this)">Завтра</button>
+      </div>
+    </div>
+    <div style="display:flex;gap:10px">
+      <div class="fldGrp" style="width:90px;flex-shrink:0">
+        <div class="fldLbl">Норма в день</div>
+        <input class="inp" id="ch-target" type="number" min="1" max="999" value="1">
+      </div>
+      <div class="fldGrp" style="flex:1">
+        <div class="fldLbl">Единица (необязательно)</div>
+        <input class="inp" id="ch-unit" placeholder="раз, страниц, км...">
+      </div>
+    </div>
+    <div class="fldGrp">
+      <div class="fldLbl">Цвет</div>
+      <div class="chColorRow" id="chColorRow"></div>
+    </div>
+    <div class="fldGrp">
+      <div class="fldLbl">Бонус баллов за завершение</div>
+      <input class="inp" id="ch-bonus" type="number" min="0" max="9999" value="50">
+      <div class="chHint">Начислятся в раздел «Награды» при выполнении. Поставь 0, если не нужно.</div>
+    </div>
+    <div style="display:flex;gap:8px">
+      <button class="btn btnR" id="ch-delbtn" style="display:none" onclick="chDeleteFromModal()">Удалить</button>
+      <button class="btn btnG" style="flex:1;justify-content:center" onclick="chCloseModal()">Отмена</button>
+      <button class="btn btnB" style="flex:1;justify-content:center" onclick="chSave()">Сохранить</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ CHALLENGE CELEBRATION MODAL ═══ -->
+<div class="overlay" id="chCelebModal" style="display:none">
+  <div class="modalBox" style="max-width:380px">
+    <div class="chCelebBox">
+      <div class="chConfettiWrap" id="chConfettiWrap"></div>
+      <div class="chCelebEmoji" id="chCelebEmoji">🏆</div>
+      <div class="chCelebTitle" id="chCelebTitle">Челлендж завершён!</div>
+      <div class="chCelebSub" id="chCelebSub"></div>
+      <button class="btn btnB" style="width:100%;justify-content:center" onclick="chCloseCelebrate()">Продолжать в том же духе</button>
+    </div>
+  </div>
+</div>
 
 <!-- ═══ ROUTINE BOARD MODAL ═══ -->
 <div class="overlay" id="rbModal" style="display:none">
@@ -5395,7 +5618,7 @@ function setSyncDot(state){
 
 // ── Re-render whichever tab is currently visible (called after cloud sync) ──
 function reRenderCurrentTab(){
-  const renders={dash:renderDash,weekly:renderWP,habits:renderHT,tasks:renderTP,routine:renderRoutine,calendar:renderCal,kanban:renderKanban,finance:renderFin,goals:renderGrowth,rewards:rwRender,gym:gymRender,analytics:renderAnalytics,pomodoro:renderPomodoro};
+  const renders={dash:renderDash,weekly:renderWP,habits:renderHT,tasks:renderTP,routine:renderRoutine,calendar:renderCal,kanban:renderKanban,finance:renderFin,goals:renderGrowth,rewards:rwRender,gym:gymRender,analytics:renderAnalytics,pomodoro:renderPomodoro,challenges:renderCh};
   for(const[name,fn] of Object.entries(renders)){
     if(document.getElementById('tab-'+name)?.classList.contains('on')){
       try{fn();}catch(e){console.warn('rerender err',e);}
@@ -5910,7 +6133,7 @@ const TAB_GROUP={
   tasks:'planning',weekly:'planning',calendar:'planning',kanban:'planning',pomodoro:'planning',
   habits:'health',gym:'health',
   finance:'finance',
-  goals:'progress',rewards:'progress',analytics:'progress'
+  goals:'progress',rewards:'progress',analytics:'progress',challenges:'progress'
 };
 
 // Label shown in mobile group picker per sub-tab
@@ -5936,6 +6159,7 @@ const MOB_GROUPS={
     title:'Прогресс',
     items:[
       {tab:'goals',    icon:'🌱', label:'Цели',      sub:'Рост и миссия'},
+      {tab:'challenges',icon:'🏁', label:'Челленджи', sub:'Дни, стрики, дисциплина'},
       {tab:'rewards',  icon:'🏆', label:'Награды',   sub:'Очки и достижения'},
       {tab:'analytics',icon:'📊', label:'Аналитика', sub:'Отчёты и графики'},
     ]
@@ -6011,7 +6235,7 @@ function navigateTo(tabName){
   // ── Run render ──
   const renders={dash:renderDash,weekly:renderWP,habits:renderHT,tasks:renderTP,
     routine:renderRoutine,calendar:renderCal,kanban:renderKanban,finance:renderFin,
-    goals:renderGrowth,rewards:rwRender,gym:gymRender,analytics:renderAnalytics,pomodoro:renderPomodoro};
+    goals:renderGrowth,rewards:rwRender,gym:gymRender,analytics:renderAnalytics,pomodoro:renderPomodoro,challenges:renderCh};
   if(renders[tabName])renders[tabName]();
 
   window.scrollTo({top:0,behavior:'instant'});
@@ -10282,6 +10506,7 @@ function renderDash(){
   drawDashFinSparks();
   renderDashActivity();
   renderDashRewards();
+  renderDashChallenges();
   renderDashUpcoming();
   renderDashLabelDonut(taskFiltered, p);
   renderTaskWeekChart();
@@ -12025,6 +12250,423 @@ function gymNotif(msg,type){
 });
 
 /* ═══════════════════════════════════
+   10. CHALLENGES SYSTEM
+═══════════════════════════════════ */
+const CH_COLORS=['p','green','gold','blue','purple','pink','cyan','orange','red'];
+const CH_TEMPLATES=[
+  {emoji:'🍬',title:'Без сахара',days:21,why:'Меньше тяги к сладкому, больше энергии и чистая кожа',color:'pink'},
+  {emoji:'💪',title:'Спорт каждый день',days:30,why:'Сделать движение каждый день привычкой, а не подвигом',color:'orange'},
+  {emoji:'📖',title:'Чтение каждый день',days:30,why:'Прокачать фокус и кругозор — хотя бы по 10 страниц в день',color:'blue'},
+  {emoji:'🌅',title:'Ранний подъём',days:21,why:'Просыпаться в 6:00 и иметь время на себя до начала дня',color:'gold'},
+  {emoji:'📵',title:'Меньше соцсетей',days:14,why:'Освободить внимание и время для действительно важного',color:'purple'},
+  {emoji:'🔥',title:'66 дней дисциплины',days:66,why:'Научно обоснованный срок, чтобы привычка стала автоматической',color:'red'},
+];
+
+function chD(){
+  if(!Array.isArray(G.challenges))G.challenges=[];
+  return G.challenges;
+}
+
+// ── Calculate all derived stats for a single challenge (pure, no mutation) ──
+function chStats(c){
+  const total=Math.max(1,c.days||1);
+  const target=Math.max(1,c.target||1);
+  const start=new Date(c.startDate+'T00:00:00');
+  const today=t0();
+  const todayIdx=Math.floor((today-start)/86400000);
+  const days=[];
+  for(let i=0;i<total;i++){
+    const d=new Date(start);d.setDate(d.getDate()+i);
+    const key=dk(d);
+    const qty=(c.checks&&c.checks[key])||0;
+    days.push({i,key,qty,done:qty>=target,isFuture:i>todayIdx,isToday:i===todayIdx});
+  }
+  const doneCount=days.filter(d=>d.done).length;
+  const pct=Math.min(100,Math.round(doneCount/total*100));
+  // Trailing streak — consecutive done days counting back from today (or last day)
+  let streak=0;
+  for(let i=Math.min(todayIdx,total-1);i>=0;i--){
+    if(days[i].done)streak++;else break;
+  }
+  // Longest streak ever within this challenge
+  let best=0,run=0;
+  days.forEach(d=>{if(d.done){run++;best=Math.max(best,run);}else if(!d.isFuture)run=0;});
+  const expired=todayIdx>total-1;
+  const todayInRange=todayIdx>=0&&todayIdx<total;
+  const todayKey=dk(today);
+  const todayQty=(c.checks&&c.checks[todayKey])||0;
+  return{total,target,days,doneCount,pct,streak,best,expired,todayInRange,
+    todayQty,todayDone:todayQty>=target,todayIdx,todayKey};
+}
+
+// ── Auto-transition a challenge to completed/ended + award points. Returns the new status or false. ──
+function chMaybeFinish(c){
+  if(c.status!=='active')return false;
+  const s=chStats(c);
+  if(s.doneCount>=s.total){
+    c.status='completed';c.finishedAt=dk(t0());
+    if(c.bonusPts)chAwardBonus(c,c.bonusPts);
+    return'completed';
+  }
+  if(s.expired){
+    c.status='ended';c.finishedAt=dk(t0());
+    const partial=Math.round((c.bonusPts||0)*s.pct/100);
+    if(partial>0)chAwardBonus(c,partial);
+    return'ended';
+  }
+  return false;
+}
+
+function chAwardBonus(c,pts){
+  if(!pts)return;
+  const d=rwD();
+  d.pts+=pts;d.totalEarned+=pts;
+  rwLog('Челлендж: '+c.title,pts);
+}
+
+// ── Sum of bonus points actually credited across all challenges (for stats strip) ──
+function chSumBonusEarned(){
+  return chD().reduce((sum,c)=>{
+    if(c.status==='completed')return sum+(c.bonusPts||0);
+    if(c.status==='ended'){const s=chStats(c);return sum+Math.round((c.bonusPts||0)*s.pct/100);}
+    return sum;
+  },0);
+}
+
+function chMotiv(c,s){
+  if(c.status==='completed')return'🏆 Челлендж завершён! Ты сделал это от начала и до конца — горжись собой.';
+  if(c.status==='ended'){
+    if(s.pct>=80)return`Очень близко к идеалу — ${s.pct}%. Это сильный результат, не списывай его в ноль.`;
+    if(s.pct>=50)return`Срок вышел — ${s.pct}%. Уже половина дела сделана, в следующий раз дожми до конца.`;
+    return`Срок вышел — ${s.pct}%. Не страшно. Начни заново, когда будешь готов — опыт уже твой.`;
+  }
+  if(s.streak===0&&s.doneCount>0&&!s.todayDone)return'Стрик прервался — не беда. Главное начать заново прямо сегодня 🌱';
+  if(s.doneCount===0)return'Первый шаг — самый важный. Начни сегодня! 🚀';
+  if(s.pct<25)return'Разгон. Не думай, просто делай — каждый день. 💪';
+  if(s.pct<50)return'Уже втянулся, виден прогресс. Не останавливайся. 🔥';
+  if(s.pct<75)return'Экватор пройден! Дальше будет легче — ты знаешь свой ритм. ⚡';
+  if(s.pct<95)return'Финишная прямая. Осталось совсем чуть-чуть! 🏁';
+  return'Последний рывок! Ещё немного — и победа. 🎯';
+}
+
+function chNotif(msg,type){
+  const el=document.getElementById('rw-notif');if(!el)return;
+  el.textContent=msg;el.className='rwNotifBar '+type+' show';
+  clearTimeout(_rwNT);_rwNT=setTimeout(()=>{el.className='rwNotifBar '+type;},3000);
+}
+
+// ── Render ──
+function renderCh(){
+  const list=chD();
+  let changed=false;
+  list.forEach(c=>{ if(chMaybeFinish(c))changed=true; });
+  if(changed)saveD();
+
+  const active=list.filter(c=>c.status==='active');
+  const done=list.filter(c=>c.status==='completed');
+  const ended=list.filter(c=>c.status==='ended');
+  const archive=[...done,...ended].sort((a,b)=>(b.finishedAt||'').localeCompare(a.finishedAt||''));
+
+  let bestStreakAll=0;
+  list.forEach(c=>{const s=chStats(c);if(s.best>bestStreakAll)bestStreakAll=s.best;});
+  const activeV=document.getElementById('chActiveV');
+  if(activeV){
+    activeV.textContent=active.length;
+    document.getElementById('chDoneV').textContent=done.length;
+    document.getElementById('chStreakV').textContent=bestStreakAll;
+    document.getElementById('chPtsV').textContent=chSumBonusEarned().toLocaleString('ru-RU');
+  }
+
+  const tplRow=document.getElementById('chTplRow');
+  if(tplRow&&!tplRow.dataset.built){
+    tplRow.innerHTML=CH_TEMPLATES.map((t,i)=>`<div class="chTplChip" onclick="chUseTemplate(${i})">
+      <span class="chTplEmoji">${t.emoji}</span>
+      <div class="chTplInfo"><span class="chTplName">${esc(t.title)}</span><span class="chTplDays">${t.days} дней</span></div>
+    </div>`).join('');
+    tplRow.dataset.built='1';
+  }
+
+  const grid=document.getElementById('chActiveGrid');
+  if(grid){
+    if(!active.length){
+      grid.innerHTML=`<div class="chEmptyState" style="grid-column:1/-1">
+        <div style="font-size:40px;margin-bottom:10px">🏁</div>
+        <div style="font-family:var(--font-display);font-size:15px;font-weight:700;color:var(--text);margin-bottom:6px">Пока нет активных челленджей</div>
+        <div style="font-size:12px;color:var(--muted)">Выбери шаблон выше или создай свой — и начни прямо сегодня</div>
+      </div>`;
+    } else {
+      grid.innerHTML=active.map(c=>chCardHtml(c)).join('');
+    }
+  }
+
+  const archSec=document.getElementById('chArchiveSection');
+  if(archSec){
+    if(!archive.length){
+      archSec.style.display='none';
+    } else {
+      archSec.style.display='';
+      document.getElementById('chArchiveGrid').innerHTML=archive.map(c=>chCardHtml(c)).join('');
+    }
+  }
+  renderDashChallenges();
+}
+
+function chCardHtml(c){
+  const s=chStats(c);
+  const C=2*Math.PI*28,off=C*(1-s.pct/100);
+  const statusBadge=c.status==='completed'?`<span class="chBadge chBadgeDone">Завершён 🏆</span>`
+    :c.status==='ended'?`<span class="chBadge chBadgeEnded">Итог ${s.pct}%</span>`
+    :`<span class="chBadge">День ${Math.min(s.todayIdx+1,s.total)}/${s.total}</span>`;
+  const dotsHtml=s.days.map(d=>{
+    let cls='chDot';
+    if(d.done)cls+=' on';else if(d.isFuture)cls+=' future';else cls+=' miss';
+    if(d.isToday)cls+=' today';
+    return`<div class="${cls}" title="${d.key}"></div>`;
+  }).join('');
+  let footHtml='';
+  if(c.status==='active'){
+    if(s.target<=1){
+      footHtml=s.todayDone
+        ?`<button class="chCheckBtn done" onclick="chToggleToday('${c.id}')">✓ Сегодня сделано</button>`
+        :`<button class="chCheckBtn" onclick="chToggleToday('${c.id}')">Отметить сегодня</button>`;
+    } else {
+      footHtml=`<div class="chQtyRow">
+        <span class="chQtyLbl">${s.todayQty}/${s.target}${c.unit?' '+esc(c.unit):''}</span>
+        <div class="chQtyBtns">
+          <button class="chQtyBtn" onclick="chQtyChange('${c.id}',-1)" ${s.todayQty<=0?'disabled':''}>−</button>
+          <div class="chQtyNum">${s.todayQty}</div>
+          <button class="chQtyBtn" onclick="chQtyChange('${c.id}',1)" ${s.todayQty>=s.target?'disabled':''}>+</button>
+        </div>
+      </div>`;
+    }
+  }
+  const kebabBtn2=c.status==='active'
+    ?`<button class="chKebabBtn" onclick="chStop('${c.id}')" title="Остановить">⏹</button>`
+    :`<button class="chKebabBtn" onclick="chDeleteConfirm('${c.id}')" title="Удалить">🗑</button>`;
+  return`<div class="chCard ${c.status==='completed'?'chDone':c.status==='ended'?'chEnded':''}" style="--CC:var(--${c.color||'p'});--CL:var(--${c.color||'p'}dim)">
+    <div class="chTop">
+      <div class="chEmoji">${esc(c.emoji||'🎯')}</div>
+      <div class="chInfo">
+        <div class="chTitle">${esc(c.title)}</div>
+        ${c.why?`<div class="chWhy">${esc(c.why)}</div>`:''}
+      </div>
+      <div class="chKebab">
+        ${statusBadge}
+        <div class="chKebabBtns">
+          <button class="chKebabBtn" onclick="chOpenModal('${c.id}')" title="Изменить">✎</button>
+          ${kebabBtn2}
+        </div>
+      </div>
+    </div>
+    <div class="chMid">
+      <div class="dRing" style="width:58px;height:58px">
+        <svg viewBox="0 0 70 70" width="58" height="58">
+          <circle class="rTrack" cx="35" cy="35" r="28"/>
+          <circle class="rFill" cx="35" cy="35" r="28" stroke-dasharray="${C.toFixed(2)}" stroke-dashoffset="${off.toFixed(2)}"/>
+        </svg>
+        <div class="dPct" style="font-size:11px">${s.pct}%</div>
+      </div>
+      <div class="chMidStats">
+        <div class="chDayLbl">${c.status==='active'?`День <b>${Math.min(s.todayIdx+1,s.total)}</b> из ${s.total}`:`${s.doneCount} из ${s.total} дней`}</div>
+        <div class="chFireRow">
+          <div class="chFireChip">🔥<b>${s.streak}</b> стрик</div>
+          <div class="chFireChip">🏆<b>${s.best}</b> рекорд</div>
+        </div>
+      </div>
+    </div>
+    <div class="chDots">${dotsHtml}</div>
+    <div class="chMotiv"><span>${chMotiv(c,s)}</span></div>
+    ${footHtml?`<div class="chFoot">${footHtml}</div>`:''}
+  </div>`;
+}
+
+function chToggleToday(id){
+  const c=chD().find(x=>x.id===id);if(!c)return;
+  const s=chStats(c);
+  if(!s.todayInRange){chNotif('Этот день вне диапазона челленджа','warn');return;}
+  if(!c.checks)c.checks={};
+  const wasStreak=s.streak;
+  c.checks[s.todayKey]=s.todayDone?0:(c.target||1);
+  const result=chMaybeFinish(c);
+  saveD();renderCh();
+  if(result==='completed'){chCelebrate(c);return;}
+  if(!s.todayDone){
+    const ns=chStats(c);
+    chNotif(ns.streak>wasStreak&&ns.streak>1?'🔥 Стрик '+ns.streak+' дней подряд!':'Отмечено! Так держать 💪','success');
+  }
+}
+
+function chQtyChange(id,delta){
+  const c=chD().find(x=>x.id===id);if(!c)return;
+  const s=chStats(c);
+  if(!s.todayInRange)return;
+  if(!c.checks)c.checks={};
+  const target=Math.max(1,c.target||1);
+  const cur=c.checks[s.todayKey]||0;
+  const nv=Math.max(0,Math.min(target,cur+delta));
+  if(nv===cur)return;
+  const wasDone=cur>=target;
+  c.checks[s.todayKey]=nv;
+  const result=chMaybeFinish(c);
+  saveD();renderCh();
+  if(result==='completed'){chCelebrate(c);return;}
+  if(!wasDone&&nv>=target)chNotif('День выполнен! 💪','success');
+}
+
+function chStop(id){
+  if(!confirm('Остановить челлендж? Прогресс сохранится, но дни больше не будут засчитываться.'))return;
+  const c=chD().find(x=>x.id===id);if(!c)return;
+  const s=chStats(c);
+  c.status='ended';c.finishedAt=dk(t0());
+  const partial=Math.round((c.bonusPts||0)*s.pct/100);
+  if(partial>0)chAwardBonus(c,partial);
+  saveD();renderCh();
+  chNotif('Челлендж остановлен — итог '+s.pct+'%','warn');
+}
+
+function chDeleteConfirm(id){
+  if(!confirm('Удалить челлендж навсегда? Это действие нельзя отменить.'))return;
+  G.challenges=chD().filter(x=>x.id!==id);
+  saveD();renderCh();
+  chNotif('Челлендж удалён','warn');
+}
+
+// ── Modal ──
+let _chModalColor='p';
+function chOpenModal(id){
+  const isEdit=!!id;
+  const c=isEdit?chD().find(x=>x.id===id):null;
+  document.getElementById('chModalTitle').textContent=isEdit?'Изменить челлендж':'Новый челлендж';
+  document.getElementById('ch-id').value=id||'';
+  document.getElementById('ch-delbtn').style.display=isEdit?'':'none';
+  document.getElementById('ch-emoji').value=c?c.emoji:'🎯';
+  document.getElementById('ch-title').value=c?c.title:'';
+  document.getElementById('ch-why').value=c?(c.why||''):'';
+  document.getElementById('ch-days').value=c?c.days:30;
+  document.getElementById('ch-target').value=c?(c.target||1):1;
+  document.getElementById('ch-unit').value=c?(c.unit||''):'';
+  document.getElementById('ch-bonus').value=c?(c.bonusPts!=null?c.bonusPts:50):50;
+  _chModalColor=c?(c.color||'p'):'p';
+  chRenderColorPicker();
+  chRenderDayChips(c?c.days:30);
+  const startRow=document.getElementById('chStartRow');
+  startRow.style.display=isEdit?'none':'';
+  document.querySelectorAll('.chStartChip').forEach((b,i)=>b.classList.toggle('sel',i===0));
+  document.getElementById('chModal').style.display='flex';
+}
+function chCloseModal(){document.getElementById('chModal').style.display='none';}
+
+function chRenderColorPicker(){
+  const wrap=document.getElementById('chColorRow');if(!wrap)return;
+  wrap.innerHTML=CH_COLORS.map(c=>`<div class="chColorDot ${c===_chModalColor?'sel':''}" style="background:var(--${c})" onclick="chSelColor('${c}')" title="${c}"></div>`).join('');
+}
+function chSelColor(c){_chModalColor=c;chRenderColorPicker();}
+
+function chRenderDayChips(curVal){
+  const presets=[7,14,21,30,66,90];
+  const wrap=document.getElementById('chDaysRow');if(!wrap)return;
+  wrap.innerHTML=presets.map(d=>`<button type="button" class="chDayChip ${d===+curVal?'sel':''}" onclick="chSelDays(${d})">${d}</button>`).join('');
+}
+function chSelDays(d){
+  document.getElementById('ch-days').value=d;
+  document.querySelectorAll('.chDayChip').forEach(b=>b.classList.toggle('sel',+b.textContent===d));
+}
+function chSelStart(offset,btn){
+  document.querySelectorAll('.chStartChip').forEach(b=>b.classList.remove('sel'));
+  btn.classList.add('sel');
+  btn.dataset.off=offset;
+}
+
+function chUseTemplate(i){
+  const t=CH_TEMPLATES[i];if(!t)return;
+  chOpenModal();
+  document.getElementById('ch-emoji').value=t.emoji;
+  document.getElementById('ch-title').value=t.title;
+  document.getElementById('ch-why').value=t.why;
+  document.getElementById('ch-days').value=t.days;
+  _chModalColor=t.color;
+  chRenderColorPicker();
+  chRenderDayChips(t.days);
+}
+
+function chSave(){
+  const id=document.getElementById('ch-id').value;
+  const title=document.getElementById('ch-title').value.trim();
+  if(!title){chNotif('Введи название челленджа','error');return;}
+  const days=Math.max(1,parseInt(document.getElementById('ch-days').value)||30);
+  const target=Math.max(1,parseInt(document.getElementById('ch-target').value)||1);
+  const bonus=Math.max(0,parseInt(document.getElementById('ch-bonus').value)||0);
+  const emoji=(document.getElementById('ch-emoji').value||'🎯').trim().slice(0,4)||'🎯';
+  const why=document.getElementById('ch-why').value.trim();
+  const unit=document.getElementById('ch-unit').value.trim();
+  const list=chD();
+  if(id){
+    const c=list.find(x=>x.id===id);if(!c)return;
+    c.title=title;c.emoji=emoji;c.why=why;c.days=days;c.target=target;c.unit=unit;c.bonusPts=bonus;c.color=_chModalColor;
+    if(c.status==='ended'){const s=chStats(c);if(!s.expired&&s.doneCount<s.total)c.status='active';}
+  } else {
+    const selChip=document.querySelector('.chStartChip.sel');
+    const startOffset=selChip?(+selChip.dataset.off||0):0;
+    const start=new Date(t0());start.setDate(start.getDate()+startOffset);
+    list.push({id:uid(),emoji,title,why,days,target,unit,bonusPts:bonus,color:_chModalColor,
+      startDate:dk(start),checks:{},status:'active',createdAt:Date.now()});
+  }
+  saveD();chCloseModal();renderCh();
+  chNotif(id?'Сохранено':'Челлендж создан — погнали! 🚀','success');
+}
+
+function chDeleteFromModal(){
+  const id=document.getElementById('ch-id').value;if(!id)return;
+  chCloseModal();
+  chDeleteConfirm(id);
+}
+
+// ── Celebration ──
+function chCelebrate(c){
+  document.getElementById('chCelebEmoji').textContent=c.emoji||'🏆';
+  document.getElementById('chCelebTitle').textContent='Челлендж завершён!';
+  document.getElementById('chCelebSub').textContent=`«${c.title}» — ${c.days} из ${c.days} дней выполнено.`+(c.bonusPts?` +${c.bonusPts} баллов зачислено в Награды.`:'');
+  chRenderConfetti();
+  document.getElementById('chCelebModal').style.display='flex';
+}
+function chCloseCelebrate(){document.getElementById('chCelebModal').style.display='none';}
+function chRenderConfetti(){
+  const wrap=document.getElementById('chConfettiWrap');if(!wrap)return;
+  const colors=['#9B8FF5','#0FDDAA','#F0AB30','#5B95FF','#F06BB0','#22CCE8'];
+  let html='';
+  for(let i=0;i<28;i++){
+    const left=Math.random()*100,delay=Math.random()*0.4,dur=1.2+Math.random()*0.8,col=colors[i%colors.length],rot=Math.random()*360;
+    html+=`<div class="chConfettiPiece" style="left:${left}%;background:${col};animation-delay:${delay}s;animation-duration:${dur}s;transform:rotate(${rot}deg)"></div>`;
+  }
+  wrap.innerHTML=html;
+}
+
+// ── Dashboard widget ──
+function renderDashChallenges(){
+  const card=document.getElementById('dashChallengesCard');
+  const listEl=document.getElementById('dashChallengesList');
+  if(!card||!listEl)return;
+  const active=chD().filter(c=>c.status==='active');
+  if(!active.length){card.style.display='none';return;}
+  card.style.display='';
+  const top=active.map(c=>({c,s:chStats(c)})).sort((a,b)=>b.s.pct-a.s.pct).slice(0,3);
+  listEl.innerHTML=top.map(({c,s})=>`<div style="display:flex;align-items:center;gap:8px;padding:6px 8px;background:var(--card2);border:1px solid var(--border);border-radius:9px;cursor:pointer" onclick="navigateTo('challenges')">
+    <span style="font-size:14px">${esc(c.emoji||'🎯')}</span>
+    <div style="flex:1;min-width:0">
+      <div style="font-size:11px;color:var(--text2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(c.title)}</div>
+      <div style="height:4px;background:var(--border2);border-radius:3px;margin-top:4px;overflow:hidden"><div style="height:100%;width:${s.pct}%;background:var(--${c.color||'p'});border-radius:3px"></div></div>
+    </div>
+    <span style="font-size:10px;font-weight:800;font-family:var(--font-display);color:var(--${c.color||'p'})">${s.pct}%</span>
+  </div>`).join('');
+}
+
+// Close challenge modals on overlay click
+['chModal','chCelebModal'].forEach(id=>{
+  const el=document.getElementById(id);
+  if(el)el.addEventListener('click',function(e){if(e.target===this)this.style.display='none'});
+});
+
+/* ═══════════════════════════════════
    ANALYTICS
 ═══════════════════════════════════ */
 // ═══════════════════════════════════════════════════════
@@ -13120,6 +13762,7 @@ const CMD_ITEMS=[
   {icon:'🎯',label:'Канбан доска',action:()=>navigateTo('kanban')},
   {icon:'💰',label:'Финансы',action:()=>navigateTo('finance')},
   {icon:'🌱',label:'Цели и рост',action:()=>navigateTo('goals')},
+  {icon:'🏁',label:'Челленджи',action:()=>navigateTo('challenges')},
   {icon:'🏆',label:'Система наград',action:()=>navigateTo('rewards')},
   {icon:'💪',label:'Тренировки',action:()=>navigateTo('gym')},
   {icon:'➕',label:'Добавить задачу',action:()=>{navigateTo('tasks');setTimeout(()=>document.getElementById('tAddInp')?.focus(),200)}},
@@ -13759,11 +14402,11 @@ function _initWeekTooltips(){} // legacy stub — delegation handles everything
    Цифры 1-9 для навигации (без модификаторов)
    Не конфликтует с Chrome
 ══════════════════════════════════════════ */
-const KB_TAB_ORDER = ['dash','weekly','habits','tasks','calendar','kanban','finance','goals','rewards','gym','pomodoro'];
+const KB_TAB_ORDER = ['dash','weekly','habits','tasks','calendar','kanban','finance','goals','rewards','gym','pomodoro','challenges'];
 const KB_TAB_NAMES = {
   'dash':'Дашборд','weekly':'Неделя','habits':'Привычки','tasks':'Задачи',
   'calendar':'Календарь','kanban':'Канбан','finance':'Финансы','goals':'Цели',
-  'rewards':'Награды','gym':'Тренировки','pomodoro':'Помодоро'
+  'rewards':'Награды','gym':'Тренировки','pomodoro':'Помодоро','challenges':'Челленджи'
 };
 
 // ── Защитная функция: безопасно ли перехватывать клавишу ──
@@ -14182,6 +14825,21 @@ const GUIDE_SECTIONS=[
       {icon:'📓',title:'Вкладка: Дневник',body:'Свободные записи с настроением. Выбери эмодзи настроения (😊/😐/😔/🔥), ответь на вопросы дня (что сделал хорошо, что улучшить) и напиши свободный текст. Накапливается история рефлексии.'},
     ],
     tip:'💡 <b>Метод:)</b> Разбивай большие цели на этапы по 1–2 недели каждый. Не «похудеть на 10 кг» а «тренироваться 3×/неделю в течение месяца» — конкретно и измеримо.'
+  },
+  // ─── ЧЕЛЛЕНДЖИ ───
+  {
+    id:'challenges', icon:'🏁', label:'Челленджи', color:'var(--p)', group:'РАЗДЕЛЫ',
+    title:'🏁 Челленджи',
+    sub:'Дисциплина в форме игры. Выбери цель на N дней, отмечай каждый день — и доходи до конца. Стрики, кольцо прогресса и баллы держат мотивацию.',
+    blocks:[
+      {icon:'➕',title:'Создать челлендж',body:'Кнопка <span class="gTag gTagBtn">+ Челлендж</span> вверху. Заполни: эмодзи, название, <b>зачем тебе это</b> (честная причина — она же будет тебя подбадривать), длительность в днях и цвет.'},
+      {icon:'⚡',title:'Шаблоны',body:'Не хочешь придумывать — нажми на готовый шаблон вверху раздела: «Без сахара», «66 дней дисциплины» и другие. Откроется форма уже заполненной — останется нажать «Сохранить».'},
+      {icon:'☑️',title:'Отмечать дни',body:'На карточке — кнопка «Отметить сегодня». Если задал «норму в день» больше 1 (например, 50 отжиманий) — появится степпер +/− вместо галочки.'},
+      {icon:'🔥',title:'Стрик и кольцо прогресса',body:'Кольцо показывает % выполненных дней от всего срока. 🔥 — текущая серия подряд идущих дней, 🏆 — твой лучший рекорд за этот челлендж. Полоска точек снизу — календарь: закрашено = сделано, красное = пропуск.'},
+      {icon:'🏆',title:'Завершение и награда',body:'Как только отмечены все дни — челлендж сразу завершается с праздничным окном, и в раздел «Награды» зачисляется указанный бонус баллов. Если время вышло, а дни не все закрыты — бонус начислится пропорционально проценту выполнения.'},
+      {icon:'⏹',title:'Остановить или удалить',body:'Кнопка ⏹ на активной карточке — честно завершить раньше срока (прогресс и частичный бонус сохранятся). В режиме редактирования (✎) можно поменять детали или удалить челлендж совсем.'},
+    ],
+    tip:'💡 <b>Совет:</b> Не начинай больше 2-3 челленджей одновременно — распыление убивает дисциплину. Лучше один доведённый до конца, чем пять брошенных.'
   },
   // ─── СИСТЕМА НАГРАД ───
   {
