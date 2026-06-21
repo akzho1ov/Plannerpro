@@ -4009,11 +4009,13 @@ body.light-mode .skel{background:linear-gradient(90deg,var(--card2) 25%,#f0f2f7 
       <div class="finSumLbl" style="color:var(--green)">📈 Доходы</div>
       <div class="finSumVal finInc" id="finIncVal" style="font-size:22px">0</div>
       <div class="finSumSub">за месяц</div>
+      <div id="finIncDelta" style="margin-top:2px"></div>
     </div>
     <div class="finSumCard" style="background:linear-gradient(135deg,rgba(248,113,113,.1),var(--card));border-color:rgba(248,113,113,.2)">
       <div class="finSumLbl" style="color:var(--red)">📉 Расходы</div>
       <div class="finSumVal finExp" id="finExpVal" style="font-size:22px">0</div>
       <div class="finSumSub">за месяц</div>
+      <div id="finExpDelta" style="margin-top:2px"></div>
     </div>
   </div>
   <div class="finSumCard" style="margin-bottom:14px;background:linear-gradient(135deg,rgba(155,143,245,.1),var(--card));border-color:rgba(155,143,245,.2);display:flex;align-items:center;justify-content:space-between;padding:14px 18px">
@@ -9269,24 +9271,70 @@ function renderFin(){
   renderCatBudgetBars(exp,txs);
   renderFinTxList();
 
-  // Category breakdown (right column)
+  // Category breakdown (right column) — click a category with subcategories
+  // to drill down and see how the spend splits across them.
   const catEl=document.getElementById('finCatList');catEl.innerHTML='';
   const outCats=FIN_CATS.filter(c=>c.type==='out'&&!c.parentId);
   let hasAny=false;
+  window._finCatBreakdownOpen=window._finCatBreakdownOpen||{};
   outCats.forEach(cat=>{
-    // sum cat + its subcategories
-    const catIds=[cat.id,...FIN_CATS.filter(c=>c.parentId===cat.id).map(c=>c.id)];
+    const subCats=FIN_CATS.filter(c=>c.parentId===cat.id);
+    const catIds=[cat.id,...subCats.map(c=>c.id)];
     const amt=txs.filter(t=>t.type==='out'&&catIds.includes(t.category)).reduce((a,t)=>a+Number(t.amount),0);
     if(!amt)return;
     hasAny=true;
     const pct=exp?Math.round(amt/exp*100):0;
+    const isOpen=!!window._finCatBreakdownOpen[cat.id];
     const row=document.createElement('div');row.className='finCatRow';
-    row.innerHTML=`<div class="finCatLbl">${cat.icon} ${cat.name}</div>
+    row.style.cssText='flex-direction:column;align-items:stretch;gap:0';
+    const hasSubs=subCats.some(sc=>txs.some(t=>t.type==='out'&&t.category===sc.id));
+    row.innerHTML=`<div style="display:flex;align-items:center;gap:8px;${hasSubs?'cursor:pointer':''}" ${hasSubs?`onclick=\"finToggleCatBreakdown('${cat.id}')\"`:''}>
+      ${hasSubs?`<span style="font-size:9px;color:var(--muted);width:10px;flex-shrink:0;transition:transform .15s;display:inline-block;transform:rotate(${isOpen?'90deg':'0deg'})">▶</span>`:'<span style="width:10px;flex-shrink:0"></span>'}
+      <div class="finCatLbl">${cat.icon} ${cat.name}</div>
       <div class="finCatTrack"><div class="finCatFill" style="width:${pct}%;background:${cat.color}"></div></div>
-      <div class="finCatAmt">${fmtMoney(amt)}</div>`;
+      <div class="finCatAmt">${fmtMoney(amt)}</div>
+    </div>`;
+    if(hasSubs&&isOpen){
+      const subWrap=document.createElement('div');
+      subWrap.style.cssText='display:flex;flex-direction:column;gap:5px;margin:6px 0 2px 18px;padding-left:10px;border-left:2px solid var(--border)';
+      subCats.forEach(sc=>{
+        const subAmt=txs.filter(t=>t.type==='out'&&t.category===sc.id).reduce((a,t)=>a+Number(t.amount),0);
+        if(!subAmt)return;
+        const subPct=amt?Math.round(subAmt/amt*100):0;
+        const subRow=document.createElement('div');subRow.className='finCatRow';
+        subRow.innerHTML=`<div class="finCatLbl" style="font-size:10px;color:var(--text2)">${sc.icon||'•'} ${sc.name}</div>
+          <div class="finCatTrack" style="height:5px"><div class="finCatFill" style="width:${subPct}%;background:${sc.color||cat.color};opacity:.8"></div></div>
+          <div class="finCatAmt">${fmtMoney(subAmt)}</div>`;
+        subWrap.appendChild(subRow);
+      });
+      row.appendChild(subWrap);
+    }
     catEl.appendChild(row);
   });
   if(!hasAny)catEl.innerHTML='<div style="font-size:11px;color:var(--muted);padding:8px 0">Нет расходов за этот месяц</div>';
+
+  // Month-over-month comparison vs the previous month, shown as a small badge
+  // under Доходы/Расходы so it's obvious whether spending is trending up or down.
+  const prevD=new Date(finY,finM-1,1);
+  const prevTxs=finTxD().filter(t=>{const d=new Date(t.date);return d.getFullYear()===prevD.getFullYear()&&d.getMonth()===prevD.getMonth();});
+  const prevInc=prevTxs.filter(t=>t.type==='in').reduce((s,t)=>s+Number(t.amount),0);
+  const prevExp=prevTxs.filter(t=>t.type==='out').reduce((s,t)=>s+Number(t.amount),0);
+  const mkDeltaHtml=(cur,prev,goodIsUp)=>{
+    if(!prev)return '';
+    const d=Math.round((cur-prev)/prev*100);
+    if(d===0)return `<span style="font-size:9.5px;color:var(--muted);font-weight:700">· без изменений</span>`;
+    const up=d>0;
+    const good=up===goodIsUp;
+    const col=good?'var(--green)':'var(--red)';
+    return `<span style="font-size:9.5px;color:${col};font-weight:700">${up?'▲':'▼'} ${Math.abs(d)}% к пред. месяцу</span>`;
+  };
+  const incDeltaEl=document.getElementById('finIncDelta');if(incDeltaEl)incDeltaEl.innerHTML=mkDeltaHtml(inc,prevInc,true);
+  const expDeltaEl=document.getElementById('finExpDelta');if(expDeltaEl)expDeltaEl.innerHTML=mkDeltaHtml(exp,prevExp,false);
+}
+function finToggleCatBreakdown(catId){
+  window._finCatBreakdownOpen=window._finCatBreakdownOpen||{};
+  window._finCatBreakdownOpen[catId]=!window._finCatBreakdownOpen[catId];
+  renderFin();
 }
 
 // Render only transactions list (used for search/filter)
