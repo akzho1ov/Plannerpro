@@ -1743,6 +1743,17 @@ select.inp option{background:var(--card2);color:var(--text)}
 ══════════════════════════════ */
 .labelPill{display:inline-flex;align-items:center;gap:4px;padding:2px 9px;border-radius:20px;font-size:9.5px;font-weight:700;cursor:default;white-space:nowrap;letter-spacing:.01em;transition:filter .15s,transform .1s}
 .labelPill:hover{filter:brightness(1.15)}
+/* Task-modal label chips: hover only on devices that truly support hover
+   (mouse/trackpad). On touch screens :hover can get "stuck" after a tap
+   since there's no real pointer to leave — so we gate it behind
+   (hover:hover) and never apply it to already-selected (.sel) chips. */
+@media (hover:hover) and (pointer:fine){
+  .tmLabelChip:not(.sel):hover{
+    border-color:var(--p)!important;
+    color:var(--p)!important;
+  }
+}
+.tmLabelChip:active{transform:scale(.96)}
 .labelDot{width:7px;height:7px;border-radius:50%;flex-shrink:0;display:inline-block}
 .labelsFilterBar{display:flex;flex-direction:column;gap:5px;margin-bottom:2px}
 .lbfRow{display:flex;align-items:center;gap:5px;flex-wrap:wrap}
@@ -6014,6 +6025,59 @@ function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2
 function fmtMoney(n){return Number(n||0).toLocaleString('ru-RU',{minimumFractionDigits:0,maximumFractionDigits:0})}
 function hexA(hex,a){try{const r=parseInt(hex.slice(1,3),16),g2=parseInt(hex.slice(3,5),16),b=parseInt(hex.slice(5,7),16);return `rgba(${r},${g2},${b},${a})`}catch{return hex}}
 
+/* ── Readable-color helper ──
+   Custom label/group colors are picked freely by the user (incl. dark navy
+   blues etc.) and can become nearly invisible: a dark-blue border/text on a
+   dark theme background, or a pale color on the light theme background.
+   This nudges the color's HSL lightness/saturation into a safe range for the
+   CURRENT theme while keeping its hue, so it stays recognizable but is
+   always legible. Use for text/border use; keep the raw hex for small dots
+   where a tiny swatch of the "true" color is more useful than legibility. */
+function _plHexToHsl(hex){
+  const r=parseInt(hex.slice(1,3),16)/255,g=parseInt(hex.slice(3,5),16)/255,b=parseInt(hex.slice(5,7),16)/255;
+  const max=Math.max(r,g,b),min=Math.min(r,g,b);
+  let h=0,s=0;const l=(max+min)/2;
+  if(max!==min){
+    const d=max-min;
+    s=l>0.5?d/(2-max-min):d/(max+min);
+    switch(max){
+      case r:h=(g-b)/d+(g<b?6:0);break;
+      case g:h=(b-r)/d+2;break;
+      default:h=(r-g)/d+4;
+    }
+    h/=6;
+  }
+  return [h*360,s*100,l*100];
+}
+function _plHslToHex(h,s,l){
+  h/=360;s/=100;l/=100;
+  let r,g,b;
+  if(s===0){r=g=b=l;}
+  else{
+    const hue2rgb=(p,q,t)=>{if(t<0)t+=1;if(t>1)t-=1;if(t<1/6)return p+(q-p)*6*t;if(t<1/2)return q;if(t<2/3)return p+(q-p)*(2/3-t)*6;return p;};
+    const q=l<0.5?l*(1+s):l+s-l*s,p=2*l-q;
+    r=hue2rgb(p,q,h+1/3);g=hue2rgb(p,q,h);b=hue2rgb(p,q,h-1/3);
+  }
+  const toHex=x=>{const v=Math.round(Math.max(0,Math.min(1,x))*255).toString(16);return v.length===1?'0'+v:v;};
+  return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
+}
+function plReadableColor(hex){
+  try{
+    if(!hex||hex[0]!=='#'||hex.length<7)return hex;
+    const isLight=document.body.classList.contains('light-mode');
+    let [h,s,l]=_plHexToHsl(hex);
+    s=Math.max(s,52); // keep colors vivid enough to stay distinguishable
+    if(isLight){
+      if(l>54)l=54;   // pale colors fade into the light background — darken
+      if(l<20)l=20;   // near-black would also vanish against dark text — lift
+    } else {
+      if(l<46)l=46;   // dark navy/etc fade into the dark background — brighten
+      if(l>84)l=84;   // near-white loses its color identity — dim slightly
+    }
+    return _plHslToHex(h,s,l);
+  }catch(e){return hex;}
+}
+
 /* ── Universal custom date picker (replaces all input[type=date]) ──
    Returns HTML string. Uses three type="text" inputs to avoid browser
    arrow-key / auto-advance bugs. Hidden input holds YYYY-MM-DD value.
@@ -7016,7 +7080,7 @@ function renderTP(){
       if(effDstr){const dl=new Date(effDstr+'T00:00:00');dlLabel=`${dws[dl.getDay()]}, ${dl.getDate()} ${mons[dl.getMonth()]}.`}
       const taskLabelsDesk=getTaskLabels(t);
       const dotsHtml=taskLabelsDesk.map(l=>`<span style="width:8px;height:8px;border-radius:50%;background:${l.color};display:inline-block;flex-shrink:0;box-shadow:0 0 4px ${l.color}55"></span>`).join('');
-      const pillsHtml=taskLabelsDesk.map(l=>`<span class="labelPill" style="background:${hexA(l.color,0.15)};color:${l.color};border:1px solid ${hexA(l.color,0.35)}">${esc(l.name)}</span>`).join('');
+      const pillsHtml=taskLabelsDesk.map(l=>{const rc=plReadableColor(l.color);return`<span class="labelPill" style="background:${hexA(rc,0.16)};color:${rc};border:1px solid ${hexA(rc,0.5)}">${esc(l.name)}</span>`;}).join('');
       const labelHtml=`<div class="tLabelCell" onclick="openLabelPickerById('${t.id}',this);event.stopPropagation()">
         <div class="tLabelDots">${dotsHtml||'<span style="color:var(--border2);font-size:10px">＋</span>'}</div>
         <div class="tLabelPills">${pillsHtml}<span class="tLabelAddBtn">＋</span></div>
@@ -7741,30 +7805,31 @@ function _renderTaskModalLabels(selectedIds){
   groups.forEach(g=>{
     if(!g.labels||!g.labels.length)return;
     const selInGroup=g.labels.filter(l=>selSet.has(l.id)).length;
+    const grc=plReadableColor(g.color);
     html+=`<div style="background:var(--card2);border:1px solid var(--border);border-radius:12px;padding:10px 12px">
       <div style="display:flex;align-items:center;gap:6px;margin-bottom:8px">
-        <span style="width:7px;height:7px;border-radius:50%;background:${g.color};flex-shrink:0;box-shadow:0 0 5px ${g.color}66"></span>
-        <span style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.8px;color:${g.color}">${esc(g.name)}</span>
-        ${selInGroup?`<span style="font-size:8.5px;font-weight:700;padding:1px 6px;border-radius:8px;background:${g.color}22;color:${g.color};margin-left:auto">${selInGroup} выбр.</span>`:''}
+        <span style="width:7px;height:7px;border-radius:50%;background:${g.color};flex-shrink:0;box-shadow:0 0 5px ${hexA(grc,.4)}"></span>
+        <span style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.8px;color:${grc}">${esc(g.name)}</span>
+        ${selInGroup?`<span style="font-size:8.5px;font-weight:700;padding:1px 6px;border-radius:8px;background:${hexA(grc,.16)};color:${grc};margin-left:auto">${selInGroup} выбр.</span>`:''}
       </div>
       <div style="display:flex;flex-wrap:wrap;gap:5px">
         ${g.labels.map(l=>{
           const sel=selSet.has(l.id);
-          return`<span style="cursor:pointer;font-size:10.5px;padding:4px 11px;border-radius:20px;
-            border:1px solid ${sel?l.color+'99':'var(--border2)'};
-            background:${sel?hexA(l.color,.15):'var(--card3)'};
-            color:${sel?l.color:'var(--text2)'};
+          const rc=plReadableColor(l.color);
+          return`<span class="tmLabelChip${sel?' sel':''}" style="cursor:pointer;font-size:10.5px;padding:4px 11px;border-radius:20px;
+            border:1.5px solid ${sel?rc:'var(--border2)'};
+            background:${sel?hexA(rc,.16):'var(--card3)'};
+            color:${sel?rc:'var(--text2)'};
             font-weight:${sel?700:500};
             display:inline-flex;align-items:center;gap:5px;
             transition:all .12s;
-            box-shadow:${sel?'0 0 8px '+l.color+'33':'none'}"
-            onclick="taskModalToggleLabel('${l.id}')"
-            onmouseover="if(!this.classList.contains('sel')){this.style.borderColor='${l.color}55';this.style.color='${l.color}';}"
-            onmouseout="this.style.borderColor='';this.style.color='';">
+            box-shadow:${sel?'0 0 8px '+hexA(rc,.35):'none'}"
+            data-hovercolor="${rc}"
+            onclick="taskModalToggleLabel('${l.id}')">
             <span style="width:6px;height:6px;border-radius:50%;background:${l.color};flex-shrink:0;
               box-shadow:${sel?'0 0 5px '+l.color:'none'}"></span>
             ${esc(l.name)}
-            ${sel?`<svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="${l.color}" stroke-width="3.5"><polyline points="20 6 9 17 4 12"/></svg>`:''}
+            ${sel?`<svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="${rc}" stroke-width="3.5"><polyline points="20 6 9 17 4 12"/></svg>`:''}
           </span>`;
         }).join('')}
       </div>
@@ -10200,12 +10265,13 @@ function renderLabelsFilterBar(){
 
   const dropId='lbfDrop_'+Date.now();
   const isOpen=window._lbfDropOpen;
+  const selRc=selLabel?plReadableColor(selLabel.color):null;
 
   let html=`<div style="position:relative;user-select:none">
     <!-- Trigger row -->
-    <div style="display:flex;align-items:center;gap:8px;padding:8px 12px;background:var(--card2);border:1px solid ${activeLabel?selLabel.color:'var(--border)'};border-radius:10px;cursor:pointer;transition:all .15s" onclick="lbfToggleDrop(event)">
-      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="${activeLabel?selLabel.color:'var(--muted)'}" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-      <span style="font-size:11px;font-weight:600;color:${activeLabel?selLabel.color:'var(--text2)'};flex:1">
+    <div style="display:flex;align-items:center;gap:8px;padding:8px 12px;background:var(--card2);border:1px solid ${activeLabel?selRc:'var(--border)'};border-radius:10px;cursor:pointer;transition:all .15s" onclick="lbfToggleDrop(event)">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="${activeLabel?selRc:'var(--muted)'}" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      <span style="font-size:11px;font-weight:600;color:${activeLabel?selRc:'var(--text2)'};flex:1">
         ${activeLabel?`<span style="width:7px;height:7px;border-radius:50%;background:${selLabel.color};display:inline-block;margin-right:5px;vertical-align:middle"></span>${esc(selLabel.name)}`:'Фильтр по меткам'}
       </span>
       ${activeLabel?`<button onclick="event.stopPropagation();setActiveLabel(null)" style="border:none;background:transparent;color:var(--muted);font-size:13px;cursor:pointer;line-height:1;padding:0 2px;transition:color .1s" onmouseover="this.style.color='var(--red)'" onmouseout="this.style.color='var(--muted)'">✕</button>`:''}
@@ -10218,18 +10284,19 @@ function renderLabelsFilterBar(){
           <span style="font-size:11px;font-weight:600;color:${!activeLabel?'var(--p)':'var(--text2)'}">✦ Все задачи</span>
           ${!activeLabel?`<svg style="margin-left:auto" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--p)" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>`:''}
         </div>
-        ${groups.map(g=>`
+        ${groups.map(g=>{const grc=plReadableColor(g.color);return`
           <div style="margin-top:6px;padding-top:6px;border-top:1px solid var(--border)">
-            <div style="font-size:8.5px;font-weight:800;text-transform:uppercase;letter-spacing:.9px;color:${g.color};padding:0 10px 4px;opacity:.8">${esc(g.name)}</div>
+            <div style="font-size:8.5px;font-weight:800;text-transform:uppercase;letter-spacing:.9px;color:${grc};padding:0 10px 4px;opacity:.9">${esc(g.name)}</div>
             ${g.labels.map(l=>{
               const on=activeLabel===l.id;
-              return`<div onclick="setActiveLabel('${l.id}');lbfClose()" style="display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:7px;cursor:pointer;background:${on?hexA(l.color,0.14):'transparent'};transition:background .1s" onmouseover="if(!${on?1:0})this.style.background='var(--card2)'" onmouseout="if(!${on?1:0})this.style.background='transparent'">
-                <span style="width:8px;height:8px;border-radius:50%;background:${l.color};flex-shrink:0;box-shadow:0 0 5px ${l.color}66"></span>
-                <span style="font-size:11.5px;font-weight:${on?700:500};color:${on?l.color:'var(--text2)'};flex:1">${esc(l.name)}</span>
-                ${on?`<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="${l.color}" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>`:''}
+              const lrc=plReadableColor(l.color);
+              return`<div onclick="setActiveLabel('${l.id}');lbfClose()" style="display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:7px;cursor:pointer;background:${on?hexA(lrc,0.16):'transparent'};transition:background .1s" onmouseover="if(!${on?1:0})this.style.background='var(--card2)'" onmouseout="if(!${on?1:0})this.style.background='transparent'">
+                <span style="width:8px;height:8px;border-radius:50%;background:${l.color};flex-shrink:0;box-shadow:0 0 5px ${hexA(lrc,.4)}"></span>
+                <span style="font-size:11.5px;font-weight:${on?700:500};color:${on?lrc:'var(--text2)'};flex:1">${esc(l.name)}</span>
+                ${on?`<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="${lrc}" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>`:''}
               </div>`;
             }).join('')}
-          </div>`).join('')}
+          </div>`;}).join('')}
       </div>
     </div>
   </div>`;
