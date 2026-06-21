@@ -1251,10 +1251,10 @@ body.light-mode .tvSwitchBtn.on{color:#fff}
 .plGrid-hDay{font-size:8.5px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted)}
 .plGrid-hNum{font-size:18px;font-weight:800;color:var(--text);font-family:var(--font-display);line-height:1.1}
 /* All-day row */
-.plGrid-allday{display:flex;flex-shrink:0;border-bottom:1px solid var(--border);background:rgba(255,255,255,.015);min-height:24px}
+.plGrid-allday{display:flex;flex-shrink:0;border-bottom:1px solid var(--border);background:rgba(255,255,255,.015);min-height:24px;min-width:0}
 .plGrid-adGut{width:52px;flex-shrink:0;border-right:1px solid var(--border);font-size:7.5px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.3px;display:flex;align-items:center;justify-content:center;padding:3px}
-.plGrid-adCols{flex:1;display:flex}
-.plGrid-adCol{flex:1;border-right:1px solid var(--gridline);padding:2px 2px;display:flex;flex-direction:column;gap:1px;cursor:pointer}
+.plGrid-adCols{flex:1;display:flex;min-width:0}
+.plGrid-adCol{flex:1;min-width:0;border-right:1px solid var(--gridline);padding:2px 2px;display:flex;flex-direction:column;gap:1px;cursor:pointer}
 /* Scroll area */
 .plGrid-scroll{flex:1;overflow-y:auto;display:flex;position:relative}
 .plGrid-timeGut{width:52px;flex-shrink:0;position:relative;border-right:1px solid var(--border)}
@@ -1278,7 +1278,7 @@ body.light-mode .tvSwitchBtn.on{color:#fff}
 .plEvt:hover{filter:brightness(1.18);z-index:10;box-shadow:0 4px 18px rgba(0,0,0,.6);transform:translateY(-1px) scale(1.01)}.plEvt:active{transform:scale(.98)}
 .plEvt-title{font-size:9.5px;font-weight:700;line-height:1.3;overflow:hidden;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;color:inherit}
 .plEvt-time{font-size:8px;opacity:.75;white-space:nowrap;overflow:hidden;color:inherit;margin-top:1px}
-.plEvt-allday{border-radius:4px;padding:1px 5px;font-size:9px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer;transition:.1s;margin-bottom:1px;display:block;border-left:3px solid rgba(255,255,255,.4)}
+.plEvt-allday{border-radius:4px;padding:1px 5px;font-size:9px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer;transition:.1s;margin-bottom:1px;display:block;min-width:0;max-width:100%;border-left:3px solid rgba(255,255,255,.4)}
 .plEvt-allday:hover{filter:brightness(1.2);transform:translateX(1px)}
 
 /* ── Calendar event quick-action popover (Google-Calendar-style click card) ── */
@@ -8234,8 +8234,8 @@ function plRenderGrid(main){
       const icon=e.src==='task'?(e.isRepeat?'↻ ':''):'📅 ';
       const clickFn=e.src==='task'?`plCalOpenTask('${e.id}','${dstr}')`:`plCalOpenModal('${e.id}','${dstr}')`;
       const adCb=e.src==='task'?`<input type="checkbox" ${e.done?'checked':''} onclick="event.stopPropagation();toggleCalTaskDone('${e.id}','${dstr}',this.checked)" style="flex-shrink:0;margin-right:4px;accent-color:${accent};cursor:pointer;width:11px;height:11px">`:''
-      adHtml+=`<div class="plEvt-allday calTaskRow" style="background:${bg};color:${col};border-left-color:${accent};opacity:${e.done?0.7:1};cursor:pointer;${e.done?'text-decoration:line-through;':''};display:flex;align-items:center" title="${esc(e.text)}" onclick="event.stopPropagation();${clickFn}" oncontextmenu="event.preventDefault();event.stopPropagation();showCalDeletePopover(event,'${e.id}','${dstr}','${e.src}')">
-        ${adCb}<span style="width:7px;height:7px;border-radius:50%;background:${accent};display:inline-block;flex-shrink:0;margin-right:4px"></span>${icon}${esc(e.text)}
+      adHtml+=`<div class="plEvt-allday calTaskRow" style="background:${bg};color:${col};border-left-color:${accent};opacity:${e.done?0.7:1};cursor:pointer;${e.done?'text-decoration:line-through;':''};display:flex;align-items:center;min-width:0" title="${esc(e.text)}" onclick="event.stopPropagation();${clickFn}" oncontextmenu="event.preventDefault();event.stopPropagation();showCalDeletePopover(event,'${e.id}','${dstr}','${e.src}')">
+        ${adCb}<span style="width:7px;height:7px;border-radius:50%;background:${accent};display:inline-block;flex-shrink:0;margin-right:4px"></span><span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${icon}${esc(e.text)}</span>
       </div>`;
     });
     adHtml+=`</div>`;
@@ -8762,6 +8762,64 @@ function kbAutoSyncFromTasks(){
   for(let i=cards.length-1;i>=0;i--){if(cards[i].boardId===SMART_BOARD_ID&&cards[i].taskId&&!taskIds.has(cards[i].taskId))cards.splice(i,1);}
 }
 let _kbDragId=null;
+const kbDoneExpanded={};
+/* ── Unified pointer-based drag for kanban cards ──
+   Replaces the old HTML5 dragstart/drop API, which several mobile/touch
+   browsers don't fire reliably from a plain mouse/touch press. Pointer
+   Events work the same way for mouse, touch and pen, so dragging now
+   behaves consistently everywhere. */
+let _kbActiveDrag=null;
+function _kbBindCardDrag(card,cardId){
+  card._kbDragMoved=false;
+  let startX=0,startY=0,dragging=false,ghost=null;
+  const THRESH=8;
+  card.addEventListener('pointerdown',e=>{
+    if(e.target.closest('button'))return;
+    if(e.button!==undefined&&e.button!==0&&e.pointerType==='mouse')return;
+    startX=e.clientX;startY=e.clientY;dragging=false;card._kbDragMoved=false;
+    _kbActiveDrag={cardId,card,pointerId:e.pointerId};
+    const onMove=ev=>{
+      if(!_kbActiveDrag||_kbActiveDrag.pointerId!==ev.pointerId)return;
+      const dx=ev.clientX-startX,dy=ev.clientY-startY;
+      if(!dragging){
+        if(Math.hypot(dx,dy)<THRESH)return;
+        dragging=true;card._kbDragMoved=true;
+        try{card.setPointerCapture(ev.pointerId);}catch(err){}
+        const r=card.getBoundingClientRect();
+        ghost=card.cloneNode(true);
+        ghost.style.cssText+=`position:fixed;left:${r.left}px;top:${r.top}px;width:${r.width}px;pointer-events:none;z-index:9999;opacity:.95;box-shadow:0 12px 32px rgba(0,0,0,.5);transform:rotate(1.5deg);transition:none;`;
+        document.body.appendChild(ghost);
+        card.style.opacity='.3';
+        card._kbGhostOffX=startX-r.left;card._kbGhostOffY=startY-r.top;
+      }
+      ev.preventDefault();
+      if(ghost){ghost.style.left=(ev.clientX-card._kbGhostOffX)+'px';ghost.style.top=(ev.clientY-card._kbGhostOffY)+'px';}
+      document.querySelectorAll('.kbCards').forEach(z=>z.classList.remove('kbDragOver'));
+      const under=document.elementFromPoint(ev.clientX,ev.clientY);
+      const colEl=under&&under.closest('.kbCards');
+      if(colEl)colEl.classList.add('kbDragOver');
+    };
+    const onUp=ev=>{
+      if(!_kbActiveDrag||_kbActiveDrag.pointerId!==ev.pointerId)return;
+      document.removeEventListener('pointermove',onMove);
+      document.removeEventListener('pointerup',onUp);
+      document.removeEventListener('pointercancel',onUp);
+      document.querySelectorAll('.kbCards').forEach(z=>z.classList.remove('kbDragOver'));
+      if(ghost){ghost.remove();ghost=null;}
+      card.style.opacity='';
+      if(dragging){
+        const under=document.elementFromPoint(ev.clientX,ev.clientY);
+        const colEl=under&&under.closest('.kbCards');
+        if(colEl)_kbDropToCol(cardId,colEl.dataset.colId);
+      }
+      _kbActiveDrag=null;
+      setTimeout(()=>{card._kbDragMoved=false;},50);
+    };
+    document.addEventListener('pointermove',onMove);
+    document.addEventListener('pointerup',onUp);
+    document.addEventListener('pointercancel',onUp);
+  });
+}
 function renderKanban(){
   kbMigrate();kbAutoSyncFromTasks();
   const boards=kbBoardsD();
@@ -8779,18 +8837,21 @@ function renderKanban(){
     const head=document.createElement('div');head.className='kbColHead';
     head.innerHTML=`<div class="kbColTitle"><div class="kbColDot" style="background:${col.color}"></div>${col.title}</div><div style="background:${col.color}22;color:${col.color};border-radius:20px;padding:2px 9px;font-size:10px;font-weight:700">${colCards.length}</div>`;
     colEl.appendChild(head);
-    const cardsEl=document.createElement('div');cardsEl.className='kbCards';cardsEl.id='kb-'+col.id;cardsEl.style.minHeight='80px';
-    cardsEl.addEventListener('dragover',e=>{e.preventDefault();e.dataTransfer.dropEffect='move';document.querySelectorAll('.kbCards').forEach(z=>z.style.background='');cardsEl.style.background='rgba(139,122,240,.1)';cardsEl.style.outline='1.5px dashed var(--p)';});
-    cardsEl.addEventListener('dragleave',e=>{if(!cardsEl.contains(e.relatedTarget)){cardsEl.style.background='';cardsEl.style.outline='';}});
-    cardsEl.addEventListener('drop',e=>{e.preventDefault();cardsEl.style.background='';cardsEl.style.outline='';const id=e.dataTransfer.getData('text/plain')||_kbDragId;if(id)_kbDropToCol(id,col.id);});
+    const cardsEl=document.createElement('div');cardsEl.className='kbCards';cardsEl.id='kb-'+col.id;cardsEl.dataset.colId=col.id;cardsEl.style.minHeight='80px';
     colEl.appendChild(cardsEl);
-    colCards.forEach(c=>{
-      const card=document.createElement('div');card.className='kbCard';card.id='kbcard-'+c.id;card.draggable=true;
-      card.style.cssText=`background:var(--card);border-radius:10px;padding:11px 12px;border:1px solid var(--border);margin:0 8px 7px;cursor:pointer;transition:all .15s;position:relative;${c.done?'opacity:.5':''}`;
-      let _kbDragMoved=false;
-      card.addEventListener('dragstart',e=>{_kbDragId=c.id;_kbDragMoved=true;e.dataTransfer.setData('text/plain',c.id);e.dataTransfer.effectAllowed='move';setTimeout(()=>{card.style.opacity='.3';card.style.transform='scale(.96)';},0);});
-      card.addEventListener('dragend',()=>{card.style.opacity='';card.style.transform='';document.querySelectorAll('.kbCards').forEach(z=>{z.style.background='';z.style.outline='';});_kbDragId=null;setTimeout(()=>{_kbDragMoved=false;},100);});
-      card.addEventListener('click',e=>{if(_kbDragMoved)return;if(e.target.closest('button'))return;kbEditCard(c.id);});
+    // ── "Готово" columns can grow forever as tasks pile up — collapse to the
+    // most recently-completed N cards by default, with a toggle to see the rest. ──
+    const KB_DONE_COLLAPSE=5;
+    let visCards=colCards;
+    if(col.isDone){
+      visCards=[...colCards].sort((a,b)=>(b.doneAt||0)-(a.doneAt||0));
+      if(!kbDoneExpanded[col.id]&&visCards.length>KB_DONE_COLLAPSE)visCards=visCards.slice(0,KB_DONE_COLLAPSE);
+    }
+    visCards.forEach(c=>{
+      const card=document.createElement('div');card.className='kbCard';card.id='kbcard-'+c.id;card.dataset.cardId=c.id;
+      card.style.cssText=`background:var(--card);border-radius:10px;padding:11px 12px;border:1px solid var(--border);margin:0 8px 7px;cursor:pointer;transition:all .15s;position:relative;touch-action:pan-y;${c.done?'opacity:.5':''}`;
+      _kbBindCardDrag(card,c.id);
+      card.addEventListener('click',e=>{if(card._kbDragMoved)return;if(e.target.closest('button'))return;kbEditCard(c.id);});
       const lbl=c.labelId?labelsD().find(l=>l.id===c.labelId):null;
       if(lbl)card.style.borderLeft=`3px solid ${lbl.color}`;
       const lblHtml=lbl?`<span style="display:inline-flex;align-items:center;gap:3px;font-size:9px;font-weight:700;color:${lbl.color};background:${hexA(lbl.color,.12)};padding:2px 6px;border-radius:20px">${esc(lbl.name)}</span>`:'';
@@ -8825,15 +8886,19 @@ function renderKanban(){
         </div>
         ${(lblHtml||priDot||repeatBadge||dlHtml)?`<div style="display:flex;align-items:center;gap:5px;flex-wrap:wrap;margin-top:8px;padding-top:8px;border-top:1px solid var(--border)">${priDot}${lblHtml}${repeatBadge}${dlHtml}</div>`:''}
         ${subsHtml}
-        <div style="display:flex;gap:5px;margin-top:8px;justify-content:flex-end">
-          ${ci>0?`<button class="kbMoveBtn" onclick="event.stopPropagation();moveCard('${c.id}',-1)">◀</button>`:''}
-          ${!col.isDone?`<button onclick="event.stopPropagation();kbMarkDone('${c.id}')" style="background:var(--greendim);color:var(--green);border:1px solid rgba(18,232,172,.3);border-radius:6px;padding:2px 9px;font-size:10px;font-weight:700;cursor:pointer">✓ Готово</button>`:''}
-          ${ci<board.cols.length-1?`<button class="kbMoveBtn" onclick="event.stopPropagation();moveCard('${c.id}',1)">▶</button>`:''}
-        </div>`;
+        ${!col.isDone?`<div style="display:flex;gap:5px;margin-top:8px;justify-content:flex-end">
+          <button onclick="event.stopPropagation();kbMarkDone('${c.id}')" style="background:var(--greendim);color:var(--green);border:1px solid rgba(18,232,172,.3);border-radius:6px;padding:2px 9px;font-size:10px;font-weight:700;cursor:pointer">✓ Готово</button>
+        </div>`:''}`;
       card.addEventListener('mouseover',()=>{const d=card.querySelector('.kbDelBtn');if(d)d.style.opacity='1';});
       card.addEventListener('mouseout',()=>{const d=card.querySelector('.kbDelBtn');if(d)d.style.opacity='0';});
       cardsEl.appendChild(card);
     });
+    if(col.isDone&&colCards.length>KB_DONE_COLLAPSE){
+      const toggleBtn=document.createElement('button');toggleBtn.className='kbAddBtn';
+      toggleBtn.textContent=kbDoneExpanded[col.id]?'▲ Свернуть':`▼ Показать ещё ${colCards.length-KB_DONE_COLLAPSE}`;
+      toggleBtn.onclick=()=>{kbDoneExpanded[col.id]=!kbDoneExpanded[col.id];renderKanban();};
+      colEl.appendChild(toggleBtn);
+    }
     if(!col.isDone){const addBtn=document.createElement('button');addBtn.className='kbAddBtn';addBtn.textContent='+ Добавить';addBtn.onclick=()=>kbAddTaskToCol(col.id,kbActiveBoardId);colEl.appendChild(addBtn);}
     layout.appendChild(colEl);
   });
@@ -8845,8 +8910,8 @@ function _kbDropToCol(cardId,colId){
   cards[idx].col=colId;
   const task=cards[idx].taskId?tpD().find(x=>x.id===cards[idx].taskId):null;
   if(task){
-    if(newColDef.isDone){task.done=true;cards[idx].done=true;}
-    else{task.done=false;cards[idx].done=false;}
+    if(newColDef.isDone){task.done=true;cards[idx].done=true;cards[idx].doneAt=Date.now();}
+    else{task.done=false;cards[idx].done=false;cards[idx].doneAt=null;}
     if(colId==='today'){if(!task.deadline)task.deadline=dk(t0());}
     if(colId==='tomorrow'){if(!task.deadline){const tm=new Date(t0());tm.setDate(tm.getDate()+1);task.deadline=dk(tm);}}
     cards[idx].deadline=task.deadline||'';
@@ -8857,7 +8922,7 @@ function _kbDropToCol(cardId,colId){
 }
 function kbMarkDone(cardId){
   const c=kbD().find(x=>x.id===cardId);if(!c)return;
-  c.col='done';c.done=true;
+  c.col='done';c.done=true;c.doneAt=Date.now();
   const task=c.taskId?tpD().find(t=>t.id===c.taskId):null;
   if(task)task.done=true;
   saveD();renderKanban();
