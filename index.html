@@ -3284,6 +3284,10 @@ body.light-mode .skel{background:linear-gradient(90deg,var(--card2) 25%,#f0f2f7 
                 <div class="navDropIcon">📊</div>
                 <div><div class="navDropLabel">Аналитика</div><div class="navDropSub">Отчёты и графики</div></div>
               </button>
+              <button class="navDropItem" data-tab="pomodoro" role="menuitem">
+                <div class="navDropIcon">🍅</div>
+                <div><div class="navDropLabel">Помодоро</div><div class="navDropSub">Фокус и фактическое время</div></div>
+              </button>
             </div>
           </div>
 
@@ -3705,7 +3709,6 @@ body.light-mode .skel{background:linear-gradient(90deg,var(--card2) 25%,#f0f2f7 
     <button class="tvSwitchBtn" data-tab="weekly" onclick="navigateTo('weekly')"><span class="tvIco">📅</span>Неделя</button>
     <button class="tvSwitchBtn" data-tab="calendar" onclick="navigateTo('calendar')"><span class="tvIco">📆</span>Календарь</button>
     <button class="tvSwitchBtn" data-tab="kanban" onclick="navigateTo('kanban')"><span class="tvIco">🗂</span>Канбан</button>
-    <button class="tvSwitchBtn" data-tab="pomodoro" onclick="navigateTo('pomodoro')"><span class="tvIco">🍅</span>Помодоро</button>
   </div>
   <div class="wGrid" id="wGrid"></div>
 </div>
@@ -3780,7 +3783,6 @@ body.light-mode .skel{background:linear-gradient(90deg,var(--card2) 25%,#f0f2f7 
     <button class="tvSwitchBtn" data-tab="weekly" onclick="navigateTo('weekly')"><span class="tvIco">📅</span>Неделя</button>
     <button class="tvSwitchBtn" data-tab="calendar" onclick="navigateTo('calendar')"><span class="tvIco">📆</span>Календарь</button>
     <button class="tvSwitchBtn" data-tab="kanban" onclick="navigateTo('kanban')"><span class="tvIco">🗂</span>Канбан</button>
-    <button class="tvSwitchBtn" data-tab="pomodoro" onclick="navigateTo('pomodoro')"><span class="tvIco">🍅</span>Помодоро</button>
   </div>
   <div class="card" style="padding:12px 14px;margin-bottom:12px">
     <!-- Stats strip -->
@@ -3854,12 +3856,11 @@ body.light-mode .skel{background:linear-gradient(90deg,var(--card2) 25%,#f0f2f7 
 
 <!-- ═══ 4. CALENDAR ═══ -->
 <div id="tab-calendar" class="pane">
-  <div class="tvSwitch" role="tablist" aria-label="Виды раздела Задачи" style="margin:12px 0 0 12px">
+  <div class="tvSwitch" role="tablist" aria-label="Виды раздела Задачи">
     <button class="tvSwitchBtn" data-tab="tasks" onclick="navigateTo('tasks')"><span class="tvIco">✅</span>Список</button>
     <button class="tvSwitchBtn" data-tab="weekly" onclick="navigateTo('weekly')"><span class="tvIco">📅</span>Неделя</button>
     <button class="tvSwitchBtn" data-tab="calendar" onclick="navigateTo('calendar')"><span class="tvIco">📆</span>Календарь</button>
     <button class="tvSwitchBtn" data-tab="kanban" onclick="navigateTo('kanban')"><span class="tvIco">🗂</span>Канбан</button>
-    <button class="tvSwitchBtn" data-tab="pomodoro" onclick="navigateTo('pomodoro')"><span class="tvIco">🍅</span>Помодоро</button>
   </div>
   <!-- Toolbar -->
   <div class="plCal-toolbar">
@@ -3928,7 +3929,6 @@ body.light-mode .skel{background:linear-gradient(90deg,var(--card2) 25%,#f0f2f7 
     <button class="tvSwitchBtn" data-tab="weekly" onclick="navigateTo('weekly')"><span class="tvIco">📅</span>Неделя</button>
     <button class="tvSwitchBtn" data-tab="calendar" onclick="navigateTo('calendar')"><span class="tvIco">📆</span>Календарь</button>
     <button class="tvSwitchBtn" data-tab="kanban" onclick="navigateTo('kanban')"><span class="tvIco">🗂</span>Канбан</button>
-    <button class="tvSwitchBtn" data-tab="pomodoro" onclick="navigateTo('pomodoro')"><span class="tvIco">🍅</span>Помодоро</button>
   </div>
   <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;flex-wrap:wrap;gap:8px">
     <div class="kbBoardBar" id="kbBoardBar">
@@ -6319,10 +6319,10 @@ function updateThemeBtn(){
 // Map every tab-id to its nav group
 const TAB_GROUP={
   dash:'dash',
-  tasks:'planning',weekly:'planning',calendar:'planning',kanban:'planning',pomodoro:'planning',
+  tasks:'planning',weekly:'planning',calendar:'planning',kanban:'planning',
   habits:'health',gym:'health',
   finance:'finance',
-  goals:'progress',rewards:'progress',analytics:'progress',challenges:'progress'
+  goals:'progress',rewards:'progress',analytics:'progress',challenges:'progress',pomodoro:'progress'
 };
 
 // Label shown in mobile group picker per sub-tab
@@ -6334,7 +6334,6 @@ const MOB_GROUPS={
       {tab:'weekly',  icon:'📅', label:'Неделя',    sub:'Еженедельный план'},
       {tab:'calendar',icon:'📆', label:'Календарь', sub:'Ежемесячный вид'},
       {tab:'kanban',  icon:'🗂', label:'Канбан',    sub:'Доски и колонки'},
-      {tab:'pomodoro',icon:'🍅', label:'Помодоро',  sub:'Фокус и время'},
     ]
   },
   health:{
@@ -6351,6 +6350,7 @@ const MOB_GROUPS={
       {tab:'challenges',icon:'🏁', label:'Челленджи', sub:'Дни, стрики, дисциплина'},
       {tab:'rewards',  icon:'🏆', label:'Награды',   sub:'Очки и достижения'},
       {tab:'analytics',icon:'📊', label:'Аналитика', sub:'Отчёты и графики'},
+      {tab:'pomodoro', icon:'🍅', label:'Помодоро',  sub:'Фокус и время'},
     ]
   }
 };
@@ -16519,7 +16519,7 @@ function buildSleepAnalyticsHTML(){
       <nav class="paneBreadcrumb">
         <span onclick="navigateTo('dash')">PlannerPro</span>
         <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="m7 10 3 3 3-3"/><path d="m7 6 3 3 3-3"/></svg>
-        <span onclick="navigateTo('tasks')" class="pbc-active">Задачи</span>
+        <span onclick="navigateTo('goals')" class="pbc-active">Прогресс</span>
         <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="m7 10 3 3 3-3"/><path d="m7 6 3 3 3-3"/></svg>
         <span class="pbc-active">Помодоро</span>
       </nav>
@@ -16532,14 +16532,6 @@ function buildSleepAnalyticsHTML(){
       </div>
     </div>
   </header>
-
-  <div class="tvSwitch" role="tablist" aria-label="Виды раздела Задачи">
-    <button class="tvSwitchBtn" data-tab="tasks" onclick="navigateTo('tasks')"><span class="tvIco">✅</span>Список</button>
-    <button class="tvSwitchBtn" data-tab="weekly" onclick="navigateTo('weekly')"><span class="tvIco">📅</span>Неделя</button>
-    <button class="tvSwitchBtn" data-tab="calendar" onclick="navigateTo('calendar')"><span class="tvIco">📆</span>Календарь</button>
-    <button class="tvSwitchBtn" data-tab="kanban" onclick="navigateTo('kanban')"><span class="tvIco">🗂</span>Канбан</button>
-    <button class="tvSwitchBtn" data-tab="pomodoro" onclick="navigateTo('pomodoro')"><span class="tvIco">🍅</span>Помодоро</button>
-  </div>
 
   <div id="pomodoro-content">
     <!-- Renders by JS -->
