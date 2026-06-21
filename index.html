@@ -732,7 +732,7 @@ select.inp option{background:var(--card2);color:var(--text)}
   font-size:22px;font-weight:700;letter-spacing:-.4px;
   color:var(--text);
 }
-.paneSubtitle{font-size:12px;color:var(--text2);margin-top:2px;letter-spacing:-.01em}
+.paneSubtitle{display:none}
 
 /* ═══════════════════════════════════
    USER BUTTON & SYNC
@@ -2723,7 +2723,7 @@ body.light-mode .subTabs--pink   .subTab.on{box-shadow:0 1px 4px rgba(30,40,90,.
   font-family:var(--font-display);font-size:22px;font-weight:800;
   letter-spacing:-.5px;color:var(--text);line-height:1.1;
 }
-.paneSubtitle{font-size:12px;color:var(--text2);margin-top:2px;letter-spacing:-.01em}
+.paneSubtitle{display:none}
 .paneHeadActions{display:flex;align-items:center;gap:6px;flex-wrap:wrap;flex-shrink:0}
 
 /* Breadcrumb */
@@ -3249,6 +3249,10 @@ body.light-mode .skel{background:linear-gradient(90deg,var(--card2) 25%,#f0f2f7 
                 <div class="navDropIcon">💪</div>
                 <div><div class="navDropLabel">Тренировки</div><div class="navDropSub">Зал, вес, сон</div></div>
               </button>
+              <button class="navDropItem" data-tab="sleep" role="menuitem">
+                <div class="navDropIcon">🌙</div>
+                <div><div class="navDropLabel">Сон</div><div class="navDropSub">Трекер и анализ сна</div></div>
+              </button>
             </div>
           </div>
 
@@ -3739,13 +3743,6 @@ body.light-mode .skel{background:linear-gradient(90deg,var(--card2) 25%,#f0f2f7 
       <button class="btn btnE" onclick="addHabit()">+ Привычка</button>
     </div>
   </header>
-  <!-- Sub-tabs -->
-  <div class="subTabs subTabs--green">
-    <button class="subTab on" onclick="habitsSubTab('habits',this)">🔥 Привычки</button>
-    <button class="subTab" onclick="habitsSubTab('sleep',this)">🌙 Трекер сна</button>
-  </div>
-
-  <div id="hst-habits">
   <!-- Stats strip -->
   <div class="htSummary" style="margin-bottom:14px">
     <div class="htStat"><div class="htStatL">Привычек</div><div class="htStatV" id="htCntV">0</div></div>
@@ -3761,12 +3758,28 @@ body.light-mode .skel{background:linear-gradient(90deg,var(--card2) 25%,#f0f2f7 
     <div class="secLbl" style="margin-bottom:12px">📈 Прогресс по дням</div>
     <canvas id="htChart" height="120" style="width:100%;display:block"></canvas>
   </div>
-  </div>
+</div>
 
-  <!-- SLEEP TRACKER sub-tab -->
-  <div id="hst-sleep" style="display:none">
-    <div id="sleepTrackerRoot"></div>
-  </div>
+<!-- ═══ SLEEP TRACKER (Здоровье) ═══ -->
+<div id="tab-sleep" class="pane hInner">
+  <header class="paneHead">
+    <div class="paneHeadLeft">
+      <nav class="paneBreadcrumb">
+        <span onclick="navigateTo('dash')">PlannerPro</span>
+        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="m7 10 3 3 3-3"/><path d="m7 6 3 3 3-3"/></svg>
+        <span class="pbc-active">Здоровье</span>
+        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="m7 10 3 3 3-3"/><path d="m7 6 3 3 3-3"/></svg>
+        <span class="pbc-active">Сон</span>
+      </nav>
+      <div class="paneHeadRow">
+        <div class="paneHeadIcon" style="background:rgba(91,149,255,.12);border-color:rgba(91,149,255,.25)">🌙</div>
+        <div>
+          <h1 class="paneTitle">Трекер сна</h1>
+        </div>
+      </div>
+    </div>
+  </header>
+  <div id="sleepTrackerRoot"></div>
 </div>
 
 <!-- ═══ 3. TASK PLANNER ═══ -->
@@ -6347,7 +6360,7 @@ function updateThemeBtn(){
 const TAB_GROUP={
   dash:'dash',
   tasks:'planning',weekly:'planning',calendar:'planning',kanban:'planning',
-  habits:'health',gym:'health',
+  habits:'health',gym:'health',sleep:'health',
   finance:'finance',
   goals:'progress',rewards:'progress',analytics:'progress',challenges:'progress',pomodoro:'progress'
 };
@@ -6368,6 +6381,7 @@ const MOB_GROUPS={
     items:[
       {tab:'habits',icon:'🔥', label:'Привычки',   sub:'Трекер и стрики'},
       {tab:'gym',   icon:'💪', label:'Тренировки', sub:'Зал, вес, сон'},
+      {tab:'sleep', icon:'🌙', label:'Сон',        sub:'Трекер и анализ'},
     ]
   },
   progress:{
@@ -6456,7 +6470,8 @@ function navigateTo(tabName){
   // ── Run render ──
   const renders={dash:renderDash,weekly:renderWP,habits:renderHT,tasks:renderTP,
     routine:renderRoutine,calendar:renderCal,kanban:renderKanban,finance:renderFin,
-    goals:renderGrowth,rewards:rwRender,gym:gymRender,analytics:renderAnalytics,pomodoro:renderPomodoro,challenges:renderCh};
+    goals:renderGrowth,rewards:rwRender,gym:gymRender,analytics:renderAnalytics,pomodoro:renderPomodoro,challenges:renderCh,
+    sleep:renderSleepTracker};
   if(renders[tabName])renders[tabName]();
 
   window.scrollTo({top:0,behavior:'instant'});
@@ -14206,20 +14221,6 @@ function cmdExec(idx){closeCmdPalette();CMD_ITEMS[idx]?.action();}
 document.addEventListener('keydown',e=>{
   if(e.key==='Escape'&&document.getElementById('cmdOverlay').classList.contains('open'))closeCmdPalette();
 });
-
-/* ═══════════════════════════════════
-   HABITS SUB-TABS (Привычки / Трекер сна)
-═══════════════════════════════════ */
-function habitsSubTab(name,btn){
-  const tabs=document.querySelectorAll('#tab-habits .subTabs .subTab');
-  tabs.forEach(b=>b.classList.remove('on'));
-  if(btn)btn.classList.add('on');
-  ['habits','sleep'].forEach(n=>{
-    const el=document.getElementById('hst-'+n);
-    if(el)el.style.display=n===name?'block':'none';
-  });
-  if(name==='sleep'&&typeof renderSleepTracker==='function')renderSleepTracker();
-}
 
 /* ═══════════════════════════════════
    GOAL SUB-TABS
