@@ -312,8 +312,7 @@ body.light-mode .btnG:hover{background:var(--card3);color:var(--text)}
 /* Modal */
 body.light-mode .modalOverlay,
 body.light-mode .overlay,
-body.light-mode #taskModal,
-body.light-mode #kbOverlay{background:rgba(20,25,60,.45);backdrop-filter:blur(12px)}
+body.light-mode #taskModal{background:rgba(20,25,60,.45);backdrop-filter:blur(12px)}
 body.light-mode .modalBox,
 body.light-mode #taskModalBox{
   background:#fff;
@@ -1207,25 +1206,10 @@ body.light-mode .tvSwitchBtn.on{color:#fff}
 @media(max-width:900px){.plCal-sidebar{display:none}}
 .plCal-main{flex:1;min-width:0;display:flex;flex-direction:column;overflow:hidden}
 
-/* Mini calendar */
-.plMini{padding:12px 12px 8px}
-.plMini-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
-.plMini-title{font-size:11px;font-weight:700;color:var(--text2);font-family:var(--font-display)}
-.plMini-nb{border:none;background:none;color:var(--muted);cursor:pointer;font-size:12px;padding:2px 5px;border-radius:4px;line-height:1;transition:.15s}
-.plMini-nb:hover{background:var(--card2);color:var(--text)}
-.plMini-dow{display:grid;grid-template-columns:repeat(7,1fr);margin-bottom:2px}
-.plMini-dw{text-align:center;font-size:8px;font-weight:700;color:var(--muted);padding:2px 0;text-transform:uppercase}
-.plMini-days{display:grid;grid-template-columns:repeat(7,1fr);gap:1px}
-.plMini-d{text-align:center;font-size:10px;font-weight:600;border-radius:50%;cursor:pointer;color:var(--text2);width:26px;height:26px;display:flex;align-items:center;justify-content:center;transition:.15s;margin:0 auto}
-.plMini-d:hover:not(.empty){background:var(--card2)}
-.plMini-d.tod{background:var(--cyan)!important;color:#000!important;font-weight:800}
-.plMini-d.sel{background:var(--blue);color:#fff}
-.plMini-d.we{color:var(--pink)}
-.plMini-d.om{opacity:.28}
-.plMini-d.empty{pointer-events:none;opacity:0}
-.plCal-addBtn{margin:4px 12px 8px;padding:8px;border-radius:9px;border:1.5px dashed var(--border2);background:none;color:var(--muted);font-family:var(--font-body);font-size:11px;font-weight:600;cursor:pointer;transition:.15s;width:calc(100% - 24px)}
+.plCal-addBtn{margin:12px 12px 8px;padding:8px;border-radius:9px;border:1.5px dashed var(--border2);background:none;color:var(--muted);font-family:var(--font-body);font-size:11px;font-weight:600;cursor:pointer;transition:.15s;width:calc(100% - 24px)}
 .plCal-addBtn:hover{border-color:var(--blue);color:var(--blue);background:var(--bluedim)}
-.plCal-upSec{padding:0 12px 12px}
+.plCal-upSec{padding:0 12px 12px;flex:1;display:flex;flex-direction:column;min-height:0}
+.plCal-upList{flex:1;overflow-y:auto}
 .plCal-upTitle{font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:7px;display:flex;align-items:center;gap:6px}
 .plCal-upTitle::after{content:'';flex:1;height:1px;background:var(--border)}
 .plCal-upItem{display:flex;align-items:flex-start;gap:6px;font-size:10px;color:var(--text2);padding:5px 7px;border-radius:7px;border:1px solid var(--border);background:var(--card);cursor:pointer;margin-bottom:5px;transition:.15s}
@@ -3933,23 +3917,10 @@ body.light-mode .skel{background:linear-gradient(90deg,var(--card2) 25%,#f0f2f7 
   <div class="plCal-body">
     <!-- Left sidebar -->
     <div class="plCal-sidebar">
-      <div class="plMini">
-        <div class="plMini-head">
-          <button class="plMini-nb" onclick="plMiniNav(-1)">◀</button>
-          <div class="plMini-title" id="plMini-title"></div>
-          <button class="plMini-nb" onclick="plMiniNav(1)">▶</button>
-        </div>
-        <div class="plMini-dow">
-          <div class="plMini-dw">Пн</div><div class="plMini-dw">Вт</div><div class="plMini-dw">Ср</div>
-          <div class="plMini-dw">Чт</div><div class="plMini-dw">Пт</div>
-          <div class="plMini-dw" style="color:var(--pink)">Сб</div><div class="plMini-dw" style="color:var(--pink)">Вс</div>
-        </div>
-        <div class="plMini-days" id="plMini-days"></div>
-      </div>
       <button class="plCal-addBtn" onclick="plCalOpenModal(null,null)">＋ Добавить событие</button>
       <div class="plCal-upSec">
-        <div class="plCal-upTitle">Ближайшее</div>
-        <div id="plCal-upcoming"></div>
+        <div class="plCal-upTitle">Задачи и события</div>
+        <div id="plCal-upcoming" class="plCal-upList"></div>
       </div>
     </div>
     <!-- Main calendar area -->
@@ -5041,117 +5012,6 @@ body.light-mode .skel{background:linear-gradient(90deg,var(--card2) 25%,#f0f2f7 
   </div>
 </div>
 
-<!-- ═══ KANBAN MODAL ═══ -->
-<div class="overlay" id="kbOverlay" style="display:none">
-  <div class="modalBox" style="max-width:500px">
-    <div class="modalHead" style="margin-bottom:18px">
-      <span class="modalTitle" id="kbModalTitle">Новая карточка</span>
-      <div style="display:flex;gap:8px;align-items:center">
-        <div id="kbModalLabelDot" style="width:10px;height:10px;border-radius:50%;background:var(--border2);flex-shrink:0"></div>
-        <button id="kbModalDeleteBtn" class="btn btnR" style="font-size:11px;padding:5px 10px;display:none" onclick="delKbCardFromModal()">Удалить</button>
-        <button class="modalClose" onclick="closeKbModal()">✕</button>
-      </div>
-    </div>
-
-    <input type="hidden" id="kb-id">
-
-    <!-- Title -->
-    <div class="tmField">
-      <label class="tmLabel">Название задачи</label>
-      <input class="inp" id="kbCardTitle" placeholder="Что нужно сделать?" style="font-size:14px;font-weight:600;padding:10px 14px">
-    </div>
-
-    <!-- Deadline -->
-    <div class="tmField">
-      <label class="tmLabel">Срок выполнения</label>
-      <div id="kbCardDl-dp"></div>
-    </div>
-
-    <!-- Time row — identical to task modal -->
-    <datalist id="kbTimeOptions30"></datalist>
-    <div style="display:flex;gap:8px;margin-bottom:14px;align-items:flex-end">
-      <div style="flex:1">
-        <label class="tmLabel" style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:1.2px;color:var(--muted);display:block;margin-bottom:5px">▶ Начало</label>
-        <input class="inp" id="kbCardTime" list="kbTimeOptions30" placeholder="09:00" maxlength="5" style="font-family:var(--font-mono);font-size:13px;font-weight:700;padding:8px 10px" oninput="_tmAutoFormatTime(this)" onblur="_tmNormalizeTime(this)">
-      </div>
-      <div style="flex-shrink:0;padding-bottom:10px;color:var(--border3);font-size:16px;font-weight:300">→</div>
-      <div style="flex:1">
-        <label class="tmLabel" style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:1.2px;color:var(--muted);display:block;margin-bottom:5px">■ Конец</label>
-        <input class="inp" id="kbCardEndTime" list="kbTimeOptions30" placeholder="10:00" maxlength="5" style="font-family:var(--font-mono);font-size:13px;font-weight:700;padding:8px 10px" oninput="_tmAutoFormatTime(this)" onblur="_tmNormalizeTime(this)">
-      </div>
-    </div>
-
-    <!-- Actual time tracker — identical to task modal -->
-    <div style="background:var(--card2);border:1px solid var(--border);border-radius:12px;padding:12px 14px;margin-bottom:14px">
-      <div style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:1.2px;color:var(--muted);margin-bottom:10px;display:flex;align-items:center;gap:6px">
-        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2" stroke-linecap="round"/></svg>
-        Фактическое время (мин)
-      </div>
-      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
-        <input type="number" class="inp" id="kb-actualDuration" min="0" max="1440" placeholder="напр. 45" style="font-family:var(--font-mono);font-size:13px;font-weight:700;max-width:100px;padding:7px 10px;border-color:rgba(15,221,170,.3)">
-        <div style="display:flex;gap:6px;flex-wrap:wrap">
-          <button onclick="document.getElementById('kb-actualDuration').value=15" style="border:1px solid var(--border2);background:var(--card3);color:var(--text2);border-radius:8px;padding:4px 9px;font-size:10px;font-weight:700;cursor:pointer">15м</button>
-          <button onclick="document.getElementById('kb-actualDuration').value=30" style="border:1px solid var(--border2);background:var(--card3);color:var(--text2);border-radius:8px;padding:4px 9px;font-size:10px;font-weight:700;cursor:pointer">30м</button>
-          <button onclick="document.getElementById('kb-actualDuration').value=45" style="border:1px solid var(--border2);background:var(--card3);color:var(--text2);border-radius:8px;padding:4px 9px;font-size:10px;font-weight:700;cursor:pointer">45м</button>
-          <button onclick="document.getElementById('kb-actualDuration').value=60" style="border:1px solid var(--border2);background:var(--card3);color:var(--text2);border-radius:8px;padding:4px 9px;font-size:10px;font-weight:700;cursor:pointer">1ч</button>
-          <button onclick="document.getElementById('kb-actualDuration').value=90" style="border:1px solid var(--border2);background:var(--card3);color:var(--text2);border-radius:8px;padding:4px 9px;font-size:10px;font-weight:700;cursor:pointer">1.5ч</button>
-          <button onclick="document.getElementById('kb-actualDuration').value=120" style="border:1px solid var(--border2);background:var(--card3);color:var(--text2);border-radius:8px;padding:4px 9px;font-size:10px;font-weight:700;cursor:pointer">2ч</button>
-        </div>
-        <div id="kb-timerDisplay" style="font-family:var(--font-mono);font-size:12px;font-weight:700;color:var(--green);min-width:48px;display:none">00:00</div>
-        <button id="kb-timerBtn" onclick="_kbToggleTimer()" style="display:flex;align-items:center;gap:5px;border:1px solid rgba(15,221,170,.3);background:rgba(15,221,170,.08);color:var(--green);border-radius:8px;padding:5px 10px;font-size:10px;font-weight:700;cursor:pointer;transition:all .15s">
-          <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><polygon points="5,3 19,12 5,21"/></svg> Старт
-        </button>
-      </div>
-    </div>
-
-    <!-- Labels — identical style to task modal -->
-    <div class="tmField">
-      <label class="tmLabel">Метка</label>
-      <div style="display:flex;flex-direction:column;gap:8px" id="kbLabelsList"></div>
-    </div>
-
-    <!-- Notes -->
-    <div class="tmField">
-      <label class="tmLabel">Примечания</label>
-      <textarea class="kbTxtarea" id="kbCardDesc" placeholder="Заметки к задаче..." style="min-height:56px;resize:none"></textarea>
-    </div>
-
-    <!-- Subtask Checklist -->
-    <div class="tmField">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
-        <label class="tmLabel" style="margin-bottom:0">☑️ Чеклист</label>
-        <div class="stProgress" id="kb-st-progress" style="display:none;flex:1;margin:0 0 0 12px">
-          <div class="stProgressBar"><div class="stProgressFill" id="kb-st-bar" style="width:0%"></div></div>
-          <span class="stProgressLbl" id="kb-st-lbl">0/0</span>
-        </div>
-      </div>
-      <div class="stList" id="kb-st-list"></div>
-      <div class="stAddRow">
-        <input class="stAddInp" id="kb-st-inp" placeholder="Добавить пункт..." onkeydown="if(event.key==='Enter'){event.preventDefault();kbAddSubtask()}">
-        <button class="stAddBtn" onclick="kbAddSubtask()" title="Добавить">＋</button>
-      </div>
-    </div>
-
-    <!-- Done toggle -->
-    <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">
-      <input type="checkbox" id="kb-done" style="width:16px;height:16px;accent-color:var(--green);cursor:pointer">
-      <label for="kb-done" style="font-size:12px;color:var(--text2);cursor:pointer;font-weight:500">Отметить как выполненное</label>
-    </div>
-
-    <!-- Column selector -->
-    <div class="tmField">
-      <label class="tmLabel">Колонка</label>
-      <select class="inp" id="kbCardCol"></select>
-    </div>
-
-    <!-- Actions -->
-    <div style="display:flex;gap:8px">
-      <button class="btn btnG" style="flex:1;justify-content:center" onclick="closeKbModal()">Отмена</button>
-      <button class="btn btnB" style="flex:1;justify-content:center" onclick="saveKbCard()">Сохранить</button>
-    </div>
-  </div>
-</div>
-
 <!-- Labels Modal -->
 <div class="overlay" id="labelsOverlay" style="display:none">
   <div class="modalBox" style="max-width:480px;max-height:88vh;overflow:hidden;display:flex;flex-direction:column;gap:0">
@@ -5685,7 +5545,6 @@ document.addEventListener('DOMContentLoaded',()=>{
     {wrap:'kz-date-dp',     btn:'kz-date-btn',   hidden:'kz-date',     val:_today},
     {wrap:'tm-deadline-dp', btn:'tm-deadline-btn',hidden:'tm-deadline', val:''},
     {wrap:'plCal-edate-dp', btn:'plCal-edate-btn',hidden:'plCal-edate',val:_today},
-    {wrap:'kbCardDl-dp',    btn:'kbCardDl-btn',   hidden:'kbCardDl',   val:''},
     {wrap:'finDate-dp',     btn:'finDate-btn',    hidden:'finDate',     val:_today},
     {wrap:'trDate-dp',      btn:'trDate-btn',     hidden:'trDate',      val:_today},
     {wrap:'goalDlInp-dp',   btn:'goalDlInp-btn',  hidden:'goalDlInp',  val:''},
@@ -7662,35 +7521,6 @@ function _tmToggleTimer(){
 /* ─── old tracker stub (keep for save compatibility) ─── */
 function _updateTimeTrackerBar(){}
 
-/* ── Kanban stopwatch (mirrors _tmToggleTimer) ── */
-let _kbTimerInterval=null,_kbTimerStart=0,_kbTimerBase=0;
-function _kbToggleTimer(){
-  const btn=document.getElementById('kb-timerBtn');
-  const display=document.getElementById('kb-timerDisplay');
-  const inp=document.getElementById('kb-actualDuration');
-  if(_kbTimerInterval){
-    clearInterval(_kbTimerInterval);_kbTimerInterval=null;
-    const elapsed=Math.floor((Date.now()-_kbTimerStart)/1000)+_kbTimerBase;
-    const mins=Math.max(1,Math.round(elapsed/60));
-    if(inp)inp.value=mins;
-    if(btn)btn.innerHTML='<svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><polygon points="5,3 19,12 5,21"/></svg> Старт';
-    if(btn){btn.style.background='rgba(15,221,170,.08)';btn.style.color='var(--green)';btn.style.borderColor='rgba(15,221,170,.3)';}
-    if(display)display.style.display='none';
-  } else {
-    _kbTimerBase=parseInt(inp?.value||0)*60||0;
-    _kbTimerStart=Date.now();
-    if(display)display.style.display='block';
-    if(btn)btn.innerHTML='<svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg> Стоп';
-    if(btn){btn.style.background='rgba(255,79,114,.1)';btn.style.color='var(--red)';btn.style.borderColor='rgba(255,79,114,.3)';}
-    _kbTimerInterval=setInterval(()=>{
-      const sec=Math.floor((Date.now()-_kbTimerStart)/1000)+_kbTimerBase;
-      const hh=Math.floor(sec/3600),mm=Math.floor((sec%3600)/60),ss=sec%60;
-      if(display)display.textContent=(hh?hh+':':'')+String(mm).padStart(2,'0')+':'+String(ss).padStart(2,'0');
-    },500);
-  }
-}
-
-
 function openTaskModal(idx,prefillDate,dstr){
   // idx can be array index (number) or task id (string) or -1/''/null for new task
   let t=null;
@@ -7831,6 +7661,14 @@ function _showReminderToast(msg,task){
   document.body.appendChild(toast);
   setTimeout(()=>toast.remove(),12000);
 }
+// Keeps a linked Kanban card's display fields (desc/subtasks/done/etc.) fully
+// in sync whenever the backing task is saved via the unified task modal —
+// regardless of whether that save happened from List/Week/Calendar/Kanban.
+function _kbSyncCardFromTaskData(linked,data){
+  linked.title=data.text;linked.deadline=data.deadline;linked.time=data.time;linked.endTime=data.endTime;
+  linked.labelId=data.labelId;linked.labelIds=data.labelIds;linked.desc=data.notes;linked.done=data.done;
+  linked.actualDuration=data.actualDuration;linked.subtasks=JSON.parse(JSON.stringify(data.subtasks||[]));
+}
 function taskModalSave(){
   const text=document.getElementById('tm-text').value.trim();
   if(!text)return;
@@ -7874,12 +7712,24 @@ function taskModalSave(){
     Object.assign(tpD()[currentIdx],data);
     const taskId=tpD()[currentIdx].id;
     const linked=kbD().find(c=>c.taskId===taskId);
-    if(linked){linked.title=data.text;linked.deadline=data.deadline;linked.time=data.time;linked.endTime=data.endTime;linked.labelId=data.labelId;}
+    if(linked)_kbSyncCardFromTaskData(linked,data);
   } else {
     // New task
     const id=uid();
     tpD().push({...data,id,priority:2});
     syncNewTaskToKanban(id);
+    // If this task was added via "+ Добавить" inside a specific Kanban column,
+    // place the resulting card there instead of the auto-computed smart column.
+    if(_kbAddTargetCol){
+      const card=kbD().find(c=>c.taskId===id);
+      if(_kbAddTargetBoardId&&_kbAddTargetBoardId!==SMART_BOARD_ID){
+        if(card){card.boardId=_kbAddTargetBoardId;card.col=_kbAddTargetCol;}
+        else{kbD().push({id:uid(),title:data.text,desc:data.notes||'',priority:2,deadline:data.deadline||'',time:data.time||'',endTime:data.endTime||'',col:_kbAddTargetCol,boardId:_kbAddTargetBoardId,taskId:id,subtasks:JSON.parse(JSON.stringify(data.subtasks||[]))});}
+      } else if(card){
+        card.col=_kbAddTargetCol;
+      }
+      _kbAddTargetCol=null;_kbAddTargetBoardId=null;
+    }
   }
   saveD();closeTaskModal();_refreshAllTaskViews();setTimeout(taskScheduleAllReminders,100);
 }
@@ -7897,7 +7747,7 @@ async function _doSaveRecurring(existingTask, data, dstr){
     if(i>=0){
       Object.assign(tpD()[i],data);
       const linked=kbD().find(c=>c.taskId===existingTask.id);
-      if(linked){linked.title=data.text;linked.deadline=data.deadline;linked.time=data.time;linked.endTime=data.endTime;}
+      if(linked)_kbSyncCardFromTaskData(linked,data);
     }
   } else if(scope==='one' && dstr){
     // Add this date to exceptions on original, create a new one-time task for this date
@@ -8109,7 +7959,6 @@ const DS_SHORT=['вс','пн','вт','ср','чт','пт','сб'];
 
 let plView=(window.innerWidth<700?'3day':'week');  // mobile default = 3 дня
 let plAnchor=dk(t0());       // anchor date string YYYY-MM-DD
-let plMiniY=t0().getFullYear(),plMiniM=t0().getMonth();
 let plSelColor=CAL_COLORS[0];
 let _plNowTimer=null;
 
@@ -8246,12 +8095,10 @@ function plCalSetView(v,btn){
   if(btn)btn.classList.add('on');
   renderCal();
 }
-function plMiniNav(dir){plMiniM+=dir;if(plMiniM>11){plMiniM=0;plMiniY++}if(plMiniM<0){plMiniM=11;plMiniY--}renderMini();}
 function plMiniClickDay(dstr){plAnchor=dstr;renderCal();}
 
 // ── Main render ──
 function renderCal(){
-  renderMini();
   updateDateLabel();
   plRenderUpcoming();
   // Sync view buttons to current plView
@@ -8277,27 +8124,6 @@ function updateDateLabel(){
     const a=new Date(dates[0]+'T00:00:00'),b=new Date(dates[6]+'T00:00:00');
     lbl.textContent=`${a.getDate()} ${MG[a.getMonth()]}${a.getMonth()!==b.getMonth()?' – '+b.getDate()+' '+MG[b.getMonth()]:'–'+b.getDate()+' '+MG[b.getMonth()]} ${b.getFullYear()}`;
   }
-}
-
-// ── Mini calendar ──
-function renderMini(){
-  const title=document.getElementById('plMini-title');
-  if(title)title.textContent=`${MN[plMiniM].slice(0,3)} ${plMiniY}`;
-  const cont=document.getElementById('plMini-days');if(!cont)return;
-  const todK=dk(t0());
-  const firstDow=new Date(plMiniY,plMiniM,1).getDay();
-  const offset=firstDow===0?6:firstDow-1;
-  const days=dim(plMiniY,plMiniM);
-  let html='';
-  for(let i=0;i<offset;i++)html+=`<div class="plMini-d empty"></div>`;
-  for(let d=1;d<=days;d++){
-    const dstr=`${plMiniY}-${z(plMiniM+1)}-${z(d)}`;
-    const dow=new Date(plMiniY,plMiniM,d).getDay();
-    const isWe=dow===0||dow===6;
-    let cls='plMini-d'+(isWe?' we':'')+(dstr===todK?' tod':'')+(dstr===plAnchor?' sel':'');
-    html+=`<div class="${cls}" onclick="plMiniClickDay('${dstr}')">${d}</div>`;
-  }
-  cont.innerHTML=html;
 }
 
 // ── Month view ──
@@ -8721,13 +8547,16 @@ function plRenderUpcoming(){
     const d=new Date(today);d.setDate(d.getDate()+i);const dstr=dk(d);
     plEvtsForDate(dstr).forEach(e=>upcoming.push({dstr,e}));
   }
-  if(!upcoming.length){el.innerHTML='<div style="font-size:10px;color:var(--muted);padding:4px 0">Нет событий</div>';return}
-  el.innerHTML=upcoming.slice(0,8).map(u=>{
+  if(!upcoming.length){el.innerHTML='<div style="font-size:10px;color:var(--muted);padding:4px 0">Ничего нет в ближайшие 3 недели</div>';return}
+  el.innerHTML=upcoming.slice(0,60).map(u=>{
     const d=new Date(u.dstr+'T00:00:00');
     const dFmt=d.getDate()+' '+MG[d.getMonth()].slice(0,3);
-    return`<div class="plCal-upItem" onclick="${u.e.src==='ev'?'plCalOpenModal(\''+u.e.id+'\',\''+u.dstr+'\')':''}">
+    const isTask=u.e.src==='task';
+    const onClick=isTask?`plCalOpenTask('${u.e.id}','${u.dstr}')`:`plCalOpenModal('${u.e.id}','${u.dstr}')`;
+    const doneStyle=isTask&&u.e.done?'text-decoration:line-through;opacity:.5':'';
+    return`<div class="plCal-upItem" onclick="${onClick}">
       <div class="plCal-upDot" style="background:${u.e.color}"></div>
-      <div class="plCal-upName">${esc(u.e.text)}</div>
+      <div class="plCal-upName" style="${doneStyle}">${esc(u.e.text)}</div>
       <div class="plCal-upDate">${dFmt}${u.e.time?' '+plFmtTime(u.e.time):''}</div>
     </div>`;
   }).join('');
@@ -8907,7 +8736,7 @@ function kbBoardsD(){
   return G.kbBoards;
 }
 function kbD(){if(!G.kanban||!Array.isArray(G.kanban))G.kanban=[];return G.kanban}
-let kbEditId=null,kbSelPri=2,kbAddCol=null,kbActiveBoardId=SMART_BOARD_ID;
+let kbActiveBoardId=SMART_BOARD_ID;
 function kbMigrate(){
   kbBoardsD();
   const legacyMap={todo:'new',inprog:'week',review:'week',main:'new'};
@@ -8915,6 +8744,8 @@ function kbMigrate(){
   kbD().filter(c=>c.boardId===SMART_BOARD_ID&&c.taskId).forEach(c=>{
     const task=tpD().find(t=>t.id===c.taskId);if(!task)return;
     c.title=task.text||c.title;c.deadline=task.deadline||'';c.done=!!task.done;
+    c.desc=task.notes||'';c.labelId=task.labelId||'';c.labelIds=task.labelIds||[];
+    c.subtasks=task.subtasks||[];c.time=task.time||'';c.endTime=task.endTime||'';
     if(task.done){c.col='done';return;}
     if(c.col==='focus')return;
     if(task.repeat&&c.col==='planned')return;
@@ -8925,7 +8756,7 @@ function kbAutoSyncFromTasks(){
   const cards=kbD(),inKanban=new Set(cards.filter(c=>c.taskId).map(c=>c.taskId));
   tpD().forEach(t=>{
     if(inKanban.has(t.id))return;
-    cards.push({id:uid(),title:t.text,desc:t.notes||'',priority:t.priority||2,deadline:t.deadline||'',col:kbSmartColForTask(t),boardId:SMART_BOARD_ID,taskId:t.id,done:!!t.done,isRepeat:!!t.repeat});
+    cards.push({id:uid(),title:t.text,desc:t.notes||'',priority:t.priority||2,deadline:t.deadline||'',time:t.time||'',endTime:t.endTime||'',col:kbSmartColForTask(t),boardId:SMART_BOARD_ID,taskId:t.id,done:!!t.done,isRepeat:!!t.repeat,subtasks:JSON.parse(JSON.stringify(t.subtasks||[]))});
   });
   const taskIds=new Set(tpD().map(t=>t.id));
   for(let i=cards.length-1;i>=0;i--){if(cards[i].boardId===SMART_BOARD_ID&&cards[i].taskId&&!taskIds.has(cards[i].taskId))cards.splice(i,1);}
@@ -8959,7 +8790,7 @@ function renderKanban(){
       let _kbDragMoved=false;
       card.addEventListener('dragstart',e=>{_kbDragId=c.id;_kbDragMoved=true;e.dataTransfer.setData('text/plain',c.id);e.dataTransfer.effectAllowed='move';setTimeout(()=>{card.style.opacity='.3';card.style.transform='scale(.96)';},0);});
       card.addEventListener('dragend',()=>{card.style.opacity='';card.style.transform='';document.querySelectorAll('.kbCards').forEach(z=>{z.style.background='';z.style.outline='';});_kbDragId=null;setTimeout(()=>{_kbDragMoved=false;},100);});
-      card.addEventListener('click',e=>{if(_kbDragMoved)return;if(e.target.closest('button'))return;openKbModal(col.id,c.id);});
+      card.addEventListener('click',e=>{if(_kbDragMoved)return;if(e.target.closest('button'))return;kbEditCard(c.id);});
       const lbl=c.labelId?labelsD().find(l=>l.id===c.labelId):null;
       if(lbl)card.style.borderLeft=`3px solid ${lbl.color}`;
       const lblHtml=lbl?`<span style="display:inline-flex;align-items:center;gap:3px;font-size:9px;font-weight:700;color:${lbl.color};background:${hexA(lbl.color,.12)};padding:2px 6px;border-radius:20px">${esc(lbl.name)}</span>`:'';
@@ -9003,7 +8834,7 @@ function renderKanban(){
       card.addEventListener('mouseout',()=>{const d=card.querySelector('.kbDelBtn');if(d)d.style.opacity='0';});
       cardsEl.appendChild(card);
     });
-    if(!col.isDone){const addBtn=document.createElement('button');addBtn.className='kbAddBtn';addBtn.textContent='+ Добавить';addBtn.onclick=()=>openKbModal(col.id);colEl.appendChild(addBtn);}
+    if(!col.isDone){const addBtn=document.createElement('button');addBtn.className='kbAddBtn';addBtn.textContent='+ Добавить';addBtn.onclick=()=>kbAddTaskToCol(col.id,kbActiveBoardId);colEl.appendChild(addBtn);}
     layout.appendChild(colEl);
   });
 }
@@ -9032,176 +8863,35 @@ function kbMarkDone(cardId){
   saveD();renderKanban();
   if(document.getElementById('tab-tasks')?.classList.contains('on'))renderTP();
 }
-let _kbLabelSel='';
-function openKbModal(colId,cardId){
-  kbAddCol=colId;kbEditId=cardId||null;
-  const c=cardId?kbD().find(x=>x.id===cardId):null;
-  const linkedTask=c?.taskId?tpD().find(t=>t.id===c.taskId):null;
-  const src=linkedTask||c; // prefer synced task data
-
-  document.getElementById('kbModalTitle').textContent=c?'Редактировать задачу':'Новая задача';
-  document.getElementById('kbCardTitle').value=src?(linkedTask?linkedTask.text:c.title):'';
-  document.getElementById('kbCardDesc').value=src?(linkedTask?linkedTask.notes:c.desc):'';
-  // Auto-set deadline based on column when creating new card
-  let autoDeadline='';
-  if(!cardId){
-    if(colId==='today') autoDeadline=dk(t0());
-    else if(colId==='tomorrow'){const tm=new Date(t0());tm.setDate(tm.getDate()+1);autoDeadline=dk(tm);}
-    else if(colId==='week'){const mon=new Date(t0());const dow=mon.getDay();mon.setDate(mon.getDate()+(dow===0?1:8-dow));autoDeadline=dk(mon);}
-    else if(colId==='next'){const mon=new Date(t0());const dow=mon.getDay();mon.setDate(mon.getDate()+(dow===0?8:15-dow));autoDeadline=dk(mon);}
+/* ── Kanban "Добавить"/edit now opens the SAME unified task modal used everywhere
+   else in the app (Список/Неделя/Календарь), instead of a separate kanban-only
+   modal. This is what makes adding/editing a task identical across every section.
+   We just remember which column/board a *new* card should land in — taskModalSave()
+   (Unified Task Modal section) reads these two vars once and applies them. ── */
+let _kbAddTargetCol=null,_kbAddTargetBoardId=null;
+function kbAddTaskToCol(colId,boardId){
+  _kbAddTargetCol=colId;
+  _kbAddTargetBoardId=boardId||SMART_BOARD_ID;
+  // Same date-prefill logic the smart board already uses to auto-place cards,
+  // so a task added from e.g. "Завтра" actually lands in "Завтра".
+  let prefillDate='';
+  if(_kbAddTargetBoardId===SMART_BOARD_ID){
+    if(colId==='today') prefillDate=dk(t0());
+    else if(colId==='tomorrow'){const tm=new Date(t0());tm.setDate(tm.getDate()+1);prefillDate=dk(tm);}
+    else if(colId==='week'){const mon=new Date(t0());const dow=mon.getDay();mon.setDate(mon.getDate()+(dow===0?1:8-dow));prefillDate=dk(mon);}
+    else if(colId==='next'){const mon=new Date(t0());const dow=mon.getDay();mon.setDate(mon.getDate()+(dow===0?8:15-dow));prefillDate=dk(mon);}
   }
-  dpSetValue('kbCardDl',src?(linkedTask?linkedTask.deadline:c.deadline)||'':autoDeadline);
-  document.getElementById('kbCardTime').value=src?(linkedTask?linkedTask.time:c.time)||'':'';
-  document.getElementById('kbCardEndTime').value=src?(linkedTask?linkedTask.endTime:c.endTime)||'':'';
-  document.getElementById('kb-actualDuration').value=linkedTask?.actualDuration||c?.actualDuration||'';
-  document.getElementById('kb-done').checked=linkedTask?!!linkedTask.done:!!c?.done;
-  document.getElementById('kb-id').value=cardId||'';
-  if(_kbTimerInterval){clearInterval(_kbTimerInterval);_kbTimerInterval=null;}
-  const kbTimerBtn=document.getElementById('kb-timerBtn');
-  if(kbTimerBtn){kbTimerBtn.innerHTML='<svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><polygon points="5,3 19,12 5,21"/></svg> Старт';kbTimerBtn.style.background='rgba(15,221,170,.08)';kbTimerBtn.style.color='var(--green)';kbTimerBtn.style.borderColor='rgba(15,221,170,.3)';}
-  const kbTimerDisp=document.getElementById('kb-timerDisplay');
-  if(kbTimerDisp)kbTimerDisp.style.display='none';
-
-  // Label — support both labelIds array and legacy single labelId
-  const taskLabels=linkedTask?.labelIds||[];
-  const legacyId=linkedTask?.labelId||c?.labelId||'';
-  _kbLabelSel=taskLabels.length?taskLabels[0]:legacyId;
-
-  // Label dot indicator
-  const allLabels=labelsD();
-  const selLabel=allLabels.find(l=>l.id===_kbLabelSel);
-  document.getElementById('kbModalLabelDot').style.background=selLabel?selLabel.color:'var(--border2)';
-
-  // Delete button
-  const delBtn=document.getElementById('kbModalDeleteBtn');
-  delBtn.style.display=c?'inline-flex':'none';
-
-  selKbPri(c?c.priority:2);
-  _renderKbLabels();
-
-  // Populate column select
-  const board=kbBoardsD().find(b=>b.id===kbActiveBoardId);
-  const sel=document.getElementById('kbCardCol');sel.innerHTML='';
-  if(board)board.cols.forEach(col=>{const o=document.createElement('option');o.value=col.id;o.textContent=col.title;if((c?c.col:colId)===col.id)o.selected=true;sel.appendChild(o);});
-  // When user changes column, auto-fill deadline if empty
-  sel.onchange=function(){
-    const dlInp=document.getElementById('kbCardDl');
-    if(dlInp&&dlInp.value) return; // don't override existing
-    const v=this.value;
-    if(v==='today') dpSetValue('kbCardDl',dk(t0()));
-    else if(v==='tomorrow'){const tm=new Date(t0());tm.setDate(tm.getDate()+1);dpSetValue('kbCardDl',dk(tm));}
-    else if(v==='week'){const d=new Date(t0());const dw=d.getDay();d.setDate(d.getDate()+(dw===0?1:8-dw));dpSetValue('kbCardDl',dk(d));}
-  };
-
-  document.getElementById('kbOverlay').style.display='flex';
-  // Load subtasks (from linked task if synced, else from card)
-  const stSrc=linkedTask||c;
-  kbLoadSubtasks(stSrc);
+  openTaskModal(-1,prefillDate);
 }
-function _renderKbLabels(){
-  // Reuses the exact same renderer/markup as the unified task modal — no separate code.
-  _renderTaskModalLabels(_kbLabelSel?[_kbLabelSel]:[], 'kbLabelsList', 'kbModalToggleLabel', 'kbModalClearLabel');
-  const selLabel=labelsD().find(l=>l.id===_kbLabelSel);
-  const dot=document.getElementById('kbModalLabelDot');
-  if(dot)dot.style.background=selLabel?selLabel.color:'var(--border2)';
-}
-function kbModalToggleLabel(id){_kbLabelSel=(_kbLabelSel===id)?'':id;_renderKbLabels();}
-function kbModalClearLabel(){_kbLabelSel='';_renderKbLabels();}
-function closeKbModal(){document.getElementById('kbOverlay').style.display='none';kbEditId=null;if(_kbTimerInterval){clearInterval(_kbTimerInterval);_kbTimerInterval=null;}}
-
-/* ── Kanban checklist ── */
-let _kbSubtasks=[];
-
-function kbLoadSubtasks(src){
-  _kbSubtasks=src?.subtasks?JSON.parse(JSON.stringify(src.subtasks)):[];
-  kbRenderSubtasks();
-}
-
-function kbRenderSubtasks(){
-  const list=document.getElementById('kb-st-list');
-  const prog=document.getElementById('kb-st-progress');
-  const bar=document.getElementById('kb-st-bar');
-  const lbl=document.getElementById('kb-st-lbl');
-  if(!list)return;
-  const total=_kbSubtasks.length;
-  const done=_kbSubtasks.filter(s=>s.done).length;
-  if(total>0){
-    prog.style.display='flex';
-    bar.style.width=(done/total*100)+'%';
-    lbl.textContent=`${done}/${total}`;
-  } else {
-    prog.style.display='none';
+function kbEditCard(cardId){
+  const c=kbD().find(x=>x.id===cardId);if(!c)return;
+  // Every card is task-backed; guard just in case of older/legacy data.
+  if(!c.taskId||!tpD().find(t=>t.id===c.taskId)){
+    const id=uid();
+    tpD().push({id,text:c.title||'',deadline:c.deadline||'',time:c.time||'',endTime:c.endTime||'',notes:c.desc||'',done:!!c.done,labelId:c.labelId||'',labelIds:c.labelId?[c.labelId]:[],priority:c.priority||2,actualDuration:c.actualDuration||null,subtasks:c.subtasks||[]});
+    c.taskId=id;saveD();
   }
-  list.innerHTML=_kbSubtasks.map((s,i)=>`
-    <div class="stItem">
-      <input class="stCb" type="checkbox" ${s.done?'checked':''} onchange="kbToggleSub(${i},this.checked)">
-      <input class="stText${s.done?' stDone':''}" value="${esc(s.text)}" placeholder="Пункт…"
-        onchange="kbEditSub(${i},this.value)"
-        onkeydown="if(event.key==='Enter'){event.preventDefault();document.getElementById('kb-st-inp').focus()}"
-        style="${s.done?'text-decoration:line-through;opacity:.55':''}">
-      <button class="stDel" onclick="kbDelSub(${i})">×</button>
-    </div>`).join('');
-}
-
-function kbAddSubtask(){
-  const inp=document.getElementById('kb-st-inp');
-  const text=(inp?.value||'').trim();
-  if(!text)return;
-  _kbSubtasks.push({id:uid(),text,done:false});
-  inp.value='';
-  kbRenderSubtasks();
-}
-function kbToggleSub(i,v){if(_kbSubtasks[i])_kbSubtasks[i].done=v;kbRenderSubtasks();}
-function kbEditSub(i,v){if(_kbSubtasks[i])_kbSubtasks[i].text=v.trim()||_kbSubtasks[i].text;}
-function kbDelSub(i){_kbSubtasks.splice(i,1);kbRenderSubtasks();}
-function selKbPri(p){kbSelPri=p;document.querySelectorAll('.kbPriBtn').forEach(b=>{b.classList.toggle('sel',parseInt(b.dataset.p)===p)});}
-async function delKbCardFromModal(){
-  if(!kbEditId)return;
-  if(!await appConfirm('Удалить карточку?'))return;
-  const idx=kbD().findIndex(c=>c.id===kbEditId);
-  if(idx>=0){
-    const card=kbD()[idx];
-    // Also remove linked task
-    if(card.taskId){const ti=tpD().findIndex(t=>t.id===card.taskId);if(ti>=0)tpD().splice(ti,1);}
-    kbD().splice(idx,1);
-    saveD();closeKbModal();_refreshAllTaskViews();
-  }
-}
-function saveKbCard(){
-  const title=document.getElementById('kbCardTitle').value.trim();if(!title)return;
-  const col=document.getElementById('kbCardCol').value;
-  const deadline=document.getElementById('kbCardDl').value;
-  const time=document.getElementById('kbCardTime').value;
-  const endTime=document.getElementById('kbCardEndTime').value;
-  const desc=document.getElementById('kbCardDesc').value;
-  const actualDuration=parseInt(document.getElementById('kb-actualDuration').value)||0;
-  const done=document.getElementById('kb-done').checked;
-  const labelId=_kbLabelSel;
-  const labelIds=labelId?[labelId]:[];
-  // If deadline still empty but col implies a date, auto-set
-  let finalDeadline=deadline;
-  if(!finalDeadline){
-    if(col==='today') finalDeadline=dk(t0());
-    else if(col==='tomorrow'){const tm=new Date(t0());tm.setDate(tm.getDate()+1);finalDeadline=dk(tm);}
-  }
-  const data={title,desc,priority:kbSelPri,deadline:finalDeadline,time,endTime,col,boardId:kbActiveBoardId,labelId,done,actualDuration,subtasks:JSON.parse(JSON.stringify(_kbSubtasks))};
-  if(kbEditId){
-    const idx=kbD().findIndex(x=>x.id===kbEditId);
-    if(idx>=0){
-      kbD()[idx]={...kbD()[idx],...data};
-      const linkedTask=kbD()[idx].taskId?tpD().find(t=>t.id===kbD()[idx].taskId):null;
-      if(linkedTask){
-        Object.assign(linkedTask,{text:title,deadline,time,endTime,notes:desc,labelId,labelIds,done,actualDuration,subtasks:JSON.parse(JSON.stringify(_kbSubtasks))});
-      }
-      saveD();closeKbModal();_refreshAllTaskViews();return;
-    }
-  } else {
-    const newCard={...data,id:uid()};kbD().push(newCard);
-    const taskId=uid();
-    tpD().push({id:taskId,text:title,deadline,time,endTime,notes:desc,done,actualDuration,labelId,labelIds,priority:kbSelPri,subtasks:JSON.parse(JSON.stringify(_kbSubtasks))});
-    newCard.taskId=taskId;
-  }
-  saveD();closeKbModal();_refreshAllTaskViews();
+  openTaskModal(c.taskId);
 }
 function moveCard(id,dir){
   const cards=kbD();const idx=cards.findIndex(c=>c.id===id);if(idx<0)return;
@@ -10733,7 +10423,7 @@ function syncNewTaskToKanban(taskId){
   if(t.repeat)return; // recurring tasks shown in Регулярные, not individually synced
   if(kbD().find(c=>c.taskId===taskId))return; // already synced
   const autoCol=kbSmartColForTask(t)||'week';
-  kbD().push({id:uid(),title:t.text,desc:t.notes||'',priority:t.priority||2,deadline:t.deadline||'',col:autoCol,boardId:SMART_BOARD_ID,taskId});
+  kbD().push({id:uid(),title:t.text,desc:t.notes||'',priority:t.priority||2,deadline:t.deadline||'',time:t.time||'',endTime:t.endTime||'',col:autoCol,boardId:SMART_BOARD_ID,taskId,subtasks:JSON.parse(JSON.stringify(t.subtasks||[]))});
   saveD();
 }
 
@@ -14861,7 +14551,6 @@ function isSafeHotkey(e){
   if(e.target.tagName==='INPUT'||e.target.tagName==='TEXTAREA'||e.target.isContentEditable) return false;
   if(document.getElementById('taskModal')?.classList.contains('open')) return false;
   if(document.getElementById('cmdOverlay')?.classList.contains('open')) return false;
-  if(document.getElementById('kbOverlay')?.classList.contains('open')) return false;
   return true;
 }
 
