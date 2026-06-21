@@ -3739,6 +3739,13 @@ body.light-mode .skel{background:linear-gradient(90deg,var(--card2) 25%,#f0f2f7 
       <button class="btn btnE" onclick="addHabit()">+ Привычка</button>
     </div>
   </header>
+  <!-- Sub-tabs -->
+  <div class="subTabs subTabs--green">
+    <button class="subTab on" onclick="habitsSubTab('habits',this)">🔥 Привычки</button>
+    <button class="subTab" onclick="habitsSubTab('sleep',this)">🌙 Трекер сна</button>
+  </div>
+
+  <div id="hst-habits">
   <!-- Stats strip -->
   <div class="htSummary" style="margin-bottom:14px">
     <div class="htStat"><div class="htStatL">Привычек</div><div class="htStatV" id="htCntV">0</div></div>
@@ -3753,6 +3760,12 @@ body.light-mode .skel{background:linear-gradient(90deg,var(--card2) 25%,#f0f2f7 
   <div class="chartCard">
     <div class="secLbl" style="margin-bottom:12px">📈 Прогресс по дням</div>
     <canvas id="htChart" height="120" style="width:100%;display:block"></canvas>
+  </div>
+  </div>
+
+  <!-- SLEEP TRACKER sub-tab -->
+  <div id="hst-sleep" style="display:none">
+    <div id="sleepTrackerRoot"></div>
   </div>
 </div>
 
@@ -3855,12 +3868,32 @@ body.light-mode .skel{background:linear-gradient(90deg,var(--card2) 25%,#f0f2f7 
 </div>
 
 <!-- ═══ 4. CALENDAR ═══ -->
-<div id="tab-calendar" class="pane">
+<div id="tab-calendar" class="pane hInner">
+  <div style="padding:20px 20px 0">
+  <header class="paneHead" style="margin-bottom:14px">
+    <div class="paneHeadLeft">
+      <nav class="paneBreadcrumb">
+        <span onclick="navigateTo('dash')">PlannerPro</span>
+        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="m7 10 3 3 3-3"/><path d="m7 6 3 3 3-3"/></svg>
+        <span onclick="navigateTo('tasks')" class="pbc-active">Задачи</span>
+        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="m7 10 3 3 3-3"/><path d="m7 6 3 3 3-3"/></svg>
+        <span class="pbc-active">Календарь</span>
+      </nav>
+      <div class="paneHeadRow">
+        <div class="paneHeadIcon" style="background:rgba(91,149,255,.12);border-color:rgba(91,149,255,.25)">📆</div>
+        <div>
+          <h1 class="paneTitle">Календарь</h1>
+          <p class="paneSubtitle">События · Недели · Месяцы</p>
+        </div>
+      </div>
+    </div>
+  </header>
   <div class="tvSwitch" role="tablist" aria-label="Виды раздела Задачи">
     <button class="tvSwitchBtn" data-tab="tasks" onclick="navigateTo('tasks')"><span class="tvIco">✅</span>Список</button>
     <button class="tvSwitchBtn" data-tab="weekly" onclick="navigateTo('weekly')"><span class="tvIco">📅</span>Неделя</button>
     <button class="tvSwitchBtn" data-tab="calendar" onclick="navigateTo('calendar')"><span class="tvIco">📆</span>Календарь</button>
     <button class="tvSwitchBtn" data-tab="kanban" onclick="navigateTo('kanban')"><span class="tvIco">🗂</span>Канбан</button>
+  </div>
   </div>
   <!-- Toolbar -->
   <div class="plCal-toolbar">
@@ -4081,7 +4114,7 @@ body.light-mode .skel{background:linear-gradient(90deg,var(--card2) 25%,#f0f2f7 
         <div class="paneHeadIcon" style="background:rgba(15,221,170,.1);border-color:rgba(15,221,170,.25)">🌱</div>
         <div>
           <h1 class="paneTitle">Цели и рост</h1>
-          <p class="paneSubtitle">Миссия · Принципы · Кайдзен · Дневник · Сон</p>
+          <p class="paneSubtitle">Миссия · Принципы · Кайдзен · Дневник</p>
         </div>
       </div>
     </div>
@@ -4095,7 +4128,6 @@ body.light-mode .skel{background:linear-gradient(90deg,var(--card2) 25%,#f0f2f7 
     <button class="subTab" onclick="goalSubTab('principles',this)">⚡ Принципы</button>
     <button class="subTab" onclick="goalSubTab('kaizen',this)">🧠 Кайдзен</button>
     <button class="subTab" onclick="goalSubTab('diary',this)">📓 Дневник</button>
-    <button class="subTab" onclick="goalSubTab('sleep',this)">🌙 Трекер сна</button>
   </div>
 
   <!-- GOALS tab -->
@@ -4195,11 +4227,6 @@ body.light-mode .skel{background:linear-gradient(90deg,var(--card2) 25%,#f0f2f7 
       </div>
     </div>
     <div id="journalList"></div>
-  </div>
-
-  <!-- SLEEP TRACKER tab -->
-  <div id="gst-sleep" style="display:none">
-    <div id="sleepTrackerRoot"></div>
   </div>
 
 </div>
@@ -14181,13 +14208,27 @@ document.addEventListener('keydown',e=>{
 });
 
 /* ═══════════════════════════════════
+   HABITS SUB-TABS (Привычки / Трекер сна)
+═══════════════════════════════════ */
+function habitsSubTab(name,btn){
+  const tabs=document.querySelectorAll('#tab-habits .subTabs .subTab');
+  tabs.forEach(b=>b.classList.remove('on'));
+  if(btn)btn.classList.add('on');
+  ['habits','sleep'].forEach(n=>{
+    const el=document.getElementById('hst-'+n);
+    if(el)el.style.display=n===name?'block':'none';
+  });
+  if(name==='sleep'&&typeof renderSleepTracker==='function')renderSleepTracker();
+}
+
+/* ═══════════════════════════════════
    GOAL SUB-TABS
 ═══════════════════════════════════ */
 function goalSubTab(name,btn){
   const tabs=document.querySelectorAll('#tab-goals > div:first-child .rwSubTab');
   tabs.forEach(b=>b.classList.remove('on'));
   if(btn)btn.classList.add('on');
-  ['goals','mission','principles','kaizen','diary','sleep'].forEach(n=>{
+  ['goals','mission','principles','kaizen','diary'].forEach(n=>{
     const el=document.getElementById('gst-'+n);
     if(el)el.style.display=n===name?'block':'none';
   });
@@ -14195,7 +14236,6 @@ function goalSubTab(name,btn){
   if(name==='diary')renderJournal();
   if(name==='goals')renderGoals();
   if(name==='principles')princRenderList();
-  if(name==='sleep')renderSleepTracker();
 }
 
 /* ═══════════════════════════════════════
