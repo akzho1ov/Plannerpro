@@ -83,6 +83,13 @@ function safeHTML(el, html){
   --border3:rgba(255,255,255,.30);
   --border-glow:rgba(139,122,240,.4);
 
+  /* ── Calendar grid lines (theme-aware so they stay visible) ── */
+  --gridline:rgba(165,175,235,.16);
+  --gridline2:rgba(165,175,235,.09);
+  --gridline-label:rgba(190,198,240,.4);
+  --gridline-label2:rgba(190,198,240,.52);
+  --evtmix:#fff;
+
   /* ── Typography ── */
   --text:#F2F4FF;
   --text2:#BCC5E8;
@@ -163,6 +170,13 @@ body.light-mode{
   --border2:rgba(60,70,130,.22);
   --border3:rgba(60,70,130,.36);
   --border-glow:rgba(100,80,220,.32);
+
+  /* ── Calendar grid lines (theme-aware so they stay visible) ── */
+  --gridline:rgba(60,70,130,.18);
+  --gridline2:rgba(60,70,130,.10);
+  --gridline-label:rgba(60,70,130,.5);
+  --gridline-label2:rgba(60,70,130,.62);
+  --evtmix:#000;
 
   /* ── Typography ── */
   --text:#0F1020;
@@ -1231,7 +1245,7 @@ select.inp option{background:var(--card2);color:var(--text)}
 .plGrid-colHead{display:flex;flex-shrink:0;border-bottom:1px solid var(--border);background:var(--card2)}
 .plGrid-gut{width:52px;flex-shrink:0;border-right:1px solid var(--border)}
 .plGrid-colCells{flex:1;display:flex}
-.plGrid-hCell{flex:1;padding:8px 4px;text-align:center;border-right:1px solid rgba(255,255,255,.04);cursor:pointer;transition:background .12s}
+.plGrid-hCell{flex:1;padding:8px 4px;text-align:center;border-right:1px solid var(--gridline);cursor:pointer;transition:background .12s}
 .plGrid-hCell:hover{background:rgba(255,255,255,.04)}
 .plGrid-hCell.today .plGrid-hDay{color:var(--cyan)}
 .plGrid-hCell.today .plGrid-hNum{background:linear-gradient(135deg,var(--p),var(--purple));color:#fff;border-radius:50%;width:34px;height:34px;display:flex;align-items:center;justify-content:center;margin:2px auto 0;font-size:17px;box-shadow:0 0 16px var(--pglow),0 2px 8px rgba(0,0,0,.4)}
@@ -1243,16 +1257,16 @@ select.inp option{background:var(--card2);color:var(--text)}
 .plGrid-allday{display:flex;flex-shrink:0;border-bottom:1px solid var(--border);background:rgba(255,255,255,.015);min-height:24px}
 .plGrid-adGut{width:52px;flex-shrink:0;border-right:1px solid var(--border);font-size:7.5px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.3px;display:flex;align-items:center;justify-content:center;padding:3px}
 .plGrid-adCols{flex:1;display:flex}
-.plGrid-adCol{flex:1;border-right:1px solid rgba(255,255,255,.04);padding:2px 2px;display:flex;flex-direction:column;gap:1px;cursor:pointer}
+.plGrid-adCol{flex:1;border-right:1px solid var(--gridline);padding:2px 2px;display:flex;flex-direction:column;gap:1px;cursor:pointer}
 /* Scroll area */
 .plGrid-scroll{flex:1;overflow-y:auto;display:flex;position:relative}
 .plGrid-timeGut{width:52px;flex-shrink:0;position:relative;border-right:1px solid var(--border)}
 .plGrid-hrLbl{position:absolute;right:6px;font-size:8.5px;color:var(--muted);font-weight:600;transform:translateY(-50%);white-space:nowrap;line-height:1}
 .plGrid-cols{flex:1;display:flex;position:relative}
-.plGrid-col{flex:1;border-right:1px solid rgba(255,255,255,.04);position:relative;cursor:crosshair;transition:background .1s}.plGrid-col:hover{background:rgba(255,255,255,.012)!important}
+.plGrid-col{flex:1;border-right:1px solid var(--gridline);position:relative;cursor:crosshair;transition:background .1s}.plGrid-col:hover{background:rgba(255,255,255,.012)!important}
 .plGrid-col:last-child{border-right:none}
-.plGrid-hline{position:absolute;left:0;right:0;border-top:1px solid rgba(255,255,255,.04);pointer-events:none}
-.plGrid-hline.half{border-top:1px dashed rgba(255,255,255,.025)}
+.plGrid-hline{position:absolute;left:0;right:0;border-top:1px solid var(--gridline);pointer-events:none}
+.plGrid-hline.half{border-top:1px dashed var(--gridline2)}
 /* Now line */
 .plGrid-now{position:absolute;left:0;right:0;pointer-events:none;z-index:6;display:flex;align-items:center}
 .plGrid-nowDot{width:8px;height:8px;border-radius:50%;background:var(--red);flex-shrink:0;margin-left:-4px}
@@ -1269,6 +1283,27 @@ select.inp option{background:var(--card2);color:var(--text)}
 .plEvt-time{font-size:8px;opacity:.75;white-space:nowrap;overflow:hidden;color:inherit;margin-top:1px}
 .plEvt-allday{border-radius:4px;padding:1px 5px;font-size:9px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer;transition:.1s;margin-bottom:1px;display:block;border-left:3px solid rgba(255,255,255,.4)}
 .plEvt-allday:hover{filter:brightness(1.2);transform:translateX(1px)}
+
+/* ── Calendar event quick-action popover (Google-Calendar-style click card) ── */
+.calEvtPopover{
+  position:fixed;z-index:9999;width:240px;max-width:90vw;
+  background:var(--card-glass);backdrop-filter:blur(16px);
+  border:1px solid var(--border2);border-radius:var(--r2);
+  box-shadow:var(--shadow3);padding:12px;
+  animation:calPopIn .14s var(--ease-out);
+}
+@keyframes calPopIn{from{opacity:0;transform:translateY(-4px) scale(.98)}to{opacity:1;transform:none}}
+.calEvtPop-head{display:flex;align-items:flex-start;gap:8px;margin-bottom:8px}
+.calEvtPop-dot{width:11px;height:11px;border-radius:50%;flex-shrink:0;margin-top:3px;box-shadow:0 0 0 3px rgba(255,255,255,.06)}
+.calEvtPop-title{flex:1;font-family:var(--font-display);font-size:13.5px;font-weight:700;color:var(--text);line-height:1.3;word-break:break-word}
+.calEvtPop-close{flex-shrink:0;border:none;background:transparent;color:var(--muted);font-size:13px;cursor:pointer;line-height:1;padding:2px;border-radius:5px;transition:.12s}
+.calEvtPop-close:hover{color:var(--text);background:var(--card2)}
+.calEvtPop-time{font-size:11.5px;color:var(--text2);margin-bottom:4px;padding-left:19px}
+.calEvtPop-note{font-size:11.5px;color:var(--muted);margin-bottom:8px;padding-left:19px;line-height:1.4}
+.calEvtPop-actions{display:flex;gap:6px;margin-top:8px;padding-top:10px;border-top:1px solid var(--border)}
+.calEvtPop-btn{flex:1;border:1px solid var(--border2);background:var(--card2);color:var(--text2);border-radius:8px;padding:7px 8px;font-size:11.5px;font-weight:600;cursor:pointer;transition:.12s;font-family:var(--font-body);display:flex;align-items:center;justify-content:center;gap:4px}
+.calEvtPop-btn:hover{background:var(--card3);color:var(--text);border-color:var(--border3)}
+.calEvtPop-btn.del:hover{background:var(--reddim);color:var(--red);border-color:rgba(255,79,114,.35)}
 
 /* ══════════════════════════════
    5. KANBAN
@@ -4933,7 +4968,7 @@ body.light-mode .skel{background:linear-gradient(90deg,var(--card2) 25%,#f0f2f7 
       <input class="inp" id="plCal-enote" placeholder="Примечание...">
     </div>
     <div style="display:flex;gap:8px">
-      <button class="btn btnR" style="flex-shrink:0" id="plCal-edelBtn" onclick="plCalDeleteEvt()" style="display:none">🗑</button>
+      <button class="btn btnR" style="flex-shrink:0;display:none" id="plCal-edelBtn" onclick="plCalDeleteEvt()">🗑</button>
       <button class="btn btnG" style="flex:1;justify-content:center" onclick="plCalCloseModal()">Отмена</button>
       <button class="btn btnB" style="flex:1;justify-content:center" onclick="plCalSaveEvt()">Сохранить</button>
     </div>
@@ -7881,6 +7916,10 @@ function taskModalDelete(){
    4. CALENDAR — PLANYWAY STYLE
 ═══════════════════════════════════ */
 const CAL_COLORS=['#4f87f7','#2dd4a6','#9b7cf4','#f59e0b','#f87171','#f472b6','#22d3ee','#fb923c'];
+// Event chip text needs to stay legible regardless of which accent color was picked
+// and regardless of theme: mix the accent hue toward white (dark theme) or black
+// (light theme) so it never goes muddy/low-contrast against the chip's tinted bg.
+function evtTextCol(hex){return `color-mix(in srgb, ${hex} 74%, var(--evtmix) 26%)`;}
 const HOUR_H=60; // px per hour in time grid — fits 4 tasks per hour
 const DS_RU=['Вс','Пн','Вт','Ср','Чт','Пт','Сб'];
 const DS_SHORT=['вс','пн','вт','ср','чт','пт','сб'];
@@ -8100,11 +8139,10 @@ function plRenderMonth(main){
     html+=`<div class="plMonth-dn">${day}</div>`;
     evts.slice(0,maxShow).forEach(e=>{
       const alpha=e.done?'0.4':'0.85';
-      const bg=e.color+'22',col=e.color;
+      const bg=e.color+'30',col=evtTextCol(e.color),accent=e.color;
       const timeStr=e.time?`<span style="font-size:8px;opacity:.7;margin-right:2px">${plFmtTime(e.time)}</span>`:'';
       const icon=e.src==='task'?'📋':' ';
-      const clickFn=e.src==='task'?`plCalOpenTask('${e.id}','${dstr}')`:`plCalOpenModal('${e.id}','${dstr}')`;
-      html+=`<div class="plMonth-pill calTaskRow" style="background:${bg};color:${col};border-left:2px solid ${col};${e.done?'text-decoration:line-through;':''}opacity:${e.done?0.6:1}" title="${esc(e.text)}" onclick="event.stopPropagation();${clickFn}">${timeStr}${esc(e.text)}</div>`;
+      html+=`<div class="plMonth-pill calTaskRow" style="background:${bg};color:${col};border-left:2px solid ${accent};${e.done?'text-decoration:line-through;':''}opacity:${e.done?0.6:1}" title="${esc(e.text)}" onclick="event.stopPropagation();showCalEvtPopover(this,'${e.id}','${dstr}','${e.src}',event)">${timeStr}${esc(e.text)}</div>`;
     });
     if(evts.length>maxShow)html+=`<div class="plMonth-more">+${evts.length-maxShow} ещё</div>`;
     html+=`</div>`;
@@ -8182,12 +8220,11 @@ function plRenderGrid(main){
     const allDayEvts=plEvtsForDate(dstr).filter(e=>e.allDay);
     adHtml+=`<div class="plGrid-adCol" onclick="plCalGridOpenTask('${dstr}')">`;
     allDayEvts.forEach(e=>{
-      const bg=e.color+'28',col=e.color;
+      const bg=e.color+'38',col=evtTextCol(e.color),accent=e.color;
       const icon=e.src==='task'?(e.isRepeat?'↻ ':''):'📅 ';
-      const clickFn=e.src==='task'?`plCalOpenTask('${e.id}','${dstr}')`:`plCalOpenModal('${e.id}','${dstr}')`;
-      const adCb=e.src==='task'?`<input type="checkbox" ${e.done?'checked':''} onclick="event.stopPropagation();toggleCalTaskDone('${e.id}','${dstr}',this.checked)" style="flex-shrink:0;margin-right:4px;accent-color:${col};cursor:pointer;width:11px;height:11px">`:''
-      adHtml+=`<div class="plEvt-allday calTaskRow" style="background:${bg};color:${col};border-left-color:${col};opacity:${e.done?0.6:1};cursor:pointer;${e.done?'text-decoration:line-through;':''};display:flex;align-items:center" title="${esc(e.text)}" onclick="event.stopPropagation();${clickFn}">
-        ${adCb}<span style="width:7px;height:7px;border-radius:50%;background:${col};display:inline-block;flex-shrink:0;margin-right:4px"></span>${icon}${esc(e.text)}
+      const adCb=e.src==='task'?`<input type="checkbox" ${e.done?'checked':''} onclick="event.stopPropagation();toggleCalTaskDone('${e.id}','${dstr}',this.checked)" style="flex-shrink:0;margin-right:4px;accent-color:${accent};cursor:pointer;width:11px;height:11px">`:''
+      adHtml+=`<div class="plEvt-allday calTaskRow" style="background:${bg};color:${col};border-left-color:${accent};opacity:${e.done?0.6:1};cursor:pointer;${e.done?'text-decoration:line-through;':''};display:flex;align-items:center" title="${esc(e.text)}" onclick="event.stopPropagation();showCalEvtPopover(this,'${e.id}','${dstr}','${e.src}',event)">
+        ${adCb}<span style="width:7px;height:7px;border-radius:50%;background:${accent};display:inline-block;flex-shrink:0;margin-right:4px"></span>${icon}${esc(e.text)}
       </div>`;
     });
     adHtml+=`</div>`;
@@ -8198,9 +8235,9 @@ function plRenderGrid(main){
   let gutHtml=`<div class="plGrid-timeGut" style="height:${totalH}px">`;
   for(let h=0;h<24;h++){
     gutHtml+=`<div class="plGrid-hrLbl" style="top:${h*HOUR_H}px">${h<10?'0'+h:h}:00</div>`;
-    gutHtml+=`<div style="position:absolute;right:4px;top:${h*HOUR_H+HOUR_H/4}px;font-size:7.5px;color:rgba(255,255,255,.18);transform:translateY(-50%);pointer-events:none;font-family:var(--font-mono)">:15</div>`;
-    gutHtml+=`<div style="position:absolute;right:4px;top:${h*HOUR_H+HOUR_H/2}px;font-size:8px;color:rgba(255,255,255,.25);transform:translateY(-50%);pointer-events:none;font-family:var(--font-mono)">:30</div>`;
-    gutHtml+=`<div style="position:absolute;right:4px;top:${h*HOUR_H+HOUR_H*3/4}px;font-size:7.5px;color:rgba(255,255,255,.18);transform:translateY(-50%);pointer-events:none;font-family:var(--font-mono)">:45</div>`;
+    gutHtml+=`<div style="position:absolute;right:4px;top:${h*HOUR_H+HOUR_H/4}px;font-size:7.5px;color:var(--gridline-label);transform:translateY(-50%);pointer-events:none;font-family:var(--font-mono)">:15</div>`;
+    gutHtml+=`<div style="position:absolute;right:4px;top:${h*HOUR_H+HOUR_H/2}px;font-size:8px;color:var(--gridline-label2);transform:translateY(-50%);pointer-events:none;font-family:var(--font-mono)">:30</div>`;
+    gutHtml+=`<div style="position:absolute;right:4px;top:${h*HOUR_H+HOUR_H*3/4}px;font-size:7.5px;color:var(--gridline-label);transform:translateY(-50%);pointer-events:none;font-family:var(--font-mono)">:45</div>`;
   }
   gutHtml+=`</div>`;
 
@@ -8210,8 +8247,8 @@ function plRenderGrid(main){
   for(let h=0;h<24;h++){
     linesHtml+=`<div class="plGrid-hline" style="top:${h*HOUR_H}px;left:0;right:0;position:absolute"></div>`;
     linesHtml+=`<div class="plGrid-hline half" style="top:${h*HOUR_H+HOUR_H/2}px;left:0;right:0;position:absolute"></div>`;
-    linesHtml+=`<div class="plGrid-hline" style="top:${h*HOUR_H+HOUR_H/4}px;left:0;right:0;position:absolute;border-color:rgba(255,255,255,.025)"></div>`;
-    linesHtml+=`<div class="plGrid-hline" style="top:${h*HOUR_H+HOUR_H*3/4}px;left:0;right:0;position:absolute;border-color:rgba(255,255,255,.025)"></div>`;
+    linesHtml+=`<div class="plGrid-hline" style="top:${h*HOUR_H+HOUR_H/4}px;left:0;right:0;position:absolute;border-color:var(--gridline2)"></div>`;
+    linesHtml+=`<div class="plGrid-hline" style="top:${h*HOUR_H+HOUR_H*3/4}px;left:0;right:0;position:absolute;border-color:var(--gridline2)"></div>`;
   }
   dates.forEach((dstr,ci)=>{
     const isT=dstr===todK;
@@ -8234,12 +8271,12 @@ function plRenderGrid(main){
       const stepPct=colCount>1?(94/colCount):0;
       const leftPct=col*stepPct;
       const widthPct=col===colCount-1?(100-leftPct):(stepPct+ (94/colCount)*0.18);
-      const bg=e.color+'22',col_=e.color;
+      const bg=e.color+'30',txtCol=evtTextCol(e.color),accent=e.color;
       const tStr=plFmtTime(e.time)+(e.endTime?' – '+plFmtTime(e.endTime):'');
       const icon=e.src==='task'?(e.isRepeat?'↻ ':''):'';
       const evtSrc=e.src;const evtId=e.id;
-      const doneStyle=e.done?`background:${bg};color:${col_};border-left-color:${col_};opacity:.6;`:`background:${bg};color:${col_};border-left-color:${col_};`;
-      const cbHtml=e.src==='task'?`<input type="checkbox" class="calEvtCb" ${e.done?'checked':''} onclick="event.stopPropagation();toggleCalTaskDone('${e.id}','${dstr}',this.checked)" style="margin-right:3px;accent-color:${col_}">`:''
+      const doneStyle=e.done?`background:${bg};color:${txtCol};border-left-color:${accent};opacity:.6;`:`background:${bg};color:${txtCol};border-left-color:${accent};`;
+      const cbHtml=e.src==='task'?`<input type="checkbox" class="calEvtCb" ${e.done?'checked':''} onclick="event.stopPropagation();toggleCalTaskDone('${e.id}','${dstr}',this.checked)" style="margin-right:3px;accent-color:${accent}">`:''
       const zIndex=10+col;
       colsHtml+=`<div class="plEvt calTaskRow" data-evtid="${e.id}" data-dstr="${dstr}" data-src="${e.src}" data-sm="${sm}" data-em="${em}" draggable="true" style="top:${top}px;height:${height}px;left:calc(${leftPct}% + 2px);width:calc(${widthPct}% - 4px);z-index:${zIndex};${doneStyle}overflow:hidden;cursor:pointer;display:flex;align-items:flex-start;padding:3px 5px;gap:2px" title="${esc(e.text)}">
         ${cbHtml}<div style="flex:1;min-width:0;overflow:hidden">
@@ -8286,13 +8323,12 @@ function _plClearDragPreview(){
 function _plSetupGridInteraction(main,dates,totalH){
   const colsWrap=main.querySelector('#plGridCols');if(!colsWrap)return;
 
-  // ── Click to OPEN existing events ──
+  // ── Click to OPEN existing events (Google-Calendar-style quick popover) ──
   colsWrap.querySelectorAll('.plEvt[data-evtid]').forEach(evtEl=>{
     evtEl.addEventListener('click',e=>{
       e.stopPropagation();
       const src=evtEl.dataset.src,id=evtEl.dataset.evtid,dstr=evtEl.dataset.dstr;
-      if(src==='task') plCalOpenTask(id,dstr);
-      else plCalOpenModal(id,dstr);
+      showCalEvtPopover(evtEl,id,dstr,src,e);
     });
     evtEl.style.cursor='pointer';
     // ── Drag-to-MOVE existing events ──
@@ -8570,10 +8606,75 @@ function plCalSaveEvt(){
 }
 function plCalDeleteEvt(){
   const evtId=document.getElementById('plCal-eid').value;if(!evtId)return;
+  deleteCalEvtById(evtId);
+  plCalCloseModal();
+}
+function deleteCalEvtById(evtId){
   const evts=calEventsD();
   Object.keys(evts).forEach(d=>{evts[d]=evts[d].filter(e=>e.id!==evtId);if(!evts[d].length)delete evts[d];});
-  saveD();plCalCloseModal();renderCal();
+  saveD();renderCal();
 }
+
+/* ── Calendar event quick-action popover (Google-Calendar-style: click an
+   event → small card with its details and a one-click Delete/Edit) ── */
+let _calPopoverEl=null;
+function closeCalEvtPopover(){
+  if(_calPopoverEl){_calPopoverEl.remove();_calPopoverEl=null;}
+  document.removeEventListener('mousedown',_calPopoverOutside,true);
+  window.removeEventListener('resize',closeCalEvtPopover);
+}
+function _calPopoverOutside(ev){
+  if(_calPopoverEl&&!_calPopoverEl.contains(ev.target))closeCalEvtPopover();
+}
+function showCalEvtPopover(anchorEl,evtId,dstr,src,domEvent){
+  if(domEvent){domEvent.stopPropagation();domEvent.preventDefault();}
+  closeCalEvtPopover();
+  const isTask=src==='task';
+  let title='',timeStr='',color=CAL_COLORS[0],note='';
+  if(isTask){
+    const t=tpD().find(x=>x.id===evtId);if(!t)return;
+    title=t.text;color=getTaskCalColor(t);
+    timeStr=t.time?plFmtTime(t.time)+(t.endTime?' – '+plFmtTime(t.endTime):''):'Весь день';
+  } else {
+    const evts=calEventsD();let found=null;
+    Object.values(evts).forEach(arr=>(arr||[]).forEach(e=>{if(e.id===evtId)found=e;}));
+    if(!found)return;
+    title=found.text;color=found.color||CAL_COLORS[0];note=found.note||'';
+    timeStr=found.time?plFmtTime(found.time)+(found.endTime?' – '+plFmtTime(found.endTime):''):'Весь день';
+  }
+  const editFn=isTask?`plCalOpenTask('${evtId}','${dstr}')`:`plCalOpenModal('${evtId}','${dstr}')`;
+  const delFn=isTask?`wTaskDel('${evtId}','${dstr}')`:`deleteCalEvtById('${evtId}')`;
+  const pop=document.createElement('div');
+  pop.className='calEvtPopover';
+  pop.innerHTML=`
+    <div class="calEvtPop-head">
+      <span class="calEvtPop-dot" style="background:${color}"></span>
+      <span class="calEvtPop-title">${esc(title)}</span>
+      <button class="calEvtPop-close" onclick="closeCalEvtPopover()">✕</button>
+    </div>
+    <div class="calEvtPop-time">🕐 ${timeStr}</div>
+    ${note?`<div class="calEvtPop-note">${esc(note)}</div>`:''}
+    <div class="calEvtPop-actions">
+      <button class="calEvtPop-btn edit" onclick="closeCalEvtPopover();${editFn}">✏️ Изменить</button>
+      <button class="calEvtPop-btn del" onclick="${delFn};closeCalEvtPopover()">🗑 Удалить</button>
+    </div>`;
+  document.body.appendChild(pop);
+  _calPopoverEl=pop;
+  const rect=anchorEl.getBoundingClientRect();
+  const pw=pop.offsetWidth,ph=pop.offsetHeight;
+  let left=rect.right+8,top=rect.top;
+  if(left+pw>window.innerWidth-8)left=rect.left-pw-8;
+  if(left<8)left=Math.min(Math.max(rect.left,8),Math.max(8,window.innerWidth-pw-8));
+  if(top+ph>window.innerHeight-8)top=Math.max(8,window.innerHeight-ph-8);
+  if(top<8)top=8;
+  pop.style.left=left+'px';
+  pop.style.top=top+'px';
+  setTimeout(()=>{
+    document.addEventListener('mousedown',_calPopoverOutside,true);
+    window.addEventListener('resize',closeCalEvtPopover);
+  },0);
+}
+
 
 // ── Backward compat stubs ──
 function renderCalUpcoming(){plRenderUpcoming();}
