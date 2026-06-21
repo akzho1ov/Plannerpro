@@ -1198,6 +1198,8 @@ select.inp option{background:var(--card2);color:var(--text)}
 .tvSwitchBtn.on .tvIco{opacity:1}
 body.light-mode .tvSwitch{background:var(--card2)}
 body.light-mode .tvSwitchBtn.on{color:#fff}
+.tvSwitch--inline{margin:0 0 0 4px;flex-shrink:0}
+@media(max-width:900px){.tvSwitch--inline{margin:10px 0 0;width:100%}}
 
 /* Body */
 .plCal-body{display:flex;flex:1;min-height:0;overflow:hidden}
@@ -3693,11 +3695,16 @@ body.light-mode .skel{background:linear-gradient(90deg,var(--card2) 25%,#f0f2f7 
         <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="m7 10 3 3 3-3"/><path d="m7 6 3 3 3-3"/></svg>
         <span class="pbc-active">Неделя</span>
       </nav>
-      <div class="paneHeadRow">
+      <div class="paneHeadRow" style="flex-wrap:wrap">
         <div class="paneHeadIcon" style="background:rgba(91,149,255,.12);border-color:rgba(91,149,255,.25)">📅</div>
         <div>
           <h1 class="paneTitle">Недельный план</h1>
-          <p class="paneSubtitle">Фокус, задачи и заметки по дням</p>
+        </div>
+        <div class="tvSwitch tvSwitch--inline" role="tablist" aria-label="Виды раздела Задачи">
+          <button class="tvSwitchBtn" data-tab="tasks" onclick="navigateTo('tasks')"><span class="tvIco">✅</span>Список</button>
+          <button class="tvSwitchBtn" data-tab="weekly" onclick="navigateTo('weekly')"><span class="tvIco">📅</span>Неделя</button>
+          <button class="tvSwitchBtn" data-tab="calendar" onclick="navigateTo('calendar')"><span class="tvIco">📆</span>Календарь</button>
+          <button class="tvSwitchBtn" data-tab="kanban" onclick="navigateTo('kanban')"><span class="tvIco">🗂</span>Канбан</button>
         </div>
       </div>
     </div>
@@ -3708,12 +3715,6 @@ body.light-mode .skel{background:linear-gradient(90deg,var(--card2) 25%,#f0f2f7 
       <button class="btn btnO" onclick="wkToday()">Сегодня</button>
     </div>
   </header>
-  <div class="tvSwitch" role="tablist" aria-label="Виды раздела Задачи">
-    <button class="tvSwitchBtn" data-tab="tasks" onclick="navigateTo('tasks')"><span class="tvIco">✅</span>Список</button>
-    <button class="tvSwitchBtn" data-tab="weekly" onclick="navigateTo('weekly')"><span class="tvIco">📅</span>Неделя</button>
-    <button class="tvSwitchBtn" data-tab="calendar" onclick="navigateTo('calendar')"><span class="tvIco">📆</span>Календарь</button>
-    <button class="tvSwitchBtn" data-tab="kanban" onclick="navigateTo('kanban')"><span class="tvIco">🗂</span>Канбан</button>
-  </div>
   <div class="wGrid" id="wGrid"></div>
 </div>
 
@@ -3791,11 +3792,16 @@ body.light-mode .skel{background:linear-gradient(90deg,var(--card2) 25%,#f0f2f7 
         <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="m7 10 3 3 3-3"/><path d="m7 6 3 3 3-3"/></svg>
         <span onclick="navigateTo('tasks')" class="pbc-active">Задачи</span>
       </nav>
-      <div class="paneHeadRow">
+      <div class="paneHeadRow" style="flex-wrap:wrap">
         <div class="paneHeadIcon" style="background:rgba(91,149,255,.12);border-color:rgba(91,149,255,.25)">✅</div>
         <div>
           <h1 class="paneTitle">Задачи</h1>
-          <p class="paneSubtitle">Список, фильтры, приоритеты</p>
+        </div>
+        <div class="tvSwitch tvSwitch--inline" role="tablist" aria-label="Виды раздела Задачи">
+          <button class="tvSwitchBtn" data-tab="tasks" onclick="navigateTo('tasks')"><span class="tvIco">✅</span>Список</button>
+          <button class="tvSwitchBtn" data-tab="weekly" onclick="navigateTo('weekly')"><span class="tvIco">📅</span>Неделя</button>
+          <button class="tvSwitchBtn" data-tab="calendar" onclick="navigateTo('calendar')"><span class="tvIco">📆</span>Календарь</button>
+          <button class="tvSwitchBtn" data-tab="kanban" onclick="navigateTo('kanban')"><span class="tvIco">🗂</span>Канбан</button>
         </div>
       </div>
     </div>
@@ -3804,12 +3810,6 @@ body.light-mode .skel{background:linear-gradient(90deg,var(--card2) 25%,#f0f2f7 
       <button id="tpToggleDone" class="btn btnG" style="font-size:10px;padding:5px 10px" onclick="tpToggleDone()">🙈 Готовые</button>
     </div>
   </header>
-  <div class="tvSwitch" role="tablist" aria-label="Виды раздела Задачи">
-    <button class="tvSwitchBtn" data-tab="tasks" onclick="navigateTo('tasks')"><span class="tvIco">✅</span>Список</button>
-    <button class="tvSwitchBtn" data-tab="weekly" onclick="navigateTo('weekly')"><span class="tvIco">📅</span>Неделя</button>
-    <button class="tvSwitchBtn" data-tab="calendar" onclick="navigateTo('calendar')"><span class="tvIco">📆</span>Календарь</button>
-    <button class="tvSwitchBtn" data-tab="kanban" onclick="navigateTo('kanban')"><span class="tvIco">🗂</span>Канбан</button>
-  </div>
   <div class="card" style="padding:12px 14px;margin-bottom:12px">
     <!-- Stats strip -->
     <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:10px">
@@ -3892,21 +3892,20 @@ body.light-mode .skel{background:linear-gradient(90deg,var(--card2) 25%,#f0f2f7 
         <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="m7 10 3 3 3-3"/><path d="m7 6 3 3 3-3"/></svg>
         <span class="pbc-active">Календарь</span>
       </nav>
-      <div class="paneHeadRow">
+      <div class="paneHeadRow" style="flex-wrap:wrap">
         <div class="paneHeadIcon" style="background:rgba(91,149,255,.12);border-color:rgba(91,149,255,.25)">📆</div>
         <div>
           <h1 class="paneTitle">Календарь</h1>
-          <p class="paneSubtitle">События · Недели · Месяцы</p>
+        </div>
+        <div class="tvSwitch tvSwitch--inline" role="tablist" aria-label="Виды раздела Задачи">
+          <button class="tvSwitchBtn" data-tab="tasks" onclick="navigateTo('tasks')"><span class="tvIco">✅</span>Список</button>
+          <button class="tvSwitchBtn" data-tab="weekly" onclick="navigateTo('weekly')"><span class="tvIco">📅</span>Неделя</button>
+          <button class="tvSwitchBtn" data-tab="calendar" onclick="navigateTo('calendar')"><span class="tvIco">📆</span>Календарь</button>
+          <button class="tvSwitchBtn" data-tab="kanban" onclick="navigateTo('kanban')"><span class="tvIco">🗂</span>Канбан</button>
         </div>
       </div>
     </div>
   </header>
-  <div class="tvSwitch" role="tablist" aria-label="Виды раздела Задачи">
-    <button class="tvSwitchBtn" data-tab="tasks" onclick="navigateTo('tasks')"><span class="tvIco">✅</span>Список</button>
-    <button class="tvSwitchBtn" data-tab="weekly" onclick="navigateTo('weekly')"><span class="tvIco">📅</span>Неделя</button>
-    <button class="tvSwitchBtn" data-tab="calendar" onclick="navigateTo('calendar')"><span class="tvIco">📆</span>Календарь</button>
-    <button class="tvSwitchBtn" data-tab="kanban" onclick="navigateTo('kanban')"><span class="tvIco">🗂</span>Канбан</button>
-  </div>
   </div>
   <!-- Toolbar -->
   <div class="plCal-toolbar">
@@ -3960,22 +3959,21 @@ body.light-mode .skel{background:linear-gradient(90deg,var(--card2) 25%,#f0f2f7 
         <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="m7 10 3 3 3-3"/><path d="m7 6 3 3 3-3"/></svg>
         <span class="pbc-active">Канбан</span>
       </nav>
-      <div class="paneHeadRow">
+      <div class="paneHeadRow" style="flex-wrap:wrap">
         <div class="paneHeadIcon" style="background:rgba(155,143,245,.12);border-color:rgba(155,143,245,.25)">🗂</div>
         <div>
           <h1 class="paneTitle">Канбан</h1>
-          <p class="paneSubtitle">Доски · Колонки · Карточки</p>
+        </div>
+        <div class="tvSwitch tvSwitch--inline" role="tablist" aria-label="Виды раздела Задачи">
+          <button class="tvSwitchBtn" data-tab="tasks" onclick="navigateTo('tasks')"><span class="tvIco">✅</span>Список</button>
+          <button class="tvSwitchBtn" data-tab="weekly" onclick="navigateTo('weekly')"><span class="tvIco">📅</span>Неделя</button>
+          <button class="tvSwitchBtn" data-tab="calendar" onclick="navigateTo('calendar')"><span class="tvIco">📆</span>Календарь</button>
+          <button class="tvSwitchBtn" data-tab="kanban" onclick="navigateTo('kanban')"><span class="tvIco">🗂</span>Канбан</button>
         </div>
       </div>
     </div>
     <div class="paneHeadActions" id="kbBoardBarWrap"></div>
   </header>
-  <div class="tvSwitch" role="tablist" aria-label="Виды раздела Задачи">
-    <button class="tvSwitchBtn" data-tab="tasks" onclick="navigateTo('tasks')"><span class="tvIco">✅</span>Список</button>
-    <button class="tvSwitchBtn" data-tab="weekly" onclick="navigateTo('weekly')"><span class="tvIco">📅</span>Неделя</button>
-    <button class="tvSwitchBtn" data-tab="calendar" onclick="navigateTo('calendar')"><span class="tvIco">📆</span>Календарь</button>
-    <button class="tvSwitchBtn" data-tab="kanban" onclick="navigateTo('kanban')"><span class="tvIco">🗂</span>Канбан</button>
-  </div>
   <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;flex-wrap:wrap;gap:8px">
     <div class="kbBoardBar" id="kbBoardBar">
       <span style="font-family:var(--font-display);font-size:20px;font-style:normal;font-weight:700;letter-spacing:-.4px;color:var(--purple)">Канбан</span>
