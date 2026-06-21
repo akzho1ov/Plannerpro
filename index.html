@@ -1198,8 +1198,8 @@ select.inp option{background:var(--card2);color:var(--text)}
 .tvSwitchBtn.on .tvIco{opacity:1}
 body.light-mode .tvSwitch{background:var(--card2)}
 body.light-mode .tvSwitchBtn.on{color:#fff}
-.tvSwitch--inline{margin:0 0 0 4px;flex-shrink:0}
-@media(max-width:900px){.tvSwitch--inline{margin:10px 0 0;width:100%}}
+.tvSwitch--inline{margin:0 auto;flex-shrink:0}
+@media(max-width:900px){.tvSwitch--inline{margin:10px auto 0;width:100%}}
 
 /* Body */
 .plCal-body{display:flex;flex:1;min-height:0;overflow:hidden}
@@ -2727,6 +2727,8 @@ body.light-mode .subTabs--pink   .subTab.on{box-shadow:0 1px 4px rgba(30,40,90,.
 }
 .paneSubtitle{display:none}
 .paneHeadActions{display:flex;align-items:center;gap:6px;flex-wrap:wrap;flex-shrink:0}
+.paneHeadCenter{display:flex;justify-content:center;flex:1;min-width:160px}
+@media(max-width:900px){.paneHeadCenter{order:3;flex-basis:100%;justify-content:flex-start}}
 
 /* Breadcrumb */
 .paneBreadcrumb{
@@ -3695,17 +3697,19 @@ body.light-mode .skel{background:linear-gradient(90deg,var(--card2) 25%,#f0f2f7 
         <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="m7 10 3 3 3-3"/><path d="m7 6 3 3 3-3"/></svg>
         <span class="pbc-active">Неделя</span>
       </nav>
-      <div class="paneHeadRow" style="flex-wrap:wrap">
+      <div class="paneHeadRow">
         <div class="paneHeadIcon" style="background:rgba(91,149,255,.12);border-color:rgba(91,149,255,.25)">📅</div>
         <div>
           <h1 class="paneTitle">Недельный план</h1>
         </div>
-        <div class="tvSwitch tvSwitch--inline" role="tablist" aria-label="Виды раздела Задачи">
-          <button class="tvSwitchBtn" data-tab="tasks" onclick="navigateTo('tasks')"><span class="tvIco">✅</span>Список</button>
-          <button class="tvSwitchBtn" data-tab="weekly" onclick="navigateTo('weekly')"><span class="tvIco">📅</span>Неделя</button>
-          <button class="tvSwitchBtn" data-tab="calendar" onclick="navigateTo('calendar')"><span class="tvIco">📆</span>Календарь</button>
-          <button class="tvSwitchBtn" data-tab="kanban" onclick="navigateTo('kanban')"><span class="tvIco">🗂</span>Канбан</button>
-        </div>
+      </div>
+    </div>
+    <div class="paneHeadCenter">
+      <div class="tvSwitch tvSwitch--inline" role="tablist" aria-label="Виды раздела Задачи">
+        <button class="tvSwitchBtn" data-tab="tasks" onclick="navigateTo('tasks')"><span class="tvIco">✅</span>Список</button>
+        <button class="tvSwitchBtn" data-tab="weekly" onclick="navigateTo('weekly')"><span class="tvIco">📅</span>Неделя</button>
+        <button class="tvSwitchBtn" data-tab="calendar" onclick="navigateTo('calendar')"><span class="tvIco">📆</span>Календарь</button>
+        <button class="tvSwitchBtn" data-tab="kanban" onclick="navigateTo('kanban')"><span class="tvIco">🗂</span>Канбан</button>
       </div>
     </div>
     <div class="paneHeadActions">
@@ -3792,17 +3796,19 @@ body.light-mode .skel{background:linear-gradient(90deg,var(--card2) 25%,#f0f2f7 
         <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="m7 10 3 3 3-3"/><path d="m7 6 3 3 3-3"/></svg>
         <span onclick="navigateTo('tasks')" class="pbc-active">Задачи</span>
       </nav>
-      <div class="paneHeadRow" style="flex-wrap:wrap">
+      <div class="paneHeadRow">
         <div class="paneHeadIcon" style="background:rgba(91,149,255,.12);border-color:rgba(91,149,255,.25)">✅</div>
         <div>
           <h1 class="paneTitle">Задачи</h1>
         </div>
-        <div class="tvSwitch tvSwitch--inline" role="tablist" aria-label="Виды раздела Задачи">
-          <button class="tvSwitchBtn" data-tab="tasks" onclick="navigateTo('tasks')"><span class="tvIco">✅</span>Список</button>
-          <button class="tvSwitchBtn" data-tab="weekly" onclick="navigateTo('weekly')"><span class="tvIco">📅</span>Неделя</button>
-          <button class="tvSwitchBtn" data-tab="calendar" onclick="navigateTo('calendar')"><span class="tvIco">📆</span>Календарь</button>
-          <button class="tvSwitchBtn" data-tab="kanban" onclick="navigateTo('kanban')"><span class="tvIco">🗂</span>Канбан</button>
-        </div>
+      </div>
+    </div>
+    <div class="paneHeadCenter">
+      <div class="tvSwitch tvSwitch--inline" role="tablist" aria-label="Виды раздела Задачи">
+        <button class="tvSwitchBtn" data-tab="tasks" onclick="navigateTo('tasks')"><span class="tvIco">✅</span>Список</button>
+        <button class="tvSwitchBtn" data-tab="weekly" onclick="navigateTo('weekly')"><span class="tvIco">📅</span>Неделя</button>
+        <button class="tvSwitchBtn" data-tab="calendar" onclick="navigateTo('calendar')"><span class="tvIco">📆</span>Календарь</button>
+        <button class="tvSwitchBtn" data-tab="kanban" onclick="navigateTo('kanban')"><span class="tvIco">🗂</span>Канбан</button>
       </div>
     </div>
     <div class="paneHeadActions">
@@ -3892,17 +3898,19 @@ body.light-mode .skel{background:linear-gradient(90deg,var(--card2) 25%,#f0f2f7 
         <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="m7 10 3 3 3-3"/><path d="m7 6 3 3 3-3"/></svg>
         <span class="pbc-active">Календарь</span>
       </nav>
-      <div class="paneHeadRow" style="flex-wrap:wrap">
+      <div class="paneHeadRow">
         <div class="paneHeadIcon" style="background:rgba(91,149,255,.12);border-color:rgba(91,149,255,.25)">📆</div>
         <div>
           <h1 class="paneTitle">Календарь</h1>
         </div>
-        <div class="tvSwitch tvSwitch--inline" role="tablist" aria-label="Виды раздела Задачи">
-          <button class="tvSwitchBtn" data-tab="tasks" onclick="navigateTo('tasks')"><span class="tvIco">✅</span>Список</button>
-          <button class="tvSwitchBtn" data-tab="weekly" onclick="navigateTo('weekly')"><span class="tvIco">📅</span>Неделя</button>
-          <button class="tvSwitchBtn" data-tab="calendar" onclick="navigateTo('calendar')"><span class="tvIco">📆</span>Календарь</button>
-          <button class="tvSwitchBtn" data-tab="kanban" onclick="navigateTo('kanban')"><span class="tvIco">🗂</span>Канбан</button>
-        </div>
+      </div>
+    </div>
+    <div class="paneHeadCenter">
+      <div class="tvSwitch tvSwitch--inline" role="tablist" aria-label="Виды раздела Задачи">
+        <button class="tvSwitchBtn" data-tab="tasks" onclick="navigateTo('tasks')"><span class="tvIco">✅</span>Список</button>
+        <button class="tvSwitchBtn" data-tab="weekly" onclick="navigateTo('weekly')"><span class="tvIco">📅</span>Неделя</button>
+        <button class="tvSwitchBtn" data-tab="calendar" onclick="navigateTo('calendar')"><span class="tvIco">📆</span>Календарь</button>
+        <button class="tvSwitchBtn" data-tab="kanban" onclick="navigateTo('kanban')"><span class="tvIco">🗂</span>Канбан</button>
       </div>
     </div>
   </header>
@@ -3959,17 +3967,19 @@ body.light-mode .skel{background:linear-gradient(90deg,var(--card2) 25%,#f0f2f7 
         <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="m7 10 3 3 3-3"/><path d="m7 6 3 3 3-3"/></svg>
         <span class="pbc-active">Канбан</span>
       </nav>
-      <div class="paneHeadRow" style="flex-wrap:wrap">
+      <div class="paneHeadRow">
         <div class="paneHeadIcon" style="background:rgba(155,143,245,.12);border-color:rgba(155,143,245,.25)">🗂</div>
         <div>
           <h1 class="paneTitle">Канбан</h1>
         </div>
-        <div class="tvSwitch tvSwitch--inline" role="tablist" aria-label="Виды раздела Задачи">
-          <button class="tvSwitchBtn" data-tab="tasks" onclick="navigateTo('tasks')"><span class="tvIco">✅</span>Список</button>
-          <button class="tvSwitchBtn" data-tab="weekly" onclick="navigateTo('weekly')"><span class="tvIco">📅</span>Неделя</button>
-          <button class="tvSwitchBtn" data-tab="calendar" onclick="navigateTo('calendar')"><span class="tvIco">📆</span>Календарь</button>
-          <button class="tvSwitchBtn" data-tab="kanban" onclick="navigateTo('kanban')"><span class="tvIco">🗂</span>Канбан</button>
-        </div>
+      </div>
+    </div>
+    <div class="paneHeadCenter">
+      <div class="tvSwitch tvSwitch--inline" role="tablist" aria-label="Виды раздела Задачи">
+        <button class="tvSwitchBtn" data-tab="tasks" onclick="navigateTo('tasks')"><span class="tvIco">✅</span>Список</button>
+        <button class="tvSwitchBtn" data-tab="weekly" onclick="navigateTo('weekly')"><span class="tvIco">📅</span>Неделя</button>
+        <button class="tvSwitchBtn" data-tab="calendar" onclick="navigateTo('calendar')"><span class="tvIco">📆</span>Календарь</button>
+        <button class="tvSwitchBtn" data-tab="kanban" onclick="navigateTo('kanban')"><span class="tvIco">🗂</span>Канбан</button>
       </div>
     </div>
     <div class="paneHeadActions" id="kbBoardBarWrap"></div>
@@ -5086,13 +5096,17 @@ body.light-mode .skel{background:linear-gradient(90deg,var(--card2) 25%,#f0f2f7 
           <button onclick="document.getElementById('kb-actualDuration').value=90" style="border:1px solid var(--border2);background:var(--card3);color:var(--text2);border-radius:8px;padding:4px 9px;font-size:10px;font-weight:700;cursor:pointer">1.5ч</button>
           <button onclick="document.getElementById('kb-actualDuration').value=120" style="border:1px solid var(--border2);background:var(--card3);color:var(--text2);border-radius:8px;padding:4px 9px;font-size:10px;font-weight:700;cursor:pointer">2ч</button>
         </div>
+        <div id="kb-timerDisplay" style="font-family:var(--font-mono);font-size:12px;font-weight:700;color:var(--green);min-width:48px;display:none">00:00</div>
+        <button id="kb-timerBtn" onclick="_kbToggleTimer()" style="display:flex;align-items:center;gap:5px;border:1px solid rgba(15,221,170,.3);background:rgba(15,221,170,.08);color:var(--green);border-radius:8px;padding:5px 10px;font-size:10px;font-weight:700;cursor:pointer;transition:all .15s">
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><polygon points="5,3 19,12 5,21"/></svg> Старт
+        </button>
       </div>
     </div>
 
     <!-- Labels — identical style to task modal -->
     <div class="tmField">
       <label class="tmLabel">Метка</label>
-      <div id="kbLabelsList" style="display:flex;flex-wrap:wrap;gap:6px;max-height:180px;overflow-y:auto;padding-right:2px;scrollbar-width:thin"></div>
+      <div id="kbLabelsList" style="display:flex;flex-direction:column;gap:8px;max-height:240px;overflow-y:auto;padding-right:2px;scrollbar-width:thin"></div>
     </div>
 
     <!-- Notes -->
@@ -7647,6 +7661,34 @@ function _tmToggleTimer(){
 /* ─── old tracker stub (keep for save compatibility) ─── */
 function _updateTimeTrackerBar(){}
 
+/* ── Kanban stopwatch (mirrors _tmToggleTimer) ── */
+let _kbTimerInterval=null,_kbTimerStart=0,_kbTimerBase=0;
+function _kbToggleTimer(){
+  const btn=document.getElementById('kb-timerBtn');
+  const display=document.getElementById('kb-timerDisplay');
+  const inp=document.getElementById('kb-actualDuration');
+  if(_kbTimerInterval){
+    clearInterval(_kbTimerInterval);_kbTimerInterval=null;
+    const elapsed=Math.floor((Date.now()-_kbTimerStart)/1000)+_kbTimerBase;
+    const mins=Math.max(1,Math.round(elapsed/60));
+    if(inp)inp.value=mins;
+    if(btn)btn.innerHTML='<svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><polygon points="5,3 19,12 5,21"/></svg> Старт';
+    if(btn){btn.style.background='rgba(15,221,170,.08)';btn.style.color='var(--green)';btn.style.borderColor='rgba(15,221,170,.3)';}
+    if(display)display.style.display='none';
+  } else {
+    _kbTimerBase=parseInt(inp?.value||0)*60||0;
+    _kbTimerStart=Date.now();
+    if(display)display.style.display='block';
+    if(btn)btn.innerHTML='<svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg> Стоп';
+    if(btn){btn.style.background='rgba(255,79,114,.1)';btn.style.color='var(--red)';btn.style.borderColor='rgba(255,79,114,.3)';}
+    _kbTimerInterval=setInterval(()=>{
+      const sec=Math.floor((Date.now()-_kbTimerStart)/1000)+_kbTimerBase;
+      const hh=Math.floor(sec/3600),mm=Math.floor((sec%3600)/60),ss=sec%60;
+      if(display)display.textContent=(hh?hh+':':'')+String(mm).padStart(2,'0')+':'+String(ss).padStart(2,'0');
+    },500);
+  }
+}
+
 
 function openTaskModal(idx,prefillDate,dstr){
   // idx can be array index (number) or task id (string) or -1/''/null for new task
@@ -8995,7 +9037,7 @@ function openKbModal(colId,cardId){
   const linkedTask=c?.taskId?tpD().find(t=>t.id===c.taskId):null;
   const src=linkedTask||c; // prefer synced task data
 
-  document.getElementById('kbModalTitle').textContent=c?'Редактировать':'Новая карточка';
+  document.getElementById('kbModalTitle').textContent=c?'Редактировать задачу':'Новая задача';
   document.getElementById('kbCardTitle').value=src?(linkedTask?linkedTask.text:c.title):'';
   document.getElementById('kbCardDesc').value=src?(linkedTask?linkedTask.notes:c.desc):'';
   // Auto-set deadline based on column when creating new card
@@ -9012,6 +9054,11 @@ function openKbModal(colId,cardId){
   document.getElementById('kb-actualDuration').value=linkedTask?.actualDuration||c?.actualDuration||'';
   document.getElementById('kb-done').checked=linkedTask?!!linkedTask.done:!!c?.done;
   document.getElementById('kb-id').value=cardId||'';
+  if(_kbTimerInterval){clearInterval(_kbTimerInterval);_kbTimerInterval=null;}
+  const kbTimerBtn=document.getElementById('kb-timerBtn');
+  if(kbTimerBtn){kbTimerBtn.innerHTML='<svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><polygon points="5,3 19,12 5,21"/></svg> Старт';kbTimerBtn.style.background='rgba(15,221,170,.08)';kbTimerBtn.style.color='var(--green)';kbTimerBtn.style.borderColor='rgba(15,221,170,.3)';}
+  const kbTimerDisp=document.getElementById('kb-timerDisplay');
+  if(kbTimerDisp)kbTimerDisp.style.display='none';
 
   // Label — support both labelIds array and legacy single labelId
   const taskLabels=linkedTask?.labelIds||[];
@@ -9051,23 +9098,60 @@ function openKbModal(colId,cardId){
 }
 function _renderKbLabels(){
   const el=document.getElementById('kbLabelsList');if(!el)return;
-  const groups=labelGroupsD();let html='';
-  html+=`<span style="cursor:pointer;font-size:10.5px;padding:4px 10px;border-radius:20px;border:1px solid ${!_kbLabelSel?'var(--p)':'var(--border2)'};background:${!_kbLabelSel?'var(--pdim)':'transparent'};color:${!_kbLabelSel?'var(--p)':'var(--muted)'};font-weight:600;transition:.12s" onclick="_kbLabelSel='';_renderKbLabels()">Без</span>`;
+  const groups=labelGroupsD();
+  const sel=_kbLabelSel;
+
+  let html=`<div style="margin-bottom:2px">
+    <span style="cursor:pointer;font-size:10px;padding:3px 12px;border-radius:20px;
+      border:1px solid ${!sel?'var(--p)':'var(--border2)'};
+      background:${!sel?'var(--pdim)':'transparent'};
+      color:${!sel?'var(--p)':'var(--muted)'};font-weight:700;display:inline-flex;align-items:center;gap:5px"
+      onclick="_kbLabelSel='';_renderKbLabels()">
+      ${!sel?'<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>':''}
+      Без метки
+    </span>
+  </div>`;
+
   groups.forEach(g=>{
-    if(!g.labels.length)return;
-    html+=`<span style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.6px;color:${g.color};padding:0 4px;opacity:.7;align-self:center;white-space:nowrap">${esc(g.name)}</span>`;
-    g.labels.forEach(l=>{
-      const sel=l.id===_kbLabelSel;
-      html+=`<span style="cursor:pointer;font-size:10.5px;padding:4px 10px;border-radius:20px;border:1px solid ${sel?l.color:'transparent'};background:${sel?hexA(l.color,.2):'var(--card2)'};color:${l.color};font-weight:600;display:inline-flex;align-items:center;gap:5px;transition:.12s" onclick="_kbLabelSel='${l.id}';_renderKbLabels()"><span style="width:8px;height:8px;border-radius:50%;background:${l.color};flex-shrink:0"></span>${esc(l.name)}${sel?` <span style="font-size:9px;opacity:.7">✓</span>`:''}</span>`;
-    });
+    if(!g.labels||!g.labels.length)return;
+    const selInGroup=g.labels.some(l=>l.id===sel)?1:0;
+    const grc=plReadableColor(g.color);
+    html+=`<div style="background:var(--card2);border:1px solid var(--border);border-radius:12px;padding:10px 12px;margin-bottom:8px">
+      <div style="display:flex;align-items:center;gap:6px;margin-bottom:8px">
+        <span style="width:7px;height:7px;border-radius:50%;background:${g.color};flex-shrink:0;box-shadow:0 0 5px ${hexA(grc,.4)}"></span>
+        <span style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.8px;color:${grc}">${esc(g.name)}</span>
+        ${selInGroup?`<span style="font-size:8.5px;font-weight:700;padding:1px 6px;border-radius:8px;background:${hexA(grc,.16)};color:${grc};margin-left:auto">выбр.</span>`:''}
+      </div>
+      <div style="display:flex;flex-wrap:wrap;gap:5px">
+        ${g.labels.map(l=>{
+          const isSel=l.id===sel;
+          const rc=plReadableColor(l.color);
+          return`<span class="tmLabelChip${isSel?' sel':''}" style="cursor:pointer;font-size:10.5px;padding:4px 11px;border-radius:20px;
+            border:1.5px solid ${isSel?rc:'var(--border2)'};
+            background:${isSel?hexA(rc,.16):'var(--card3)'};
+            color:${isSel?rc:'var(--text2)'};
+            font-weight:${isSel?700:500};
+            display:inline-flex;align-items:center;gap:5px;
+            transition:all .12s;
+            box-shadow:${isSel?'0 0 8px '+hexA(rc,.35):'none'}"
+            data-hovercolor="${rc}"
+            onclick="_kbLabelSel='${l.id}';_renderKbLabels()">
+            <span style="width:6px;height:6px;border-radius:50%;background:${l.color};flex-shrink:0;
+              box-shadow:${isSel?'0 0 5px '+l.color:'none'}"></span>
+            ${esc(l.name)}
+            ${isSel?`<svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="${rc}" stroke-width="3.5"><polyline points="20 6 9 17 4 12"/></svg>`:''}
+          </span>`;
+        }).join('')}
+      </div>
+    </div>`;
   });
   el.innerHTML=html;
   // Update header dot
-  const selLabel=labelsD().find(l=>l.id===_kbLabelSel);
+  const selLabel=labelsD().find(l=>l.id===sel);
   const dot=document.getElementById('kbModalLabelDot');
   if(dot)dot.style.background=selLabel?selLabel.color:'var(--border2)';
 }
-function closeKbModal(){document.getElementById('kbOverlay').style.display='none';kbEditId=null;}
+function closeKbModal(){document.getElementById('kbOverlay').style.display='none';kbEditId=null;if(_kbTimerInterval){clearInterval(_kbTimerInterval);_kbTimerInterval=null;}}
 
 /* ── Kanban checklist ── */
 let _kbSubtasks=[];
