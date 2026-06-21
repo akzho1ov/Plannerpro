@@ -1293,6 +1293,8 @@ select.inp option{background:var(--card2);color:var(--text)}
   animation:calPopIn .14s var(--ease-out);
 }
 @keyframes calPopIn{from{opacity:0;transform:translateY(-4px) scale(.98)}to{opacity:1;transform:none}}
+@keyframes appConfirmFade{from{opacity:0}to{opacity:1}}
+@keyframes appConfirmPop{from{opacity:0;transform:scale(.92) translateY(6px)}to{opacity:1;transform:none}}
 .calEvtPop-head{display:flex;align-items:flex-start;gap:8px;margin-bottom:8px}
 .calEvtPop-dot{width:11px;height:11px;border-radius:50%;flex-shrink:0;margin-top:3px;box-shadow:0 0 0 3px rgba(255,255,255,.06)}
 .calEvtPop-title{flex:1;font-family:var(--font-display);font-size:13.5px;font-weight:700;color:var(--text);line-height:1.3;word-break:break-word}
@@ -1569,10 +1571,10 @@ select.inp option{background:var(--card2);color:var(--text)}
 .goalMs{display:flex;align-items:center;gap:8px;font-size:11px;color:var(--text2);padding:4px 0;cursor:pointer}
 .goalMs input{accent-color:var(--purple);cursor:pointer;width:14px;height:14px;flex-shrink:0}
 .goalMs.done{text-decoration:line-through;color:var(--muted);opacity:.7}
-.goalCardFoot{display:flex;align-items:center;justify-content:space-between;padding-top:10px;border-top:1px solid rgba(255,255,255,.05);margin-top:auto}
+.goalCardFoot{display:flex;align-items:center;justify-content:space-between;padding-top:10px;border-top:1px solid var(--border);margin-top:auto}
 .goalDl{font-size:10px;color:var(--muted);font-weight:600}
-.goalDelBtn{border:none;background:none;cursor:pointer;color:var(--border3);font-size:15px;padding:3px 6px;border-radius:6px;transition:.15s}
-.goalDelBtn:hover{color:var(--red);background:var(--reddim)}
+.goalDelBtn{border:1px solid var(--border);background:var(--card2);cursor:pointer;color:var(--text2);font-size:12px;padding:5px 8px;border-radius:8px;transition:.15s;line-height:1}
+.goalDelBtn:hover{color:var(--red);background:var(--reddim);border-color:rgba(248,113,113,.35)}
 
 /* ── Mission Timeline ── */
 .missionTimeline{display:flex;flex-direction:column;gap:0;position:relative;padding-left:44px;margin-top:8px}
@@ -1609,8 +1611,7 @@ select.inp option{background:var(--card2);color:var(--text)}
 .missionDescInp{border:none;background:transparent;font-family:var(--font-body);font-size:11px;color:var(--text2);outline:none;width:100%;resize:none;padding:0;line-height:1.6}
 .missionDescInp::placeholder{color:var(--muted)}
 .missionPhotoEditBtn{position:absolute;bottom:4px;right:4px;background:rgba(0,0,0,.75);border:none;border-radius:6px;padding:3px 7px;font-size:9px;font-weight:700;color:#fff;cursor:pointer;opacity:0;transition:.15s;font-family:var(--font-body)}
-.missionCard:hover .missionPhotoEditBtn{opacity:1}.goalDelBtn{border:none;background:none;cursor:pointer;color:var(--border2);font-size:13px;padding:2px;transition:.15s}
-.goalDelBtn:hover{color:var(--red)}
+.missionCard:hover .missionPhotoEditBtn{opacity:1}
 
 /* Journal */
 .jEntry{background:var(--card);border-radius:var(--r);border:1px solid var(--border);padding:14px 16px;margin-bottom:10px}
@@ -5900,8 +5901,8 @@ async function authSubmit(){
   }
 }
 
-function showUserMenu(){
-  if(confirm('Выйти из аккаунта?'))auth.signOut();
+async function showUserMenu(){
+  if(await appConfirm('Выйти из аккаунта?',{title:'Выход',okText:'Выйти',danger:false}))auth.signOut();
 }
 
 function updateUserUI(user){
@@ -6060,6 +6061,79 @@ function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').
 function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,7)}
 function fmtMoney(n){return Number(n||0).toLocaleString('ru-RU',{minimumFractionDigits:0,maximumFractionDigits:0})}
 function hexA(hex,a){try{const r=parseInt(hex.slice(1,3),16),g2=parseInt(hex.slice(3,5),16),b=parseInt(hex.slice(5,7),16);return `rgba(${r},${g2},${b},${a})`}catch{return hex}}
+
+/* ── App-styled confirm dialog (replaces native browser confirm()) ──
+   Usage: if(!await appConfirm('Удалить задачу?'))return;
+   Optional 2nd arg: {title, okText, cancelText, danger:false} for non-destructive actions. */
+let _appConfirmResolve=null;
+function _appConfirmKeyHandler(e){
+  if(e.key==='Escape')_appConfirmPick(false);
+  if(e.key==='Enter')_appConfirmPick(true);
+}
+function appConfirm(message,opts){
+  opts=opts||{};
+  return new Promise(resolve=>{
+    const old=document.getElementById('_appConfirmPopup');if(old)old.remove();
+    _appConfirmResolve=resolve;
+    const title=opts.title||'Подтвердите действие';
+    const okText=opts.okText||'Удалить';
+    const cancelText=opts.cancelText||'Отмена';
+    const danger=opts.danger!==false;
+    const div=document.createElement('div');
+    div.id='_appConfirmPopup';
+    div.style.cssText='position:fixed;inset:0;z-index:10000;background:rgba(5,6,16,.6);display:flex;align-items:center;justify-content:center;backdrop-filter:blur(8px);animation:appConfirmFade .15s ease-out';
+    div.innerHTML=`<div style="background:var(--card);border:1px solid var(--border2);border-radius:18px;padding:24px 22px;max-width:360px;width:90%;box-shadow:0 20px 60px rgba(0,0,0,.6);animation:appConfirmPop .18s var(--ease-spring,ease-out)">
+      <div style="display:flex;align-items:flex-start;gap:12px;margin-bottom:18px">
+        <div style="flex-shrink:0;width:34px;height:34px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:16px;background:${danger?'rgba(248,113,113,.12)':'rgba(139,122,240,.14)'};color:${danger?'var(--red)':'var(--p)'}">${danger?'🗑':'❓'}</div>
+        <div style="flex:1;padding-top:2px">
+          <div style="font-size:14.5px;font-weight:800;color:var(--text);margin-bottom:4px;font-family:var(--font-display);line-height:1.3">${title}</div>
+          <div style="font-size:12px;color:var(--text2);line-height:1.5">${message}</div>
+        </div>
+      </div>
+      <div style="display:flex;gap:8px;justify-content:flex-end">
+        <button onclick="_appConfirmPick(false)" style="border:1px solid var(--border2);background:var(--card2);color:var(--text2);border-radius:10px;padding:9px 16px;cursor:pointer;font-size:12px;font-weight:600;font-family:var(--font-body);transition:.15s" onmouseover="this.style.background='var(--card3)';this.style.color='var(--text)'" onmouseout="this.style.background='var(--card2)';this.style.color='var(--text2)'">${cancelText}</button>
+        <button onclick="_appConfirmPick(true)" style="border:1px solid ${danger?'rgba(248,113,113,.4)':'rgba(139,122,240,.4)'};background:${danger?'rgba(248,113,113,.14)':'var(--p)'};color:${danger?'var(--red)':'#fff'};border-radius:10px;padding:9px 16px;cursor:pointer;font-size:12px;font-weight:700;font-family:var(--font-body);transition:.15s" onmouseover="this.style.filter='brightness(1.15)'" onmouseout="this.style.filter=''">${okText}</button>
+      </div>
+    </div>`;
+    div.addEventListener('mousedown',e=>{if(e.target===div)_appConfirmPick(false);});
+    document.body.appendChild(div);
+    document.addEventListener('keydown',_appConfirmKeyHandler);
+    const okBtn=div.querySelector('button:last-child');if(okBtn)okBtn.focus();
+  });
+}
+function _appConfirmPick(val){
+  const el=document.getElementById('_appConfirmPopup');if(el)el.remove();
+  document.removeEventListener('keydown',_appConfirmKeyHandler);
+  if(_appConfirmResolve){_appConfirmResolve(val);_appConfirmResolve=null;}
+}
+/* ── App-styled notice dialog (replaces native browser alert()) ── */
+function appAlert(message,opts){
+  opts=opts||{};
+  return new Promise(resolve=>{
+    const old=document.getElementById('_appConfirmPopup');if(old)old.remove();
+    _appConfirmResolve=resolve;
+    const title=opts.title||'Сообщение';
+    const div=document.createElement('div');
+    div.id='_appConfirmPopup';
+    div.style.cssText='position:fixed;inset:0;z-index:10000;background:rgba(5,6,16,.6);display:flex;align-items:center;justify-content:center;backdrop-filter:blur(8px);animation:appConfirmFade .15s ease-out';
+    div.innerHTML=`<div style="background:var(--card);border:1px solid var(--border2);border-radius:18px;padding:24px 22px;max-width:360px;width:90%;box-shadow:0 20px 60px rgba(0,0,0,.6);animation:appConfirmPop .18s var(--ease-spring,ease-out)">
+      <div style="display:flex;align-items:flex-start;gap:12px;margin-bottom:18px">
+        <div style="flex-shrink:0;width:34px;height:34px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:16px;background:rgba(139,122,240,.14);color:var(--p)">ℹ️</div>
+        <div style="flex:1;padding-top:2px">
+          <div style="font-size:14.5px;font-weight:800;color:var(--text);margin-bottom:4px;font-family:var(--font-display);line-height:1.3">${title}</div>
+          <div style="font-size:12px;color:var(--text2);line-height:1.5">${message}</div>
+        </div>
+      </div>
+      <div style="display:flex;gap:8px;justify-content:flex-end">
+        <button onclick="_appConfirmPick(true)" style="border:1px solid rgba(139,122,240,.4);background:var(--p);color:#fff;border-radius:10px;padding:9px 18px;cursor:pointer;font-size:12px;font-weight:700;font-family:var(--font-body);transition:.15s" onmouseover="this.style.filter='brightness(1.15)'" onmouseout="this.style.filter=''">Ок</button>
+      </div>
+    </div>`;
+    div.addEventListener('mousedown',e=>{if(e.target===div)_appConfirmPick(true);});
+    document.body.appendChild(div);
+    document.addEventListener('keydown',_appConfirmKeyHandler);
+    const okBtn=div.querySelector('button');if(okBtn)okBtn.focus();
+  });
+}
 
 /* ── Readable-color helper ──
    Custom label/group colors are picked freely by the user (incl. dark navy
@@ -7897,7 +7971,7 @@ function taskModalClearLabels(){
   _updateModalLabelDots([]);
 }
 function taskModalSelectLabel(id){taskModalToggleLabel(id);}
-function taskModalDelete(){
+async function taskModalDelete(){
   if(!_taskModalId)return;
   const t=tpD().find(x=>x.id===_taskModalId);
   if(!t)return;
@@ -7906,7 +7980,7 @@ function taskModalDelete(){
     closeTaskModal();
     delRecurringTask(_taskModalId, _taskModalDstr);
   } else {
-    if(!confirm('Удалить задачу?'))return;
+    if(!await appConfirm('Удалить задачу?',{title:'Удалить задачу'}))return;
     const i=tpD().findIndex(x=>x.id===_taskModalId);
     if(i>=0)delT(i);
     closeTaskModal();
@@ -8981,9 +9055,9 @@ function kbToggleSub(i,v){if(_kbSubtasks[i])_kbSubtasks[i].done=v;kbRenderSubtas
 function kbEditSub(i,v){if(_kbSubtasks[i])_kbSubtasks[i].text=v.trim()||_kbSubtasks[i].text;}
 function kbDelSub(i){_kbSubtasks.splice(i,1);kbRenderSubtasks();}
 function selKbPri(p){kbSelPri=p;document.querySelectorAll('.kbPriBtn').forEach(b=>{b.classList.toggle('sel',parseInt(b.dataset.p)===p)});}
-function delKbCardFromModal(){
+async function delKbCardFromModal(){
   if(!kbEditId)return;
-  if(!confirm('Удалить карточку?'))return;
+  if(!await appConfirm('Удалить карточку?'))return;
   const idx=kbD().findIndex(c=>c.id===kbEditId);
   if(idx>=0){
     const card=kbD()[idx];
@@ -9036,8 +9110,8 @@ function moveCard(id,dir){
   if(ni<0||ni>=board.cols.length)return;
   _kbDropToCol(id,board.cols[ni].id);
 }
-function delCard(id){
-  if(!confirm('Удалить карточку?'))return;
+async function delCard(id){
+  if(!await appConfirm('Удалить карточку?'))return;
   const i=kbD().findIndex(c=>c.id===id);
   if(i>=0){
     const card=kbD()[i];
@@ -9101,9 +9175,9 @@ function saveBoardEditor(){
   else{const nb={id:uid(),title:name,cols:boardEditTmpCols};boards.push(nb);kbActiveBoardId=nb.id}
   saveD();closeBoardEditor();renderKanban();
 }
-function deleteCurrentBoard(){
+async function deleteCurrentBoard(){
   const boards=kbBoardsD();if(boards.length<=1)return;
-  if(!confirm('Удалить эту доску и все её карточки?'))return;
+  if(!await appConfirm('Удалить эту доску и все её карточки?',{title:'Удалить доску'}))return;
   G.kbBoards=boards.filter(b=>b.id!==boardEditTmpId);
   G.kanban=kbD().filter(c=>c.boardId!==boardEditTmpId);
   kbActiveBoardId=kbBoardsD()[0].id;
@@ -9229,14 +9303,14 @@ function finCatUpdate(id,field,val){
     renderFinCatsEditor();
   }
 }
-function finCatDelete(id){
+async function finCatDelete(id){
   const cats=finCatsD();
   const cat=cats.find(c=>c.id===id);if(!cat)return;
   const subCount=cats.filter(c=>c.parentId===id).length;
   const msg=subCount>0
     ?`Удалить категорию "${cat.name}" и ${subCount} подкатегорий? Транзакции останутся.`
     :`Удалить категорию "${cat.name}"? Транзакции останутся.`;
-  if(!confirm(msg))return;
+  if(!await appConfirm(msg,{title:'Удалить категорию'}))return;
   G.finCats=cats.filter(c=>c.id!==id&&c.parentId!==id);
   saveD();renderFinCatsEditor();
 }
@@ -9606,8 +9680,8 @@ function openFinModal(editId){
   setTimeout(()=>document.getElementById('finAmt')?.focus(),80);
 }
 function closeFinModal(){document.getElementById('finOverlay').style.display='none';_finEditId=null;}
-function deleteFinTx(){
-  if(!_finEditId||!confirm('Удалить транзакцию?'))return;
+async function deleteFinTx(){
+  if(!_finEditId||!await appConfirm('Удалить транзакцию?'))return;
   delFinTx(_finEditId);closeFinModal();
 }
 function setFinType(type){
@@ -9746,7 +9820,7 @@ function finPickerBack(type){
 function addFinTx(){
   const amt=parseFloat(document.getElementById('finAmt').value);if(!amt||amt<=0)return;
   const catId=_finSelCatId||document.getElementById('finCat').value;
-  if(!catId){alert('Выбери категорию');return;}
+  if(!catId){appAlert('Выбери категорию');return;}
   const data={date:document.getElementById('finDate').value||dk(t0()),amount:amt,type:finTypeVal,category:catId,note:document.getElementById('finNote').value,acctId:document.getElementById('finAcctSel').value};
   if(_finEditId){
     const idx=finTxD().findIndex(t=>t.id===_finEditId);
@@ -9762,7 +9836,7 @@ function saveBudget(){const v=parseFloat(document.getElementById('finBudgetInp')
 // Export CSV
 function exportFinCSV(){
   const txs=finTxD().filter(t=>{const d=new Date(t.date);return d.getFullYear()===finY&&d.getMonth()===finM});
-  if(!txs.length){alert('Нет транзакций за этот месяц');return;}
+  if(!txs.length){appAlert('Нет транзакций за этот месяц');return;}
   const accts=finAccountsD();
   const rows=[['Дата','Тип','Категория','Счёт','Сумма','Описание']];
   [...txs].sort((a,b)=>b.date.localeCompare(a.date)).forEach(tx=>{
@@ -9816,8 +9890,8 @@ function addAccount(){
   saveD();renderAccountList();renderFin();
   document.getElementById('acctNameInp').value='';document.getElementById('acctIconInp').value='';document.getElementById('acctBalInp').value='';
 }
-function deleteAccount(id){
-  if(!confirm('Удалить счёт? Транзакции останутся'))return;
+async function deleteAccount(id){
+  if(!await appConfirm('Удалить счёт? Транзакции останутся',{title:'Удалить счёт'}))return;
   G.finAccounts=finAccountsD().filter(a=>a.id!==id);
   saveD();renderAccountList();renderFin();
 }
@@ -9825,7 +9899,7 @@ function deleteAccount(id){
 /* ─── Transfer between accounts ─── */
 function openTransferModal(){
   const accts=finAccountsD();
-  if(accts.length<2){alert('Нужно минимум 2 счёта для перевода. Добавь счёта в разделе 🏦 Счета.');return;}
+  if(accts.length<2){appAlert('Нужно минимум 2 счёта для перевода. Добавь счёта в разделе 🏦 Счета.');return;}
   const fromSel=document.getElementById('trFromAcct');
   const toSel=document.getElementById('trToAcct');
   fromSel.innerHTML='';toSel.innerHTML='';
@@ -9845,7 +9919,7 @@ function openTransferModal(){
   document.getElementById('transferOverlay').style.display='flex';
 }
 function closeTransferModal(){document.getElementById('transferOverlay').style.display='none';}
-function doTransfer(){
+async function doTransfer(){
   const fromId=document.getElementById('trFromAcct').value;
   const toId=document.getElementById('trToAcct').value;
   const amt=parseFloat(document.getElementById('trAmount').value);
@@ -9862,7 +9936,7 @@ function doTransfer(){
   const aExp=finTxD().filter(t=>t.type==='out'&&t.acctId===fromId).reduce((s,t)=>s+Number(t.amount),0);
   const fromBal=(fromAcct.initialBalance||0)+aInc-aExp;
   if(amt>fromBal){
-    if(!confirm(`На счёте "${fromAcct.name}" только ${fmtMoney(fromBal)}. Всё равно перевести?`))return;
+    if(!await appConfirm(`На счёте "${fromAcct.name}" только ${fmtMoney(fromBal)}. Всё равно перевести?`,{title:'Недостаточно средств',okText:'Перевести',danger:false}))return;
   }
   const transferNote=`Перевод: ${fromAcct.icon||''}${fromAcct.name} → ${toAcct.icon||''}${toAcct.name}${note&&note!=='Перевод'?' ('+note+')':''}`;
   finTxD().push({id:uid(),date,amount:amt,type:'out',category:'transfer',note:transferNote,acctId:fromId,isTransfer:true});
@@ -10081,7 +10155,7 @@ function openGoalModal(id){
 
 function handleGoalPhoto(input){
   const file=input.files[0];if(!file)return;
-  if(file.size>4*1024*1024){alert('Файл слишком большой (максимум 4MB)');return}
+  if(file.size>4*1024*1024){appAlert('Файл слишком большой (максимум 4MB)');return}
   const reader=new FileReader();
   reader.onload=e=>{
     _goalPhotoData=e.target.result;
@@ -10119,7 +10193,7 @@ function saveGoal(){
   saveD();closeGoalModal();renderGoals();
 }
 
-function delGoal(id){if(!confirm('Удалить цель?'))return;const i=goalsD().findIndex(x=>x.id===id);if(i>=0){goalsD().splice(i,1);saveD();renderGoals()}}
+async function delGoal(id){if(!await appConfirm('Удалить цель?'))return;const i=goalsD().findIndex(x=>x.id===id);if(i>=0){goalsD().splice(i,1);saveD();renderGoals()}}
 function toggleMs(gid,idx,c){const g=goalsD().find(x=>x.id===gid);if(g&&g.milestones&&g.milestones[idx])g.milestones[idx].done=c;saveD();renderGoals()}
 
 function renderJournal(){
@@ -10214,8 +10288,8 @@ function saveJEntry(){
   } else {journalD().push(entry);}
   saveD();closeJournalModal();renderJournal();
 }
-function jDeleteEntry(){
-  if(!_jEditId||!confirm('Удалить запись?'))return;
+async function jDeleteEntry(){
+  if(!_jEditId||!await appConfirm('Удалить запись?'))return;
   const idx=journalD().findIndex(x=>x.id===_jEditId);
   if(idx>=0){journalD().splice(idx,1);saveD();}
   closeJournalModal();renderJournal();
@@ -10510,8 +10584,8 @@ function delLabelFromGroup(gi,lid){
   if(G.tasks)G.tasks.forEach(t=>{if(t.labelId===lid)t.labelId='';});
   saveD();renderLabelsEditorList();renderLabelsFilterBar();renderTP();
 }
-function delLabelGroup(gi){
-  if(!confirm('Удалить группу и все метки в ней?'))return;
+async function delLabelGroup(gi){
+  if(!await appConfirm('Удалить группу и все метки в ней?',{title:'Удалить группу'}))return;
   const lids=labelGroupsD()[gi].labels.map(l=>l.id);
   labelGroupsD().splice(gi,1);
   if(G.tasks)G.tasks.forEach(t=>{if(lids.includes(t.labelId))t.labelId='';});
@@ -11762,8 +11836,8 @@ function rwDeleteLogEntry(idx){
   saveD();rwRenderLog();
 }
 
-function rwClearHistory(){
-  if(!confirm('Очистить всю историю наград?'))return;
+async function rwClearHistory(){
+  if(!await appConfirm('Очистить всю историю наград?',{title:'Очистить историю'}))return;
   const d=rwD();d.history=[];saveD();rwRenderLog();rwNotif('История очищена','warn');
 }
 
@@ -11843,8 +11917,8 @@ function rwSaveTask(){
   }
   saveD();rwCloseTaskModal();rwRender();rwRenderEdit();rwNotif('Задача сохранена','success');
 }
-function rwDeleteTask(id){
-  if(!confirm('Удалить задачу?'))return;
+async function rwDeleteTask(id){
+  if(!await appConfirm('Удалить задачу?'))return;
   const d=rwD();d.tasks=d.tasks.filter(t=>t.id!==id);
   d.completedToday=d.completedToday.filter(x=>x!==id);
   saveD();rwRender();rwRenderEdit();rwNotif('Задача удалена','warn');
@@ -11888,8 +11962,8 @@ function rwSaveReward(){
   }
   saveD();rwCloseRewardModal();rwRender();rwRenderEdit();rwNotif('Награда сохранена','success');
 }
-function rwDeleteReward(id){
-  if(!confirm('Удалить награду?'))return;
+async function rwDeleteReward(id){
+  if(!await appConfirm('Удалить награду?'))return;
   const d=rwD();d.rewards=d.rewards.filter(r=>r.id!==id);
   saveD();rwRender();rwRenderEdit();rwNotif('Награда удалена','warn');
 }
@@ -11905,13 +11979,13 @@ function rwAdjust(field){
   saveD();rwRender();rwNotif('Обновлено','success');
 }
 
-function rwResetDay(){
-  if(!confirm('Сбросить выполненные задачи сегодня?'))return;
+async function rwResetDay(){
+  if(!await appConfirm('Сбросить выполненные задачи сегодня?',{title:'Сбросить день',danger:false}))return;
   const d=rwD();d.completedToday=[];saveD();rwRender();rwNotif('День сброшен','warn');
 }
 
-function rwResetAll(){
-  if(!confirm('ПОЛНЫЙ СБРОС — все баллы, стрик, история удалятся. Уверен?'))return;
+async function rwResetAll(){
+  if(!await appConfirm('ПОЛНЫЙ СБРОС — все баллы, стрик, история удалятся. Уверен?',{title:'Полный сброс',okText:'Сбросить всё'}))return;
   delete G.rewardSys;saveD();rwRender();rwNotif('Полный сброс выполнен','warn');
 }
 
@@ -12222,23 +12296,23 @@ function gymSaveProgram(){
   else d.programs.push(prog);
   saveD();gymCloseProgModal();gymRenderPrograms();gymNotif('Программа сохранена','success');
 }
-function gymDeleteProg(id){
-  if(!confirm('Удалить программу?'))return;
+async function gymDeleteProg(id){
+  if(!await appConfirm('Удалить программу?'))return;
   const d=gymD();d.programs=d.programs.filter(p=>p.id!==id);saveD();gymRenderPrograms();gymNotif('Удалено','warn');
 }
 
 /* START SESSION */
-function gymStartProgram(progId){
+async function gymStartProgram(progId){
   const d=gymD();
-  if(d.activeSession&&!confirm('Идёт тренировка. Начать новую?'))return;
+  if(d.activeSession&&!await appConfirm('Идёт тренировка. Начать новую?',{title:'Тренировка уже идёт',okText:'Начать новую',danger:false}))return;
   const p=d.programs.find(x=>x.id===progId);if(!p)return;
   d.activeSession={id:uid(),name:p.name,programId:progId,date:dk(t0()),startTime:Date.now(),notes:'',
     exercises:p.exercises.map(e=>{const ex=gymExById(e.exId);return{exId:e.exId,exName:ex.name,muscle:ex.muscle,sets:Array.from({length:e.sets},()=>({reps:e.reps,weight:e.weight||0,done:false}))};})};
   saveD();gymRender();gymSubTabGo('session');gymStartTimer();gymNotif('Тренировка начата! 💪','success');
 }
-function gymStartBlank(){
+async function gymStartBlank(){
   const d=gymD();
-  if(d.activeSession&&!confirm('Идёт тренировка. Начать новую?'))return;
+  if(d.activeSession&&!await appConfirm('Идёт тренировка. Начать новую?',{title:'Тренировка уже идёт',okText:'Начать новую',danger:false}))return;
   d.activeSession={id:uid(),name:'Тренировка '+dk(t0()),programId:null,date:dk(t0()),startTime:Date.now(),notes:'',exercises:[]};
   saveD();gymRender();gymSubTabGo('session');gymStartTimer();
 }
@@ -12317,12 +12391,12 @@ function gymAddSet(ei){
   const ex=ses.exercises[ei];const last=ex.sets[ex.sets.length-1]||{reps:10,weight:0};
   ex.sets.push({reps:last.reps,weight:last.weight,done:false});saveD();gymRenderSession();
 }
-function gymRemoveSesEx(ei){
-  if(!confirm('Убрать упражнение?'))return;
+async function gymRemoveSesEx(ei){
+  if(!await appConfirm('Убрать упражнение?'))return;
   const ses=gymD().activeSession;if(!ses)return;ses.exercises.splice(ei,1);saveD();gymRenderSession();
 }
-function gymCancelSession(){
-  if(!confirm('Отменить тренировку? Данные потеряются.'))return;
+async function gymCancelSession(){
+  if(!await appConfirm('Отменить тренировку? Данные потеряются.',{title:'Отменить тренировку'}))return;
   gymD().activeSession=null;clearInterval(_gymTI);saveD();gymRender();
 }
 function gymOpenSesAddModal(){
@@ -12485,8 +12559,8 @@ function gymSaveEx(){
   else d.exercises.push(ex);
   saveD();gymCloseExModal();gymRenderLibrary();gymNotif('Сохранено','success');
 }
-function gymDeleteEx(id){
-  if(!confirm('Удалить упражнение из библиотеки?'))return;
+async function gymDeleteEx(id){
+  if(!await appConfirm('Удалить упражнение из библиотеки?'))return;
   const d=gymD();d.exercises=d.exercises.filter(e=>e.id!==id);saveD();gymRenderLibrary();gymNotif('Удалено','warn');
 }
 
@@ -12787,8 +12861,8 @@ function chQtyChange(id,delta){
   if(!wasDone&&nv>=target)chNotif('День выполнен! 💪','success');
 }
 
-function chStop(id){
-  if(!confirm('Остановить челлендж? Прогресс сохранится, но дни больше не будут засчитываться.'))return;
+async function chStop(id){
+  if(!await appConfirm('Остановить челлендж? Прогресс сохранится, но дни больше не будут засчитываться.',{title:'Остановить челлендж',okText:'Остановить',danger:false}))return;
   const c=chD().find(x=>x.id===id);if(!c)return;
   const s=chStats(c);
   c.status='ended';c.finishedAt=dk(t0());
@@ -12798,8 +12872,8 @@ function chStop(id){
   chNotif('Челлендж остановлен — итог '+s.pct+'%','warn');
 }
 
-function chDeleteConfirm(id){
-  if(!confirm('Удалить челлендж навсегда? Это действие нельзя отменить.'))return;
+async function chDeleteConfirm(id){
+  if(!await appConfirm('Удалить челлендж навсегда? Это действие нельзя отменить.',{title:'Удалить челлендж'}))return;
   G.challenges=chD().filter(x=>x.id!==id);
   saveD();renderCh();
   chNotif('Челлендж удалён','warn');
@@ -14176,11 +14250,11 @@ function renderMission(){
 
 function saveMissionStatement(v){missionD().statement=v;saveD();}
 function saveMissionField(id,field,v){const d=missionD();if(!d[id])d[id]={};d[id][field]=v;saveD();}
-function missionClearBlock(id){if(!confirm('Очистить этот горизонт?'))return;const d=missionD();d[id]={};saveD();renderMission();}
+async function missionClearBlock(id){if(!await appConfirm('Очистить этот горизонт?',{title:'Очистить горизонт',okText:'Очистить'}))return;const d=missionD();d[id]={};saveD();renderMission();}
 function missionPickPhoto(id){document.getElementById('mPhoto_'+id)?.click();}
 function missionHandlePhoto(id,input){
   const file=input.files[0];if(!file)return;
-  if(file.size>4*1024*1024){alert('Файл слишком большой (максимум 4MB)');return}
+  if(file.size>4*1024*1024){appAlert('Файл слишком большой (максимум 4MB)');return}
   const reader=new FileReader();
   reader.onload=e=>{
     saveMissionField(id,'photo',e.target.result);
@@ -14320,8 +14394,8 @@ function princSave(){
   }
   saveD();closePrincModal();princRenderList();
 }
-function princDelete(){
-  if(!_princEditId||!confirm('Удалить принцип?'))return;
+async function princDelete(){
+  if(!_princEditId||!await appConfirm('Удалить принцип?'))return;
   const idx=princD().findIndex(x=>x.id===_princEditId);
   if(idx>=0){princD().splice(idx,1);saveD();}
   closePrincModal();princRenderList();
@@ -14446,8 +14520,8 @@ function rbSave(){
   else{rbD().push({...data,id:uid()});}
   saveD();rbCloseModal();rbRenderGrid();
 }
-function rbDelete(){
-  if(!_rbEditId||!confirm('Удалить рутину?'))return;
+async function rbDelete(){
+  if(!_rbEditId||!await appConfirm('Удалить рутину?'))return;
   const idx=rbD().findIndex(x=>x.id===_rbEditId);
   if(idx>=0){rbD().splice(idx,1);saveD();}
   rbCloseModal();rbRenderGrid();
@@ -14503,8 +14577,8 @@ function kzSave(){
   } else {kzD().entries.push(entry);}
   saveD();kzCloseModal();kzRenderList();
 }
-function kzDelete(){
-  if(!_kzEditId||!confirm('Удалить запись?'))return;
+async function kzDelete(){
+  if(!_kzEditId||!await appConfirm('Удалить запись?'))return;
   const idx=kzD().entries.findIndex(x=>x.id===_kzEditId);
   if(idx>=0){kzD().entries.splice(idx,1);saveD();}
   kzCloseModal();kzRenderList();
@@ -18026,7 +18100,7 @@ function renderPomodoro(){
           <div style="font-size:9.5px;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:var(--muted)">🕒 История сессий</div>
           <div style="display:flex;gap:8px;align-items:center">
             ${sessions.length?`<button onclick="pomExportCSV()" style="border:none;background:var(--pdim);color:var(--p);font-size:10px;font-weight:700;cursor:pointer;padding:4px 9px;border-radius:7px;border:1px solid rgba(155,143,245,.25);transition:.15s" onmouseover="this.style.background='var(--pdim2)'" onmouseout="this.style.background='var(--pdim)'">📥 CSV</button>`:''}
-            ${sessions.length?`<button onclick="if(confirm('Очистить всю историю?')){pomD().sessions=[];saveD();renderPomodoro()}" style="border:none;background:none;color:rgba(255,255,255,.2);font-size:11px;cursor:pointer;transition:.15s" onmouseover="this.style.color='var(--red)'" onmouseout="this.style.color='rgba(255,255,255,.2)'">🗑</button>`:''}
+            ${sessions.length?`<button onclick="(async()=>{if(await appConfirm('Очистить всю историю?',{title:'Очистить историю'})){pomD().sessions=[];saveD();renderPomodoro()}})()" style="border:none;background:none;color:rgba(255,255,255,.2);font-size:11px;cursor:pointer;transition:.15s" onmouseover="this.style.color='var(--red)'" onmouseout="this.style.color='rgba(255,255,255,.2)'">🗑</button>`:''}
           </div>
         </div>
         ${recentSess.length?`<div>
