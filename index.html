@@ -8748,6 +8748,7 @@ function kbMigrate(){
     c.subtasks=task.subtasks||[];c.time=task.time||'';c.endTime=task.endTime||'';
     if(task.done){c.col='done';return;}
     if(c.col==='focus')return;
+    if(c.colLocked)return;
     if(task.repeat&&c.col==='planned')return;
     c.col=kbSmartColForTask(task);
   });
@@ -8908,6 +8909,7 @@ function _kbDropToCol(cardId,colId){
   const board=kbBoardsD().find(b=>b.id===cards[idx].boardId);if(!board)return;
   const newColDef=board.cols.find(c=>c.id===colId);if(!newColDef)return;
   cards[idx].col=colId;
+  cards[idx].colLocked=!newColDef.isDone;
   const task=cards[idx].taskId?tpD().find(x=>x.id===cards[idx].taskId):null;
   if(task){
     if(newColDef.isDone){task.done=true;cards[idx].done=true;cards[idx].doneAt=Date.now();}
