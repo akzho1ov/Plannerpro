@@ -2710,7 +2710,7 @@ body.light-mode .subTabs--pink   .subTab.on{box-shadow:0 1px 4px rgba(30,40,90,.
 ──────────────────────────────────────────────────── */
 .paneHead{
   display:flex;align-items:flex-end;justify-content:space-between;
-  gap:12px;margin-bottom:20px;flex-wrap:wrap;
+  gap:12px;margin-bottom:20px;flex-wrap:wrap;position:relative;
 }
 .paneHeadLeft{display:flex;flex-direction:column;gap:4px;min-width:0}
 .paneHeadRow{display:flex;align-items:center;gap:10px}
@@ -2727,8 +2727,9 @@ body.light-mode .subTabs--pink   .subTab.on{box-shadow:0 1px 4px rgba(30,40,90,.
 }
 .paneSubtitle{display:none}
 .paneHeadActions{display:flex;align-items:center;gap:6px;flex-wrap:wrap;flex-shrink:0}
-.paneHeadCenter{display:flex;justify-content:center;flex:1;min-width:160px}
-@media(max-width:900px){.paneHeadCenter{order:3;flex-basis:100%;justify-content:flex-start}}
+.paneHeadCenter{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:1;pointer-events:none}
+.paneHeadCenter>*{pointer-events:auto}
+@media(max-width:900px){.paneHeadCenter{position:static;left:auto;top:auto;transform:none;order:3;flex-basis:100%;display:flex;justify-content:flex-start;margin-top:10px}}
 
 /* Breadcrumb */
 .paneBreadcrumb{
@@ -5106,7 +5107,7 @@ body.light-mode .skel{background:linear-gradient(90deg,var(--card2) 25%,#f0f2f7 
     <!-- Labels — identical style to task modal -->
     <div class="tmField">
       <label class="tmLabel">Метка</label>
-      <div id="kbLabelsList" style="display:flex;flex-direction:column;gap:8px;max-height:240px;overflow-y:auto;padding-right:2px;scrollbar-width:thin"></div>
+      <div style="display:flex;flex-direction:column;gap:8px" id="kbLabelsList"></div>
     </div>
 
     <!-- Notes -->
@@ -7996,8 +7997,9 @@ function stMiniHtml(task){
   return `<span class="${pillCls}">☑ ${done}/${subs.length}</span>`;
 }
 
-function _renderTaskModalLabels(selectedIds){
-  const el=document.getElementById('tm-labels-list');if(!el)return;
+function _renderTaskModalLabels(selectedIds,elId,toggleFn,clearFn){
+  elId=elId||'tm-labels-list';toggleFn=toggleFn||'taskModalToggleLabel';clearFn=clearFn||'taskModalClearLabels';
+  const el=document.getElementById(elId);if(!el)return;
   const selSet=new Set(Array.isArray(selectedIds)?selectedIds:(selectedIds?[selectedIds]:[]));
   const groups=labelGroupsD();
 
@@ -8007,7 +8009,7 @@ function _renderTaskModalLabels(selectedIds){
       border:1px solid ${selSet.size===0?'var(--p)':'var(--border2)'};
       background:${selSet.size===0?'var(--pdim)':'transparent'};
       color:${selSet.size===0?'var(--p)':'var(--muted)'};font-weight:700;display:inline-flex;align-items:center;gap:5px"
-      onclick="taskModalClearLabels()">
+      onclick="${clearFn}()">
       ${selSet.size===0?'<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>':''}
       Без метки
     </span>
@@ -8037,7 +8039,7 @@ function _renderTaskModalLabels(selectedIds){
             transition:all .12s;
             box-shadow:${sel?'0 0 8px '+hexA(rc,.35):'none'}"
             data-hovercolor="${rc}"
-            onclick="taskModalToggleLabel('${l.id}')">
+            onclick="${toggleFn}('${l.id}')">
             <span style="width:6px;height:6px;border-radius:50%;background:${l.color};flex-shrink:0;
               box-shadow:${sel?'0 0 5px '+l.color:'none'}"></span>
             ${esc(l.name)}
@@ -9097,60 +9099,14 @@ function openKbModal(colId,cardId){
   kbLoadSubtasks(stSrc);
 }
 function _renderKbLabels(){
-  const el=document.getElementById('kbLabelsList');if(!el)return;
-  const groups=labelGroupsD();
-  const sel=_kbLabelSel;
-
-  let html=`<div style="margin-bottom:2px">
-    <span style="cursor:pointer;font-size:10px;padding:3px 12px;border-radius:20px;
-      border:1px solid ${!sel?'var(--p)':'var(--border2)'};
-      background:${!sel?'var(--pdim)':'transparent'};
-      color:${!sel?'var(--p)':'var(--muted)'};font-weight:700;display:inline-flex;align-items:center;gap:5px"
-      onclick="_kbLabelSel='';_renderKbLabels()">
-      ${!sel?'<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>':''}
-      Без метки
-    </span>
-  </div>`;
-
-  groups.forEach(g=>{
-    if(!g.labels||!g.labels.length)return;
-    const selInGroup=g.labels.some(l=>l.id===sel)?1:0;
-    const grc=plReadableColor(g.color);
-    html+=`<div style="background:var(--card2);border:1px solid var(--border);border-radius:12px;padding:10px 12px;margin-bottom:8px">
-      <div style="display:flex;align-items:center;gap:6px;margin-bottom:8px">
-        <span style="width:7px;height:7px;border-radius:50%;background:${g.color};flex-shrink:0;box-shadow:0 0 5px ${hexA(grc,.4)}"></span>
-        <span style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.8px;color:${grc}">${esc(g.name)}</span>
-        ${selInGroup?`<span style="font-size:8.5px;font-weight:700;padding:1px 6px;border-radius:8px;background:${hexA(grc,.16)};color:${grc};margin-left:auto">выбр.</span>`:''}
-      </div>
-      <div style="display:flex;flex-wrap:wrap;gap:5px">
-        ${g.labels.map(l=>{
-          const isSel=l.id===sel;
-          const rc=plReadableColor(l.color);
-          return`<span class="tmLabelChip${isSel?' sel':''}" style="cursor:pointer;font-size:10.5px;padding:4px 11px;border-radius:20px;
-            border:1.5px solid ${isSel?rc:'var(--border2)'};
-            background:${isSel?hexA(rc,.16):'var(--card3)'};
-            color:${isSel?rc:'var(--text2)'};
-            font-weight:${isSel?700:500};
-            display:inline-flex;align-items:center;gap:5px;
-            transition:all .12s;
-            box-shadow:${isSel?'0 0 8px '+hexA(rc,.35):'none'}"
-            data-hovercolor="${rc}"
-            onclick="_kbLabelSel='${l.id}';_renderKbLabels()">
-            <span style="width:6px;height:6px;border-radius:50%;background:${l.color};flex-shrink:0;
-              box-shadow:${isSel?'0 0 5px '+l.color:'none'}"></span>
-            ${esc(l.name)}
-            ${isSel?`<svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="${rc}" stroke-width="3.5"><polyline points="20 6 9 17 4 12"/></svg>`:''}
-          </span>`;
-        }).join('')}
-      </div>
-    </div>`;
-  });
-  el.innerHTML=html;
-  // Update header dot
-  const selLabel=labelsD().find(l=>l.id===sel);
+  // Reuses the exact same renderer/markup as the unified task modal — no separate code.
+  _renderTaskModalLabels(_kbLabelSel?[_kbLabelSel]:[], 'kbLabelsList', 'kbModalToggleLabel', 'kbModalClearLabel');
+  const selLabel=labelsD().find(l=>l.id===_kbLabelSel);
   const dot=document.getElementById('kbModalLabelDot');
   if(dot)dot.style.background=selLabel?selLabel.color:'var(--border2)';
 }
+function kbModalToggleLabel(id){_kbLabelSel=(_kbLabelSel===id)?'':id;_renderKbLabels();}
+function kbModalClearLabel(){_kbLabelSel='';_renderKbLabels();}
 function closeKbModal(){document.getElementById('kbOverlay').style.display='none';kbEditId=null;if(_kbTimerInterval){clearInterval(_kbTimerInterval);_kbTimerInterval=null;}}
 
 /* ── Kanban checklist ── */
