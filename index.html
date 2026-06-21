@@ -8914,8 +8914,13 @@ function _kbDropToCol(cardId,colId){
   if(task){
     if(newColDef.isDone){task.done=true;cards[idx].done=true;cards[idx].doneAt=Date.now();}
     else{task.done=false;cards[idx].done=false;cards[idx].doneAt=null;}
-    if(colId==='today'){if(!task.deadline)task.deadline=dk(t0());}
-    if(colId==='tomorrow'){if(!task.deadline){const tm=new Date(t0());tm.setDate(tm.getDate()+1);task.deadline=dk(tm);}}
+    // Moving a card to a date-based column updates the underlying task's
+    // deadline to match — so the card's date and its column always agree.
+    if(colId==='today'){task.deadline=dk(t0());}
+    else if(colId==='tomorrow'){const tm=new Date(t0());tm.setDate(tm.getDate()+1);task.deadline=dk(tm);}
+    else if(colId==='week'){const mon=new Date(t0());const dow=mon.getDay();mon.setDate(mon.getDate()+(dow===0?1:8-dow));task.deadline=dk(mon);}
+    else if(colId==='next'){const mon=new Date(t0());const dow=mon.getDay();mon.setDate(mon.getDate()+(dow===0?8:15-dow));task.deadline=dk(mon);}
+    else if(colId==='new'){task.deadline='';}
     cards[idx].deadline=task.deadline||'';
     if(task.repeat&&colId!=='done')cards[idx].isRepeat=true;
   }
