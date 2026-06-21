@@ -6613,6 +6613,7 @@ function renderWP(){
 </div>
 <div>
   <div class="dSecLbl" style="margin-bottom:6px">Задачи</div>
+  <button class="dAddTask" style="margin-bottom:6px" onclick="wTaskAdd('${key}')">+ добавить задачу</button>
   <div class="dTasks" id="dtl-${key}">${dayTasks.map((t)=>{
     const idx=tpD().indexOf(t);
     const lbls=getTaskLabels(t);
@@ -6630,7 +6631,6 @@ function renderWP(){
       <span class="dTaskTipData" data-col="${(col&&col.startsWith('#'))?col:'#9B8FF5'}" data-text="${esc(t.text).replace(/"/g,'&quot;')}" data-time="${t.time||''}" data-endtime="${t.endTime||''}" data-done="${t.done}" data-notes="${esc((t.notes||'').slice(0,80)).replace(/"/g,'&quot;')}" data-labels='${JSON.stringify(lbls.map(l=>({name:l.name,color:l.color})))}'></span>
     </div>`;
   }).join('')}</div>
-  <button class="dAddTask" onclick="wTaskAdd('${key}')">+ добавить задачу</button>
 </div>`;
     g.appendChild(card);
   }
