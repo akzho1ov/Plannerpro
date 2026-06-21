@@ -8048,6 +8048,50 @@ function plRenderMonth(main){
   main.innerHTML=html;
 }
 
+// ── Google-Calendar-style overlap layout ──
+// Input: array of {e,sm,em} (event, start-min, end-min). Returns same items
+// augmented with {col, colCount}: events that overlap in time are grouped into
+// a "cluster", and only get split into columns relative to that cluster — an
+// event that doesn't actually overlap with anything stays full width, even if
+// other clusters earlier/later in the day used many columns.
+function plLayoutDayEvents(items){
+  const sorted=[...items].sort((a,b)=>a.sm-b.sm||a.em-b.em);
+  const out=new Array(sorted.length);
+  let cluster=[],clusterMaxEnd=-Infinity;
+
+  function flushCluster(){
+    if(!cluster.length)return;
+    // Greedy column packing within this cluster (events already time-sorted)
+    const colEnds=[]; // end-min of last event placed in each column
+    cluster.forEach(item=>{
+      let placedCol=-1;
+      for(let c=0;c<colEnds.length;c++){
+        if(colEnds[c]<=item.sm){placedCol=c;break;}
+      }
+      if(placedCol===-1){placedCol=colEnds.length;colEnds.push(item.em);}
+      else colEnds[placedCol]=item.em;
+      item._col=placedCol;
+    });
+    const colCount=colEnds.length;
+    cluster.forEach(item=>{out[item._idx]={...item,col:item._col,colCount};});
+    cluster=[];clusterMaxEnd=-Infinity;
+  }
+
+  sorted.forEach((item,idx)=>{
+    item._idx=idx;
+    if(cluster.length===0){
+      cluster.push(item);clusterMaxEnd=item.em;
+    } else if(item.sm<clusterMaxEnd){
+      cluster.push(item);clusterMaxEnd=Math.max(clusterMaxEnd,item.em);
+    } else {
+      flushCluster();
+      cluster.push(item);clusterMaxEnd=item.em;
+    }
+  });
+  flushCluster();
+  return out;
+}
+
 // ── Time grid (day/3day/week) ──
 function plRenderGrid(main){
   const dates=plDatesInView();
@@ -8109,27 +8153,30 @@ function plRenderGrid(main){
     colsHtml+=`<div class="plGrid-col${isT?' plGrid-col-today':''}" data-dstr="${dstr}" style="background:${isT?'rgba(124,104,238,.025)':''};">`;
     colsHtml+=linesHtml;
     const timedEvts=plEvtsForDate(dstr).filter(e=>!e.allDay&&e.time);
-    const sorted=[...timedEvts].sort((a,b)=>plTimeToMin(a.time)-plTimeToMin(b.time));
-    const lanes=[];
-    sorted.forEach(e=>{
+    const withTimes=timedEvts.map(e=>{
       const sm=plTimeToMin(e.time);
       const em=e.endTime?Math.min(plTimeToMin(e.endTime),1440):sm+60;
-      const duration=Math.max(em-sm,15);
-      let lane=0;
-      while(lanes[lane]&&lanes[lane]>sm)lane++;
-      lanes[lane]=sm+duration;
-      const nLanes=lanes.length;
+      return{e,sm,em:Math.max(em,sm+15)};
+    });
+    const laidOut=plLayoutDayEvents(withTimes);
+    laidOut.forEach(({e,sm,em,col,colCount})=>{
+      const duration=em-sm;
       const top=sm/60*HOUR_H;
       const height=Math.max((duration/60)*HOUR_H,22);
-      const width=Math.round(90/nLanes);
-      const left=lane*(90/nLanes);
-      const bg=e.color+'22',col=e.color;
+      // Google-Calendar style: each later column overlaps slightly under the previous
+      // one so a sliver of every event stays visible/clickable, and the last
+      // column always reaches the right edge.
+      const stepPct=colCount>1?(94/colCount):0;
+      const leftPct=col*stepPct;
+      const widthPct=col===colCount-1?(100-leftPct):(stepPct+ (94/colCount)*0.18);
+      const bg=e.color+'22',col_=e.color;
       const tStr=plFmtTime(e.time)+(e.endTime?' – '+plFmtTime(e.endTime):'');
       const icon=e.src==='task'?(e.isRepeat?'↻ ':''):'';
       const evtSrc=e.src;const evtId=e.id;
-      const doneStyle=e.done?`background:${bg};color:${col};border-left-color:${col};opacity:.6;`:`background:${bg};color:${col};border-left-color:${col};`;
-      const cbHtml=e.src==='task'?`<input type="checkbox" class="calEvtCb" ${e.done?'checked':''} onclick="event.stopPropagation();toggleCalTaskDone('${e.id}','${dstr}',this.checked)" style="margin-right:3px;accent-color:${col}">`:''
-      colsHtml+=`<div class="plEvt calTaskRow" data-evtid="${e.id}" data-dstr="${dstr}" data-src="${e.src}" draggable="true" style="top:${top}px;height:${height}px;left:calc(${left}% + 2px);width:calc(${width}% - 4px);${doneStyle}overflow:hidden;cursor:pointer;display:flex;align-items:flex-start;padding:3px 5px;gap:2px" title="${esc(e.text)}">
+      const doneStyle=e.done?`background:${bg};color:${col_};border-left-color:${col_};opacity:.6;`:`background:${bg};color:${col_};border-left-color:${col_};`;
+      const cbHtml=e.src==='task'?`<input type="checkbox" class="calEvtCb" ${e.done?'checked':''} onclick="event.stopPropagation();toggleCalTaskDone('${e.id}','${dstr}',this.checked)" style="margin-right:3px;accent-color:${col_}">`:''
+      const zIndex=10+col;
+      colsHtml+=`<div class="plEvt calTaskRow" data-evtid="${e.id}" data-dstr="${dstr}" data-src="${e.src}" data-sm="${sm}" data-em="${em}" draggable="true" style="top:${top}px;height:${height}px;left:calc(${leftPct}% + 2px);width:calc(${widthPct}% - 4px);z-index:${zIndex};${doneStyle}overflow:hidden;cursor:pointer;display:flex;align-items:flex-start;padding:3px 5px;gap:2px" title="${esc(e.text)}">
         ${cbHtml}<div style="flex:1;min-width:0;overflow:hidden">
         <div class="plEvt-title" style="${e.done?'text-decoration:line-through;opacity:.7':''}">${icon}${esc(e.text)}</div>
         ${height>30?`<div class="plEvt-time" style="${e.done?'opacity:.5':''}">${tStr}</div>`:''}
@@ -8164,7 +8211,12 @@ function plRenderGrid(main){
 
 /* ── Calendar grid interaction: drag-to-create (right mouse), drag-to-move ── */
 let _plDragEvtId=null,_plDragEvtSrc=null,_plDragEvtOrigDate=null;
+let _plDragGrabOffsetMin=0,_plDragDurMin=60,_plDragPreviewEl=null;
 let _plRightDrag=false,_plRightDragStart=null,_plRightDragDstr=null,_plRightDragPreview=null;
+
+function _plClearDragPreview(){
+  if(_plDragPreviewEl){_plDragPreviewEl.remove();_plDragPreviewEl=null;}
+}
 
 function _plSetupGridInteraction(main,dates,totalH){
   const colsWrap=main.querySelector('#plGridCols');if(!colsWrap)return;
@@ -8183,24 +8235,67 @@ function _plSetupGridInteraction(main,dates,totalH){
       _plDragEvtId=evtEl.dataset.evtid;
       _plDragEvtSrc=evtEl.dataset.src;
       _plDragEvtOrigDate=evtEl.dataset.dstr;
+      // Remember WHERE within the block the user grabbed it (in minutes from
+      // the block's own top) so the event doesn't jump to put its start under
+      // the cursor — its start stays the same distance from the cursor as
+      // when the drag began, exactly like Google Calendar.
+      const evtRect=evtEl.getBoundingClientRect();
+      const grabOffsetPx=e.clientY-evtRect.top;
+      _plDragGrabOffsetMin=Math.max(0,(grabOffsetPx/HOUR_H)*60);
+      const sm=parseFloat(evtEl.dataset.sm),em=parseFloat(evtEl.dataset.em);
+      _plDragDurMin=Math.max(15,(em-sm)||60);
       e.dataTransfer.setData('text/plain',_plDragEvtId);
       e.dataTransfer.effectAllowed='move';
+      // Use a transparent 1x1 drag image so the browser's default ghost
+      // doesn't visually mismatch our own live preview block.
+      const ghost=document.createElement('canvas');ghost.width=1;ghost.height=1;
+      e.dataTransfer.setDragImage(ghost,0,0);
       setTimeout(()=>{evtEl.style.opacity='.3';},0);
     });
-    evtEl.addEventListener('dragend',()=>{evtEl.style.opacity='';_plDragEvtId=null;});
+    evtEl.addEventListener('dragend',()=>{evtEl.style.opacity='';_plDragEvtId=null;_plClearDragPreview();});
   });
 
   // ── Drop zones: each day column ──
   colsWrap.querySelectorAll('.plGrid-col').forEach(col=>{
     const dstr=col.dataset.dstr;
-    col.addEventListener('dragover',e=>{e.preventDefault();e.dataTransfer.dropEffect='move';});
-    col.addEventListener('drop',e=>{
+    col.addEventListener('dragover',e=>{
       e.preventDefault();
+      e.dataTransfer.dropEffect='move';
       if(!_plDragEvtId)return;
       const rect=col.getBoundingClientRect();
       const relY=e.clientY-rect.top;
-      const mins=Math.round((relY/HOUR_H)*60/15)*15; // snap to 15min
-      const newTime=plMinToTime(Math.max(0,Math.min(1410,mins)));
+      const cursorMin=(relY/HOUR_H)*60;
+      let startMin=Math.round((cursorMin-_plDragGrabOffsetMin)/15)*15;
+      startMin=Math.max(0,Math.min(1440-_plDragDurMin,startMin));
+      if(!_plDragPreviewEl){
+        _plDragPreviewEl=document.createElement('div');
+        _plDragPreviewEl.style.cssText='position:absolute;left:2px;right:4px;background:rgba(139,122,240,.28);border:1.5px dashed var(--p);border-radius:6px;z-index:30;pointer-events:none;';
+        col.appendChild(_plDragPreviewEl);
+      } else if(_plDragPreviewEl.parentElement!==col){
+        col.appendChild(_plDragPreviewEl);
+      }
+      _plDragPreviewEl.style.top=(startMin/60*HOUR_H)+'px';
+      _plDragPreviewEl.style.height=Math.max((_plDragDurMin/60*HOUR_H),16)+'px';
+      _plDragPreviewEl.textContent=plMinToTime(startMin)+' – '+plMinToTime(Math.min(1440,startMin+_plDragDurMin));
+      _plDragPreviewEl.style.cssText+=';color:var(--p);font-size:9px;font-weight:700;padding:2px 4px;overflow:hidden;white-space:nowrap';
+    });
+    col.addEventListener('dragleave',e=>{
+      // Only clear if actually leaving the column (not just moving between children)
+      if(!col.contains(e.relatedTarget))_plClearDragPreview();
+    });
+    col.addEventListener('drop',e=>{
+      e.preventDefault();
+      _plClearDragPreview();
+      if(!_plDragEvtId)return;
+      const rect=col.getBoundingClientRect();
+      const relY=e.clientY-rect.top;
+      const cursorMin=(relY/HOUR_H)*60;
+      // Subtract the grab offset so the part of the event the user grabbed
+      // stays under the cursor, instead of forcing the event's start time
+      // under the cursor.
+      let startMin=Math.round((cursorMin-_plDragGrabOffsetMin)/15)*15;
+      startMin=Math.max(0,Math.min(1440-_plDragDurMin,startMin));
+      const newTime=plMinToTime(startMin);
       _plMoveCalEvt(_plDragEvtId,_plDragEvtSrc,_plDragEvtOrigDate,dstr,newTime);
       _plDragEvtId=null;
     });
