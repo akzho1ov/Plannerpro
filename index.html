@@ -1227,7 +1227,7 @@ select.inp option{background:var(--card2);color:var(--text)}
 .plMonth-dw{padding:6px 4px;text-align:center;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted)}
 .plMonth-dw:nth-child(6),.plMonth-dw:nth-child(7){color:var(--pink)}
 .plMonth-grid{display:grid;grid-template-columns:repeat(7,1fr);flex:1;overflow-y:auto;grid-auto-rows:minmax(90px,1fr)}
-.plMonth-cell{border-right:1px solid rgba(255,255,255,.04);border-bottom:1px solid rgba(255,255,255,.04);padding:4px;cursor:pointer;display:flex;flex-direction:column;transition:.15s}
+.plMonth-cell{border-right:1px solid var(--gridline);border-bottom:1px solid var(--gridline);padding:4px;cursor:pointer;display:flex;flex-direction:column;transition:.15s}
 .plMonth-cell:hover{background:rgba(255,255,255,.025)}
 .plMonth-cell.empty{background:rgba(0,0,0,.15);pointer-events:none;cursor:default}
 .plMonth-cell.todayM{background:rgba(34,211,238,.06)}
@@ -1304,6 +1304,7 @@ select.inp option{background:var(--card2);color:var(--text)}
 .calEvtPop-btn{flex:1;border:1px solid var(--border2);background:var(--card2);color:var(--text2);border-radius:8px;padding:7px 8px;font-size:11.5px;font-weight:600;cursor:pointer;transition:.12s;font-family:var(--font-body);display:flex;align-items:center;justify-content:center;gap:4px}
 .calEvtPop-btn:hover{background:var(--card3);color:var(--text);border-color:var(--border3)}
 .calEvtPop-btn.del:hover{background:var(--reddim);color:var(--red);border-color:rgba(255,79,114,.35)}
+.calEvtPopover-mini{width:200px}
 
 /* ══════════════════════════════
    5. KANBAN
@@ -7919,7 +7920,11 @@ const CAL_COLORS=['#4f87f7','#2dd4a6','#9b7cf4','#f59e0b','#f87171','#f472b6','#
 // Event chip text needs to stay legible regardless of which accent color was picked
 // and regardless of theme: mix the accent hue toward white (dark theme) or black
 // (light theme) so it never goes muddy/low-contrast against the chip's tinted bg.
-function evtTextCol(hex){return `color-mix(in srgb, ${hex} 74%, var(--evtmix) 26%)`;}
+// Event chip text legibility must never depend on which accent hue was picked —
+// use the theme's own foreground color (already near-white on dark / near-black
+// on light, so it's always readable against the page bg behind the chip). The
+// accent hue is still used for the border/dot so the category color stays visible.
+function evtTextCol(hex){return 'var(--text)';}
 const HOUR_H=60; // px per hour in time grid — fits 4 tasks per hour
 const DS_RU=['Вс','Пн','Вт','Ср','Чт','Пт','Сб'];
 const DS_SHORT=['вс','пн','вт','ср','чт','пт','сб'];
@@ -8139,10 +8144,11 @@ function plRenderMonth(main){
     html+=`<div class="plMonth-dn">${day}</div>`;
     evts.slice(0,maxShow).forEach(e=>{
       const alpha=e.done?'0.4':'0.85';
-      const bg=e.color+'30',col=evtTextCol(e.color),accent=e.color;
+      const bg=e.color+'40',col=evtTextCol(e.color),accent=e.color;
       const timeStr=e.time?`<span style="font-size:8px;opacity:.7;margin-right:2px">${plFmtTime(e.time)}</span>`:'';
       const icon=e.src==='task'?'📋':' ';
-      html+=`<div class="plMonth-pill calTaskRow" style="background:${bg};color:${col};border-left:2px solid ${accent};${e.done?'text-decoration:line-through;':''}opacity:${e.done?0.6:1}" title="${esc(e.text)}" onclick="event.stopPropagation();showCalEvtPopover(this,'${e.id}','${dstr}','${e.src}',event)">${timeStr}${esc(e.text)}</div>`;
+      const clickFn=e.src==='task'?`plCalOpenTask('${e.id}','${dstr}')`:`plCalOpenModal('${e.id}','${dstr}')`;
+      html+=`<div class="plMonth-pill calTaskRow" style="background:${bg};color:${col};border-left:2px solid ${accent};${e.done?'text-decoration:line-through;':''}opacity:${e.done?0.7:1}" title="${esc(e.text)}" onclick="event.stopPropagation();${clickFn}" oncontextmenu="event.preventDefault();event.stopPropagation();showCalDeletePopover(event,'${e.id}','${dstr}','${e.src}')">${timeStr}${esc(e.text)}</div>`;
     });
     if(evts.length>maxShow)html+=`<div class="plMonth-more">+${evts.length-maxShow} ещё</div>`;
     html+=`</div>`;
@@ -8220,10 +8226,11 @@ function plRenderGrid(main){
     const allDayEvts=plEvtsForDate(dstr).filter(e=>e.allDay);
     adHtml+=`<div class="plGrid-adCol" onclick="plCalGridOpenTask('${dstr}')">`;
     allDayEvts.forEach(e=>{
-      const bg=e.color+'38',col=evtTextCol(e.color),accent=e.color;
+      const bg=e.color+'48',col=evtTextCol(e.color),accent=e.color;
       const icon=e.src==='task'?(e.isRepeat?'↻ ':''):'📅 ';
+      const clickFn=e.src==='task'?`plCalOpenTask('${e.id}','${dstr}')`:`plCalOpenModal('${e.id}','${dstr}')`;
       const adCb=e.src==='task'?`<input type="checkbox" ${e.done?'checked':''} onclick="event.stopPropagation();toggleCalTaskDone('${e.id}','${dstr}',this.checked)" style="flex-shrink:0;margin-right:4px;accent-color:${accent};cursor:pointer;width:11px;height:11px">`:''
-      adHtml+=`<div class="plEvt-allday calTaskRow" style="background:${bg};color:${col};border-left-color:${accent};opacity:${e.done?0.6:1};cursor:pointer;${e.done?'text-decoration:line-through;':''};display:flex;align-items:center" title="${esc(e.text)}" onclick="event.stopPropagation();showCalEvtPopover(this,'${e.id}','${dstr}','${e.src}',event)">
+      adHtml+=`<div class="plEvt-allday calTaskRow" style="background:${bg};color:${col};border-left-color:${accent};opacity:${e.done?0.7:1};cursor:pointer;${e.done?'text-decoration:line-through;':''};display:flex;align-items:center" title="${esc(e.text)}" onclick="event.stopPropagation();${clickFn}" oncontextmenu="event.preventDefault();event.stopPropagation();showCalDeletePopover(event,'${e.id}','${dstr}','${e.src}')">
         ${adCb}<span style="width:7px;height:7px;border-radius:50%;background:${accent};display:inline-block;flex-shrink:0;margin-right:4px"></span>${icon}${esc(e.text)}
       </div>`;
     });
@@ -8271,11 +8278,11 @@ function plRenderGrid(main){
       const stepPct=colCount>1?(94/colCount):0;
       const leftPct=col*stepPct;
       const widthPct=col===colCount-1?(100-leftPct):(stepPct+ (94/colCount)*0.18);
-      const bg=e.color+'30',txtCol=evtTextCol(e.color),accent=e.color;
+      const bg=e.color+'40',txtCol=evtTextCol(e.color),accent=e.color;
       const tStr=plFmtTime(e.time)+(e.endTime?' – '+plFmtTime(e.endTime):'');
       const icon=e.src==='task'?(e.isRepeat?'↻ ':''):'';
       const evtSrc=e.src;const evtId=e.id;
-      const doneStyle=e.done?`background:${bg};color:${txtCol};border-left-color:${accent};opacity:.6;`:`background:${bg};color:${txtCol};border-left-color:${accent};`;
+      const doneStyle=e.done?`background:${bg};color:${txtCol};border-left-color:${accent};opacity:.7;`:`background:${bg};color:${txtCol};border-left-color:${accent};`;
       const cbHtml=e.src==='task'?`<input type="checkbox" class="calEvtCb" ${e.done?'checked':''} onclick="event.stopPropagation();toggleCalTaskDone('${e.id}','${dstr}',this.checked)" style="margin-right:3px;accent-color:${accent}">`:''
       const zIndex=10+col;
       colsHtml+=`<div class="plEvt calTaskRow" data-evtid="${e.id}" data-dstr="${dstr}" data-src="${e.src}" data-sm="${sm}" data-em="${em}" draggable="true" style="top:${top}px;height:${height}px;left:calc(${leftPct}% + 2px);width:calc(${widthPct}% - 4px);z-index:${zIndex};${doneStyle}overflow:hidden;cursor:pointer;display:flex;align-items:flex-start;padding:3px 5px;gap:2px" title="${esc(e.text)}">
@@ -8323,12 +8330,19 @@ function _plClearDragPreview(){
 function _plSetupGridInteraction(main,dates,totalH){
   const colsWrap=main.querySelector('#plGridCols');if(!colsWrap)return;
 
-  // ── Click to OPEN existing events (Google-Calendar-style quick popover) ──
+  // ── Left click: open existing event/task for editing (original behavior) ──
+  // ── Right click: quick "Delete" popover (no edit) ──
   colsWrap.querySelectorAll('.plEvt[data-evtid]').forEach(evtEl=>{
     evtEl.addEventListener('click',e=>{
       e.stopPropagation();
       const src=evtEl.dataset.src,id=evtEl.dataset.evtid,dstr=evtEl.dataset.dstr;
-      showCalEvtPopover(evtEl,id,dstr,src,e);
+      if(src==='task') plCalOpenTask(id,dstr);
+      else plCalOpenModal(id,dstr);
+    });
+    evtEl.addEventListener('contextmenu',e=>{
+      e.preventDefault();e.stopPropagation();
+      const src=evtEl.dataset.src,id=evtEl.dataset.evtid,dstr=evtEl.dataset.dstr;
+      showCalDeletePopover(e,id,dstr,src);
     });
     evtEl.style.cursor='pointer';
     // ── Drag-to-MOVE existing events ──
@@ -8419,6 +8433,7 @@ function _plSetupGridInteraction(main,dates,totalH){
     // ── Right mouse drag to CREATE event at specific time range ──
     col.addEventListener('mousedown',e=>{
       if(e.button!==2)return; // only right mouse
+      if(e.target.closest('.plEvt'))return; // right-click on an existing event → its own delete popover handles this
       e.preventDefault();
       _plRightDrag=true;
       _plRightDragDstr=dstr;
@@ -8615,8 +8630,9 @@ function deleteCalEvtById(evtId){
   saveD();renderCal();
 }
 
-/* ── Calendar event quick-action popover (Google-Calendar-style: click an
-   event → small card with its details and a one-click Delete/Edit) ── */
+/* ── Calendar event right-click quick-delete popover ──
+   Left click opens the full editor (original behavior). Right click shows
+   this tiny card with just the event name and a single Delete button. ── */
 let _calPopoverEl=null;
 function closeCalEvtPopover(){
   if(_calPopoverEl){_calPopoverEl.remove();_calPopoverEl=null;}
@@ -8626,46 +8642,40 @@ function closeCalEvtPopover(){
 function _calPopoverOutside(ev){
   if(_calPopoverEl&&!_calPopoverEl.contains(ev.target))closeCalEvtPopover();
 }
-function showCalEvtPopover(anchorEl,evtId,dstr,src,domEvent){
-  if(domEvent){domEvent.stopPropagation();domEvent.preventDefault();}
+function showCalDeletePopover(domEvent,evtId,dstr,src){
+  if(domEvent){domEvent.preventDefault();domEvent.stopPropagation();}
   closeCalEvtPopover();
   const isTask=src==='task';
-  let title='',timeStr='',color=CAL_COLORS[0],note='';
+  let title='';
   if(isTask){
     const t=tpD().find(x=>x.id===evtId);if(!t)return;
-    title=t.text;color=getTaskCalColor(t);
-    timeStr=t.time?plFmtTime(t.time)+(t.endTime?' – '+plFmtTime(t.endTime):''):'Весь день';
+    title=t.text;
   } else {
     const evts=calEventsD();let found=null;
     Object.values(evts).forEach(arr=>(arr||[]).forEach(e=>{if(e.id===evtId)found=e;}));
     if(!found)return;
-    title=found.text;color=found.color||CAL_COLORS[0];note=found.note||'';
-    timeStr=found.time?plFmtTime(found.time)+(found.endTime?' – '+plFmtTime(found.endTime):''):'Весь день';
+    title=found.text;
   }
-  const editFn=isTask?`plCalOpenTask('${evtId}','${dstr}')`:`plCalOpenModal('${evtId}','${dstr}')`;
   const delFn=isTask?`wTaskDel('${evtId}','${dstr}')`:`deleteCalEvtById('${evtId}')`;
   const pop=document.createElement('div');
-  pop.className='calEvtPopover';
+  pop.className='calEvtPopover calEvtPopover-mini';
   pop.innerHTML=`
     <div class="calEvtPop-head">
-      <span class="calEvtPop-dot" style="background:${color}"></span>
       <span class="calEvtPop-title">${esc(title)}</span>
       <button class="calEvtPop-close" onclick="closeCalEvtPopover()">✕</button>
     </div>
-    <div class="calEvtPop-time">🕐 ${timeStr}</div>
-    ${note?`<div class="calEvtPop-note">${esc(note)}</div>`:''}
     <div class="calEvtPop-actions">
-      <button class="calEvtPop-btn edit" onclick="closeCalEvtPopover();${editFn}">✏️ Изменить</button>
-      <button class="calEvtPop-btn del" onclick="${delFn};closeCalEvtPopover()">🗑 Удалить</button>
+      <button class="calEvtPop-btn del" style="flex:1" onclick="${delFn};closeCalEvtPopover()">🗑 Удалить</button>
     </div>`;
   document.body.appendChild(pop);
   _calPopoverEl=pop;
-  const rect=anchorEl.getBoundingClientRect();
+  const cx=domEvent?domEvent.clientX:window.innerWidth/2;
+  const cy=domEvent?domEvent.clientY:window.innerHeight/2;
   const pw=pop.offsetWidth,ph=pop.offsetHeight;
-  let left=rect.right+8,top=rect.top;
-  if(left+pw>window.innerWidth-8)left=rect.left-pw-8;
-  if(left<8)left=Math.min(Math.max(rect.left,8),Math.max(8,window.innerWidth-pw-8));
-  if(top+ph>window.innerHeight-8)top=Math.max(8,window.innerHeight-ph-8);
+  let left=cx+4,top=cy+4;
+  if(left+pw>window.innerWidth-8)left=window.innerWidth-pw-8;
+  if(top+ph>window.innerHeight-8)top=window.innerHeight-ph-8;
+  if(left<8)left=8;
   if(top<8)top=8;
   pop.style.left=left+'px';
   pop.style.top=top+'px';
@@ -8674,6 +8684,7 @@ function showCalEvtPopover(anchorEl,evtId,dstr,src,domEvent){
     window.addEventListener('resize',closeCalEvtPopover);
   },0);
 }
+
 
 
 // ── Backward compat stubs ──
