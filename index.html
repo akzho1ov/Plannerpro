@@ -13628,7 +13628,7 @@ function renderAnalytics(){
     });
     // Draw sleep score trend chart in analytics
     const anlSleepCv=document.getElementById('anl-sleep-dur-chart');
-    if(anlSleepCv)slpDrawScoreChart(sleepEntries());
+    if(anlSleepCv)slpDrawScoreChart(sleepEntries(),'anl-sleep-dur-chart');
   });
 }
 
@@ -15714,10 +15714,7 @@ function renderSleepTracker(){
       +'</div>';
   }).join('');
 
-  // Tags HTML for form
-  var tagsHTML=SLEEP_TAGS.map(function(t){
-    return '<button class="slp-tag-btn" data-tag="'+t.id+'" data-color="'+t.color+'" onclick="toggleSleepTag(\''+t.id+'\')" style="border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.03);color:var(--text2);padding:5px 10px;border-radius:20px;font-size:11px;font-weight:600;cursor:pointer;transition:all .15s;opacity:0.45;font-family:var(--font-body)">'+t.label+'</button>';
-  }).join('');
+  // (tag picker removed — sleep score no longer asks for abstract "what affected sleep" factors)
 
   // Score ring HTML
   var scoreRingHTML='';
@@ -15799,10 +15796,6 @@ function renderSleepTracker(){
   });
   html+='</div><input type="hidden" id="slp-mood" value="'+(todayEntry&&todayEntry.mood?todayEntry.mood:'')+'"></div>';
 
-  // Tags
-  html+='<div style="margin-bottom:14px"><div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);margin-bottom:8px">🏷️ Что повлияло на сон</div>';
-  html+='<div style="display:flex;flex-wrap:wrap;gap:6px">'+tagsHTML+'</div></div>';
-
   html+='<div style="display:flex;gap:8px">';
   html+='<button class="btn btnB" onclick="sleepSave()" style="font-weight:800;flex:1;padding:13px">💾 Сохранить</button>';
   html+='<button class="btn btnG" onclick="document.getElementById(\'slp-add-form\').style.display=\'none\'" style="font-size:12px;padding:13px 16px">Отмена</button>';
@@ -15862,13 +15855,6 @@ function renderSleepTracker(){
   html+='<div style="font-size:11px;font-weight:700;color:var(--p);margin-bottom:14px;text-transform:uppercase;letter-spacing:.8px">🧠 Анализ режима сна</div>';
   html+='<div id="slp-analysis"></div></div>';
 
-  // Tag stats
-  if(entries.length>=3){
-    html+='<div style="background:linear-gradient(145deg,var(--card),var(--bg));border:1px solid var(--border);border-radius:16px;padding:16px 18px;margin-bottom:14px">';
-    html+='<div style="font-size:11px;font-weight:700;color:var(--text);margin-bottom:12px">🏷️ Влияние факторов на сон</div>';
-    html+='<div id="slp-tag-stats"></div></div>';
-  }
-
   // History
   html+='<div style="background:linear-gradient(145deg,var(--card),var(--bg));border:1px solid var(--border);border-radius:16px;overflow:hidden">';
   html+='<div style="padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between">';
@@ -15885,15 +15871,7 @@ function renderSleepTracker(){
     requestAnimationFrame(()=>slpRenderHeatmap(entries));
     slpRenderAnalysis(entries);
     slpRenderHistory(entries);
-    if(entries.length>=3) slpRenderTagStats(entries);
     updateSleepQualityDisplay();
-    if(todayEntry&&todayEntry.tags){
-      todayEntry.tags.forEach(function(tid){
-        _slpActiveTags.add(tid);
-        var btn=root.querySelector('.slp-tag-btn[data-tag="'+tid+'"]');
-        if(btn){btn.style.opacity='1';btn.style.borderColor=btn.dataset.color;btn.style.background=btn.dataset.color+'22';}
-      });
-    }
   });
 }
 
@@ -16079,8 +16057,8 @@ function slpDrawDurChart(entries){
 }
 
 /* ── Sleep Score trend line chart ── */
-function slpDrawScoreChart(entries){
-  const cv=document.getElementById('slp-score-chart');if(!cv)return;
+function slpDrawScoreChart(entries,canvasId){
+  const cv=document.getElementById(canvasId||'slp-score-chart');if(!cv)return;
   const recent=entries.filter(e=>e.score!=null).slice(-21);
   cv.width=cv.offsetWidth||400;cv.height=110;
   const ctx=cv.getContext('2d'),W=cv.width,H=cv.height;
