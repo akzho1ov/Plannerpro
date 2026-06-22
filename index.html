@@ -3672,15 +3672,15 @@ body.light-mode .skel{background:linear-gradient(90deg,var(--card2) 25%,#f0f2f7 
     <!-- Labels donut -->
     <div class="dashCard">
       <div class="db-card-label">🏷 По меткам</div>
-      <div id="dashDonutWrap" style="display:flex;align-items:center;gap:12px;margin-top:4px;flex-wrap:wrap">
-        <div style="position:relative;flex-shrink:0;width:80px;height:80px">
-          <canvas id="dashLabelDonut" width="80" height="80" style="display:block"></canvas>
+      <div style="display:flex;flex-direction:column;align-items:center;gap:14px;flex:1;justify-content:center">
+        <div style="position:relative;width:120px;height:120px;flex-shrink:0">
+          <canvas id="dashLabelDonut" width="120" height="120" style="display:block"></canvas>
           <div id="dashDonutCenter" style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;pointer-events:none">
-            <div style="font-family:var(--font-display);font-size:18px;font-weight:800;color:var(--text);line-height:1" id="dashDonutTotal">0</div>
-            <div style="font-size:8px;color:var(--muted);font-weight:600;margin-top:2px">задач</div>
+            <div style="font-family:var(--font-display);font-size:22px;font-weight:800;color:var(--text);line-height:1" id="dashDonutTotal">0</div>
+            <div style="font-size:8px;color:var(--muted);font-weight:600;margin-top:2px;text-transform:uppercase;letter-spacing:.5px">задач</div>
           </div>
         </div>
-        <div id="dashLabelLegend" style="flex:1;min-width:0;display:flex;flex-direction:column;gap:5px;justify-content:center"></div>
+        <div id="dashLabelLegend" style="width:100%;display:flex;flex-direction:column;gap:6px"></div>
       </div>
     </div>
 
@@ -11256,13 +11256,13 @@ function renderDashLabelDonut(filteredTasks, period){
   const mutedColor=csRoot.getPropertyValue('--muted').trim()||'#8490B8';
 
   const DPR=window.devicePixelRatio||1;
-  const SIZE=90;
+  const SIZE=120;
   cv.width=SIZE*DPR; cv.height=SIZE*DPR;
   cv.style.width=SIZE+'px'; cv.style.height=SIZE+'px';
   const ctx=cv.getContext('2d');
   ctx.scale(DPR,DPR);
   ctx.clearRect(0,0,SIZE,SIZE);
-  const cx=SIZE/2, cy=SIZE/2, R=38, r=23;
+  const cx=SIZE/2, cy=SIZE/2, R=52, r=32;
 
   // Count tasks — only labels from "Внимание" group (lg2)
   const attnGroup=labelGroupsD().find(g=>g.id==='lg2');
@@ -11335,13 +11335,13 @@ function renderDashLabelDonut(filteredTasks, period){
   ctx.fillStyle=bgColor; ctx.shadowColor='transparent'; ctx.fill();
   ctx.restore();
 
-  // Legend
+  // Legend — clean rows with mini bar
   legendEl.innerHTML=drawn.map(({seg,pct})=>
-    '<div style="display:flex;align-items:center;gap:7px;min-width:0;padding:2px 0">'+
-    '<div style="width:8px;height:8px;border-radius:50%;flex-shrink:0;background:'+seg.color+';box-shadow:0 0 5px '+seg.color+'80"></div>'+
-    '<div style="flex:1;font-size:11px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text2);font-weight:500">'+esc(seg.name)+'</div>'+
-    '<div style="font-size:10px;font-weight:700;color:var(--text);font-family:monospace;flex-shrink:0">'+seg.count+'<span style="color:var(--muted);font-weight:400;font-size:9px"> ('+pct+'%)</span></div>'+
-    '</div>'
+    `<div style="display:flex;align-items:center;gap:8px;min-width:0;padding:3px 0">
+      <div style="width:9px;height:9px;border-radius:3px;flex-shrink:0;background:${seg.color};box-shadow:0 0 6px ${seg.color}60"></div>
+      <div style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:11px;color:var(--text2);font-weight:500">${esc(seg.name)}</div>
+      <div style="font-size:10px;font-weight:700;color:var(--text);font-family:var(--font-mono);flex-shrink:0">${seg.count} <span style="color:var(--muted);font-size:9px;font-weight:400">${pct}%</span></div>
+    </div>`
   ).join('');
 }
 
@@ -13719,15 +13719,23 @@ function renderAnalytics(){
     ${kpiRow}
     ${compBannerHtml}
     ${trackerCard}
-    ${timeBalHtml}
-    ${completionHtml}
-    ${pieSection}
-    ${weekdayHtml}
-    ${weeklyTrendHtml}
-    ${barChartHtml}
-    ${emptyHtml}
-    ${topDaysHtml}
-    ${buildSleepAnalyticsHTML()}`;
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:0">
+      <div style="display:flex;flex-direction:column;gap:16px">
+        ${completionHtml}
+        ${weekdayHtml}
+        ${buildSleepAnalyticsHTML()}
+      </div>
+      <div style="display:flex;flex-direction:column;gap:16px">
+        ${pieSection}
+        ${weeklyTrendHtml}
+        ${timeBalHtml}
+      </div>
+    </div>
+    <div style="margin-top:16px;display:flex;flex-direction:column;gap:16px">
+      ${barChartHtml}
+      ${topDaysHtml}
+    </div>
+    ${emptyHtml}`;
 
   // Animate bars on render
   requestAnimationFrame(()=>{
