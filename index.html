@@ -1637,91 +1637,155 @@ body.light-mode .tvSwitchBtn.on{color:#fff}
 .bg-glow::after{content:'';position:absolute;width:500px;height:500px;border-radius:50%;background:radial-gradient(circle,rgba(155,124,244,.06) 0%,transparent 70%);bottom:-80px;right:-100px}
 
 /* ══════════════════════════════
-   0. DASHBOARD — premium
+   0. DASHBOARD — redesigned
 ══════════════════════════════ */
-.dashGrid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:16px}
-.dashGrid2{display:grid;grid-template-columns:2fr 1fr 1fr;gap:14px;margin-bottom:16px}
-.dashGrid3{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:16px}
-@media(max-width:1400px){.dashGrid{grid-template-columns:repeat(4,1fr)}}
-@media(max-width:1100px){.dashGrid{grid-template-columns:repeat(2,1fr)}.dashGrid2{grid-template-columns:1fr 1fr}}
-@media(max-width:768px){
-  .dashGrid,.dashGrid2,.dashGrid3{grid-template-columns:1fr}
-  /* Donut card full-width on mobile */
-  #dashLabelDonut{width:90px!important;height:90px!important}
-  .dashDonutCard{grid-column:1/-1}
+
+/* ── Header ── */
+.db-header{
+  display:flex;align-items:center;justify-content:space-between;
+  gap:16px;margin-bottom:14px;flex-wrap:wrap;
 }
-.dashGrowthRow{align-items:stretch!important}
-.dashGrowthRow>.dashCard,.dashGrowthRow>.dashGrowthCard{height:100%;align-self:stretch!important}
+.db-greeting-block{flex:1;min-width:0}
+.db-greeting{
+  font-family:var(--font-display);font-size:28px;font-weight:800;
+  letter-spacing:-.8px;
+  background:linear-gradient(135deg,var(--text) 30%,var(--p));
+  -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;
+  line-height:1.1;
+}
+.db-date{font-size:12px;color:var(--text2);margin-top:3px;letter-spacing:-.01em;font-weight:500}
+.db-header-right{display:flex;align-items:center;gap:10px;flex-shrink:0;flex-wrap:wrap}
+.db-period-switcher{
+  display:flex;background:var(--card2);border:1px solid var(--border2);
+  border-radius:10px;overflow:hidden;
+}
+.db-quick-actions{display:flex;gap:6px}
+.db-qbtn{font-size:11px;display:flex;align-items:center;gap:5px}
+
+/* ── KPI Strip ── */
+.db-kpi-strip{
+  display:grid;grid-template-columns:repeat(4,1fr);
+  gap:10px;margin-bottom:14px;
+}
+.db-kpi{
+  background:var(--card);border:1px solid var(--border);
+  border-radius:14px;padding:12px 14px;
+  display:flex;align-items:center;gap:10px;
+  cursor:pointer;transition:all .18s var(--ease);
+  box-shadow:var(--shadow),inset 0 1px 0 rgba(255,255,255,.03);
+  position:relative;overflow:hidden;
+}
+.db-kpi::before{
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(135deg,rgba(155,143,245,.03),transparent);
+  pointer-events:none;border-radius:14px;
+}
+.db-kpi:hover{
+  border-color:rgba(155,143,245,.22);
+  transform:translateY(-2px);
+  box-shadow:0 8px 28px rgba(0,0,0,.45),inset 0 1px 0 rgba(255,255,255,.07);
+}
+.db-kpi-icon{
+  width:36px;height:36px;border-radius:10px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:16px;flex-shrink:0;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.12);
+}
+.db-kpi-body{flex:1;min-width:0}
+.db-kpi-val{
+  font-family:var(--font-display);font-size:22px;font-weight:800;
+  letter-spacing:-.5px;color:var(--text);line-height:1;
+}
+.db-kpi-lbl{font-size:10px;color:var(--text2);margin-top:2px;font-weight:600}
+
+/* ── Grid Layouts ── */
+.db-grid-4{
+  display:grid;grid-template-columns:repeat(4,1fr);
+  gap:12px;margin-bottom:12px;
+}
+@media(max-width:1200px){.db-grid-4{grid-template-columns:repeat(2,1fr)!important}}
+@media(max-width:700px){.db-grid-4{grid-template-columns:1fr!important}}
+
+/* ── Card base ── */
 .dashCard{
   background:linear-gradient(145deg,var(--card) 0%,rgba(9,10,22,.99) 100%);
-  border-radius:var(--r);border:1px solid var(--border);
+  border-radius:18px;border:1px solid var(--border);
   padding:18px 20px;
   box-shadow:var(--shadow),inset 0 1px 0 rgba(255,255,255,.05);
-  transition:border-color var(--dur2) var(--ease),box-shadow var(--dur2) var(--ease),transform var(--dur) var(--ease);
+  transition:border-color .2s var(--ease),box-shadow .2s var(--ease),transform .15s var(--ease);
   position:relative;overflow:hidden;
   display:flex;flex-direction:column;
 }
 .dashCard::before{
   content:'';position:absolute;inset:0;
   background:linear-gradient(135deg,rgba(155,143,245,.04) 0%,transparent 50%,rgba(15,221,170,.02) 100%);
-  pointer-events:none;border-radius:var(--r);
+  pointer-events:none;border-radius:18px;
 }
 .dashCard::after{
   content:'';position:absolute;top:0;left:0;right:0;height:1px;
-  background:linear-gradient(90deg,transparent,rgba(255,255,255,.08),transparent);
-  border-radius:var(--r) var(--r) 0 0;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,.09),transparent);
+  border-radius:18px 18px 0 0;
 }
 .dashCard:hover{
   border-color:rgba(155,143,245,.2);
-  box-shadow:var(--shadow),0 0 0 1px rgba(155,143,245,.12),0 0 48px rgba(155,143,245,.08);
+  box-shadow:var(--shadow),0 0 0 1px rgba(155,143,245,.1),0 0 48px rgba(155,143,245,.07);
   transform:translateY(-2px);
 }
+/* Card label */
+.db-card-label{
+  font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:1.4px;
+  color:var(--muted);margin-bottom:14px;
+  display:flex;align-items:center;gap:8px;
+}
+.db-card-label::after{content:'';flex:1;height:1px;background:var(--border)}
+
+/* ── Score card ── */
+.db-card-score{}
+.db-score-wrap{display:flex;align-items:center;gap:16px;flex-wrap:wrap;flex:1}
+.db-score-break{flex:1;min-width:110px;display:flex;flex-direction:column;gap:6px;font-size:11px;color:var(--muted)}
+
+/* ── Numbers ── */
+.db-num{
+  font-family:var(--font-display);font-size:28px;font-weight:800;
+  letter-spacing:-1px;line-height:1;color:var(--text);
+}
+.db-num.red{color:var(--red)}
+.db-num.green{color:var(--green)}
+.db-num.gold{color:var(--gold)}
+.db-num-lbl{font-size:9.5px;color:var(--muted);margin-top:3px;font-weight:600}
+
+/* ── Tasks trio ── */
+.db-trio{display:flex;align-items:center;gap:0;margin-top:4px}
+.db-trio-item{flex:1;text-align:center}
+.db-trio-sep{width:1px;height:40px;background:var(--border);flex-shrink:0}
+
+/* ── Progress bar ── */
+.db-prog-bar{
+  height:5px;background:rgba(255,255,255,.06);
+  border-radius:10px;overflow:hidden;
+}
+.db-prog-fill{height:100%;border-radius:10px;transition:width .6s var(--ease)}
+
+/* ── Finance ── */
+.db-fin-nums{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;flex:1}
+.db-fin-block{
+  background:rgba(255,255,255,.025);border:1px solid var(--border);
+  border-radius:12px;padding:12px;
+}
+
+/* ── Compat aliases (JS still sets old class names) ── */
 .dashCardLbl{
-  font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;
+  font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:1.4px;
   color:var(--muted);margin-bottom:14px;display:flex;align-items:center;gap:8px;
 }
 .dashCardLbl::after{content:'';flex:1;height:1px;background:var(--border)}
-/* Dashboard hero layout */
-.dashHeroRow{
-  display:flex;align-items:flex-start;justify-content:space-between;
-  gap:12px;margin-bottom:10px;
-}
-.dashHeroLeft{flex:1;min-width:0}
-.dashActionsRow{
-  display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;
-}
-.dashActionBtn{font-size:11.5px}
-@media(max-width:700px){
-  .dashHeroRow{flex-direction:row;align-items:flex-start;gap:10px;margin-bottom:8px}
-  .dashHeroLeft #dashGreet{font-size:22px!important}
-  .dashHeroLeft #dashDateLbl{font-size:11px!important}
-  .dashActionsRow{gap:6px;margin-bottom:12px}
-  .dashActionBtn{flex:1;justify-content:center;font-size:11px!important;padding:7px 10px!important}
-  .dashPeriodBtn{padding:5px 10px!important;font-size:10.5px!important}
-}
-.dashPeriodBtn{
-  padding:6px 14px;border:none;background:none;
-  font-family:var(--font-body);font-size:11px;font-weight:600;
-  color:var(--muted);cursor:pointer;transition:all .15s;
-  border-right:1px solid var(--border2);letter-spacing:-.01em;
-}
-.dashPeriodBtn:last-child{border-right:none}
-.dashPeriodBtn.on{background:var(--p);color:#fff;text-shadow:0 0 12px rgba(155,143,245,.5)}
-.dashPeriodBtn:hover:not(.on){background:rgba(255,255,255,.06);color:var(--text2)}
-.dashPeriodTag{
-  font-size:8.5px;color:var(--text2);
-  text-transform:none;letter-spacing:0;font-weight:500;
-  margin-left:4px;opacity:.7;
-}
-.dashBigNum{font-family:var(--font-display);font-size:30px;font-weight:800;letter-spacing:-1px}
-.dashSmNum{font-family:var(--font-display);font-size:22px;font-weight:800;letter-spacing:-.5px}
+.dashBigNum{font-family:var(--font-display);font-size:28px;font-weight:800;letter-spacing:-1px;line-height:1}
+.dashSmNum{font-family:var(--font-display);font-size:20px;font-weight:800;letter-spacing:-.5px}
 .scoreRing{position:relative;display:inline-flex;align-items:center;justify-content:center}
 .scoreRingInner{position:absolute;text-align:center}
-.scoreRingVal{font-family:var(--font-display);font-size:22px;font-weight:800;line-height:1;letter-spacing:-.5px}
-.scoreRingLbl{font-size:8px;color:var(--muted);text-transform:uppercase;letter-spacing:.7px;font-weight:700}
-.dashMiniBarWrap{display:flex;align-items:flex-end;gap:2px;height:44px}
-.dashMiniBar{flex:1;border-radius:3px 3px 0 0;min-height:2px;transition:.4s var(--ease)}
-.dashPipeRow{display:flex;align-items:center;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--border);font-size:11.5px;font-weight:600;color:var(--text)}
+.scoreRingVal{font-family:var(--font-display);font-size:24px;font-weight:800;line-height:1;letter-spacing:-.5px}
+.scoreRingLbl{font-size:8px;color:var(--muted);text-transform:uppercase;letter-spacing:.7px;font-weight:700;margin-top:2px}
+.dashPipeRow{display:flex;align-items:center;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border);font-size:11.5px;font-weight:600;color:var(--text)}
 .dashPipeRow:last-child{border-bottom:none}
 .dashGoalRow{margin-bottom:10px}
 .dashGoalRowBar{height:5px;background:rgba(255,255,255,.05);border-radius:4px;overflow:hidden;margin-top:4px}
@@ -1730,14 +1794,16 @@ body.light-mode .tvSwitchBtn.on{color:#fff}
 .dashActItem:last-child{border-bottom:none}
 .dashActItem:hover{color:var(--text);background:rgba(155,143,245,.06);border-bottom-color:transparent}
 .dashActIcon{width:30px;height:30px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0;box-shadow:inset 0 1px 0 rgba(255,255,255,.1)}
+.dashMiniBarWrap{display:flex;align-items:flex-end;gap:2px;height:44px}
+.dashMiniBar{flex:1;border-radius:3px 3px 0 0;min-height:2px;transition:.4s var(--ease)}
 
-/* Hero focus block */
+/* Focus hero */
 .dashFocus{
   background:linear-gradient(135deg,rgba(155,143,245,.1) 0%,rgba(10,11,22,.98) 50%,rgba(15,221,170,.05) 100%);
   border:1px solid rgba(155,143,245,.22);
-  border-radius:var(--r);padding:24px 28px;margin-bottom:16px;
+  border-radius:20px;padding:24px 28px;margin-bottom:14px;
   position:relative;overflow:hidden;
-  box-shadow:0 0 0 1px rgba(155,143,245,.08),var(--shadow);
+  box-shadow:0 0 0 1px rgba(155,143,245,.07),var(--shadow);
 }
 .dashFocus::before{
   content:'';position:absolute;top:-60px;right:-60px;
@@ -1753,24 +1819,47 @@ body.light-mode .tvSwitchBtn.on{color:#fff}
 .dashFocusLabel{font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:var(--p);margin-bottom:10px;display:flex;align-items:center;gap:6px}
 .dashFocusLabel::before{content:'';width:6px;height:6px;border-radius:50%;background:var(--p);flex-shrink:0;box-shadow:0 0 8px var(--p)}
 .dashFocusTitle{font-family:var(--font-display);font-size:30px;font-weight:800;letter-spacing:-.8px;color:var(--text);margin-bottom:8px;line-height:1.1;position:relative;z-index:1}
-.dashFocusSub{font-size:13.5px;color:var(--text);letter-spacing:-.01em;font-weight:500;opacity:.85}
-.dashFocusActions{display:flex;gap:8px;margin-top:16px;flex-wrap:wrap}
+.dashFocusSub{font-size:13.5px;color:var(--text);letter-spacing:-.01em;font-weight:500;opacity:.85;position:relative;z-index:1}
+.dashFocusActions{display:flex;gap:8px;margin-top:16px;flex-wrap:wrap;position:relative;z-index:1}
 
-/* Quick stats strip */
-.dashStatsStrip{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px}
-@media(max-width:900px){.dashStatsStrip{grid-template-columns:repeat(2,1fr)}}
-.dashStatPill{
-  background:linear-gradient(145deg,var(--card) 0%,rgba(10,11,22,.98) 100%);
-  border:1px solid var(--border);border-radius:var(--r2);
-  padding:14px 16px;display:flex;align-items:center;gap:12px;
-  transition:all var(--dur2) var(--ease);
-  box-shadow:var(--shadow),inset 0 1px 0 rgba(255,255,255,.03);
-  position:relative;overflow:hidden;cursor:default;
+/* Period switcher */
+.dashPeriodBtn{
+  padding:6px 14px;border:none;background:none;
+  font-family:var(--font-body);font-size:11px;font-weight:600;
+  color:var(--muted);cursor:pointer;transition:all .15s;
+  border-right:1px solid var(--border2);letter-spacing:-.01em;
 }
-.dashStatPill:hover{border-color:var(--border2);transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.05)}
-.dashStatPillIcon{width:38px;height:38px;border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0;box-shadow:inset 0 1px 0 rgba(255,255,255,.1)}
-.dashStatPillVal{font-family:var(--font-display);font-size:22px;font-weight:800;letter-spacing:-.5px;color:var(--text);line-height:1}
-.dashStatPillLbl{font-size:10px;color:var(--text);margin-top:2px;font-weight:600;letter-spacing:-.01em}
+.dashPeriodBtn:last-child{border-right:none}
+.dashPeriodBtn.on{background:var(--p);color:#fff;text-shadow:0 0 12px rgba(155,143,245,.5)}
+.dashPeriodBtn:hover:not(.on){background:rgba(255,255,255,.06);color:var(--text2)}
+.dashPeriodTag{font-size:8.5px;color:var(--text2);text-transform:none;letter-spacing:0;font-weight:500;margin-left:4px;opacity:.7}
+
+/* Growth cards compat */
+.dashGrowthCard{height:100%;align-self:stretch}
+
+/* Light mode fixes */
+body.light-mode .dashCard{background:linear-gradient(145deg,#fff,#f5f5f8)}
+body.light-mode .dashCard:hover{box-shadow:0 4px 20px rgba(20,30,90,.12),0 8px 32px rgba(20,30,90,.09)}
+body.light-mode .dashFocus{background:linear-gradient(135deg,rgba(155,143,245,.12) 0%,rgba(245,245,248,.95) 50%,rgba(15,221,170,.06) 100%)}
+body.light-mode .db-kpi{background:#fff}
+body.light-mode .db-card-label{color:var(--text)}
+body.light-mode .dashCardLbl{color:var(--text)}
+body.light-mode .db-num{color:var(--text)}
+
+/* Responsive */
+@media(max-width:900px){
+  .db-kpi-strip{grid-template-columns:1fr 1fr}
+  .db-greeting{font-size:22px!important}
+  .dashPeriodBtn{padding:5px 10px!important;font-size:10.5px!important}
+}
+@media(max-width:600px){
+  .db-header{flex-direction:column;align-items:flex-start}
+  .db-header-right{width:100%;justify-content:space-between}
+  .db-kpi-strip{grid-template-columns:1fr 1fr}
+  .dashFocus{padding:16px 18px;border-radius:16px}
+  .dashFocusTitle{font-size:22px}
+  .dashCard{padding:14px 16px;border-radius:14px}
+}
 
 /* ══════════════════════════════
    LABELS
@@ -3361,315 +3450,335 @@ body.light-mode .skel{background:linear-gradient(90deg,var(--card2) 25%,#f0f2f7 
 
 <!-- ═══ 0. DASHBOARD ═══ -->
 <div id="tab-dash" class="pane on hInner">
-  <!-- Mobile-optimised header -->
-  <div class="dashHeroRow">
-    <!-- Greeting + date -->
-    <div class="dashHeroLeft">
-      <div style="font-family:var(--font-display);font-size:26px;font-weight:800;letter-spacing:-.7px;background:linear-gradient(135deg,var(--text) 0%,var(--text2) 100%);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;line-height:1.1" id="dashGreet">Добрый день!</div>
-      <div style="font-size:12px;color:var(--text2);margin-top:4px;letter-spacing:-.01em" id="dashDateLbl"></div>
+
+  <!-- ══ HEADER ROW ══ -->
+  <div class="db-header">
+    <div class="db-greeting-block">
+      <div class="db-greeting" id="dashGreet">Добрый день! 👋</div>
+      <div class="db-date" id="dashDateLbl"></div>
     </div>
-    <!-- Period switcher -->
-    <div style="display:flex;background:var(--card2);border:1px solid var(--border2);border-radius:10px;overflow:hidden;flex-shrink:0;align-self:flex-start">
-      <button id="dashPeriodDay" class="dashPeriodBtn on" onclick="setDashPeriod('day',this)">День</button>
-      <button id="dashPeriodWeek" class="dashPeriodBtn" onclick="setDashPeriod('week',this)">Неделя</button>
-      <button id="dashPeriodMonth" class="dashPeriodBtn" onclick="setDashPeriod('month',this)">Месяц</button>
+    <div class="db-header-right">
+      <div class="db-period-switcher">
+        <button id="dashPeriodDay" class="dashPeriodBtn on" onclick="setDashPeriod('day',this)">День</button>
+        <button id="dashPeriodWeek" class="dashPeriodBtn" onclick="setDashPeriod('week',this)">Неделя</button>
+        <button id="dashPeriodMonth" class="dashPeriodBtn" onclick="setDashPeriod('month',this)">Месяц</button>
+      </div>
+      <div class="db-quick-actions">
+        <button class="btn btnG db-qbtn" onclick="openJournalModal()">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+          Дневник
+        </button>
+        <button class="btn btnB db-qbtn" onclick="openCmdPalette()">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Действие
+        </button>
+      </div>
     </div>
-  </div>
-  <!-- Action buttons row -->
-  <div class="dashActionsRow">
-    <button class="btn btnG dashActionBtn" onclick="openJournalModal()">
-      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-      Запись в дневник
-    </button>
-    <button class="btn btnB dashActionBtn" onclick="openCmdPalette()">
-      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-      Быстрое действие
-    </button>
   </div>
 
-  <!-- Focus hero block -->
+  <!-- ══ HERO FOCUS BAND ══ -->
   <div class="dashFocus">
-    <div class="dashFocusLabel">
-      <span>Фокус дня</span>
-    </div>
+    <div class="dashFocusLabel"><span>Фокус дня</span></div>
     <div class="dashFocusTitle" id="dashGreetBig">Что сделаем сегодня?</div>
     <div class="dashFocusSub" id="dashFocusSub">Загружаем твой план...</div>
     <div class="dashFocusActions">
-      <button class="btn btnB" style="font-size:11.5px" onclick="navigateTo('tasks')">
-        📋 Задачи дня
-      </button>
-      <button class="btn btnG" style="font-size:11.5px" onclick="navigateTo('habits')">
-        ✅ Привычки
-      </button>
-      <button class="btn btnG" style="font-size:11.5px" onclick="navigateTo('gym')">
-        💪 Тренировка
-      </button>
+      <button class="btn btnB" style="font-size:11.5px" onclick="navigateTo('tasks')">📋 Задачи дня</button>
+      <button class="btn btnG" style="font-size:11.5px" onclick="navigateTo('habits')">✅ Привычки</button>
+      <button class="btn btnG" style="font-size:11.5px" onclick="navigateTo('gym')">💪 Тренировка</button>
     </div>
   </div>
 
-  <!-- Quick stats strip -->
-  <div class="dashStatsStrip">
-    <div class="dashStatPill">
-      <div class="dashStatPillIcon" style="background:var(--pdim)">🎯</div>
-      <div>
-        <div class="dashStatPillVal" id="stot">0</div>
-        <div class="dashStatPillLbl">Всего задач</div>
+  <!-- ══ KPI STRIP ══ -->
+  <div class="db-kpi-strip">
+    <div class="db-kpi" onclick="navigateTo('tasks')">
+      <div class="db-kpi-icon" style="background:var(--pdim);color:var(--p)">🎯</div>
+      <div class="db-kpi-body">
+        <div class="db-kpi-val" id="stot">0</div>
+        <div class="db-kpi-lbl">Всего задач</div>
+      </div>
+      <div class="db-kpi-trend" id="db-kpi-trend-tasks"></div>
+    </div>
+    <div class="db-kpi" onclick="navigateTo('tasks')">
+      <div class="db-kpi-icon" style="background:var(--greendim);color:var(--green)">✅</div>
+      <div class="db-kpi-body">
+        <div class="db-kpi-val" style="color:var(--green)" id="sdone">0</div>
+        <div class="db-kpi-lbl">Выполнено</div>
       </div>
     </div>
-    <div class="dashStatPill">
-      <div class="dashStatPillIcon" style="background:var(--greendim)">✅</div>
-      <div>
-        <div class="dashStatPillVal" id="sdone" style="color:var(--green)">0</div>
-        <div class="dashStatPillLbl">Выполнено</div>
+    <div class="db-kpi" onclick="navigateTo('habits')">
+      <div class="db-kpi-icon" style="background:var(--golddim);color:var(--gold)">🔥</div>
+      <div class="db-kpi-body">
+        <div class="db-kpi-val" style="color:var(--gold)" id="dashStreakVal">0</div>
+        <div class="db-kpi-lbl">Стрик привычек</div>
       </div>
     </div>
-    <div class="dashStatPill">
-      <div class="dashStatPillIcon" style="background:var(--golddim)">🔥</div>
-      <div>
-        <div class="dashStatPillVal" id="dashStreakVal" style="color:var(--gold)">0</div>
-        <div class="dashStatPillLbl">Стрик привычек</div>
+    <div class="db-kpi" onclick="navigateTo('tasks')">
+      <div class="db-kpi-icon" style="background:var(--reddim);color:var(--red)">⚡</div>
+      <div class="db-kpi-body">
+        <div class="db-kpi-val" style="color:var(--red)" id="sover">0</div>
+        <div class="db-kpi-lbl">Просрочено</div>
       </div>
     </div>
-    <div class="dashStatPill">
-      <div class="dashStatPillIcon" style="background:var(--reddim)">⚡</div>
-      <div>
-        <div class="dashStatPillVal" id="sover" style="color:var(--red)">0</div>
-        <div class="dashStatPillLbl">Просрочено</div>
-      </div>
-    </div>
-    <div class="dashStatPill" id="dashWeightPill" style="display:none">
-      <div class="dashStatPillIcon" style="background:rgba(34,204,232,.12)">⚖️</div>
-      <div>
-        <div class="dashStatPillVal" id="dashWeightVal" style="color:var(--cyan)">—</div>
-        <div class="dashStatPillLbl">Вес (кг)</div>
+    <div class="db-kpi" id="dashWeightPill" style="display:none">
+      <div class="db-kpi-icon" style="background:rgba(34,204,232,.12);color:var(--cyan)">⚖️</div>
+      <div class="db-kpi-body">
+        <div class="db-kpi-val" style="color:var(--cyan)" id="dashWeightVal">—</div>
+        <div class="db-kpi-lbl">Вес (кг)</div>
       </div>
     </div>
   </div>
 
-  <!-- Stat cards row -->
-  <div class="dashGrid">
+  <!-- ══ ROW 1: Score + Tasks + Habits + Sleep ══ -->
+  <div class="db-grid-4">
+
     <!-- Score ring -->
-    <div class="dashCard dashScoreCard" style="display:flex;align-items:center;gap:16px;flex-wrap:wrap">
-      <div class="scoreRing" id="dashRingWrap">
-        <svg width="96" height="96" id="dashRingSvg" style="transform:rotate(-90deg)"></svg>
-        <div class="scoreRingInner"><div class="scoreRingVal" id="dashScoreVal">0%</div><div class="scoreRingLbl">балл дня</div></div>
+    <div class="dashCard db-card-score">
+      <div class="db-card-label">⭐ Балл дня</div>
+      <div class="db-score-wrap">
+        <div class="scoreRing" id="dashRingWrap">
+          <svg width="110" height="110" id="dashRingSvg" style="transform:rotate(-90deg)"></svg>
+          <div class="scoreRingInner">
+            <div class="scoreRingVal" id="dashScoreVal" style="font-size:26px">0%</div>
+            <div class="scoreRingLbl" style="font-size:9px">балл дня</div>
+          </div>
+        </div>
+        <div class="db-score-break" id="dashScoreBreak"></div>
       </div>
-      <div style="flex:1;min-width:120px;display:flex;flex-direction:column;gap:6px;font-size:10.5px;color:var(--muted)" id="dashScoreBreak"></div>
     </div>
+
     <!-- Tasks -->
     <div class="dashCard">
-      <div class="dashCardLbl">📋 Задачи</div>
-      <div style="display:flex;gap:14px;flex-wrap:wrap">
-        <div><div class="dashBigNum" style="color:var(--red)" id="dOverdue">0</div><div style="font-size:9px;color:var(--muted)">просрочено</div></div>
-        <div><div class="dashBigNum" style="color:var(--gold)" id="dDueToday">0</div><div style="font-size:9px;color:var(--muted)">сегодня</div></div>
-        <div><div class="dashBigNum" style="color:var(--green)" id="dDone">0</div><div style="font-size:9px;color:var(--muted)">готово</div></div>
+      <div class="db-card-label">📋 Задачи</div>
+      <div class="db-trio">
+        <div class="db-trio-item">
+          <div class="db-num red" id="dOverdue">0</div>
+          <div class="db-num-lbl">просрочено</div>
+        </div>
+        <div class="db-trio-sep"></div>
+        <div class="db-trio-item">
+          <div class="db-num gold" id="dDueToday">0</div>
+          <div class="db-num-lbl">сегодня</div>
+        </div>
+        <div class="db-trio-sep"></div>
+        <div class="db-trio-item">
+          <div class="db-num green" id="dDone">0</div>
+          <div class="db-num-lbl">готово</div>
+        </div>
       </div>
-      <div class="tpBar" style="margin-top:10px"><div class="tpBarFill" id="dashTaskBar" style="width:0%"></div></div>
+      <div class="db-prog-bar" style="margin-top:14px">
+        <div class="db-prog-fill" id="dashTaskBar" style="width:0%;background:linear-gradient(90deg,var(--p),var(--purple))"></div>
+      </div>
+      <div style="font-size:9.5px;color:var(--muted);margin-top:6px">прогресс выполнения</div>
     </div>
+
     <!-- Habits -->
     <div class="dashCard">
-      <div class="dashCardLbl">✅ Привычки сегодня</div>
-      <div style="display:flex;gap:14px;align-items:center">
-        <div><div class="dashBigNum" id="dHabDone" style="color:var(--green)">0</div><div style="font-size:9px;color:var(--muted)">из <span id="dHabTot">0</span></div></div>
+      <div class="db-card-label">✅ Привычки</div>
+      <div style="display:flex;align-items:center;gap:14px;margin-bottom:12px">
+        <div>
+          <div class="db-num green" id="dHabDone">0</div>
+          <div class="db-num-lbl">из <span id="dHabTot">0</span></div>
+        </div>
         <div style="flex:1">
-          <div class="htProgBar" style="margin-top:4px"><div class="htProgFill" id="dashHabBar" style="width:0%"></div></div>
-          <div style="font-size:10px;color:var(--pink);font-weight:700;margin-top:3px" id="dashHabPct">0%</div>
+          <div class="db-prog-bar">
+            <div class="db-prog-fill" id="dashHabBar" style="width:0%;background:linear-gradient(90deg,var(--pink),var(--p))"></div>
+          </div>
+          <div style="font-size:11px;color:var(--pink);font-weight:700;margin-top:5px" id="dashHabPct">0%</div>
         </div>
       </div>
-      <div style="display:flex;gap:3px;flex-wrap:wrap;margin-top:8px" id="dashHabDots"></div>
+      <div style="display:flex;gap:4px;flex-wrap:wrap" id="dashHabDots"></div>
     </div>
+
     <!-- Sleep -->
     <div class="dashCard">
-      <div class="dashCardLbl">🌙 Сон</div>
+      <div class="db-card-label">🌙 Сон</div>
       <div id="dashSleepWidget"><div style="font-size:11px;color:var(--muted)">Загрузка...</div></div>
     </div>
-    <!-- Finance -->
+  </div>
+
+  <!-- ══ ROW 2: Finance + Upcoming + Kanban ══ -->
+  <div class="db-grid-4" style="grid-template-columns:2fr 1fr 1fr">
+
+    <!-- Finance (wide) -->
     <div class="dashCard">
-      <div class="dashCardLbl">💰 Финансы (месяц)</div>
-      <div style="display:flex;gap:14px;flex-wrap:wrap;margin-bottom:12px">
-        <div><div class="dashSmNum" style="color:var(--green)" id="dFinInc">0</div><div style="font-size:9px;color:var(--muted)">доходы</div></div>
-        <div><div class="dashSmNum" style="color:var(--red)" id="dFinExp">0</div><div style="font-size:9px;color:var(--muted)">расходы</div></div>
-        <div><div class="dashSmNum" id="dFinBal" style="color:var(--gold)">0</div><div style="font-size:9px;color:var(--muted)">баланс</div></div>
-      </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
-        <div style="background:rgba(15,221,170,.07);border:1px solid rgba(15,221,170,.18);border-radius:10px;padding:8px 10px">
-          <div style="font-size:8px;color:var(--green);font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">📈 Доходы — 7 дн</div>
-          <canvas id="dashFinSparkInc" height="36" style="width:100%;display:block"></canvas>
+      <div class="db-card-label">💰 Финансы</div>
+      <div class="db-fin-nums">
+        <div class="db-fin-block" style="border-color:rgba(15,221,170,.2)">
+          <div style="font-size:8px;color:var(--green);font-weight:700;text-transform:uppercase;letter-spacing:.6px;margin-bottom:4px">📈 Доходы</div>
+          <div class="db-num green" style="font-size:20px" id="dFinInc">0</div>
+          <canvas id="dashFinSparkInc" height="32" style="width:100%;display:block;margin-top:6px"></canvas>
         </div>
-        <div style="background:rgba(255,79,114,.07);border:1px solid rgba(255,79,114,.18);border-radius:10px;padding:8px 10px">
-          <div style="font-size:8px;color:var(--red);font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">📉 Расходы — 7 дн</div>
-          <canvas id="dashFinSparkExp" height="36" style="width:100%;display:block"></canvas>
+        <div class="db-fin-block" style="border-color:rgba(255,79,114,.2)">
+          <div style="font-size:8px;color:var(--red);font-weight:700;text-transform:uppercase;letter-spacing:.6px;margin-bottom:4px">📉 Расходы</div>
+          <div class="db-num red" style="font-size:20px" id="dFinExp">0</div>
+          <canvas id="dashFinSparkExp" height="32" style="width:100%;display:block;margin-top:6px"></canvas>
+        </div>
+        <div class="db-fin-block" style="border-color:rgba(155,143,245,.2)">
+          <div style="font-size:8px;color:var(--p);font-weight:700;text-transform:uppercase;letter-spacing:.6px;margin-bottom:4px">⚖️ Баланс</div>
+          <div class="db-num" style="font-size:20px" id="dFinBal">0</div>
+          <div style="font-size:9.5px;color:var(--muted);margin-top:8px">месяц</div>
         </div>
       </div>
     </div>
-    <!-- Rewards / Coins -->
-    <div class="dashCard">
-      <div class="dashCardLbl">🏆 Очки и награды</div>
-      <div style="display:flex;gap:14px;flex-wrap:wrap;margin-bottom:10px">
-        <div><div class="dashBigNum" style="color:var(--gold)" id="dCoins">0</div><div style="font-size:9px;color:var(--muted)">монет</div></div>
-        <div><div class="dashBigNum" style="color:var(--purple)" id="dStreak">0</div><div style="font-size:9px;color:var(--muted)">стрик дн</div></div>
-      </div>
-      <div id="dashRewardsList" style="display:flex;flex-direction:column;gap:4px"></div>
-    </div>
-    <!-- Active challenges -->
-    <div class="dashCard" id="dashChallengesCard" style="display:none">
-      <div class="dashCardLbl">🏁 Активные челленджи</div>
-      <div id="dashChallengesList" style="display:flex;flex-direction:column;gap:5px;margin-top:2px"></div>
-    </div>
-    <!-- Next events -->
+
+    <!-- Upcoming events -->
     <div class="dashCard" id="dashUpcomingCard">
-      <div class="dashCardLbl">📆 Ближайшие события</div>
-      <div id="dashUpcoming" style="display:flex;flex-direction:column;gap:5px;margin-top:2px"></div>
+      <div class="db-card-label">📆 События</div>
+      <div id="dashUpcoming" style="display:flex;flex-direction:column;gap:6px;margin-top:2px"></div>
     </div>
-    <!-- Labels Donut -->
-    <div class="dashCard dashDonutCard" style="position:relative">
-      <div class="dashCardLbl">🏷 Задачи по меткам</div>
-      <div id="dashDonutWrap" style="display:flex;align-items:center;gap:16px;margin-top:8px;flex-wrap:nowrap">
-        <div style="position:relative;flex-shrink:0;width:90px;height:90px">
-          <canvas id="dashLabelDonut" width="90" height="90" style="display:block"></canvas>
+
+    <!-- Kanban pipeline -->
+    <div class="dashCard">
+      <div class="db-card-label">🎯 Канбан</div>
+      <div id="dashPipeline" style="margin-top:2px"></div>
+    </div>
+  </div>
+
+  <!-- ══ ROW 3: Charts ══ -->
+  <div class="db-grid-4" style="grid-template-columns:2fr 2fr 1fr">
+
+    <!-- Habits 28d -->
+    <div class="dashCard">
+      <div class="db-card-label">📈 Привычки — 28 дней</div>
+      <canvas id="dashHabChart" height="100" style="width:100%;display:block"></canvas>
+    </div>
+
+    <!-- Weekly tasks -->
+    <div class="dashCard" style="position:relative;overflow:hidden">
+      <div style="position:absolute;inset:0;background:linear-gradient(135deg,rgba(91,149,255,.05) 0%,transparent 60%);pointer-events:none;border-radius:inherit"></div>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;position:relative">
+        <div class="db-card-label" style="margin-bottom:0">📊 Задачи по неделям</div>
+        <div id="dashWeekBest" style="font-size:9px;font-weight:800;padding:2px 9px;border-radius:20px;background:var(--bluedim);color:var(--blue);border:1px solid rgba(91,149,255,.2)">Рекорд: –</div>
+      </div>
+      <canvas id="taskWeekChart" height="100" style="width:100%;display:block;position:relative"></canvas>
+    </div>
+
+    <!-- Goals -->
+    <div class="dashCard">
+      <div class="db-card-label">🌱 Цели</div>
+      <div id="dashGoals" style="margin-top:2px"></div>
+    </div>
+  </div>
+
+  <!-- ══ ROW 4: Insights + Labels + Rewards ══ -->
+  <div class="db-grid-4" style="grid-template-columns:2fr 1fr 1fr">
+
+    <!-- AI Insights -->
+    <div class="dashCard" style="background:linear-gradient(145deg,rgba(155,143,245,.06),var(--bg));border-color:rgba(155,143,245,.18)">
+      <div class="db-card-label">✦ Инсайты</div>
+      <div id="dashInsightsBlock"><div style="font-size:11px;color:var(--muted)">Анализирую данные...</div></div>
+    </div>
+
+    <!-- Labels donut -->
+    <div class="dashCard">
+      <div class="db-card-label">🏷 По меткам</div>
+      <div id="dashDonutWrap" style="display:flex;align-items:center;gap:12px;margin-top:4px;flex-wrap:wrap">
+        <div style="position:relative;flex-shrink:0;width:80px;height:80px">
+          <canvas id="dashLabelDonut" width="80" height="80" style="display:block"></canvas>
           <div id="dashDonutCenter" style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;pointer-events:none">
-            <div style="font-family:var(--font-display);font-size:20px;font-weight:800;color:var(--text);line-height:1" id="dashDonutTotal">0</div>
+            <div style="font-family:var(--font-display);font-size:18px;font-weight:800;color:var(--text);line-height:1" id="dashDonutTotal">0</div>
             <div style="font-size:8px;color:var(--muted);font-weight:600;margin-top:2px">задач</div>
           </div>
         </div>
-        <div id="dashLabelLegend" style="flex:1;min-width:0;display:flex;flex-direction:column;gap:6px;justify-content:center"></div>
+        <div id="dashLabelLegend" style="flex:1;min-width:0;display:flex;flex-direction:column;gap:5px;justify-content:center"></div>
       </div>
     </div>
-  </div>
 
-  <!-- Charts row -->
-  <div class="dashGrid2">
+    <!-- Rewards & Coins -->
     <div class="dashCard">
-      <div class="dashCardLbl">📈 Привычки — 28 дней</div>
-      <canvas id="dashHabChart" height="100" style="width:100%;display:block"></canvas>
-    </div>
-    <div class="dashCard">
-      <div class="dashCardLbl">🎯 Канбан пайплайн</div>
-      <div id="dashPipeline" style="margin-top:4px"></div>
-    </div>
-    <div class="dashCard">
-      <div class="dashCardLbl">🌱 Цели</div>
-      <div id="dashGoals" style="margin-top:4px"></div>
+      <div class="db-card-label">🏆 Очки</div>
+      <div style="display:flex;gap:14px;flex-wrap:wrap;margin-bottom:10px">
+        <div><div class="db-num gold" id="dCoins">0</div><div class="db-num-lbl">монет</div></div>
+        <div><div class="db-num" style="color:var(--purple)" id="dStreak">0</div><div class="db-num-lbl">стрик дн</div></div>
+      </div>
+      <div id="dashRewardsList" style="display:flex;flex-direction:column;gap:4px"></div>
     </div>
   </div>
 
-  <!-- Finance + Activity row -->
-  <div class="dashGrid3">
+  <!-- ══ ROW 5: Finance chart + Activity ══ -->
+  <div class="db-grid-4" style="grid-template-columns:1fr 1fr">
     <div class="dashCard">
-      <div class="dashCardLbl">💸 Доходы / Расходы по месяцам</div>
+      <div class="db-card-label">💸 Доходы / Расходы по месяцам</div>
       <canvas id="dashFinChart" height="110" style="width:100%;display:block"></canvas>
     </div>
     <div class="dashCard">
-      <div class="dashCardLbl">🕒 Последние действия</div>
+      <div class="db-card-label">🕒 Последние действия</div>
       <div id="dashActivity"></div>
     </div>
   </div>
 
-  <!-- Insights + Pomodoro Heatmap row -->
-  <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:14px">
-    <!-- AI Insights -->
-    <div class="dashCard" style="background:linear-gradient(145deg,var(--card),var(--bg));border:1px solid var(--border)">
-      <div class="dashCardLbl" style="margin-bottom:12px">✦ Инсайты</div>
-      <div id="dashInsightsBlock"><div style="font-size:11px;color:var(--muted)">Анализирую данные...</div></div>
+  <!-- ══ ROW 6: Heatmaps ══ -->
+  <div class="db-grid-4" style="grid-template-columns:1fr 1fr">
+
+    <!-- Habit streak heatmap -->
+    <div class="dashCard dashGrowthCard" id="habitHeatmapCard" style="position:relative;overflow:hidden">
+      <div style="position:absolute;inset:0;background:linear-gradient(135deg,rgba(240,107,176,.06) 0%,rgba(155,143,245,.03) 50%,transparent 80%);pointer-events:none;border-radius:inherit"></div>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;position:relative">
+        <div>
+          <div class="db-card-label" style="margin-bottom:2px">🔥 Тепловая карта привычек</div>
+          <div style="font-size:9.5px;color:var(--muted)" id="heatmapSubLbl">16 недель активности</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:3px">
+          <span style="font-size:8px;color:var(--muted)">меньше</span>
+          <div style="width:8px;height:8px;border-radius:2px;background:var(--border)"></div>
+          <div style="width:8px;height:8px;border-radius:2px;background:rgba(240,107,176,.2)"></div>
+          <div style="width:8px;height:8px;border-radius:2px;background:rgba(240,107,176,.45)"></div>
+          <div style="width:8px;height:8px;border-radius:2px;background:rgba(240,107,176,.72)"></div>
+          <div style="width:8px;height:8px;border-radius:2px;background:var(--pink)"></div>
+          <span style="font-size:8px;color:var(--muted)">больше</span>
+        </div>
+      </div>
+      <div style="display:flex;gap:4px;align-items:flex-start;position:relative">
+        <div style="display:flex;flex-direction:column;gap:2px;flex-shrink:0;padding-top:17px">
+          <div style="font-size:7px;color:var(--muted);font-weight:700;height:12px;line-height:12px">Пн</div>
+          <div style="height:12px"></div>
+          <div style="font-size:7px;color:var(--muted);font-weight:700;height:12px;line-height:12px">Ср</div>
+          <div style="height:12px"></div>
+          <div style="font-size:7px;color:var(--muted);font-weight:700;height:12px;line-height:12px">Пт</div>
+          <div style="height:12px"></div>
+          <div style="font-size:7px;color:var(--pink);font-weight:700;height:12px;line-height:12px">Вс</div>
+        </div>
+        <div style="flex:1;min-width:0">
+          <div id="heatmapMonthLabels" style="margin-bottom:3px"></div>
+          <div class="streakHeatmap" id="streakHeatmap"></div>
+        </div>
+        <!-- Right stats panel -->
+        <div style="display:flex;flex-direction:column;gap:8px;flex-shrink:0;min-width:72px">
+          <div style="background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:8px;text-align:center">
+            <div style="font-size:7px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;font-weight:700;margin-bottom:3px">Стрик</div>
+            <div style="font-family:var(--font-display);font-size:18px;font-weight:800;color:var(--pink);line-height:1" id="hmStreakVal">0</div>
+            <div style="font-size:7px;color:var(--muted);margin-top:2px">дней</div>
+          </div>
+          <div style="background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:8px;text-align:center">
+            <div style="font-size:7px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;font-weight:700;margin-bottom:3px">Лучший</div>
+            <div style="font-family:var(--font-display);font-size:18px;font-weight:800;color:var(--gold);line-height:1" id="hmBestVal">0</div>
+            <div style="font-size:7px;color:var(--muted);margin-top:2px">дней</div>
+          </div>
+          <div style="background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:8px;text-align:center">
+            <div style="font-size:7px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;font-weight:700;margin-bottom:3px">Охват</div>
+            <div style="font-family:var(--font-display);font-size:18px;font-weight:800;color:var(--cyan);line-height:1" id="hmPctVal">0%</div>
+            <div style="height:4px;background:var(--border2);border-radius:4px;overflow:hidden;margin-top:4px"><div id="hmPctBar" style="height:100%;border-radius:4px;background:linear-gradient(90deg,var(--pink),var(--p));width:0%;transition:.6s"></div></div>
+          </div>
+        </div>
+      </div>
     </div>
-    <!-- Pomodoro Heatmap -->
-    <div class="dashCard" style="background:linear-gradient(145deg,var(--card),var(--bg));border:1px solid var(--border);overflow:auto">
-      <div class="dashCardLbl" style="margin-bottom:4px">🍅 Активность (фокус)</div>
-      <div style="font-size:10px;color:var(--muted);margin-bottom:10px">Минуты фокуса по дням — 18 недель</div>
+
+    <!-- Pomodoro heatmap -->
+    <div class="dashCard" style="overflow:auto">
+      <div class="db-card-label">🍅 Фокус — активность</div>
+      <div style="font-size:9.5px;color:var(--muted);margin-bottom:10px">Минуты концентрации · 18 недель</div>
       <div id="pomHeatmapBlock" style="overflow-x:auto"></div>
     </div>
   </div>
 
-  <!-- Growth Widgets Row -->
-  <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:14px" class="dashGrowthRow">
-    <!-- Weekly Tasks Bar Chart -->
-    <div class="dashCard dashGrowthCard" style="position:relative;overflow:hidden;align-self:stretch">
-      <div style="position:absolute;inset:0;background:linear-gradient(135deg,rgba(91,149,255,.06) 0%,transparent 60%);pointer-events:none;border-radius:inherit"></div>
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;position:relative">
-        <div>
-          <div class="dashCardLbl" style="margin-bottom:1px">📊 Задачи по неделям</div>
-          <div style="font-size:10px;color:var(--muted)">Выполненные задачи за 6 недель</div>
-        </div>
-        <div id="dashWeekBest" style="font-size:9px;font-weight:800;padding:3px 10px;border-radius:20px;background:var(--bluedim);color:var(--blue);border:1px solid rgba(91,149,255,.2)">Рекорд: –</div>
-      </div>
-      <canvas id="taskWeekChart" height="90" style="width:100%;display:block;position:relative"></canvas>
-    </div>
-
-    <!-- Habit Streak Heatmap — redesigned -->
-    <div class="dashCard dashGrowthCard" id="habitHeatmapCard" style="position:relative;overflow:hidden;display:flex;flex-direction:column;gap:0;align-self:stretch">
-      <div style="position:absolute;inset:0;background:linear-gradient(135deg,rgba(240,107,176,.07) 0%,rgba(155,143,245,.04) 50%,transparent 80%);pointer-events:none;border-radius:inherit"></div>
-      <!-- Header -->
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;position:relative">
-        <div>
-          <div class="dashCardLbl" style="margin-bottom:2px">🔥 Тепловая карта привычек</div>
-          <div style="font-size:10px;color:var(--muted)" id="heatmapSubLbl">Активность за 16 недель</div>
-        </div>
-        <!-- Legend -->
-        <div style="display:flex;align-items:center;gap:4px">
-          <span style="font-size:8px;color:var(--muted)">меньше</span>
-          <div style="width:8px;height:8px;border-radius:2px;background:var(--border);border:1px solid var(--border2)"></div>
-          <div style="width:8px;height:8px;border-radius:2px;background:rgba(240,107,176,.2);border:1px solid rgba(240,107,176,.2)"></div>
-          <div style="width:8px;height:8px;border-radius:2px;background:rgba(240,107,176,.45);border:1px solid rgba(240,107,176,.3)"></div>
-          <div style="width:8px;height:8px;border-radius:2px;background:rgba(240,107,176,.72);border:1px solid rgba(240,107,176,.4)"></div>
-          <div style="width:8px;height:8px;border-radius:2px;background:var(--pink);border:1px solid rgba(240,107,176,.5);box-shadow:0 0 5px rgba(240,107,176,.4)"></div>
-          <span style="font-size:8px;color:var(--muted)">больше</span>
-        </div>
-      </div>
-      <!-- Body: heatmap + right stats panel -->
-      <div style="display:flex;gap:14px;align-items:flex-start;position:relative">
-        <!-- Heatmap grid area -->
-        <div style="flex:1;min-width:0">
-          <div style="display:flex;gap:4px;align-items:flex-start">
-            <!-- Day labels -->
-            <div style="display:flex;flex-direction:column;gap:2px;flex-shrink:0;padding-top:17px">
-              <div style="font-size:7px;color:var(--muted);font-weight:700;height:12px;line-height:12px">Пн</div>
-              <div style="height:12px"></div>
-              <div style="font-size:7px;color:var(--muted);font-weight:700;height:12px;line-height:12px">Ср</div>
-              <div style="height:12px"></div>
-              <div style="font-size:7px;color:var(--muted);font-weight:700;height:12px;line-height:12px">Пт</div>
-              <div style="height:12px"></div>
-              <div style="font-size:7px;color:var(--pink);font-weight:700;height:12px;line-height:12px">Вс</div>
-            </div>
-            <!-- Grid + month labels -->
-            <div style="flex:1;min-width:0">
-              <div id="heatmapMonthLabels" style="margin-bottom:3px"></div>
-              <div class="streakHeatmap" id="streakHeatmap"></div>
-            </div>
-          </div>
-        </div>
-        <!-- Right stats panel -->
-        <div style="display:flex;flex-direction:column;gap:8px;flex-shrink:0;width:90px;border-left:1px solid var(--border);padding-left:14px;justify-content:space-between" id="heatmapStatsPanel">
-          <!-- streak -->
-          <div>
-            <div style="font-size:8px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.6px;margin-bottom:2px">Стрик</div>
-            <div style="display:flex;align-items:baseline;gap:3px">
-              <div style="font-family:var(--font-display);font-size:26px;font-weight:800;color:var(--pink);line-height:1" id="hmStreak">0</div>
-              <div style="font-size:9px;color:var(--muted)">дн</div>
-            </div>
-          </div>
-          <!-- divider -->
-          <div style="height:1px;background:var(--border)"></div>
-          <!-- this week -->
-          <div>
-            <div style="font-size:8px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.6px;margin-bottom:4px">Эта неделя</div>
-            <div style="display:flex;flex-direction:column;gap:3px" id="hmWeekDots">
-              <!-- filled by JS -->
-            </div>
-          </div>
-          <!-- divider -->
-          <div style="height:1px;background:var(--border)"></div>
-          <!-- completion -->
-          <div>
-            <div style="font-size:8px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.6px;margin-bottom:4px">За 30 дней</div>
-            <div style="font-family:var(--font-display);font-size:18px;font-weight:800;color:var(--p);line-height:1;margin-bottom:3px" id="hmPct30">—</div>
-            <div style="height:4px;background:var(--border2);border-radius:4px;overflow:hidden"><div id="hmPctBar" style="height:100%;border-radius:4px;background:linear-gradient(90deg,var(--pink),var(--p));width:0%;transition:.6s"></div></div>
-          </div>
-        </div>
-      </div>
-    </div>
+  <!-- Hidden challenges card (shown only when active) -->
+  <div class="dashCard" id="dashChallengesCard" style="display:none;margin-top:14px">
+    <div class="db-card-label">🏁 Активные челленджи</div>
+    <div id="dashChallengesList" style="display:flex;flex-direction:column;gap:5px;margin-top:2px"></div>
   </div>
+
 </div>
-</div><!-- /tab-dash FIX: missing closing tag -->
+
 
 <!-- ═══ 1. WEEKLY PLANNER ═══ -->
 <div id="tab-weekly" class="pane hInner">
@@ -10610,8 +10719,8 @@ function renderDash(){
   if(document.getElementById('sdone'))document.getElementById('sdone').textContent=done;
   if(document.getElementById('sover'))document.getElementById('sover').textContent=over;
   // Update pill labels to reflect current period
-  const stotLbl=document.querySelector('#stot')?.closest('.dashStatPill')?.querySelector('.dashStatPillLbl');
-  const sdoneLbl=document.querySelector('#sdone')?.closest('.dashStatPill')?.querySelector('.dashStatPillLbl');
+  const stotLbl=document.querySelector('#stot')?.closest('.db-kpi')?.querySelector('.db-kpi-lbl');
+  const sdoneLbl=document.querySelector('#sdone')?.closest('.db-kpi')?.querySelector('.db-kpi-lbl');
   if(stotLbl)stotLbl.textContent=p==='day'?'На сегодня':p==='week'?'За неделю':'За месяц';
   if(sdoneLbl)sdoneLbl.textContent=p==='day'?'Выполнено сегодня':'Выполнено';
   const dOverEl=document.getElementById('dOverdue');if(dOverEl)dOverEl.textContent=over;
@@ -10620,7 +10729,7 @@ function renderDash(){
   const taskBar=document.getElementById('dashTaskBar');if(taskBar)taskBar.style.width=(tot?Math.round(done/tot*100):0)+'%';
 
   // Update card label
-  document.querySelectorAll('#tab-dash .dashCardLbl').forEach(el=>{
+  document.querySelectorAll('#tab-dash .dashCardLbl, #tab-dash .db-card-label').forEach(el=>{
     const t=el.textContent||el.innerText||'';
     if(t.includes('Задач'))el.innerHTML=`📋 Задачи <span class="dashPeriodTag">${periodLbl}</span>`;
     if(t.includes('Финанс'))el.innerHTML=`💰 Финансы <span class="dashPeriodTag">${periodLbl}</span>`;
