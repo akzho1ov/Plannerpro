@@ -1636,9 +1636,22 @@ body.light-mode .tvSwitchBtn.on{color:#fff}
 .bg-glow::before{content:'';position:absolute;width:600px;height:600px;border-radius:50%;background:radial-gradient(circle,rgba(79,135,247,.07) 0%,transparent 70%);top:-100px;left:-150px}
 .bg-glow::after{content:'';position:absolute;width:500px;height:500px;border-radius:50%;background:radial-gradient(circle,rgba(155,124,244,.06) 0%,transparent 70%);bottom:-80px;right:-100px}
 
-/* ══════════════════════════════
-   0. DASHBOARD — redesigned
-══════════════════════════════ */
+/* ══ Analytics layout ══ */
+.anl-root{display:flex;flex-direction:column;gap:0}
+.anl-header{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:10px}
+.anl-title{font-family:var(--font-display);font-size:26px;font-weight:800;letter-spacing:-1px;background:linear-gradient(135deg,var(--text) 30%,var(--p));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.anl-subtitle{font-size:11px;color:var(--muted);margin-top:4px}
+.anl-section{margin-bottom:4px}
+.anl-grid{display:grid;gap:16px}
+.anl-grid-2{grid-template-columns:1fr 1fr}
+.anl-grid-3{grid-template-columns:repeat(3,1fr)}
+@media(max-width:900px){.anl-grid-2,.anl-grid-3{grid-template-columns:1fr}}
+
+/* Make all analytics cards consistent — same border-radius and no stray margin */
+#analytics-content [style*="border-radius:20px"]{border-radius:16px!important}
+#analytics-content [style*="border-radius:18px"]{border-radius:16px!important}
+/* Strip bottom margin from individual cards placed inside grid cells */
+.anl-grid > *{margin-bottom:0!important}
 
 /* ── Header ── */
 .db-header{
@@ -13708,34 +13721,59 @@ function renderAnalytics(){
   </div>`:'';
 
   el.innerHTML=`
-    <div style="display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:10px">
+  <div class="anl-root">
+
+    <!-- ── Header ── -->
+    <div class="anl-header">
       <div>
-        <div style="font-family:var(--font-display);font-size:26px;font-weight:800;letter-spacing:-1px;background:linear-gradient(135deg,var(--text) 30%,var(--p));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">Аналитика</div>
-        <div style="font-size:11px;color:var(--muted);margin-top:4px">Только выполненные задачи · <span style="color:var(--p);font-weight:700">${fmtMin(totalPlannedMin)}</span> запланировано</div>
+        <div class="anl-title">Аналитика</div>
+        <div class="anl-subtitle">Только выполненные задачи · <span style="color:var(--p);font-weight:700">${fmtMin(totalPlannedMin)}</span> запланировано за период</div>
       </div>
     </div>
-    ${periodBar}
-    ${lblFilterBar}
+
+    <!-- ── Period ── -->
+    <div class="anl-section">
+      ${periodBar}
+      ${lblFilterBar}
+    </div>
+
+    <!-- ── KPI row ── -->
     ${kpiRow}
+
+    <!-- ── Comparison banner ── -->
     ${compBannerHtml}
+
+    <!-- ── Actual time tracker ── -->
     ${trackerCard}
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:0">
-      <div style="display:flex;flex-direction:column;gap:16px">
-        ${completionHtml}
-        ${weekdayHtml}
-        ${buildSleepAnalyticsHTML()}
-      </div>
-      <div style="display:flex;flex-direction:column;gap:16px">
-        ${pieSection}
-        ${weeklyTrendHtml}
-        ${timeBalHtml}
-      </div>
+
+    <!-- ── ROW: Completion ring + Time balance ── -->
+    <div class="anl-grid anl-grid-2" style="margin-bottom:16px">
+      ${completionHtml?completionHtml.replace('margin-bottom:24px','margin-bottom:0'):''}
+      ${timeBalHtml.replace('margin-bottom:24px','margin-bottom:0')}
     </div>
-    <div style="margin-top:16px;display:flex;flex-direction:column;gap:16px">
-      ${barChartHtml}
-      ${topDaysHtml}
+
+    <!-- ── ROW: Labels pie + Label breakdown (full width) ── -->
+    ${pieSection?pieSection.replace('margin-bottom:24px','margin-bottom:16px'):''}
+
+    <!-- ── ROW: Daily chart (full width) ── -->
+    ${barChartHtml?barChartHtml.replace('margin-bottom:24px','margin-bottom:16px'):''}
+
+    <!-- ── ROW: Weekday bars + Weekly trend ── -->
+    <div class="anl-grid anl-grid-2" style="margin-bottom:16px">
+      ${weekdayHtml?weekdayHtml.replace('margin-bottom:24px','margin-bottom:0'):''}
+      ${weeklyTrendHtml?weeklyTrendHtml.replace('margin-bottom:24px','margin-bottom:0'):''}
     </div>
-    ${emptyHtml}`;
+
+    <!-- ── Top productive days (full width) ── -->
+    ${topDaysHtml?topDaysHtml.replace('margin-bottom:24px','margin-bottom:16px'):''}
+
+    <!-- ── Sleep analytics ── -->
+    ${buildSleepAnalyticsHTML()}
+
+    <!-- ── Empty state ── -->
+    ${emptyHtml}
+
+  </div>`;
 
   // Animate bars on render
   requestAnimationFrame(()=>{
