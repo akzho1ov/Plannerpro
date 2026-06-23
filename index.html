@@ -7248,7 +7248,7 @@ function renderTP(){
       if(effDstr){const dl=new Date(effDstr+'T00:00:00');dlLabel=`${dws[dl.getDay()]}, ${dl.getDate()} ${mons[dl.getMonth()]}.`}
       const taskLabelsDesk=getTaskLabels(t);
       const dotsHtml=taskLabelsDesk.map(l=>`<span style="width:8px;height:8px;border-radius:50%;background:${l.color};display:inline-block;flex-shrink:0;box-shadow:0 0 4px ${l.color}55"></span>`).join('');
-      const pillsHtml=taskLabelsDesk.map(l=>{const rc=plReadableColor(l.color);return`<span class="labelPill" style="background:${hexA(rc,0.28)};color:${rc};border:1px solid ${hexA(rc,0.75)};box-shadow:0 0 8px ${hexA(rc,0.22)}">${esc(l.name)}</span>`;}).join('');
+      const pillsHtml=taskLabelsDesk.map(l=>{const rc=plReadableColor(l.color);return`<span class="labelPill" style="background:${hexA(rc,0.22)};color:${rc};border:1.5px solid ${hexA(rc,0.85)};box-shadow:inset 0 0 0 1px ${hexA(rc,0.15)},0 0 10px ${hexA(rc,0.25)};text-shadow:0 0 8px ${hexA(rc,0.6)}">${esc(l.name)}</span>`;}).join('');
       const labelHtml=`<div class="tLabelCell" onclick="openLabelPickerById('${t.id}',this);event.stopPropagation()">
         <div class="tLabelDots">${dotsHtml||'<span style="color:var(--border2);font-size:10px">＋</span>'}</div>
         <div class="tLabelPills">${pillsHtml}<span class="tLabelAddBtn">＋</span></div>
@@ -7343,7 +7343,7 @@ function renderTP(){
           <button style="border:none;background:none;color:var(--border3);font-size:18px;padding:0 4px;cursor:pointer;flex-shrink:0" onclick="delRecurringTask('${t.id}','${effDstrM}');event.stopPropagation()">×</button>
         </div>
         <div class="mTaskMeta">
-          ${taskLbls.map(l=>`<span class="mTaskMetaChip" style="background:${hexA(l.color,.28)};color:${l.color};border:1px solid ${hexA(l.color,.7)};box-shadow:0 0 7px ${hexA(l.color,.2)}"><span style="width:6px;height:6px;border-radius:50%;background:${l.color}"></span>${esc(l.name)}</span>`).join('')}
+          ${taskLbls.map(l=>`<span class="mTaskMetaChip" style="background:${hexA(l.color,.22)};color:${l.color};border:1.5px solid ${hexA(l.color,.85)};box-shadow:0 0 10px ${hexA(l.color,.25)};text-shadow:0 0 8px ${hexA(l.color,.5)}"><span style="width:6px;height:6px;border-radius:50%;background:${l.color};box-shadow:0 0 4px ${l.color}"></span>${esc(l.name)}</span>`).join('')}
           ${effDstrM?`<span class="mTaskMetaChip" style="background:var(--card2);color:var(--text2)">📅 ${dateStr}</span>`:''}
           ${t.time?`<span class="mTaskMetaChip" style="background:var(--pdim);color:var(--p);font-family:var(--font-mono)">⏱ ${t.time}${t.endTime?' – '+t.endTime:''}</span>`:''}
           ${repeatBadge}
@@ -13548,29 +13548,15 @@ function renderAnalytics(){
   // ── BAR CHART (daily) ──
   const showDays=Math.min(dayArr.length,30);
   const visibleDays=dayArr.slice(-showDays);
-  const barChartHtml=visibleDays.some(d=>d.min>0||d.count>0)?`<div style="background:linear-gradient(145deg,var(--card),var(--bg));border:1px solid var(--border);border-radius:20px;padding:22px 24px;margin-bottom:24px">
-    <div style="font-size:9.5px;font-weight:800;text-transform:uppercase;letter-spacing:1.2px;color:var(--muted);margin-bottom:18px">📈 Время по дням (выполненные)</div>
-    <div style="overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;padding-bottom:4px">
-    <div style="display:flex;align-items:flex-end;gap:${showDays>20?'2':'4'}px;height:100px;min-width:${Math.max(showDays*18,280)}px">
-      ${visibleDays.map(d=>{
-        const hMin=maxDayMin?Math.max(Math.round(d.min/maxDayMin*94),d.min?4:0):0;
-        const hCount=maxDayCount?Math.max(Math.round(d.count/maxDayCount*94),d.count?4:0):0;
-        const dayLabel=showDays<=14?(d.d.getDate()+'.'+(d.d.getMonth()+1)):(d.d.getDate()+'');
-        return`<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;min-width:${showDays>20?'10':'14'}px" title="${d.d.toLocaleDateString('ru')}: ${d.count} задач · ${fmtMin(d.min)}">
-          <div style="width:100%;display:flex;flex-direction:column;justify-content:flex-end;height:94px;gap:1px">
-            ${d.min?`<div style="width:100%;height:${hMin}px;background:${d.isToday?'linear-gradient(180deg,var(--p),var(--purple))':'linear-gradient(180deg,var(--cyan),rgba(34,204,232,.5))'};border-radius:3px 3px 0 0;box-shadow:${d.isToday?'0 0 8px var(--pglow)':'none'}"></div>`:''}
-            ${!d.min&&d.count?`<div style="width:100%;height:${hCount}px;background:rgba(255,255,255,.1);border-radius:3px 3px 0 0"></div>`:''}
-          </div>
-          <span style="font-size:${showDays>22?'7':'8'}px;color:${d.isToday?'var(--p)':'rgba(255,255,255,.25)'};font-weight:${d.isToday?800:400};white-space:nowrap">${dayLabel}</span>
-        </div>`;
-      }).join('')}
+  const barChartHtml=visibleDays.some(d=>d.min>0||d.count>0)?`<div style="background:linear-gradient(145deg,var(--card),var(--bg));border:1px solid var(--border);border-radius:16px;padding:22px 24px;margin-bottom:24px">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:8px">
+      <div style="font-size:9.5px;font-weight:800;text-transform:uppercase;letter-spacing:1.2px;color:var(--muted)">📊 Время по дням</div>
+      <div style="display:flex;gap:12px;font-size:9.5px;color:var(--muted)">
+        <span style="display:flex;align-items:center;gap:4px"><span style="width:8px;height:8px;border-radius:2px;background:var(--cyan);display:inline-block"></span>Время задач</span>
+        <span style="display:flex;align-items:center;gap:4px"><span style="width:8px;height:8px;border-radius:2px;background:var(--p);display:inline-block"></span>Сегодня</span>
+      </div>
     </div>
-    </div>
-    <div style="display:flex;gap:14px;margin-top:10px;font-size:9.5px;color:var(--muted);flex-wrap:wrap">
-      <span style="display:flex;align-items:center;gap:4px"><span style="width:8px;height:8px;border-radius:2px;background:var(--cyan);display:inline-block"></span>Время задач</span>
-      <span style="display:flex;align-items:center;gap:4px"><span style="width:8px;height:8px;border-radius:2px;background:rgba(255,255,255,.15);display:inline-block"></span>Задачи без времени</span>
-      <span style="display:flex;align-items:center;gap:4px"><span style="width:8px;height:8px;border-radius:2px;background:var(--p);display:inline-block"></span>Сегодня</span>
-    </div>
+    <canvas id="anlBarCanvas" height="140" style="width:100%;display:block"></canvas>
   </div>`:'';
 
   // ── TOP DAYS ──
@@ -13609,29 +13595,16 @@ function renderAnalytics(){
   const maxWdCount=Math.max(...weekdayData.map(d=>d.count),1);
   const wdColors=['var(--blue)','var(--green)','var(--purple)','var(--gold)','var(--red)','var(--orange)','var(--pink)'];
   const bestWd=weekdayData.reduce((b,d)=>d.count>b.count?d:b,weekdayData[0]);
-  const weekdayHtml=doneTasks.length>0?`<div style="background:linear-gradient(145deg,var(--card),var(--bg));border:1px solid var(--border);border-radius:20px;padding:22px 24px;margin-bottom:24px">
-    <div style="font-size:9.5px;font-weight:800;text-transform:uppercase;letter-spacing:1.2px;color:var(--muted);margin-bottom:18px;display:flex;align-items:center;gap:6px">
-      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--purple)" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
-      🗓 Активность по дням недели
-    </div>
-    <div style="display:flex;align-items:flex-end;gap:8px;height:90px">
-      ${weekdayData.map((d,i)=>{
-        const h=maxWdCount?Math.max(Math.round(d.count/maxWdCount*74),d.count?6:0):0;
-        const isWe=i>=5;
-        return`<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:3px" title="${d.name}: ${d.count} задач">
-          <span style="font-size:9px;font-weight:700;color:${d.count?wdColors[i]:'transparent'};font-family:var(--font-mono)">${d.count||'·'}</span>
-          <div style="width:100%;height:${h||4}px;background:${d.count?`linear-gradient(180deg,${wdColors[i]},${wdColors[i]}66)`:'rgba(255,255,255,.05)'};border-radius:5px 5px 2px 2px;box-shadow:${d.count?`0 0 8px ${wdColors[i]}44`:''}"></div>
-          <span style="font-size:10px;font-weight:${isWe?700:500};color:${isWe?'var(--orange)':'var(--text2)'}">${d.name}</span>
-        </div>`;
-      }).join('')}
-    </div>
-    <div style="margin-top:12px;padding-top:10px;border-top:1px solid var(--border);display:flex;gap:16px;flex-wrap:wrap">
-      ${bestWd.count>0?`<span style="font-size:10px;color:var(--muted)">🏆 Лучший день: <b style="color:var(--gold)">${bestWd.name}</b></span>`:''} 
-      <span style="font-size:10px;color:var(--muted)">📅 Активных дней: <b style="color:var(--p)">${weekdayData.filter(d=>d.count>0).length} из 7</b></span>
+  const weekdayHtml=doneTasks.length>0?`<div style="background:linear-gradient(145deg,var(--card),var(--bg));border:1px solid var(--border);border-radius:16px;padding:22px 24px">
+    <div style="font-size:9.5px;font-weight:800;text-transform:uppercase;letter-spacing:1.2px;color:var(--muted);margin-bottom:16px">🗓 По дням недели</div>
+    <canvas id="anlWdCanvas" height="130" style="width:100%;display:block"></canvas>
+    <div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--border);display:flex;gap:16px;flex-wrap:wrap">
+      ${bestWd.count>0?`<span style="font-size:10px;color:var(--muted)">🏆 Лучший: <b style="color:var(--gold)">${bestWd.name}</b></span>`:''}
+      <span style="font-size:10px;color:var(--muted)">📅 Активных: <b style="color:var(--p)">${weekdayData.filter(d=>d.count>0).length} из 7</b></span>
     </div>
   </div>`:'';
 
-  // ── WEEKLY TREND (тренд по неделям, последние 8 недель) ──
+  // ── WEEKLY TREND ──
   const nowTr=new Date();nowTr.setHours(0,0,0,0);
   const weeklyTrend=[];
   for(let w=7;w>=0;w--){
@@ -13647,31 +13620,15 @@ function renderAnalytics(){
   }
   const maxWk=Math.max(...weeklyTrend.map(w=>w.count),1);
   const wkAvg=Math.round(weeklyTrend.slice(0,7).reduce((s,w)=>s+w.count,0)/7);
-  const weeklyTrendHtml=weeklyTrend.some(w=>w.count>0)?`<div style="background:linear-gradient(145deg,var(--card),var(--bg));border:1px solid var(--border);border-radius:20px;padding:22px 24px;margin-bottom:24px">
+  const weeklyTrendHtml=weeklyTrend.some(w=>w.count>0)?`<div style="background:linear-gradient(145deg,var(--card),var(--bg));border:1px solid var(--border);border-radius:16px;padding:22px 24px">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:8px">
-      <div style="font-size:9.5px;font-weight:800;text-transform:uppercase;letter-spacing:1.2px;color:var(--muted);display:flex;align-items:center;gap:6px">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--cyan)" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
-        📈 Тренд задач по неделям
-      </div>
+      <div style="font-size:9.5px;font-weight:800;text-transform:uppercase;letter-spacing:1.2px;color:var(--muted)">📈 Тренд по неделям</div>
       <div style="display:flex;gap:14px">
         <span style="font-size:10px;color:var(--muted)">Ср/нед: <b style="color:var(--p)">${wkAvg}</b></span>
-        <span style="font-size:10px;color:var(--muted)">Эта нед: <b style="color:var(--cyan)">${weeklyTrend[7].count}</b></span>
+        <span style="font-size:10px;color:var(--muted)">Эта: <b style="color:var(--cyan)">${weeklyTrend[7].count}</b></span>
       </div>
     </div>
-    <div style="display:flex;align-items:flex-end;gap:5px;height:80px">
-      ${weeklyTrend.map(w=>{
-        const h=maxWk?Math.max(Math.round(w.count/maxWk*70),w.count?4:0):0;
-        return`<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:3px">
-          ${w.count?`<span style="font-size:9px;font-weight:700;color:${w.isCurrent?'var(--cyan)':'var(--muted)'}">${w.count}</span>`:'<span style="font-size:9px;color:transparent">0</span>'}
-          <div style="width:100%;height:${h||3}px;background:${w.isCurrent?'linear-gradient(180deg,var(--cyan),rgba(34,204,232,.3))':w.count?'linear-gradient(180deg,var(--p),rgba(155,143,245,.3))':'rgba(255,255,255,.05)'};border-radius:5px 5px 2px 2px;box-shadow:${w.isCurrent?'0 0 10px rgba(34,204,232,.35)':''}"></div>
-          <span style="font-size:8px;color:${w.isCurrent?'var(--cyan)':'rgba(255,255,255,.3)'};font-weight:${w.isCurrent?700:400};white-space:nowrap">${w.label}</span>
-        </div>`;
-      }).join('')}
-    </div>
-    ${wkAvg>0?`<div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--border);font-size:9px;color:var(--p);display:flex;align-items:center;gap:6px">
-      <div style="flex:1;height:1px;background:repeating-linear-gradient(90deg,rgba(155,143,245,.4) 0,rgba(155,143,245,.4) 4px,transparent 4px,transparent 8px)"></div>
-      <span>среднее ${wkAvg} зд/нед</span>
-    </div>`:''}
+    <canvas id="anlWkCanvas" height="120" style="width:100%;display:block"></canvas>
   </div>`:'';
 
   // ── COMPLETION RATE ──
@@ -13784,7 +13741,170 @@ function renderAnalytics(){
     // Draw sleep score trend chart in analytics
     const anlSleepCv=document.getElementById('anl-sleep-dur-chart');
     if(anlSleepCv)slpDrawScoreChart(sleepEntries(),'anl-sleep-dur-chart');
+    // Draw canvas-based bar chart (daily time)
+    _anlDrawBarCanvas(visibleDays,maxDayMin,showDays);
+    // Draw weekday activity canvas
+    _anlDrawWdCanvas(weekdayData,wdColors,maxWdCount);
+    // Draw weekly trend canvas
+    _anlDrawWkCanvas(weeklyTrend,maxWk,wkAvg);
   });
+}
+
+/* ── Analytics: daily time bar chart ── */
+function _anlDrawBarCanvas(days,maxMin,showDays){
+  const cv=document.getElementById('anlBarCanvas');if(!cv||!days)return;
+  const DPR=window.devicePixelRatio||1;
+  const W=cv.offsetWidth||800,H=140;
+  cv.width=W*DPR;cv.height=H*DPR;cv.style.width=W+'px';cv.style.height=H+'px';
+  const ctx=cv.getContext('2d');ctx.scale(DPR,DPR);ctx.clearRect(0,0,W,H);
+  const pad={t:20,r:8,b:30,l:40};
+  const cW=W-pad.l-pad.r,cH=H-pad.t-pad.b;
+  const n=days.length,bw=Math.max(2,cW/n-2),gap=(cW-(bw*n))/(n+1);
+  const mx=maxMin||1;
+  // Gridlines
+  [0,.25,.5,.75,1].forEach(f=>{
+    const y=pad.t+cH*(1-f),val=Math.round(mx*f);
+    ctx.strokeStyle='rgba(255,255,255,.05)';ctx.lineWidth=1;ctx.setLineDash([3,3]);
+    ctx.beginPath();ctx.moveTo(pad.l,y);ctx.lineTo(W-pad.r,y);ctx.stroke();
+    ctx.setLineDash([]);
+    if(val>0){
+      const label=val>=60?Math.floor(val/60)+'ч'+(val%60?val%60+'м':''):val+'м';
+      ctx.fillStyle='rgba(255,255,255,.35)';ctx.font='bold 8.5px sans-serif';ctx.textAlign='right';
+      ctx.fillText(label,pad.l-4,y+3);
+    }
+  });
+  // Bars
+  days.forEach((d,i)=>{
+    const x=pad.l+gap+(bw+gap)*i;
+    const h=d.min?Math.max(Math.round(d.min/mx*cH),3):0;
+    const y=pad.t+cH-h;
+    if(d.min){
+      const g=ctx.createLinearGradient(0,y,0,y+h);
+      if(d.isToday){g.addColorStop(0,'rgba(155,143,245,1)');g.addColorStop(1,'rgba(155,143,245,.3)');}
+      else{g.addColorStop(0,'rgba(34,204,232,.9)');g.addColorStop(1,'rgba(34,204,232,.2)');}
+      ctx.fillStyle=g;
+      ctx.beginPath();ctx.roundRect(x,y,bw,h,bw>5?[3,3,0,0]:[1,1,0,0]);ctx.fill();
+      // Value label on top if bar tall enough
+      if(h>18){
+        const lbl=d.min>=60?Math.floor(d.min/60)+'ч'+(d.min%60?d.min%60+'м':''):d.min+'м';
+        ctx.fillStyle=d.isToday?'rgba(155,143,245,1)':'rgba(34,204,232,.9)';
+        ctx.font='bold 7.5px sans-serif';ctx.textAlign='center';
+        ctx.fillText(lbl,x+bw/2,y-3);
+      }
+    }else if(d.count){
+      ctx.fillStyle='rgba(255,255,255,.08)';
+      ctx.beginPath();ctx.roundRect(x,pad.t+cH-6,bw,6,[1,1,0,0]);ctx.fill();
+    }
+    // X date label
+    const step=Math.max(1,Math.ceil(n/16));
+    if(i%step===0||i===n-1){
+      const lbl=n<=14?(d.d.getDate()+'.'+(d.d.getMonth()+1)):(d.d.getDate()+'');
+      ctx.fillStyle=d.isToday?'rgba(155,143,245,.9)':'rgba(255,255,255,.3)';
+      ctx.font=(d.isToday?'bold ':'')+'8px sans-serif';ctx.textAlign='center';
+      ctx.fillText(lbl,x+bw/2,H-pad.b+12);
+    }
+  });
+  // Avg line
+  if(maxMin){
+    const nonZero=days.filter(d=>d.min>0);
+    if(nonZero.length>1){
+      const avg=Math.round(nonZero.reduce((s,d)=>s+d.min,0)/nonZero.length);
+      const ay=pad.t+cH*(1-avg/mx);
+      ctx.strokeStyle='rgba(240,107,176,.5)';ctx.lineWidth=1.5;ctx.setLineDash([5,4]);
+      ctx.beginPath();ctx.moveTo(pad.l,ay);ctx.lineTo(W-pad.r,ay);ctx.stroke();
+      ctx.setLineDash([]);
+      const lbl='ср: '+(avg>=60?Math.floor(avg/60)+'ч'+(avg%60?avg%60+'м':''):avg+'м');
+      ctx.fillStyle='rgba(240,107,176,.8)';ctx.font='bold 9px sans-serif';ctx.textAlign='left';
+      ctx.fillText(lbl,pad.l+4,ay-4);
+    }
+  }
+}
+
+/* ── Analytics: weekday activity bars ── */
+function _anlDrawWdCanvas(data,colors,maxCount){
+  const cv=document.getElementById('anlWdCanvas');if(!cv||!data)return;
+  const DPR=window.devicePixelRatio||1;
+  const W=cv.offsetWidth||400,H=130;
+  cv.width=W*DPR;cv.height=H*DPR;cv.style.width=W+'px';cv.style.height=H+'px';
+  const ctx=cv.getContext('2d');ctx.scale(DPR,DPR);ctx.clearRect(0,0,W,H);
+  const pad={t:22,r:8,b:24,l:8};
+  const cW=W-pad.l-pad.r,cH=H-pad.t-pad.b;
+  const n=data.length,bw=Math.max(20,cW/n*0.55);
+  const slotW=cW/n;
+  // CSS vars resolved to actual colors via a temp element
+  const cssColors=['#4f87f7','#12e8ac','#9b8ff5','#f5c842','#ff4f72','#f97316','#ec4899'];
+  data.forEach((d,i)=>{
+    const cx=pad.l+slotW*i+slotW/2;
+    const h=maxCount?Math.max(Math.round(d.count/maxCount*cH*0.85),d.count?6:0):0;
+    const y=pad.t+cH-h;
+    const col=cssColors[i];
+    if(d.count){
+      const g=ctx.createLinearGradient(0,y,0,y+h);
+      g.addColorStop(0,col);g.addColorStop(1,col+'44');
+      ctx.fillStyle=g;
+      ctx.beginPath();ctx.roundRect(cx-bw/2,y,bw,h,[4,4,0,0]);ctx.fill();
+      // Value on top
+      ctx.fillStyle=col;ctx.font='bold 10px sans-serif';ctx.textAlign='center';
+      ctx.fillText(d.count,cx,y-5);
+      // Time below value
+      if(d.min>0){
+        const tm=d.min>=60?Math.floor(d.min/60)+'ч'+(d.min%60?d.min%60+'м':''):d.min+'м';
+        ctx.fillStyle='rgba(255,255,255,.45)';ctx.font='8px sans-serif';
+        ctx.fillText(tm,cx,y-16);
+      }
+    }else{
+      ctx.fillStyle='rgba(255,255,255,.05)';
+      ctx.beginPath();ctx.roundRect(cx-bw/2,pad.t+cH-5,bw,5,[2,2,0,0]);ctx.fill();
+    }
+    // Day label
+    const isWe=i>=5;
+    ctx.fillStyle=isWe?'#f97316':'rgba(255,255,255,.55)';
+    ctx.font=(isWe?'bold ':'')+'9.5px sans-serif';ctx.textAlign='center';
+    ctx.fillText(d.name,cx,H-pad.b+12);
+  });
+}
+
+/* ── Analytics: weekly trend bars ── */
+function _anlDrawWkCanvas(weeks,maxWk,avg){
+  const cv=document.getElementById('anlWkCanvas');if(!cv||!weeks)return;
+  const DPR=window.devicePixelRatio||1;
+  const W=cv.offsetWidth||400,H=120;
+  cv.width=W*DPR;cv.height=H*DPR;cv.style.width=W+'px';cv.style.height=H+'px';
+  const ctx=cv.getContext('2d');ctx.scale(DPR,DPR);ctx.clearRect(0,0,W,H);
+  const pad={t:22,r:8,b:24,l:8};
+  const cW=W-pad.l-pad.r,cH=H-pad.t-pad.b;
+  const n=weeks.length,slotW=cW/n,bw=Math.max(12,slotW*0.55);
+  const mx=maxWk||1;
+  weeks.forEach((w,i)=>{
+    const cx=pad.l+slotW*i+slotW/2;
+    const h=w.count?Math.max(Math.round(w.count/mx*cH*0.85),6):0;
+    const y=pad.t+cH-h;
+    if(w.count){
+      const g=ctx.createLinearGradient(0,y,0,y+h);
+      if(w.isCurrent){g.addColorStop(0,'rgba(34,204,232,1)');g.addColorStop(1,'rgba(34,204,232,.2)');}
+      else{g.addColorStop(0,'rgba(155,143,245,.9)');g.addColorStop(1,'rgba(155,143,245,.2)');}
+      ctx.fillStyle=g;
+      ctx.beginPath();ctx.roundRect(cx-bw/2,y,bw,h,[4,4,0,0]);ctx.fill();
+      ctx.fillStyle=w.isCurrent?'rgba(34,204,232,.9)':'rgba(155,143,245,.9)';
+      ctx.font='bold 10px sans-serif';ctx.textAlign='center';
+      ctx.fillText(w.count,cx,y-5);
+    }else{
+      ctx.fillStyle='rgba(255,255,255,.05)';
+      ctx.beginPath();ctx.roundRect(cx-bw/2,pad.t+cH-4,bw,4,[2,2,0,0]);ctx.fill();
+    }
+    ctx.fillStyle=w.isCurrent?'rgba(34,204,232,.85)':'rgba(255,255,255,.35)';
+    ctx.font=(w.isCurrent?'bold ':'')+'8.5px sans-serif';ctx.textAlign='center';
+    ctx.fillText(w.label,cx,H-pad.b+12);
+  });
+  // Avg dashed line
+  if(avg>0){
+    const ay=pad.t+cH*(1-avg/mx);
+    ctx.strokeStyle='rgba(155,143,245,.5)';ctx.lineWidth=1.5;ctx.setLineDash([5,4]);
+    ctx.beginPath();ctx.moveTo(pad.l,ay);ctx.lineTo(W-pad.r,ay);ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle='rgba(155,143,245,.7)';ctx.font='bold 8px sans-serif';ctx.textAlign='right';
+    ctx.fillText('ср: '+avg,W-pad.r-2,ay-4);
+  }
 }
 
 function anlDrawPie(lblStats){
@@ -15983,7 +16103,7 @@ function renderSleepTracker(){
   html+='<div style="background:linear-gradient(145deg,var(--card),var(--bg));border:1px solid var(--border);border-radius:16px;padding:16px">';
   html+='<div style="font-size:11px;font-weight:700;color:var(--text);margin-bottom:2px">🎯 Sleep Score тренд</div>';
   html+='<div style="font-size:9px;color:var(--muted);margin-bottom:12px">Комплексная оценка</div>';
-  html+='<canvas id="slp-score-chart" height="110" style="width:100%;display:block"></canvas></div>';
+  html+='<canvas id="slp-score-chart" height="160" style="width:100%;display:block"></canvas></div>';
   html+='</div>';
 
   // Sleep heatmap
@@ -16214,48 +16334,80 @@ function slpDrawDurChart(entries){
 /* ── Sleep Score trend line chart ── */
 function slpDrawScoreChart(entries,canvasId){
   const cv=document.getElementById(canvasId||'slp-score-chart');if(!cv)return;
-  const recent=entries.filter(e=>e.score!=null).slice(-21);
-  cv.width=cv.offsetWidth||400;cv.height=110;
-  const ctx=cv.getContext('2d'),W=cv.width,H=cv.height;
+  const recent=entries.filter(e=>e.score!=null).slice(-30);
+  const DPR=window.devicePixelRatio||1;
+  const W=(cv.offsetWidth||600),H=160;
+  cv.width=W*DPR;cv.height=H*DPR;
+  cv.style.width=W+'px';cv.style.height=H+'px';
+  const ctx=cv.getContext('2d');ctx.scale(DPR,DPR);
   ctx.clearRect(0,0,W,H);
   if(recent.length<2){
-    ctx.fillStyle='rgba(90,99,130,.4)';ctx.font='11px sans-serif';ctx.textAlign='center';
-    ctx.fillText(recent.length<1?'Нет данных':'Добавь больше записей',W/2,H/2);return;
+    ctx.fillStyle='rgba(150,160,200,.4)';ctx.font='bold 12px sans-serif';ctx.textAlign='center';
+    ctx.fillText(recent.length<1?'Нет данных о сне':'Добавь больше записей',W/2,H/2);return;
   }
-  const pad={t:8,r:10,b:20,l:28};
+  const pad={t:14,r:18,b:38,l:36};
   const cW=W-pad.l-pad.r,cH=H-pad.t-pad.b;
   const n=recent.length;
   const sx=i=>pad.l+(i/(n-1))*cW;
-  const sy=v=>pad.t+cH*(1-v/100);
-  // Grid
-  [25,50,75,100].forEach(v=>{
+  const sy=v=>pad.t+cH*(1-(v/100));
+  // Gridlines + Y labels
+  [0,25,50,75,100].forEach(v=>{
     const y=sy(v);
-    ctx.strokeStyle='rgba(255,255,255,.04)';ctx.lineWidth=1;
+    ctx.strokeStyle=v===0?'rgba(255,255,255,.08)':'rgba(255,255,255,.05)';
+    ctx.lineWidth=1;ctx.setLineDash([4,4]);
     ctx.beginPath();ctx.moveTo(pad.l,y);ctx.lineTo(W-pad.r,y);ctx.stroke();
-    ctx.fillStyle='rgba(255,255,255,.18)';ctx.font='7px sans-serif';ctx.textAlign='right';
-    ctx.fillText(v,pad.l-3,y+3);
+    ctx.setLineDash([]);
+    ctx.fillStyle='rgba(255,255,255,.35)';ctx.font=`bold 9px sans-serif`;ctx.textAlign='right';
+    ctx.fillText(v,pad.l-5,y+3.5);
   });
-  // Fill
-  const g=ctx.createLinearGradient(0,pad.t,0,H-pad.b);
-  g.addColorStop(0,'rgba(155,143,245,.35)');g.addColorStop(1,'rgba(155,143,245,.02)');
+  // Fill gradient
+  const grd=ctx.createLinearGradient(0,pad.t,0,H-pad.b);
+  grd.addColorStop(0,'rgba(155,143,245,.3)');grd.addColorStop(1,'rgba(155,143,245,.01)');
   ctx.beginPath();ctx.moveTo(sx(0),sy(recent[0].score));
   for(let i=1;i<n;i++){const x0=sx(i-1),y0=sy(recent[i-1].score),x1=sx(i),y1=sy(recent[i].score),cp=(x1-x0)/3;ctx.bezierCurveTo(x0+cp,y0,x1-cp,y1,x1,y1);}
-  ctx.lineTo(sx(n-1),H-pad.b);ctx.lineTo(sx(0),H-pad.b);ctx.closePath();ctx.fillStyle=g;ctx.fill();
+  ctx.lineTo(sx(n-1),H-pad.b);ctx.lineTo(sx(0),H-pad.b);ctx.closePath();ctx.fillStyle=grd;ctx.fill();
   // Line
   ctx.beginPath();ctx.moveTo(sx(0),sy(recent[0].score));
   for(let i=1;i<n;i++){const x0=sx(i-1),y0=sy(recent[i-1].score),x1=sx(i),y1=sy(recent[i].score),cp=(x1-x0)/3;ctx.bezierCurveTo(x0+cp,y0,x1-cp,y1,x1,y1);}
-  ctx.strokeStyle='rgba(155,143,245,.95)';ctx.lineWidth=2.5;ctx.stroke();
-  // Dots colored by score
+  ctx.strokeStyle='rgba(155,143,245,.9)';ctx.lineWidth=2.5;ctx.setLineDash([]);ctx.stroke();
+  // Dots + value labels (every point, skip label if crowded)
+  const skipLabel=n>14;
   recent.forEach((e,i)=>{
-    ctx.beginPath();ctx.arc(sx(i),sy(e.score),3.5,0,Math.PI*2);
-    ctx.fillStyle=sleepScoreColor(e.score);ctx.fill();
+    const x=sx(i),y=sy(e.score),col=sleepScoreColor(e.score);
+    ctx.beginPath();ctx.arc(x,y,skipLabel?2.5:3.5,0,Math.PI*2);
+    ctx.fillStyle=col;ctx.fill();
+    ctx.strokeStyle='rgba(0,0,0,.5)';ctx.lineWidth=1;ctx.stroke();
+    if(!skipLabel||(i%Math.ceil(n/10)===0)||(i===n-1)){
+      ctx.fillStyle=col;ctx.font=`bold 9px sans-serif`;ctx.textAlign='center';
+      ctx.fillText(e.score,x,y-7);
+    }
   });
-  // X labels
-  ctx.fillStyle='rgba(255,255,255,.22)';ctx.font='7.5px sans-serif';ctx.textAlign='center';
-  const step=Math.max(1,Math.floor(n/6));
+  // X date labels — smart density
+  const step=Math.max(1,Math.floor(n/8));
+  ctx.fillStyle='rgba(255,255,255,.45)';ctx.font='bold 9px sans-serif';ctx.textAlign='center';
   recent.forEach((e,i)=>{
-    if(i%step===0){const d=new Date(e.date+'T00:00:00');ctx.fillText(d.getDate()+'.'+(d.getMonth()+1),sx(i),H-4);}
+    if(i%step!==0&&i!==n-1)return;
+    const d=new Date(e.date+'T00:00:00');
+    const lbl=d.getDate()+'.'+(d.getMonth()+1<10?'0':'')+(d.getMonth()+1);
+    const x=sx(i);
+    // Tick
+    ctx.strokeStyle='rgba(255,255,255,.2)';ctx.lineWidth=1;
+    ctx.beginPath();ctx.moveTo(x,H-pad.b+2);ctx.lineTo(x,H-pad.b+5);ctx.stroke();
+    ctx.fillText(lbl,x,H-pad.b+15);
+    // Day of week below
+    const dow=['вс','пн','вт','ср','чт','пт','сб'][d.getDay()];
+    ctx.fillStyle='rgba(155,143,245,.5)';ctx.font='8px sans-serif';
+    ctx.fillText(dow,x,H-pad.b+25);
+    ctx.fillStyle='rgba(255,255,255,.45)';ctx.font='bold 9px sans-serif';
   });
+  // Avg line
+  const avg=Math.round(recent.reduce((s,e)=>s+e.score,0)/n);
+  const avgY=sy(avg);
+  ctx.strokeStyle='rgba(34,204,232,.4)';ctx.lineWidth=1;ctx.setLineDash([6,4]);
+  ctx.beginPath();ctx.moveTo(pad.l,avgY);ctx.lineTo(W-pad.r,avgY);ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.fillStyle='rgba(34,204,232,.8)';ctx.font='bold 9px sans-serif';ctx.textAlign='left';
+  ctx.fillText('ср: '+avg,pad.l+4,avgY-4);
 }
 
 /* ── Sleep heatmap (GitHub-style) ── */
