@@ -1191,9 +1191,9 @@ select.inp option{background:var(--card2);color:var(--text)}
 .plCal-vBtn:hover:not(.on){background:var(--card3);color:var(--text)}
 
 /* ── Task section view switcher (Список/Неделя/Календарь/Канбан/Помодоро) ── */
-.tvSwitch{display:flex;align-items:center;gap:2px;background:var(--card2);border:1px solid var(--border2);border-radius:10px;padding:3px;width:fit-content;margin-bottom:14px;overflow-x:auto;scrollbar-width:none}
+.tvSwitch{display:flex;align-items:center;gap:2px;background:var(--card2);border:1px solid var(--border2);border-radius:10px;padding:3px;width:100%;max-width:100%;margin-bottom:14px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;box-sizing:border-box}
 .tvSwitch::-webkit-scrollbar{display:none}
-.tvSwitchBtn{display:flex;align-items:center;gap:6px;padding:6px 13px;border:none;border-radius:7px;background:none;color:var(--text2);font-size:12px;font-weight:600;font-family:var(--font-body);cursor:pointer;transition:.15s;white-space:nowrap;flex-shrink:0}
+.tvSwitchBtn{display:flex;align-items:center;gap:5px;padding:6px 11px;border:none;border-radius:7px;background:none;color:var(--text2);font-size:11.5px;font-weight:600;font-family:var(--font-body);cursor:pointer;transition:.15s;white-space:nowrap;flex-shrink:0}
 .tvSwitchBtn .tvIco{font-size:13px;line-height:1;opacity:.85}
 .tvSwitchBtn:hover:not(.on){background:var(--card3);color:var(--text)}
 .tvSwitchBtn.on{background:var(--p);color:#fff;box-shadow:0 1px 4px rgba(0,0,0,.2)}
@@ -1201,7 +1201,12 @@ select.inp option{background:var(--card2);color:var(--text)}
 body.light-mode .tvSwitch{background:var(--card2)}
 body.light-mode .tvSwitchBtn.on{color:#fff}
 .tvSwitch--inline{margin:0 auto;flex-shrink:0}
-@media(max-width:900px){.tvSwitch--inline{margin:10px auto 0;width:100%}}
+@media(max-width:900px){
+  .tvSwitch--inline{margin:10px auto 0;width:100%}
+  .tvSwitch{border-radius:10px}
+  .tvSwitchBtn{padding:5px 9px;font-size:11px;gap:4px}
+  .tvSwitchBtn .tvIco{font-size:12px}
+}
 
 /* Body */
 .plCal-body{display:flex;flex:1;min-height:0;overflow:hidden}
@@ -2719,13 +2724,17 @@ body.light-mode #mobGroupPicker{background:#fff}
   background:rgba(255,255,255,.04);
   border-radius:14px;
   border:1px solid var(--border);
+  /* mobile: don't clip tabs, allow scroll */
+  min-width:0;
+  box-sizing:border-box;
+  width:100%;
 }
 .subTabs::-webkit-scrollbar{display:none;height:0}
 
 .subTab{
-  padding:7px 15px;
+  padding:7px 12px;
   border:none;background:transparent;
-  font-family:var(--font-body);font-size:11.5px;font-weight:500;
+  font-family:var(--font-body);font-size:11px;font-weight:500;
   color:var(--text2);cursor:pointer;
   white-space:nowrap;flex-shrink:0;
   border-radius:10px;
@@ -5876,6 +5885,46 @@ service cloud.firestore {<br>
 
 // ── Subscribe to Firestore real-time updates ──
 let _connectTimeout=null;
+// ── One-time photo migration: upload localStorage base64 photos to Firebase Storage ──
+async function migrateLocalPhotosToStorage(){
+  if(!currentUser || !window._fbStorage) return;
+  let changed = false;
+  const goals = G.goals || [];
+  for(const g of goals){
+    if(g.photo && g.photo.startsWith('data:')){
+      try{
+        const path = `users/${currentUser.uid}/goals/${g.id}.jpg`;
+        const ref = window._fbStorage.ref(path);
+        await ref.putString(g.photo, 'data_url');
+        const url = await ref.getDownloadURL();
+        g.photo = url;
+        changed = true;
+        console.log('[migrate] goal photo uploaded:', g.id);
+      }catch(e){ console.warn('[migrate] goal upload failed:', g.id, e.code||e.message); }
+    }
+  }
+  const mission = G.mission || {};
+  for(const id of Object.keys(mission)){
+    const v = mission[id];
+    if(v && typeof v === 'object' && v.photo && v.photo.startsWith('data:')){
+      try{
+        const path = `users/${currentUser.uid}/mission/${id}.jpg`;
+        const ref = window._fbStorage.ref(path);
+        await ref.putString(v.photo, 'data_url');
+        const url = await ref.getDownloadURL();
+        v.photo = url;
+        changed = true;
+        console.log('[migrate] mission photo uploaded:', id);
+      }catch(e){ console.warn('[migrate] mission upload failed:', id, e.code||e.message); }
+    }
+  }
+  if(changed){
+    savePhotosLocally();
+    saveD();
+    console.log('[migrate] photos migrated to Storage, saveD triggered');
+  }
+}
+
 function subscribeCloud(){
   if(!currentUser)return;
   if(_cloudListener){_cloudListener();_cloudListener=null;}
@@ -5897,49 +5946,44 @@ function subscribeCloud(){
   },4000);
 
   _cloudListener=db.collection('users').doc(currentUser.uid)
-    .onSnapshot({includeMetadataChanges:true}, snap=>{
-    clearTimeout(_connectTimeout); // connected — cancel timeout
-
-    // Skip snapshots that are our OWN local writes still pending on server
-    // ── BUG FIX: hasPendingWrites means Firestore has accepted the write locally
-    // but not yet confirmed from server. Set dot to 'syncing', not just skip.
-    if(snap.metadata.hasPendingWrites){
-      setSyncDot('syncing');
-      return;
-    }
-
-    setSyncDot('ok');
+    .onSnapshot(snap=>{
+    clearTimeout(_connectTimeout);
 
     if(!snap.exists){
-      // New user — no data yet
       if(!_appReady){_appReady=true;hideLoader();initApp();}
       return;
     }
 
     const incoming=snap.data();
-
-    // Was this snapshot triggered by OUR own recent write?
-    const isOwnEcho=Date.now()-_myLastWriteAt<10000;
+    const fromServer=!snap.metadata.hasPendingWrites;
 
     if(!_appReady){
-      // First boot — always load from Firestore
+      // First boot — always use incoming data regardless of source
       G=incoming;
-      restorePhotosFromLocal(); // merge localStorage photos (base64 fallback)
-      // Persist merged version (with Storage URLs from Firestore + base64 from localStorage)
+      restorePhotosFromLocal();
       try{localStorage.setItem(SKEY+'_cache',JSON.stringify(G));}catch{}
       _appReady=true;
-      clearTimeout(_connectTimeout);
       hideLoader();
       initApp();
-    } else if(!isOwnEcho){
-      // Remote change from another device — apply it
-      G=incoming;
-      restorePhotosFromLocal(); // merge any local base64 fallbacks
-      try{localStorage.setItem(SKEY+'_cache',JSON.stringify(G));}catch{}
-      reRenderCurrentTab();
-      showSaveStatus('saved','↓ Синхронизировано');
+      if(fromServer) setSyncDot('ok');
+      // Migrate base64 photos to Storage in background (runs once, idempotent)
+      setTimeout(migrateLocalPhotosToStorage, 2000);
+    } else if(fromServer){
+      // Confirmed server data — could be our own echo or remote change
+      const isOwnEcho=Date.now()-_myLastWriteAt<8000;
+      setSyncDot('ok');
+      if(!isOwnEcho){
+        // Remote change from another device
+        G=incoming;
+        restorePhotosFromLocal();
+        try{localStorage.setItem(SKEY+'_cache',JSON.stringify(G));}catch{}
+        reRenderCurrentTab();
+        showSaveStatus('saved','↓ Синхронизировано');
+      }
+    } else {
+      // hasPendingWrites — our local write buffered, not yet on server
+      setSyncDot('syncing');
     }
-    // isOwnEcho: our own write confirmed — G already correct, skip
 
   }, err=>{
     clearTimeout(_connectTimeout);
