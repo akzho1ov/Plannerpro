@@ -5742,30 +5742,36 @@ const PHOTOS_KEY = SKEY + '_photos';
 
 /** Compress a base64 image synchronously via an already-loaded <img>.
  *  Returns compressed base64 string. Safe: never throws. */
-function _canvasCompress(base64DataUrl, maxW, quality){
-  try{
+/** Compress image via Canvas. Returns a Promise<string> — always resolves, never rejects. */
+function compressPhotoAsync(base64DataUrl, maxKB){
+  return new Promise(resolve => {
+    if(!base64DataUrl || !base64DataUrl.startsWith('data:')){ resolve(base64DataUrl); return; }
     const img = new Image();
-    img.src = base64DataUrl;           // works sync when already loaded by FileReader
-    const ratio = Math.min(1, maxW / (img.naturalWidth || maxW));
-    const w = Math.round((img.naturalWidth||800)*ratio);
-    const h = Math.round((img.naturalHeight||600)*ratio);
-    const c = document.createElement('canvas');
-    c.width = w; c.height = h;
-    c.getContext('2d').drawImage(img, 0, 0, w, h);
-    const out = c.toDataURL('image/jpeg', quality);
-    return out.length > 100 ? out : base64DataUrl;
-  }catch(e){ return base64DataUrl; }
+    const done = (result) => resolve(result && result.length > 200 ? result : base64DataUrl);
+    img.onerror = () => done(base64DataUrl);
+    img.onload = () => {
+      try{
+        const MAX_DIM = 1400;
+        let w = img.width, h = img.height;
+        if(w > MAX_DIM || h > MAX_DIM){ const r=Math.min(MAX_DIM/w,MAX_DIM/h); w=Math.round(w*r); h=Math.round(h*r); }
+        const canvas = document.createElement('canvas');
+        canvas.width = w; canvas.height = h;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, w, h);
+        const targetBytes = maxKB * 1024 * 1.37;
+        let q = 0.82, out = canvas.toDataURL('image/jpeg', q);
+        while(out.length > targetBytes && q > 0.25){ q -= 0.1; out = canvas.toDataURL('image/jpeg', q); }
+        done(out);
+      }catch(e){ done(base64DataUrl); }
+    };
+    img.src = base64DataUrl;
+  });
 }
 
-/** Public: compress base64 to ≤ maxKB. Tries decreasing quality. Sync. */
+/** Sync wrapper — returns original if img not yet decoded (safe fallback) */
 function compressPhotoSync(base64DataUrl, maxKB){
-  if(!base64DataUrl || !base64DataUrl.startsWith('data:')) return base64DataUrl;
-  const targetLen = maxKB * 1024 * 1.37; // base64 overhead
-  for(let q = 0.82; q >= 0.25; q -= 0.12){
-    const r = _canvasCompress(base64DataUrl, 1400, q);
-    if(r.length <= targetLen) return r;
-  }
-  return _canvasCompress(base64DataUrl, 1400, 0.25);
+  // Just return original — async version will compress properly in handleGoalPhoto
+  return base64DataUrl || '';
 }
 
 /** Save photos to localStorage (keyed by goal/mission id) */
@@ -5788,8 +5794,10 @@ function restorePhotosFromLocal(){
 
 /** Strip base64 from Firestore payload — photos live in localStorage / Storage */
 function cleanForFirestoreNoPhotos(obj){
+  // ALWAYS strip any base64 — only keep https:// Storage URLs.
+  // Photos live in localStorage; Firestore only stores the https:// URL (or empty).
   const clone=JSON.parse(JSON.stringify(obj,(_k,v)=>v===undefined?null:v));
-  const strip=s=>(!s||s.startsWith('http'))?s:''; // keep https:// URLs, strip base64
+  const strip=s=>(s&&s.startsWith('https://'))?s:'';
   if(clone.goals) clone.goals=clone.goals.map(g=>({...g,photo:strip(g.photo)}));
   if(clone.mission) Object.keys(clone.mission).forEach(id=>{
     if(clone.mission[id]) clone.mission[id].photo=strip(clone.mission[id].photo);
@@ -10219,14 +10227,21 @@ function openGoalModal(id){
 
 function handleGoalPhoto(input){
   const file=input.files[0];if(!file)return;
-  if(file.size>8*1024*1024){appAlert('Файл слишком большой (максимум 8MB)');return;}
+  if(file.size>50*1024*1024){appAlert('Файл слишком большой (максимум 50MB)');return;}
   const reader=new FileReader();
   reader.onload=e=>{
-    _goalPhotoData=e.target.result; // keep base64 for preview in modal
-    const img=document.getElementById('goalPhotoImg');
-    img.src=_goalPhotoData;img.style.display='block';
+    const raw=e.target.result;
+    // Show preview immediately
+    const imgEl=document.getElementById('goalPhotoImg');
+    imgEl.src=raw; imgEl.style.display='block';
     document.getElementById('goalPhotoPlaceholder').style.display='none';
     document.getElementById('goalPhotoRemove').style.display='flex';
+    // Compress async (img is loading in background via preview src)
+    // We set _goalPhotoData to raw first so user isn't blocked
+    _goalPhotoData=raw;
+    compressPhotoAsync(raw, 600).then(compressed=>{
+      _goalPhotoData=compressed; // swap to compressed when ready
+    });
   };
   reader.readAsDataURL(file);
 }
@@ -10244,30 +10259,32 @@ function closeGoalModal(){document.getElementById('goalOverlay').style.display='
 
 function saveGoal(){
   const title=document.getElementById('goalTitleInp').value.trim();if(!title)return;
-  // ── Determine photo (fully synchronous — no await, no hang) ──
   const existing=goalEditId?goalsD().find(x=>x.id===goalEditId):null;
+  // ── Photo: keep only in localStorage, never send to Firestore ──
+  // _goalPhotoData: null=removed, string=new/existing photo, undefined=unchanged
   let photo=(existing&&existing.photo)||'';
   if(_goalPhotoData===null){
-    photo=''; // user removed
-  } else if(_goalPhotoData&&_goalPhotoData.startsWith('data:')){
-    // Compress synchronously (img already loaded by FileReader preview)
-    photo=compressPhotoSync(_goalPhotoData, 600);
-    // Try to upgrade to Storage URL in background (non-blocking)
-    const gid=goalEditId||(existing&&existing.id)||uid();
-    _tryUploadToStorage(photo, `users/${currentUser.uid}/goals/${gid}.jpg`, url=>{
-      const g=goalsD().find(x=>x.id===gid);
-      if(g){g.photo=url;savePhotosLocally();saveD();}
-    });
-  } else if(_goalPhotoData){
-    photo=_goalPhotoData; // https:// already
+    photo=''; // explicitly removed
+  } else if(typeof _goalPhotoData==='string'&&_goalPhotoData.length>0){
+    photo=_goalPhotoData; // new or existing photo (compressed async already)
   }
   const msLines=document.getElementById('goalMsInp').value.split('\n').map(s=>s.trim()).filter(Boolean);
   const existingMs=existing?existing.milestones||[]:[];
   const milestones=msLines.map((text,i)=>({text,done:existingMs[i]?existingMs[i].done:false}));
+  const goalId=goalEditId||uid();
   const data={title,why:document.getElementById('goalWhyInp').value,cat:document.getElementById('goalCatInp').value,deadline:document.getElementById('goalDlInp').value,milestones,photo};
-  if(goalEditId){const idx=goalsD().findIndex(x=>x.id===goalEditId);if(idx>=0)goalsD()[idx]={...goalsD()[idx],...data}}
-  else{const newId=uid();goalsD().push({...data,id:newId})}
+  if(goalEditId){const idx=goalsD().findIndex(x=>x.id===goalEditId);if(idx>=0)goalsD()[idx]={...goalsD()[idx],...data};}
+  else{goalsD().push({...data,id:goalId});}
+  // Save photo to localStorage immediately
   savePhotosLocally();
+  // Try to upgrade photo to Firebase Storage URL in background (optional, non-blocking)
+  if(photo&&photo.startsWith('data:')){
+    const gidForStorage=goalId;
+    _tryUploadToStorage(photo,`users/${currentUser.uid}/goals/${gidForStorage}.jpg`,url=>{
+      const g=goalsD().find(x=>x.id===gidForStorage);
+      if(g){g.photo=url;savePhotosLocally();saveD();}
+    });
+  }
   saveD();closeGoalModal();renderGoals();
 }
 
@@ -14484,21 +14501,26 @@ async function missionClearBlock(id){if(!await appConfirm('Очистить эт
 function missionPickPhoto(id){document.getElementById('mPhoto_'+id)?.click();}
 function missionHandlePhoto(id,input){
   const file=input.files[0];if(!file)return;
-  if(file.size>30*1024*1024){appAlert('Файл слишком большой (максимум 30MB)');return;}
+  if(file.size>50*1024*1024){appAlert('Файл слишком большой (максимум 50MB)');return;}
   const reader=new FileReader();
   reader.onload=e=>{
-    const base64=e.target.result;
-    // Compress synchronously (img already decoded by FileReader)
-    const compressed=compressPhotoSync(base64,600);
-    saveMissionField(id,'photo',compressed);
+    const raw=e.target.result;
+    // Show preview immediately with raw
+    saveMissionField(id,'photo',raw);
     savePhotosLocally();
     renderMission();
     saveD();
-    // Upgrade to Storage URL in background (non-blocking)
-    _tryUploadToStorage(compressed,`users/${currentUser.uid}/mission/${id}.jpg`,url=>{
-      saveMissionField(id,'photo',url);
+    // Compress async, then re-save compressed version
+    compressPhotoAsync(raw,600).then(compressed=>{
+      saveMissionField(id,'photo',compressed);
       savePhotosLocally();
       saveD();
+      // Try Storage upgrade in background
+      _tryUploadToStorage(compressed,`users/${currentUser.uid}/mission/${id}.jpg`,url=>{
+        saveMissionField(id,'photo',url);
+        savePhotosLocally();
+        saveD();
+      });
     });
   };
   reader.readAsDataURL(file);
