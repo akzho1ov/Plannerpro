@@ -1201,10 +1201,17 @@ select.inp option{background:var(--card2);color:var(--text)}
 body.light-mode .tvSwitch{background:var(--card2)}
 body.light-mode .tvSwitchBtn.on{color:#fff}
 .tvSwitch--inline{margin:0 auto;flex-shrink:0}
+
+/* ── Mobile sticky task-view switcher ── */
+.tvStickyBar{display:none}
 @media(max-width:900px){
-  .tvSwitch--inline{margin:10px auto 0;width:100%}
-  .tvSwitch{border-radius:10px}
-  .tvSwitchBtn{padding:5px 9px;font-size:11px;gap:4px}
+  /* Hide the floating switcher inside paneHeadCenter on mobile */
+  .paneHeadCenter .tvSwitch--inline{display:none}
+  /* Hide paneHeadCenter entirely on mobile — bottom nav picker handles view switching */
+  .paneHeadCenter{display:none!important}
+  /* Hide tvStickyBar on mobile — bottom nav picker handles view switching */
+  .tvStickyBar{display:none!important}
+  .tvSwitchBtn{padding:6px 10px;font-size:11px;gap:4px}
   .tvSwitchBtn .tvIco{font-size:12px}
 }
 
@@ -2827,7 +2834,7 @@ body.light-mode .subTabs--pink   .subTab.on{box-shadow:0 1px 4px rgba(30,40,90,.
 .paneHeadActions{display:flex;align-items:center;gap:6px;flex-wrap:wrap;flex-shrink:0}
 .paneHeadCenter{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:1;pointer-events:none}
 .paneHeadCenter>*{pointer-events:auto}
-@media(max-width:900px){.paneHeadCenter{position:static;left:auto;top:auto;transform:none;order:3;flex-basis:100%;display:flex;justify-content:flex-start;margin-top:10px}}
+@media(max-width:900px){.paneHeadCenter{display:none!important}}
 
 /* Breadcrumb */
 .paneBreadcrumb{
@@ -3838,6 +3845,12 @@ body.light-mode .skel{background:linear-gradient(90deg,var(--card2) 25%,#f0f2f7 
       <button class="btn btnO" onclick="wkToday()">Сегодня</button>
     </div>
   </header>
+  <div class="tvStickyBar"><div class="tvSwitch" role="tablist">
+        <button class="tvSwitchBtn" data-tab="tasks" onclick="navigateTo('tasks')"><span class="tvIco">✅</span>Список</button>
+        <button class="tvSwitchBtn" data-tab="weekly" onclick="navigateTo('weekly')"><span class="tvIco">📅</span>Неделя</button>
+        <button class="tvSwitchBtn" data-tab="calendar" onclick="navigateTo('calendar')"><span class="tvIco">📆</span>Календарь</button>
+        <button class="tvSwitchBtn" data-tab="kanban" onclick="navigateTo('kanban')"><span class="tvIco">🗂</span>Канбан</button>
+      </div></div>
   <div class="wGrid" id="wGrid"></div>
 </div>
 
@@ -3935,6 +3948,12 @@ body.light-mode .skel{background:linear-gradient(90deg,var(--card2) 25%,#f0f2f7 
       <button id="tpToggleDone" class="btn btnG" style="font-size:10px;padding:5px 10px" onclick="tpToggleDone()">🙈 Готовые</button>
     </div>
   </header>
+  <div class="tvStickyBar"><div class="tvSwitch" role="tablist">
+        <button class="tvSwitchBtn" data-tab="tasks" onclick="navigateTo('tasks')"><span class="tvIco">✅</span>Список</button>
+        <button class="tvSwitchBtn" data-tab="weekly" onclick="navigateTo('weekly')"><span class="tvIco">📅</span>Неделя</button>
+        <button class="tvSwitchBtn" data-tab="calendar" onclick="navigateTo('calendar')"><span class="tvIco">📆</span>Календарь</button>
+        <button class="tvSwitchBtn" data-tab="kanban" onclick="navigateTo('kanban')"><span class="tvIco">🗂</span>Канбан</button>
+      </div></div>
   <div class="card" style="padding:12px 14px;margin-bottom:12px">
     <!-- Stats strip -->
     <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:10px">
@@ -4034,6 +4053,12 @@ body.light-mode .skel{background:linear-gradient(90deg,var(--card2) 25%,#f0f2f7 
     </div>
   </header>
   </div>
+  <div class="tvStickyBar"><div class="tvSwitch" role="tablist">
+        <button class="tvSwitchBtn" data-tab="tasks" onclick="navigateTo('tasks')"><span class="tvIco">✅</span>Список</button>
+        <button class="tvSwitchBtn" data-tab="weekly" onclick="navigateTo('weekly')"><span class="tvIco">📅</span>Неделя</button>
+        <button class="tvSwitchBtn" data-tab="calendar" onclick="navigateTo('calendar')"><span class="tvIco">📆</span>Календарь</button>
+        <button class="tvSwitchBtn" data-tab="kanban" onclick="navigateTo('kanban')"><span class="tvIco">🗂</span>Канбан</button>
+      </div></div>
   <!-- Toolbar -->
   <div class="plCal-toolbar">
     <button class="plCal-navBtn" onclick="plCalNav(-1)" title="Назад">◀</button>
@@ -4090,6 +4115,12 @@ body.light-mode .skel{background:linear-gradient(90deg,var(--card2) 25%,#f0f2f7 
     </div>
     <div class="paneHeadActions" id="kbBoardBarWrap"></div>
   </header>
+  <div class="tvStickyBar"><div class="tvSwitch" role="tablist">
+        <button class="tvSwitchBtn" data-tab="tasks" onclick="navigateTo('tasks')"><span class="tvIco">✅</span>Список</button>
+        <button class="tvSwitchBtn" data-tab="weekly" onclick="navigateTo('weekly')"><span class="tvIco">📅</span>Неделя</button>
+        <button class="tvSwitchBtn" data-tab="calendar" onclick="navigateTo('calendar')"><span class="tvIco">📆</span>Календарь</button>
+        <button class="tvSwitchBtn" data-tab="kanban" onclick="navigateTo('kanban')"><span class="tvIco">🗂</span>Канбан</button>
+      </div></div>
   <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;flex-wrap:wrap;gap:8px">
     <div class="kbBoardBar" id="kbBoardBar">
       <span style="font-family:var(--font-display);font-size:20px;font-style:normal;font-weight:700;letter-spacing:-.4px;color:var(--purple)">Канбан</span>
