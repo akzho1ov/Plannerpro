@@ -5734,108 +5734,78 @@ function cleanForFirestore(obj){
 }
 
 // ── Photo storage ──────────────────────────────────────────────────────────
-// Strategy:
-//   1. Compress image via Canvas to ~800KB max
-//   2. Try upload to Firebase Storage → save https:// URL in Firestore
-//   3. If Storage fails (rules not set up yet) → save compressed base64 in Firestore
-//      Firestore doc limit is 1MB; compressed photo ~150-400KB — fits safely.
-//   4. On startup: restore old photos from localStorage (migration from v1)
+// Simple & reliable: compress via Canvas (sync, no Promise hang), store in
+// localStorage keyed by goal/mission id, sync URL written to Firestore.
+// Firebase Storage is used only when available; falls back to localStorage.
 // ───────────────────────────────────────────────────────────────────────────
-const PHOTOS_KEY = (typeof SKEY !== 'undefined' ? SKEY : 'pp') + '_photos';
+const PHOTOS_KEY = SKEY + '_photos';
 
-// Compress a base64 image to target size using Canvas
-function compressPhoto(base64DataUrl, maxKB){
-  return new Promise(resolve => {
+/** Compress a base64 image synchronously via an already-loaded <img>.
+ *  Returns compressed base64 string. Safe: never throws. */
+function _canvasCompress(base64DataUrl, maxW, quality){
+  try{
     const img = new Image();
-    img.onload = () => {
-      let quality = 0.82;
-      const canvas = document.createElement('canvas');
-      // Scale down if very large
-      let w = img.width, h = img.height;
-      const MAX_DIM = 1600;
-      if(w > MAX_DIM || h > MAX_DIM){
-        const ratio = Math.min(MAX_DIM/w, MAX_DIM/h);
-        w = Math.round(w*ratio); h = Math.round(h*ratio);
-      }
-      canvas.width = w; canvas.height = h;
-      const ctx = canvas.getContext('2d');
-      ctx.drawImage(img, 0, 0, w, h);
-      // Try to hit target size
-      let result = canvas.toDataURL('image/jpeg', quality);
-      while(result.length > maxKB * 1024 * 1.37 && quality > 0.3){
-        quality -= 0.1;
-        result = canvas.toDataURL('image/jpeg', quality);
-      }
-      resolve(result);
-    };
-    img.onerror = () => resolve(base64DataUrl); // fallback: original
-    img.src = base64DataUrl;
-  });
+    img.src = base64DataUrl;           // works sync when already loaded by FileReader
+    const ratio = Math.min(1, maxW / (img.naturalWidth || maxW));
+    const w = Math.round((img.naturalWidth||800)*ratio);
+    const h = Math.round((img.naturalHeight||600)*ratio);
+    const c = document.createElement('canvas');
+    c.width = w; c.height = h;
+    c.getContext('2d').drawImage(img, 0, 0, w, h);
+    const out = c.toDataURL('image/jpeg', quality);
+    return out.length > 100 ? out : base64DataUrl;
+  }catch(e){ return base64DataUrl; }
 }
 
-async function uploadPhotoToStorage(base64DataUrl, storagePath){
-  if(!currentUser) throw new Error('Not authenticated');
-  const ref = storage.ref(storagePath);
-  await ref.putString(base64DataUrl, 'data_url');
-  return await ref.getDownloadURL();
-}
-
-// Save photo: try Storage first, fallback to compressed base64 in Firestore
-async function savePhoto(base64DataUrl, storagePath){
-  // Always compress first
-  const compressed = await compressPhoto(base64DataUrl, 800);
-  try {
-    const url = await uploadPhotoToStorage(compressed, storagePath);
-    return url; // https:// URL — best case
-  } catch(e){
-    console.warn('Firebase Storage upload failed, storing compressed base64 in Firestore:', e.message||e.code||e);
-    return compressed; // fallback — compressed base64 directly in Firestore
+/** Public: compress base64 to ≤ maxKB. Tries decreasing quality. Sync. */
+function compressPhotoSync(base64DataUrl, maxKB){
+  if(!base64DataUrl || !base64DataUrl.startsWith('data:')) return base64DataUrl;
+  const targetLen = maxKB * 1024 * 1.37; // base64 overhead
+  for(let q = 0.82; q >= 0.25; q -= 0.12){
+    const r = _canvasCompress(base64DataUrl, 1400, q);
+    if(r.length <= targetLen) return r;
   }
+  return _canvasCompress(base64DataUrl, 1400, 0.25);
 }
 
+/** Save photos to localStorage (keyed by goal/mission id) */
 function savePhotosLocally(){
-  // Migrate: keep localStorage copy for backwards compat only
   const photos = {};
-  const goals = G.goals || [];
-  goals.forEach(g => { if(g.photo && g.photo.startsWith('data:')) photos['goal_'+g.id] = g.photo; });
-  const mission = G.mission || {};
-  Object.keys(mission).forEach(id => {
-    if(mission[id] && mission[id].photo && mission[id].photo.startsWith('data:'))
-      photos['mission_'+id] = mission[id].photo;
-  });
-  try { localStorage.setItem(PHOTOS_KEY, JSON.stringify(photos)); } catch(e){}
+  (G.goals||[]).forEach(g=>{ if(g.photo) photos['goal_'+g.id]=g.photo; });
+  const m = G.mission||{};
+  Object.keys(m).forEach(id=>{ if(m[id]&&m[id].photo) photos['miss_'+id]=m[id].photo; });
+  try{ localStorage.setItem(PHOTOS_KEY, JSON.stringify(photos)); }catch(e){}
 }
 
+/** Restore photos from localStorage into G (migration + offline fallback) */
 function restorePhotosFromLocal(){
-  // Migrate old localStorage photos → put them back in G so they show up
-  let photos = {};
-  try { const s = localStorage.getItem(PHOTOS_KEY); if(s) photos = JSON.parse(s); } catch{}
-  const goals = G.goals || [];
-  goals.forEach(g => { if(!g.photo && photos['goal_'+g.id]) g.photo = photos['goal_'+g.id]; });
-  const mission = G.mission || {};
-  Object.keys(mission).forEach(id => {
-    if(mission[id] && !mission[id].photo && photos['mission_'+id])
-      mission[id].photo = photos['mission_'+id];
-  });
+  let photos={};
+  try{ const s=localStorage.getItem(PHOTOS_KEY); if(s) photos=JSON.parse(s); }catch{}
+  (G.goals||[]).forEach(g=>{ if(!g.photo && photos['goal_'+g.id]) g.photo=photos['goal_'+g.id]; });
+  const m=G.mission||{};
+  Object.keys(m).forEach(id=>{ if(m[id]&&!m[id].photo&&photos['miss_'+id]) m[id].photo=photos['miss_'+id]; });
 }
 
+/** Strip base64 from Firestore payload — photos live in localStorage / Storage */
 function cleanForFirestoreNoPhotos(obj){
-  // Strip only raw uncompressed base64 (> 900KB) to stay under Firestore 1MB limit.
-  // Compressed base64 (~150-400KB) and https:// URLs are fine to keep.
-  const clone = JSON.parse(JSON.stringify(obj, (_k, v) => v === undefined ? null : v));
-  const stripIfHuge = (s) => {
-    if(!s) return s;
-    if(s.startsWith('http')) return s; // Storage URL — always keep
-    if(s.startsWith('data:') && s.length > 900*1024) return ''; // too large — strip
-    return s; // compressed base64 — keep
-  };
-  if(clone.goals) clone.goals = clone.goals.map(g => ({...g, photo: stripIfHuge(g.photo)}));
-  if(clone.mission){
-    Object.keys(clone.mission).forEach(id => {
-      if(clone.mission[id]) clone.mission[id].photo = stripIfHuge(clone.mission[id].photo);
-    });
-  }
+  const clone=JSON.parse(JSON.stringify(obj,(_k,v)=>v===undefined?null:v));
+  const strip=s=>(!s||s.startsWith('http'))?s:''; // keep https:// URLs, strip base64
+  if(clone.goals) clone.goals=clone.goals.map(g=>({...g,photo:strip(g.photo)}));
+  if(clone.mission) Object.keys(clone.mission).forEach(id=>{
+    if(clone.mission[id]) clone.mission[id].photo=strip(clone.mission[id].photo);
+  });
   return clone;
+}
+
+/** Upload to Firebase Storage in background (best-effort, non-blocking) */
+async function _tryUploadToStorage(base64, storagePath, onSuccess){
+  try{
+    if(!currentUser||!window.storage) return;
+    const ref=window.storage.ref(storagePath);
+    await ref.putString(base64,'data_url');
+    const url=await ref.getDownloadURL();
+    onSuccess(url);
+  }catch(e){ /* Storage not configured — that's OK */ }
 }
 
 // ── Subscribe to Firestore real-time updates ──
@@ -10272,37 +10242,33 @@ function removeGoalPhoto(){
 
 function closeGoalModal(){document.getElementById('goalOverlay').style.display='none';goalEditId=null;_goalPhotoData=null;}
 
-async function saveGoal(){
+function saveGoal(){
   const title=document.getElementById('goalTitleInp').value.trim();if(!title)return;
-  const saveBtn=document.querySelector('#goalOverlay .btnE');
-  if(saveBtn){saveBtn.disabled=true;saveBtn.textContent='Сохранение...';}
-  try{
-    const msLines=document.getElementById('goalMsInp').value.split('\n').map(s=>s.trim()).filter(Boolean);
-    const existing=goalEditId?goalsD().find(x=>x.id===goalEditId):null;
-    const existingMs=existing?existing.milestones||[]:[];
-    const milestones=msLines.map((text,i)=>({text,done:existingMs[i]?existingMs[i].done:false}));
-    // Determine final photo value (URL or compressed base64)
-    let photoUrl=(existing&&existing.photo)||'';
-    if(_goalPhotoData&&_goalPhotoData.startsWith('data:')){
-      // New local file — compress + try Storage, fallback to base64
-      const gid=goalEditId||uid();
-      const storagePath=`users/${currentUser.uid}/goals/${gid}_${Date.now()}.jpg`;
-      photoUrl=await savePhoto(_goalPhotoData, storagePath);
-    } else if(typeof _goalPhotoData==='string'&&_goalPhotoData.length>0){
-      photoUrl=_goalPhotoData; // already a Storage URL or compressed base64
-    } else if(_goalPhotoData===null){
-      photoUrl=''; // user explicitly removed photo
-    }
-    const data={title,why:document.getElementById('goalWhyInp').value,cat:document.getElementById('goalCatInp').value,deadline:document.getElementById('goalDlInp').value,milestones,photo:photoUrl};
-    if(goalEditId){const idx=goalsD().findIndex(x=>x.id===goalEditId);if(idx>=0)goalsD()[idx]={...goalsD()[idx],...data}}
-    else{goalsD().push({...data,id:uid()})}
-    saveD();closeGoalModal();renderGoals();
-  }catch(err){
-    console.error('saveGoal error',err);
-    appAlert('Ошибка сохранения: '+( err.message||err.code||'unknown'));
-  }finally{
-    if(saveBtn){saveBtn.disabled=false;saveBtn.textContent='Сохранить';}
+  // ── Determine photo (fully synchronous — no await, no hang) ──
+  const existing=goalEditId?goalsD().find(x=>x.id===goalEditId):null;
+  let photo=(existing&&existing.photo)||'';
+  if(_goalPhotoData===null){
+    photo=''; // user removed
+  } else if(_goalPhotoData&&_goalPhotoData.startsWith('data:')){
+    // Compress synchronously (img already loaded by FileReader preview)
+    photo=compressPhotoSync(_goalPhotoData, 600);
+    // Try to upgrade to Storage URL in background (non-blocking)
+    const gid=goalEditId||(existing&&existing.id)||uid();
+    _tryUploadToStorage(photo, `users/${currentUser.uid}/goals/${gid}.jpg`, url=>{
+      const g=goalsD().find(x=>x.id===gid);
+      if(g){g.photo=url;savePhotosLocally();saveD();}
+    });
+  } else if(_goalPhotoData){
+    photo=_goalPhotoData; // https:// already
   }
+  const msLines=document.getElementById('goalMsInp').value.split('\n').map(s=>s.trim()).filter(Boolean);
+  const existingMs=existing?existing.milestones||[]:[];
+  const milestones=msLines.map((text,i)=>({text,done:existingMs[i]?existingMs[i].done:false}));
+  const data={title,why:document.getElementById('goalWhyInp').value,cat:document.getElementById('goalCatInp').value,deadline:document.getElementById('goalDlInp').value,milestones,photo};
+  if(goalEditId){const idx=goalsD().findIndex(x=>x.id===goalEditId);if(idx>=0)goalsD()[idx]={...goalsD()[idx],...data}}
+  else{const newId=uid();goalsD().push({...data,id:newId})}
+  savePhotosLocally();
+  saveD();closeGoalModal();renderGoals();
 }
 
 async function delGoal(id){if(!await appConfirm('Удалить цель?'))return;const i=goalsD().findIndex(x=>x.id===id);if(i>=0){goalsD().splice(i,1);saveD();renderGoals()}}
@@ -14516,26 +14482,24 @@ function saveMissionStatement(v){missionD().statement=v;saveD();}
 function saveMissionField(id,field,v){const d=missionD();if(!d[id])d[id]={};d[id][field]=v;saveD();}
 async function missionClearBlock(id){if(!await appConfirm('Очистить этот горизонт?',{title:'Очистить горизонт',okText:'Очистить'}))return;const d=missionD();d[id]={};saveD();renderMission();}
 function missionPickPhoto(id){document.getElementById('mPhoto_'+id)?.click();}
-async function missionHandlePhoto(id,input){
+function missionHandlePhoto(id,input){
   const file=input.files[0];if(!file)return;
-  if(file.size>20*1024*1024){appAlert('Файл слишком большой (максимум 20MB)');return;}
+  if(file.size>30*1024*1024){appAlert('Файл слишком большой (максимум 30MB)');return;}
   const reader=new FileReader();
-  reader.onload=async e=>{
+  reader.onload=e=>{
     const base64=e.target.result;
-    // Show preview immediately (uncompressed for speed)
-    saveMissionField(id,'photo',base64);
+    // Compress synchronously (img already decoded by FileReader)
+    const compressed=compressPhotoSync(base64,600);
+    saveMissionField(id,'photo',compressed);
+    savePhotosLocally();
     renderMission();
-    // Compress + save in background (Storage or base64 fallback)
-    try{
-      const storagePath=`users/${currentUser.uid}/mission/${id}_${Date.now()}.jpg`;
-      const finalUrl=await savePhoto(base64, storagePath);
-      saveMissionField(id,'photo',finalUrl);
+    saveD();
+    // Upgrade to Storage URL in background (non-blocking)
+    _tryUploadToStorage(compressed,`users/${currentUser.uid}/mission/${id}.jpg`,url=>{
+      saveMissionField(id,'photo',url);
+      savePhotosLocally();
       saveD();
-    }catch(err){
-      console.warn('Mission photo save failed',err);
-      // Preview already shown, base64 already in G — saveD anyway
-      saveD();
-    }
+    });
   };
   reader.readAsDataURL(file);
 }
