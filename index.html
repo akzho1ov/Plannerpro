@@ -5743,185 +5743,117 @@ function cleanForFirestore(obj){
   return JSON.parse(JSON.stringify(obj,(_k,v)=>v===undefined?null:v));
 }
 
-// ── Photo storage ──────────────────────────────────────────────────────────
-// Simple & reliable: compress via Canvas (sync, no Promise hang), store in
-// localStorage keyed by goal/mission id, sync URL written to Firestore.
-// Firebase Storage is used only when available; falls back to localStorage.
-// ───────────────────────────────────────────────────────────────────────────
-const PHOTOS_KEY = SKEY + '_photos';
+// ══════════════════════════════════════════════════════════════════════════
+// PHOTO SYSTEM — No Firebase Storage needed (free plan compatible)
+// ─────────────────────────────────────────────────────────────────────────
+// Photos are compressed to ≤150KB and stored as base64 inside Firestore.
+// Firestore doc limit = 1MB. With ~4 goals + mission photos at 150KB each
+// the compressed data stays well within budget.
+// Sync is automatic — Firestore replicates to all devices in real-time.
+// ══════════════════════════════════════════════════════════════════════════
 
-/** Compress a base64 image synchronously via an already-loaded <img>.
- *  Returns compressed base64 string. Safe: never throws. */
-/** Compress image via Canvas. Returns a Promise<string> — always resolves, never rejects. */
-function compressPhotoAsync(base64DataUrl, maxKB){
+/**
+ * Compress a photo to target size.
+ * Returns Promise<string> — always resolves, never rejects.
+ * targetKB: target size in KB (default 150 — safe for Firestore)
+ */
+function compressPhoto(dataUrl, targetKB){
+  targetKB = targetKB || 150;
   return new Promise(resolve => {
-    if(!base64DataUrl || !base64DataUrl.startsWith('data:')){ resolve(base64DataUrl); return; }
+    if(!dataUrl || !dataUrl.startsWith('data:image')){ resolve(''); return; }
     const img = new Image();
-    const done = (result) => resolve(result && result.length > 200 ? result : base64DataUrl);
-    img.onerror = () => done(base64DataUrl);
+    img.onerror = () => resolve('');
     img.onload = () => {
       try{
-        const MAX_DIM = 1400;
-        let w = img.width, h = img.height;
-        if(w > MAX_DIM || h > MAX_DIM){ const r=Math.min(MAX_DIM/w,MAX_DIM/h); w=Math.round(w*r); h=Math.round(h*r); }
-        const canvas = document.createElement('canvas');
-        canvas.width = w; canvas.height = h;
-        const ctx = canvas.getContext('2d');
-        ctx.drawImage(img, 0, 0, w, h);
-        const targetBytes = maxKB * 1024 * 1.37;
-        let q = 0.82, out = canvas.toDataURL('image/jpeg', q);
-        while(out.length > targetBytes && q > 0.25){ q -= 0.1; out = canvas.toDataURL('image/jpeg', q); }
-        done(out);
-      }catch(e){ done(base64DataUrl); }
+        // Scale down — max 800px wide/tall for photos stored in Firestore
+        const MAX = 800;
+        let w = img.naturalWidth || img.width;
+        let h = img.naturalHeight || img.height;
+        if(!w || !h){ resolve(''); return; }
+        if(w > MAX || h > MAX){
+          const r = Math.min(MAX/w, MAX/h);
+          w = Math.round(w * r);
+          h = Math.round(h * r);
+        }
+        const c = document.createElement('canvas');
+        c.width = w; c.height = h;
+        c.getContext('2d').drawImage(img, 0, 0, w, h);
+        // Target: base64 length ≈ targetKB * 1024 * 1.37
+        const maxLen = targetKB * 1024 * 1.37;
+        let q = 0.75;
+        let out = c.toDataURL('image/jpeg', q);
+        while(out.length > maxLen && q > 0.15){
+          q = Math.round((q - 0.1) * 100) / 100;
+          out = c.toDataURL('image/jpeg', q);
+        }
+        resolve(out.length > 50 ? out : '');
+      } catch(e){ resolve(''); }
     };
-    img.src = base64DataUrl;
+    img.src = dataUrl;
   });
 }
 
-/** Sync wrapper — returns original if img not yet decoded (safe fallback) */
-function compressPhotoSync(base64DataUrl, maxKB){
-  // Just return original — async version will compress properly in handleGoalPhoto
-  return base64DataUrl || '';
-}
+// Legacy no-ops (kept so old call sites don't break)
+function savePhotosLocally(){}
+function restorePhotosFromLocal(){}
 
-/** Save photos to localStorage (keyed by goal/mission id) */
-function savePhotosLocally(){
-  const photos = {};
-  (G.goals||[]).forEach(g=>{ if(g.photo) photos['goal_'+g.id]=g.photo; });
-  const m = G.mission||{};
-  Object.keys(m).forEach(id=>{ if(m[id]&&m[id].photo) photos['miss_'+id]=m[id].photo; });
-  try{ localStorage.setItem(PHOTOS_KEY, JSON.stringify(photos)); }catch(e){}
-}
-
-/** Restore photos from localStorage into G (migration + offline fallback) */
-function restorePhotosFromLocal(){
-  let photos={};
-  try{ const s=localStorage.getItem(PHOTOS_KEY); if(s) photos=JSON.parse(s); }catch{}
-  (G.goals||[]).forEach(g=>{ if(!g.photo && photos['goal_'+g.id]) g.photo=photos['goal_'+g.id]; });
-  const m=G.mission||{};
-  Object.keys(m).forEach(id=>{ if(m[id]&&!m[id].photo&&photos['miss_'+id]) m[id].photo=photos['miss_'+id]; });
-}
-
-/** Strip base64 from Firestore payload — photos live in localStorage / Storage */
+/**
+ * Prepare G for Firestore:
+ * - Replace undefined → null
+ * - Keep compressed base64 photos (they're ≤150KB, safe for Firestore)
+ * - Strip only oversized raw base64 (>300KB) to prevent doc overflow
+ */
 function cleanForFirestoreNoPhotos(obj){
-  // Deep-clone, replace undefined with null (Firestore requirement)
   let clone;
-  try{ clone=JSON.parse(JSON.stringify(obj,(_k,v)=>v===undefined?null:v)); }
-  catch(e){ console.warn('[clean] JSON clone failed',e); clone={}; }
-
-  // Keep only https:// URLs (Firebase Storage); strip any base64 or empty
-  const strip=s=>(s&&typeof s==='string'&&s.startsWith('https://'))?s:'';
-
-  // Strip photos from goals (array of objects)
+  try{
+    clone = JSON.parse(JSON.stringify(obj, (_k, v) => v === undefined ? null : v));
+  }catch(e){
+    console.warn('[clean] clone failed', e);
+    return {};
+  }
+  const LIMIT = 300 * 1024 * 1.37; // 300KB in base64 chars
+  const safePhoto = s => {
+    if(!s || typeof s !== 'string') return '';
+    if(s.startsWith('https://')) return s;       // URL — always keep
+    if(s.startsWith('data:') && s.length <= LIMIT) return s; // small base64 — keep
+    return '';                                    // too large — strip
+  };
   if(Array.isArray(clone.goals)){
-    clone.goals=clone.goals.map(g=>{
-      try{ return (g&&typeof g==='object')?{...g,photo:strip(g.photo||'')}:g; }
-      catch(e){ return g; }
+    clone.goals = clone.goals.map(g => {
+      if(!g || typeof g !== 'object') return g;
+      return { ...g, photo: safePhoto(g.photo) };
     });
   }
-
-  // Strip photos from mission (object — values can be strings OR objects)
-  if(clone.mission&&typeof clone.mission==='object'){
-    Object.keys(clone.mission).forEach(id=>{
+  if(clone.mission && typeof clone.mission === 'object'){
+    Object.keys(clone.mission).forEach(id => {
       try{
-        const v=clone.mission[id];
-        if(v&&typeof v==='object'&&!Array.isArray(v)) v.photo=strip(v.photo||'');
-      }catch(e){ /* leave as-is */ }
+        const v = clone.mission[id];
+        if(v && typeof v === 'object' && !Array.isArray(v)){
+          v.photo = safePhoto(v.photo);
+        }
+      }catch(e){}
     });
   }
-
   return clone;
 }
 
-/** Upload to Firebase Storage in background (best-effort, non-blocking) */
-async function _tryUploadToStorage(base64, storagePath, onSuccess){
-  try{
-    if(!currentUser) return;
-    const fbStorage = window._fbStorage || (typeof storage !== 'undefined' ? storage : null);
-    if(!fbStorage){ console.warn('[Storage] not initialized'); return; }
-    console.log('[Storage] uploading to', storagePath);
-    const ref = fbStorage.ref(storagePath);
-    await ref.putString(base64, 'data_url');
-    const url = await ref.getDownloadURL();
-    console.log('[Storage] upload OK, url:', url.slice(0,60)+'...');
-    onSuccess(url);
-  }catch(e){
-    console.warn('[Storage] upload failed:', e.code, e.message);
-  }
-}
-
-// ── Firestore self-diagnostic — runs once on login ──
+// Diagnostic — checks Firestore write permission once on login
 async function diagFirestore(){
   if(!currentUser) return;
   try{
-    // Try a minimal test write to check permissions
     await db.collection('users').doc(currentUser.uid).set({_ping: Date.now()}, {merge: true});
-    console.log('[diag] Firestore write: OK');
+    console.log('[diag] Firestore OK');
   }catch(e){
-    console.error('[diag] Firestore BLOCKED:', e.code, e.message);
-    if(e.code==='permission-denied'){
-      // Show a permanent helpful banner
-      const banner = document.createElement('div');
-      banner.id = 'firestoreBanner';
-      banner.style.cssText='position:fixed;bottom:16px;left:50%;transform:translateX(-50%);z-index:9999;background:#1a1a2e;border:1px solid rgba(255,79,114,.5);border-radius:12px;padding:14px 20px;max-width:420px;width:90%;font-size:13px;color:#fff;box-shadow:0 4px 24px rgba(0,0,0,.5)';
-      banner.innerHTML=`
-        <div style="color:#ff4f72;font-weight:700;margin-bottom:6px">⚠️ Firestore: нет доступа (permission-denied)</div>
-        <div style="color:#aaa;line-height:1.5">Открой <a href="https://console.firebase.google.com/project/plannerpro-d388f/firestore/rules" target="_blank" style="color:#4ecdc4">Firebase Console → Firestore → Rules</a> и замени содержимое на:<br>
-        <code style="display:block;margin-top:8px;padding:8px;background:#0d0d1a;border-radius:6px;font-size:11px;color:#0fddaa">
-rules_version = '2';<br>
-service cloud.firestore {<br>
-&nbsp;&nbsp;match /databases/{database}/documents {<br>
-&nbsp;&nbsp;&nbsp;&nbsp;match /users/{uid} {<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;allow read, write: if request.auth.uid == uid;<br>
-&nbsp;&nbsp;&nbsp;&nbsp;}<br>
-&nbsp;&nbsp;}<br>
-}</code></div>
-        <button onclick="document.getElementById('firestoreBanner').remove()" style="margin-top:10px;padding:6px 14px;background:rgba(255,79,114,.15);border:1px solid rgba(255,79,114,.3);border-radius:6px;color:#ff4f72;cursor:pointer;font-size:12px">Закрыть</button>
-      `;
-      document.body.appendChild(banner);
+    console.error('[diag] Firestore error:', e.code, e.message);
+    if(e.code === 'permission-denied'){
+      const b = document.createElement('div');
+      b.style.cssText='position:fixed;bottom:16px;left:50%;transform:translateX(-50%);z-index:9999;background:#1a1a2e;border:1px solid rgba(255,79,114,.5);border-radius:12px;padding:14px 20px;max-width:400px;width:90%;font-size:13px;color:#fff;box-shadow:0 4px 24px rgba(0,0,0,.6)';
+      b.innerHTML=`<div style="color:#ff4f72;font-weight:700;margin-bottom:8px">⛔ Firestore: нет доступа</div>
+      <div style="color:#bbb;line-height:1.6">Открой <a href="https://console.firebase.google.com/project/plannerpro-d388f/firestore/rules" target="_blank" style="color:#4ecdc4">Firebase → Firestore → Rules</a> и установи:<br>
+      <code style="display:block;margin-top:8px;padding:8px;background:#0a0a18;border-radius:6px;font-size:10.5px;color:#0fddaa;line-height:1.7">rules_version = '2';<br>service cloud.firestore {<br>&nbsp;match /databases/{database}/documents {<br>&nbsp;&nbsp;match /users/{uid} {<br>&nbsp;&nbsp;&nbsp;allow read, write: if request.auth.uid == uid;<br>&nbsp;&nbsp;}<br>&nbsp;}<br>}</code></div>
+      <button onclick="this.parentNode.remove()" style="margin-top:10px;padding:5px 14px;background:rgba(255,79,114,.15);border:1px solid rgba(255,79,114,.3);border-radius:6px;color:#ff4f72;cursor:pointer">Закрыть</button>`;
+      document.body.appendChild(b);
     }
-  }
-}
-
-// ── Subscribe to Firestore real-time updates ──
-let _connectTimeout=null;
-// ── One-time photo migration: upload localStorage base64 photos to Firebase Storage ──
-async function migrateLocalPhotosToStorage(){
-  if(!currentUser || !window._fbStorage) return;
-  let changed = false;
-  const goals = G.goals || [];
-  for(const g of goals){
-    if(g.photo && g.photo.startsWith('data:')){
-      try{
-        const path = `users/${currentUser.uid}/goals/${g.id}.jpg`;
-        const ref = window._fbStorage.ref(path);
-        await ref.putString(g.photo, 'data_url');
-        const url = await ref.getDownloadURL();
-        g.photo = url;
-        changed = true;
-        console.log('[migrate] goal photo uploaded:', g.id);
-      }catch(e){ console.warn('[migrate] goal upload failed:', g.id, e.code||e.message); }
-    }
-  }
-  const mission = G.mission || {};
-  for(const id of Object.keys(mission)){
-    const v = mission[id];
-    if(v && typeof v === 'object' && v.photo && v.photo.startsWith('data:')){
-      try{
-        const path = `users/${currentUser.uid}/mission/${id}.jpg`;
-        const ref = window._fbStorage.ref(path);
-        await ref.putString(v.photo, 'data_url');
-        const url = await ref.getDownloadURL();
-        v.photo = url;
-        changed = true;
-        console.log('[migrate] mission photo uploaded:', id);
-      }catch(e){ console.warn('[migrate] mission upload failed:', id, e.code||e.message); }
-    }
-  }
-  if(changed){
-    savePhotosLocally();
-    saveD();
-    console.log('[migrate] photos migrated to Storage, saveD triggered');
   }
 }
 
@@ -5966,8 +5898,7 @@ function subscribeCloud(){
       hideLoader();
       initApp();
       if(fromServer) setSyncDot('ok');
-      // Migrate base64 photos to Storage in background (runs once, idempotent)
-      setTimeout(migrateLocalPhotosToStorage, 2000);
+      // Photos stored in Firestore — no migration needed
     } else if(fromServer){
       // Confirmed server data — could be our own echo or remote change
       const isOwnEcho=Date.now()-_myLastWriteAt<8000;
@@ -6017,18 +5948,16 @@ document.addEventListener('visibilitychange',()=>{
 let _isSaving=false;
 let _pendingSave=false;
 function saveD(){
-  // 1. Save to localStorage — full G including photos (for offline/cross-tab)
+  // 1. Cache to localStorage (best-effort — photos are in Firestore so this is just speedup)
   try{
-    localStorage.setItem(SKEY+'_cache',JSON.stringify(G));
+    localStorage.setItem(SKEY+'_cache', JSON.stringify(G));
   }catch(e){
-    // Quota exceeded — save without base64 photos, they're in PHOTOS_KEY anyway
+    // Quota exceeded (photos too big for localStorage) — cache without photos
     try{
-      const stripped=cleanForFirestoreNoPhotos(G);
-      localStorage.setItem(SKEY+'_cache',JSON.stringify(stripped));
-    }catch(e2){console.warn('[saveD] localStorage cache failed:',e2);}
+      const light=cleanForFirestoreNoPhotos(G);
+      localStorage.setItem(SKEY+'_cache', JSON.stringify(light));
+    }catch(e2){}
   }
-  // 2. Save photos to localStorage separately (keyed by goal/mission id)
-  savePhotosLocally();
   // 3. Mark write time IMMEDIATELY so isOwnEcho works correctly for any
   //    incoming Firestore snapshot that arrives before the 500ms debounce fires.
   //    Without this, G=incoming could overwrite local data (e.g. sleep entries)
@@ -10355,22 +10284,18 @@ function openGoalModal(id){
 }
 
 function handleGoalPhoto(input){
-  const file=input.files[0];if(!file)return;
-  if(file.size>50*1024*1024){appAlert('Файл слишком большой (максимум 50MB)');return;}
+  const file=input.files[0]; if(!file) return;
   const reader=new FileReader();
   reader.onload=e=>{
     const raw=e.target.result;
-    // Show preview immediately
+    // Show preview immediately (full quality)
     const imgEl=document.getElementById('goalPhotoImg');
     imgEl.src=raw; imgEl.style.display='block';
     document.getElementById('goalPhotoPlaceholder').style.display='none';
     document.getElementById('goalPhotoRemove').style.display='flex';
-    // Compress async (img is loading in background via preview src)
-    // We set _goalPhotoData to raw first so user isn't blocked
-    _goalPhotoData=raw;
-    compressPhotoAsync(raw, 600).then(compressed=>{
-      _goalPhotoData=compressed; // swap to compressed when ready
-    });
+    _goalPhotoData=raw; // raw for now
+    // Compress in background — 150KB fits in Firestore
+    compressPhoto(raw, 150).then(c=>{ if(c) _goalPhotoData=c; });
   };
   reader.readAsDataURL(file);
 }
@@ -10387,15 +10312,14 @@ function removeGoalPhoto(){
 function closeGoalModal(){document.getElementById('goalOverlay').style.display='none';goalEditId=null;_goalPhotoData=null;}
 
 function saveGoal(){
-  const title=document.getElementById('goalTitleInp').value.trim();if(!title)return;
+  const title=document.getElementById('goalTitleInp').value.trim(); if(!title) return;
   const existing=goalEditId?goalsD().find(x=>x.id===goalEditId):null;
-  // ── Photo: keep only in localStorage, never send to Firestore ──
-  // _goalPhotoData: null=removed, string=new/existing photo, undefined=unchanged
+  // Photo stored as compressed base64 in Firestore — syncs to all devices automatically
   let photo=(existing&&existing.photo)||'';
   if(_goalPhotoData===null){
-    photo=''; // explicitly removed
-  } else if(typeof _goalPhotoData==='string'&&_goalPhotoData.length>0){
-    photo=_goalPhotoData; // new or existing photo (compressed async already)
+    photo='';
+  } else if(typeof _goalPhotoData==='string' && _goalPhotoData.length>0){
+    photo=_goalPhotoData;
   }
   const msLines=document.getElementById('goalMsInp').value.split('\n').map(s=>s.trim()).filter(Boolean);
   const existingMs=existing?existing.milestones||[]:[];
@@ -10404,23 +10328,7 @@ function saveGoal(){
   const data={title,why:document.getElementById('goalWhyInp').value,cat:document.getElementById('goalCatInp').value,deadline:document.getElementById('goalDlInp').value,milestones,photo};
   if(goalEditId){const idx=goalsD().findIndex(x=>x.id===goalEditId);if(idx>=0)goalsD()[idx]={...goalsD()[idx],...data};}
   else{goalsD().push({...data,id:goalId});}
-  savePhotosLocally();
-  saveD();closeGoalModal();renderGoals();
-  // Upgrade photo to Firebase Storage URL in background (optional — for cross-device sync)
-  // Uses direct Firestore patch to avoid triggering full saveD() race condition
-  if(photo&&photo.startsWith('data:')){
-    const gidForUpgrade=goalId;
-    _tryUploadToStorage(photo,`users/${currentUser.uid}/goals/${gidForUpgrade}.jpg`,url=>{
-      const g=goalsD().find(x=>x.id===gidForUpgrade);
-      if(g&&currentUser){
-        g.photo=url;
-        savePhotosLocally();
-        // Patch only the goals array — minimal write, no full saveD() to avoid race
-        const patchPayload=cleanForFirestoreNoPhotos(G);
-        db.collection('users').doc(currentUser.uid).set(patchPayload).catch(()=>{});
-      }
-    });
-  }
+  saveD(); closeGoalModal(); renderGoals();
 }
 
 async function delGoal(id){if(!await appConfirm('Удалить цель?'))return;const i=goalsD().findIndex(x=>x.id===id);if(i>=0){goalsD().splice(i,1);saveD();renderGoals()}}
@@ -14635,27 +14543,16 @@ function saveMissionField(id,field,v){const d=missionD();if(!d[id])d[id]={};d[id
 async function missionClearBlock(id){if(!await appConfirm('Очистить этот горизонт?',{title:'Очистить горизонт',okText:'Очистить'}))return;const d=missionD();d[id]={};saveD();renderMission();}
 function missionPickPhoto(id){document.getElementById('mPhoto_'+id)?.click();}
 function missionHandlePhoto(id,input){
-  const file=input.files[0];if(!file)return;
-  if(file.size>50*1024*1024){appAlert('Файл слишком большой (максимум 50MB)');return;}
+  const file=input.files[0]; if(!file) return;
   const reader=new FileReader();
   reader.onload=e=>{
     const raw=e.target.result;
-    // Show preview immediately with raw
     saveMissionField(id,'photo',raw);
-    savePhotosLocally();
     renderMission();
-    saveD();
-    // Compress async, then re-save compressed version
-    compressPhotoAsync(raw,600).then(compressed=>{
-      saveMissionField(id,'photo',compressed);
-      savePhotosLocally();
+    // Compress to 150KB then save — stored in Firestore, syncs to all devices
+    compressPhoto(raw, 150).then(compressed=>{
+      saveMissionField(id,'photo', compressed||raw);
       saveD();
-      // Try Storage upgrade in background
-      _tryUploadToStorage(compressed,`users/${currentUser.uid}/mission/${id}.jpg`,url=>{
-        saveMissionField(id,'photo',url);
-        savePhotosLocally();
-        saveD();
-      });
     });
   };
   reader.readAsDataURL(file);
