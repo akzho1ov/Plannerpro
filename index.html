@@ -5795,13 +5795,20 @@ function restorePhotosFromLocal(){
 /** Strip base64 from Firestore payload — photos live in localStorage / Storage */
 function cleanForFirestoreNoPhotos(obj){
   // ALWAYS strip any base64 — only keep https:// Storage URLs.
-  // Photos live in localStorage; Firestore only stores the https:// URL (or empty).
   const clone=JSON.parse(JSON.stringify(obj,(_k,v)=>v===undefined?null:v));
-  const strip=s=>(s&&s.startsWith('https://'))?s:'';
-  if(clone.goals) clone.goals=clone.goals.map(g=>({...g,photo:strip(g.photo)}));
-  if(clone.mission) Object.keys(clone.mission).forEach(id=>{
-    if(clone.mission[id]) clone.mission[id].photo=strip(clone.mission[id].photo);
-  });
+  const strip=s=>(s&&typeof s==='string'&&s.startsWith('https://'))?s:'';
+  // goals: must be array of objects
+  if(Array.isArray(clone.goals)){
+    clone.goals=clone.goals.map(g=>(g&&typeof g==='object')?{...g,photo:strip(g.photo)}:g);
+  }
+  // mission: values may be strings (statement field) or objects (horizon blocks)
+  if(clone.mission&&typeof clone.mission==='object'){
+    Object.keys(clone.mission).forEach(id=>{
+      const v=clone.mission[id];
+      if(v&&typeof v==='object') v.photo=strip(v.photo);
+      // if v is a string (e.g. mission.statement) — leave it alone
+    });
+  }
   return clone;
 }
 
