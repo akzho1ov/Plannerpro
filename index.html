@@ -5841,6 +5841,39 @@ async function _tryUploadToStorage(base64, storagePath, onSuccess){
   }
 }
 
+// ── Firestore self-diagnostic — runs once on login ──
+async function diagFirestore(){
+  if(!currentUser) return;
+  try{
+    // Try a minimal test write to check permissions
+    await db.collection('users').doc(currentUser.uid).set({_ping: Date.now()}, {merge: true});
+    console.log('[diag] Firestore write: OK');
+  }catch(e){
+    console.error('[diag] Firestore BLOCKED:', e.code, e.message);
+    if(e.code==='permission-denied'){
+      // Show a permanent helpful banner
+      const banner = document.createElement('div');
+      banner.id = 'firestoreBanner';
+      banner.style.cssText='position:fixed;bottom:16px;left:50%;transform:translateX(-50%);z-index:9999;background:#1a1a2e;border:1px solid rgba(255,79,114,.5);border-radius:12px;padding:14px 20px;max-width:420px;width:90%;font-size:13px;color:#fff;box-shadow:0 4px 24px rgba(0,0,0,.5)';
+      banner.innerHTML=`
+        <div style="color:#ff4f72;font-weight:700;margin-bottom:6px">⚠️ Firestore: нет доступа (permission-denied)</div>
+        <div style="color:#aaa;line-height:1.5">Открой <a href="https://console.firebase.google.com/project/plannerpro-d388f/firestore/rules" target="_blank" style="color:#4ecdc4">Firebase Console → Firestore → Rules</a> и замени содержимое на:<br>
+        <code style="display:block;margin-top:8px;padding:8px;background:#0d0d1a;border-radius:6px;font-size:11px;color:#0fddaa">
+rules_version = '2';<br>
+service cloud.firestore {<br>
+&nbsp;&nbsp;match /databases/{database}/documents {<br>
+&nbsp;&nbsp;&nbsp;&nbsp;match /users/{uid} {<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;allow read, write: if request.auth.uid == uid;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+&nbsp;&nbsp;}<br>
+}</code></div>
+        <button onclick="document.getElementById('firestoreBanner').remove()" style="margin-top:10px;padding:6px 14px;background:rgba(255,79,114,.15);border:1px solid rgba(255,79,114,.3);border-radius:6px;color:#ff4f72;cursor:pointer;font-size:12px">Закрыть</button>
+      `;
+      document.body.appendChild(banner);
+    }
+  }
+}
+
 // ── Subscribe to Firestore real-time updates ──
 let _connectTimeout=null;
 function subscribeCloud(){
@@ -5985,13 +6018,16 @@ function saveD(){
       showSaveStatus('saved','✓ Сохранено');
     }catch(e){
       console.warn('[saveD] Firestore error:',e.code||'',e.message||e);
-      // Don't show red dot for transient network errors — just show save status text
       if(e.code==='unavailable'||e.code==='deadline-exceeded'||!navigator.onLine){
-        setSyncDot('syncing'); // yellow — will retry when back online
+        setSyncDot('syncing');
         showSaveStatus('error','⚡ Нет сети — сохранено локально');
+      } else if(e.code==='permission-denied'||e.code==='unauthenticated'){
+        setSyncDot('error');
+        showSaveStatus('error','⛔ Нет доступа — проверь Firebase Rules');
+        diagFirestore(); // show detailed banner
       } else {
         setSyncDot('error');
-        showSaveStatus('error','✗ Ошибка сохранения');
+        showSaveStatus('error','✗ Ошибка: '+(e.code||e.message||'unknown'));
       }
     }finally{
       _saveTimer=null;
@@ -6092,6 +6128,7 @@ auth.onAuthStateChanged(async(user)=>{
     }
     updateUserUI(user);
     subscribeCloud(); // background sync; refreshes UI when server data arrives
+    diagFirestore();  // check Firestore permissions once — shows banner if misconfigured
   } else {
     currentUser=null;
     G={};
