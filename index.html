@@ -5795,21 +5795,32 @@ function restorePhotosFromLocal(){
 
 /** Strip base64 from Firestore payload — photos live in localStorage / Storage */
 function cleanForFirestoreNoPhotos(obj){
-  // ALWAYS strip any base64 — only keep https:// Storage URLs.
-  const clone=JSON.parse(JSON.stringify(obj,(_k,v)=>v===undefined?null:v));
+  // Deep-clone, replace undefined with null (Firestore requirement)
+  let clone;
+  try{ clone=JSON.parse(JSON.stringify(obj,(_k,v)=>v===undefined?null:v)); }
+  catch(e){ console.warn('[clean] JSON clone failed',e); clone={}; }
+
+  // Keep only https:// URLs (Firebase Storage); strip any base64 or empty
   const strip=s=>(s&&typeof s==='string'&&s.startsWith('https://'))?s:'';
-  // goals: must be array of objects
+
+  // Strip photos from goals (array of objects)
   if(Array.isArray(clone.goals)){
-    clone.goals=clone.goals.map(g=>(g&&typeof g==='object')?{...g,photo:strip(g.photo)}:g);
-  }
-  // mission: values may be strings (statement field) or objects (horizon blocks)
-  if(clone.mission&&typeof clone.mission==='object'){
-    Object.keys(clone.mission).forEach(id=>{
-      const v=clone.mission[id];
-      if(v&&typeof v==='object') v.photo=strip(v.photo);
-      // if v is a string (e.g. mission.statement) — leave it alone
+    clone.goals=clone.goals.map(g=>{
+      try{ return (g&&typeof g==='object')?{...g,photo:strip(g.photo||'')}:g; }
+      catch(e){ return g; }
     });
   }
+
+  // Strip photos from mission (object — values can be strings OR objects)
+  if(clone.mission&&typeof clone.mission==='object'){
+    Object.keys(clone.mission).forEach(id=>{
+      try{
+        const v=clone.mission[id];
+        if(v&&typeof v==='object'&&!Array.isArray(v)) v.photo=strip(v.photo||'');
+      }catch(e){ /* leave as-is */ }
+    });
+  }
+
   return clone;
 }
 
@@ -5848,8 +5859,8 @@ function subscribeCloud(){
       hideLoader();
       initApp();
     }
-    // Subtle dot indicator only — no scary red banner
-    setSyncDot('error');
+    // Timeout = likely offline — show yellow, not red
+    setSyncDot('syncing');
   },4000);
 
   _cloudListener=db.collection('users').doc(currentUser.uid)
@@ -5899,15 +5910,18 @@ function subscribeCloud(){
 
   }, err=>{
     clearTimeout(_connectTimeout);
-    console.warn('Snapshot error',err);
-    setSyncDot('error');
+    console.warn('Snapshot error',err.code,err.message);
+    // Only show red dot for auth/permission errors; network errors show yellow
+    if(err.code==='permission-denied'||err.code==='unauthenticated'){
+      setSyncDot('error');
+    } else {
+      setSyncDot('syncing'); // yellow — temporary network issue
+    }
     if(!_appReady){
-      // Fall back to local cache so app still works offline
       try{const c=localStorage.getItem(SKEY+'_cache');if(c){G=JSON.parse(c);restorePhotosFromLocal();}}catch{}
       _appReady=true;
       hideLoader();
       initApp();
-      // Subtle dot only — red dot in header shows offline state
     }
   });
 }
@@ -5956,26 +5970,29 @@ function saveD(){
     _pendingSave=false;
     _myLastWriteAt=Date.now(); // refresh timestamp right before actual write
     try{
-      const payload=cleanForFirestoreNoPhotos(G);
-      // ── Debug: check payload size before sending ──
-      const payloadStr=JSON.stringify(payload);
-      const payloadKB=Math.round(payloadStr.length/1024);
-      console.log('[saveD] payload size:',payloadKB,'KB');
-      if(payloadKB>900){
-        // Still too large — emergency strip ALL photo fields
-        console.warn('[saveD] payload too large! Emergency strip. Size:',payloadKB,'KB');
-        if(payload.goals) payload.goals=payload.goals.map(g=>({...g,photo:''}));
-        if(payload.mission) Object.keys(payload.mission).forEach(id=>{if(payload.mission[id])payload.mission[id].photo='';});
-        console.log('[saveD] after emergency strip:',Math.round(JSON.stringify(payload).length/1024),'KB');
+      let payload;
+      try{ payload=cleanForFirestoreNoPhotos(G); }
+      catch(cleanErr){
+        console.warn('[saveD] clean failed, using nuclear strip:',cleanErr);
+        // Nuclear fallback: minimal safe clone
+        payload=JSON.parse(JSON.stringify(G,(_k,v)=>{
+          if(typeof v==='string'&&v.startsWith('data:')) return '';
+          return v===undefined?null:v;
+        }));
       }
       await db.collection('users').doc(currentUser.uid).set(payload);
-      // ── Firestore confirmed write ── show green immediately
       setSyncDot('ok');
       showSaveStatus('saved','✓ Сохранено');
     }catch(e){
-      console.warn('[saveD] Firestore error:',e.code,e.message,e);
-      setSyncDot('error');
-      showSaveStatus('error','✗ Ошибка сохранения');
+      console.warn('[saveD] Firestore error:',e.code||'',e.message||e);
+      // Don't show red dot for transient network errors — just show save status text
+      if(e.code==='unavailable'||e.code==='deadline-exceeded'||!navigator.onLine){
+        setSyncDot('syncing'); // yellow — will retry when back online
+        showSaveStatus('error','⚡ Нет сети — сохранено локально');
+      } else {
+        setSyncDot('error');
+        showSaveStatus('error','✗ Ошибка сохранения');
+      }
     }finally{
       _saveTimer=null;
       _isSaving=false;
