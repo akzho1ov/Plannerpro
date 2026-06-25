@@ -5732,6 +5732,7 @@ let _saveTimer=null;
 let _cloudListener=null;   // onSnapshot unsubscribe fn
 let _appReady=false;       // true after first cloud load
 let _myLastWriteAt=0;      // timestamp of OUR last confirmed write
+let _connectTimeout=null;  // safety timeout for Firestore first-connect
 
 // ── Loader helpers ──
 function loaderStep(msg,pct){
@@ -5930,6 +5931,7 @@ function subscribeCloud(){
 
     const incoming=snap.data();
     const fromServer=!snap.metadata.hasPendingWrites;
+    console.log('[snapshot] fromServer:',fromServer,'goals with photos:',(incoming.goals||[]).filter(g=>g&&g.photo).map(g=>({title:g.title,photoLen:g.photo?.length||0})));
 
     if(!_appReady){
       // First boot — always use incoming data regardless of source
@@ -6019,15 +6021,20 @@ function saveD(){
     _myLastWriteAt=Date.now(); // refresh timestamp right before actual write
     try{
       let payload;
-      try{ payload=cleanForFirestoreNoPhotos(G); }
-      catch(cleanErr){
-        console.warn('[saveD] clean failed, using nuclear strip:',cleanErr);
-        // Nuclear fallback: minimal safe clone
+      try{
+        // Clean undefined values but KEEP all photos (they are already compressed to 60KB in saveGoal)
+        payload=JSON.parse(JSON.stringify(G,(_k,v)=>v===undefined?null:v));
+      }catch(cleanErr){
+        console.warn('[saveD] clone failed:',cleanErr);
         payload=JSON.parse(JSON.stringify(G,(_k,v)=>{
           if(typeof v==='string'&&v.startsWith('data:')) return '';
           return v===undefined?null:v;
         }));
       }
+      // Log payload size for debugging
+      const payloadSize=JSON.stringify(payload).length;
+      console.log('[saveD] payload size:',Math.round(payloadSize/1024),'KB, goals with photos:',
+        (payload.goals||[]).filter(g=>g.photo).map(g=>({title:g.title,photoLen:g.photo?.length||0})));
       await db.collection('users').doc(currentUser.uid).set(payload);
       setSyncDot('ok');
       showSaveStatus('saved','✓ Сохранено');
@@ -10393,6 +10400,7 @@ async function saveGoal(){
   const existingMs=existing?existing.milestones||[]:[];
   const milestones=msLines.map((text,i)=>({text,done:existingMs[i]?existingMs[i].done:false}));
   const goalId=goalEditId||uid();
+  console.log('[saveGoal] photo length:', photo?.length||0, 'KB:', Math.round((photo?.length||0)/1024));
   const data={title,why:document.getElementById('goalWhyInp').value,cat:document.getElementById('goalCatInp').value,deadline:document.getElementById('goalDlInp').value,milestones,photo};
   if(goalEditId){const idx=goalsD().findIndex(x=>x.id===goalEditId);if(idx>=0)goalsD()[idx]={...goalsD()[idx],...data};}
   else{goalsD().push({...data,id:goalId});}
