@@ -10342,15 +10342,25 @@ function removeGoalPhoto(){
 
 function closeGoalModal(){document.getElementById('goalOverlay').style.display='none';goalEditId=null;_goalPhotoData=null;}
 
-function saveGoal(){
+async function saveGoal(){
   const title=document.getElementById('goalTitleInp').value.trim(); if(!title) return;
+  // Disable save button to prevent double-tap during async compression
+  const saveBtn=document.querySelector('#goalOverlay .btnP');
+  if(saveBtn){saveBtn.disabled=true;saveBtn.textContent='Сохранение...';}
   const existing=goalEditId?goalsD().find(x=>x.id===goalEditId):null;
   // Photo stored as compressed base64 in Firestore — syncs to all devices automatically
   let photo=(existing&&existing.photo)||'';
   if(_goalPhotoData===null){
     photo='';
   } else if(typeof _goalPhotoData==='string' && _goalPhotoData.length>0){
-    photo=_goalPhotoData;
+    // Always compress before saving — fixes race condition where raw photo (>300KB) gets stripped
+    const LIMIT=300*1024*1.37;
+    if(_goalPhotoData.startsWith('data:')&&_goalPhotoData.length>LIMIT){
+      const compressed=await compressPhoto(_goalPhotoData,150);
+      photo=compressed||'';
+    } else {
+      photo=_goalPhotoData;
+    }
   }
   const msLines=document.getElementById('goalMsInp').value.split('\n').map(s=>s.trim()).filter(Boolean);
   const existingMs=existing?existing.milestones||[]:[];
