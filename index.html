@@ -40,6 +40,7 @@ firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
 const storage = firebase.storage();
+window._fbStorage = storage; // expose for use in functions
 let currentUser = null;
 
 // ── Offline persistence — data available without internet ──
@@ -5815,12 +5816,18 @@ function cleanForFirestoreNoPhotos(obj){
 /** Upload to Firebase Storage in background (best-effort, non-blocking) */
 async function _tryUploadToStorage(base64, storagePath, onSuccess){
   try{
-    if(!currentUser||!window.storage) return;
-    const ref=window.storage.ref(storagePath);
-    await ref.putString(base64,'data_url');
-    const url=await ref.getDownloadURL();
+    if(!currentUser) return;
+    const fbStorage = window._fbStorage || (typeof storage !== 'undefined' ? storage : null);
+    if(!fbStorage){ console.warn('[Storage] not initialized'); return; }
+    console.log('[Storage] uploading to', storagePath);
+    const ref = fbStorage.ref(storagePath);
+    await ref.putString(base64, 'data_url');
+    const url = await ref.getDownloadURL();
+    console.log('[Storage] upload OK, url:', url.slice(0,60)+'...');
     onSuccess(url);
-  }catch(e){ /* Storage not configured — that's OK */ }
+  }catch(e){
+    console.warn('[Storage] upload failed:', e.code, e.message);
+  }
 }
 
 // ── Subscribe to Firestore real-time updates ──
@@ -5867,30 +5874,28 @@ function subscribeCloud(){
 
     const incoming=snap.data();
 
-    // Update local cache
-    try{localStorage.setItem(SKEY+'_cache',JSON.stringify(incoming));}catch{}
-
     // Was this snapshot triggered by OUR own recent write?
     const isOwnEcho=Date.now()-_myLastWriteAt<10000;
 
-    // ← FIX: Only update G from server if this is NOT our own echo.
-    // Before this fix: G=incoming always ran, wiping local changes before saveD() fired.
-    if(!isOwnEcho){
-      G=incoming;
-      restorePhotosFromLocal(); // merge photos not stored in Firestore
-    }
-
     if(!_appReady){
-      G=incoming; // always load on first boot
-      restorePhotosFromLocal(); // merge photos not stored in Firestore
+      // First boot — always load from Firestore
+      G=incoming;
+      restorePhotosFromLocal(); // merge localStorage photos (base64 fallback)
+      // Persist merged version (with Storage URLs from Firestore + base64 from localStorage)
+      try{localStorage.setItem(SKEY+'_cache',JSON.stringify(G));}catch{}
       _appReady=true;
       clearTimeout(_connectTimeout);
       hideLoader();
       initApp();
     } else if(!isOwnEcho){
+      // Remote change from another device — apply it
+      G=incoming;
+      restorePhotosFromLocal(); // merge any local base64 fallbacks
+      try{localStorage.setItem(SKEY+'_cache',JSON.stringify(G));}catch{}
       reRenderCurrentTab();
       showSaveStatus('saved','↓ Синхронизировано');
     }
+    // isOwnEcho: our own write confirmed — G already correct, skip
 
   }, err=>{
     clearTimeout(_connectTimeout);
@@ -5921,11 +5926,16 @@ document.addEventListener('visibilitychange',()=>{
 let _isSaving=false;
 let _pendingSave=false;
 function saveD(){
-  // 1. Save to localStorage immediately — strip photos to avoid QuotaExceededError
+  // 1. Save to localStorage — full G including photos (for offline/cross-tab)
   try{
-    const cachePayload=cleanForFirestoreNoPhotos(G);
-    localStorage.setItem(SKEY+'_cache',JSON.stringify(cachePayload));
-  }catch(e){console.warn('[saveD] localStorage cache failed:',e);}
+    localStorage.setItem(SKEY+'_cache',JSON.stringify(G));
+  }catch(e){
+    // Quota exceeded — save without base64 photos, they're in PHOTOS_KEY anyway
+    try{
+      const stripped=cleanForFirestoreNoPhotos(G);
+      localStorage.setItem(SKEY+'_cache',JSON.stringify(stripped));
+    }catch(e2){console.warn('[saveD] localStorage cache failed:',e2);}
+  }
   // 2. Save photos to localStorage separately (keyed by goal/mission id)
   savePhotosLocally();
   // 3. Mark write time IMMEDIATELY so isOwnEcho works correctly for any
