@@ -5914,9 +5914,12 @@ document.addEventListener('visibilitychange',()=>{
 let _isSaving=false;
 let _pendingSave=false;
 function saveD(){
-  // 1. Save to localStorage immediately — instant, zero latency
-  try{localStorage.setItem(SKEY+'_cache',JSON.stringify(G));}catch{}
-  // 2. Save photos to localStorage separately (keeps Firestore doc tiny)
+  // 1. Save to localStorage immediately — strip photos to avoid QuotaExceededError
+  try{
+    const cachePayload=cleanForFirestoreNoPhotos(G);
+    localStorage.setItem(SKEY+'_cache',JSON.stringify(cachePayload));
+  }catch(e){console.warn('[saveD] localStorage cache failed:',e);}
+  // 2. Save photos to localStorage separately (keyed by goal/mission id)
   savePhotosLocally();
   // 3. Mark write time IMMEDIATELY so isOwnEcho works correctly for any
   //    incoming Firestore snapshot that arrives before the 500ms debounce fires.
@@ -5937,12 +5940,23 @@ function saveD(){
     _myLastWriteAt=Date.now(); // refresh timestamp right before actual write
     try{
       const payload=cleanForFirestoreNoPhotos(G);
+      // ── Debug: check payload size before sending ──
+      const payloadStr=JSON.stringify(payload);
+      const payloadKB=Math.round(payloadStr.length/1024);
+      console.log('[saveD] payload size:',payloadKB,'KB');
+      if(payloadKB>900){
+        // Still too large — emergency strip ALL photo fields
+        console.warn('[saveD] payload too large! Emergency strip. Size:',payloadKB,'KB');
+        if(payload.goals) payload.goals=payload.goals.map(g=>({...g,photo:''}));
+        if(payload.mission) Object.keys(payload.mission).forEach(id=>{if(payload.mission[id])payload.mission[id].photo='';});
+        console.log('[saveD] after emergency strip:',Math.round(JSON.stringify(payload).length/1024),'KB');
+      }
       await db.collection('users').doc(currentUser.uid).set(payload);
       // ── Firestore confirmed write ── show green immediately
       setSyncDot('ok');
       showSaveStatus('saved','✓ Сохранено');
     }catch(e){
-      console.warn('Save error',e);
+      console.warn('[saveD] Firestore error:',e.code,e.message,e);
       setSyncDot('error');
       showSaveStatus('error','✗ Ошибка сохранения');
     }finally{
@@ -10275,17 +10289,23 @@ function saveGoal(){
   const data={title,why:document.getElementById('goalWhyInp').value,cat:document.getElementById('goalCatInp').value,deadline:document.getElementById('goalDlInp').value,milestones,photo};
   if(goalEditId){const idx=goalsD().findIndex(x=>x.id===goalEditId);if(idx>=0)goalsD()[idx]={...goalsD()[idx],...data};}
   else{goalsD().push({...data,id:goalId});}
-  // Save photo to localStorage immediately
   savePhotosLocally();
-  // Try to upgrade photo to Firebase Storage URL in background (optional, non-blocking)
+  saveD();closeGoalModal();renderGoals();
+  // Upgrade photo to Firebase Storage URL in background (optional — for cross-device sync)
+  // Uses direct Firestore patch to avoid triggering full saveD() race condition
   if(photo&&photo.startsWith('data:')){
-    const gidForStorage=goalId;
-    _tryUploadToStorage(photo,`users/${currentUser.uid}/goals/${gidForStorage}.jpg`,url=>{
-      const g=goalsD().find(x=>x.id===gidForStorage);
-      if(g){g.photo=url;savePhotosLocally();saveD();}
+    const gidForUpgrade=goalId;
+    _tryUploadToStorage(photo,`users/${currentUser.uid}/goals/${gidForUpgrade}.jpg`,url=>{
+      const g=goalsD().find(x=>x.id===gidForUpgrade);
+      if(g&&currentUser){
+        g.photo=url;
+        savePhotosLocally();
+        // Patch only the goals array — minimal write, no full saveD() to avoid race
+        const patchPayload=cleanForFirestoreNoPhotos(G);
+        db.collection('users').doc(currentUser.uid).set(patchPayload).catch(()=>{});
+      }
     });
   }
-  saveD();closeGoalModal();renderGoals();
 }
 
 async function delGoal(id){if(!await appConfirm('Удалить цель?'))return;const i=goalsD().findIndex(x=>x.id===id);if(i>=0){goalsD().splice(i,1);saveD();renderGoals()}}
