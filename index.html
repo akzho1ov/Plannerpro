@@ -5789,15 +5789,15 @@ function cleanForFirestore(obj){
  * targetKB: target size in KB (default 150 — safe for Firestore)
  */
 function compressPhoto(dataUrl, targetKB){
-  targetKB = targetKB || 150;
+  targetKB = targetKB || 60;
   return new Promise(resolve => {
     if(!dataUrl || !dataUrl.startsWith('data:image')){ resolve(''); return; }
     const img = new Image();
     img.onerror = () => resolve('');
     img.onload = () => {
       try{
-        // Scale down — max 800px wide/tall for photos stored in Firestore
-        const MAX = 800;
+        // Scale down — smaller = fits Firestore better
+        const MAX = targetKB <= 60 ? 500 : 700;
         let w = img.naturalWidth || img.width;
         let h = img.naturalHeight || img.height;
         if(!w || !h){ resolve(''); return; }
@@ -5811,11 +5811,22 @@ function compressPhoto(dataUrl, targetKB){
         c.getContext('2d').drawImage(img, 0, 0, w, h);
         // Target: base64 length ≈ targetKB * 1024 * 1.37
         const maxLen = targetKB * 1024 * 1.37;
-        let q = 0.75;
+        let q = 0.7;
         let out = c.toDataURL('image/jpeg', q);
-        while(out.length > maxLen && q > 0.15){
-          q = Math.round((q - 0.1) * 100) / 100;
+        // Keep reducing quality until it fits
+        while(out.length > maxLen && q > 0.05){
+          q = Math.max(0.05, q - 0.08);
           out = c.toDataURL('image/jpeg', q);
+        }
+        // If still too large, shrink dimensions further
+        if(out.length > maxLen){
+          const r2 = Math.sqrt(maxLen / out.length);
+          const w2 = Math.max(50, Math.round(w * r2));
+          const h2 = Math.max(50, Math.round(h * r2));
+          const c2 = document.createElement('canvas');
+          c2.width = w2; c2.height = h2;
+          c2.getContext('2d').drawImage(img, 0, 0, w2, h2);
+          out = c2.toDataURL('image/jpeg', 0.5);
         }
         resolve(out.length > 50 ? out : '');
       } catch(e){ resolve(''); }
@@ -5842,7 +5853,7 @@ function cleanForFirestoreNoPhotos(obj){
     console.warn('[clean] clone failed', e);
     return {};
   }
-  const LIMIT = 300 * 1024 * 1.37; // 300KB in base64 chars
+  const LIMIT = 100 * 1024 * 1.37; // 100KB in base64 chars — anything larger was not properly compressed
   const safePhoto = s => {
     if(!s || typeof s !== 'string') return '';
     if(s.startsWith('https://')) return s;       // URL — always keep
@@ -6028,7 +6039,23 @@ function saveD(){
       } else if(e.code==='permission-denied'||e.code==='unauthenticated'){
         setSyncDot('error');
         showSaveStatus('error','⛔ Нет доступа — проверь Firebase Rules');
-        diagFirestore(); // show detailed banner
+        diagFirestore();
+      } else if(e.code==='invalid-argument'||String(e.message).includes('Document exceeds')||String(e.message).includes('too large')){
+        // Firestore doc too large (photos) — retry without any photos
+        setSyncDot('error');
+        showSaveStatus('error','⚠️ Документ слишком большой — сохраняю без фото...');
+        try{
+          const nuclear=JSON.parse(JSON.stringify(G,(_k,v)=>{
+            if(typeof v==='string'&&v.startsWith('data:')) return '';
+            return v===undefined?null:v;
+          }));
+          await db.collection('users').doc(currentUser.uid).set(nuclear);
+          setSyncDot('ok');
+          showSaveStatus('saved','✓ Сохранено (фото слишком большие — загрузи их заново меньшего размера)');
+        }catch(e2){
+          setSyncDot('error');
+          showSaveStatus('error','✗ Ошибка: '+(e2.code||e2.message||'unknown'));
+        }
       } else {
         setSyncDot('error');
         showSaveStatus('error','✗ Ошибка: '+(e.code||e.message||'unknown'));
@@ -10133,7 +10160,7 @@ const GOAL_CAT_COLORS={'🏋️ Здоровье':'var(--green)','📚 Обра�
 
 function goalsD(){if(!G.goals)G.goals=[];return G.goals}
 function journalD(){if(!G.journal)G.journal=[];return G.journal}
-let goalEditId=null,jMoodSel='😊',_goalPhotoData=null;
+let goalEditId=null,jMoodSel='😊',_goalPhotoData=null,_goalPhotoFile=null;
 
 function renderGoals(){
   // ── Render mission banner ──
@@ -10292,6 +10319,7 @@ function goalCatEmoji(cat){
 function openGoalModal(id){
   goalEditId=id;
   _goalPhotoData=null;
+  _goalPhotoFile=null;
   const g=id?goalsD().find(x=>x.id===id):null;
   document.getElementById('goalModalTitle').textContent=g?'Редактировать цель':'Новая цель';
   document.getElementById('goalTitleInp').value=g?g.title:'';
@@ -10319,20 +10347,19 @@ function handleGoalPhoto(input){
   const reader=new FileReader();
   reader.onload=e=>{
     const raw=e.target.result;
-    // Show preview immediately (full quality)
     const imgEl=document.getElementById('goalPhotoImg');
     imgEl.src=raw; imgEl.style.display='block';
     document.getElementById('goalPhotoPlaceholder').style.display='none';
     document.getElementById('goalPhotoRemove').style.display='flex';
-    _goalPhotoData=raw; // raw for now
-    // Compress in background — 150KB fits in Firestore
-    compressPhoto(raw, 150).then(c=>{ if(c) _goalPhotoData=c; });
+    _goalPhotoData=raw;
+    _goalPhotoFile=file; // kept for reference, compression happens on save
   };
   reader.readAsDataURL(file);
 }
 
 function removeGoalPhoto(){
   _goalPhotoData=null;
+  _goalPhotoFile=null;
   document.getElementById('goalPhotoImg').style.display='none';
   document.getElementById('goalPhotoImg').src='';
   document.getElementById('goalPhotoPlaceholder').style.display='flex';
@@ -10340,28 +10367,28 @@ function removeGoalPhoto(){
   document.getElementById('goalPhotoInput').value='';
 }
 
-function closeGoalModal(){document.getElementById('goalOverlay').style.display='none';goalEditId=null;_goalPhotoData=null;}
+function closeGoalModal(){document.getElementById('goalOverlay').style.display='none';goalEditId=null;_goalPhotoData=null;_goalPhotoFile=null;}
 
 async function saveGoal(){
   const title=document.getElementById('goalTitleInp').value.trim(); if(!title) return;
-  // Disable save button to prevent double-tap during async compression
   const saveBtn=document.querySelector('#goalOverlay .btnP');
   if(saveBtn){saveBtn.disabled=true;saveBtn.textContent='Сохранение...';}
   const existing=goalEditId?goalsD().find(x=>x.id===goalEditId):null;
-  // Photo stored as compressed base64 in Firestore — syncs to all devices automatically
   let photo=(existing&&existing.photo)||'';
+
   if(_goalPhotoData===null){
     photo='';
+  } else if(_goalPhotoFile){
+    // New file — compress aggressively to 60KB so it fits in Firestore
+    if(saveBtn) saveBtn.textContent='Сжатие фото...';
+    const compressed=await compressPhoto(_goalPhotoData, 60);
+    photo=compressed||'';
+    _goalPhotoFile=null;
   } else if(typeof _goalPhotoData==='string' && _goalPhotoData.length>0){
-    // Always compress before saving — fixes race condition where raw photo (>300KB) gets stripped
-    const LIMIT=300*1024*1.37;
-    if(_goalPhotoData.startsWith('data:')&&_goalPhotoData.length>LIMIT){
-      const compressed=await compressPhoto(_goalPhotoData,150);
-      photo=compressed||'';
-    } else {
-      photo=_goalPhotoData;
-    }
+    // Existing saved photo — keep as is
+    photo=_goalPhotoData;
   }
+
   const msLines=document.getElementById('goalMsInp').value.split('\n').map(s=>s.trim()).filter(Boolean);
   const existingMs=existing?existing.milestones||[]:[];
   const milestones=msLines.map((text,i)=>({text,done:existingMs[i]?existingMs[i].done:false}));
@@ -14591,7 +14618,7 @@ function missionHandlePhoto(id,input){
     saveMissionField(id,'photo',raw);
     renderMission();
     // Compress to 150KB then save — stored in Firestore, syncs to all devices
-    compressPhoto(raw, 150).then(compressed=>{
+    compressPhoto(raw, 60).then(compressed=>{
       saveMissionField(id,'photo', compressed||raw);
       saveD();
     });
