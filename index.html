@@ -3579,6 +3579,9 @@ body.light-mode .skel{background:linear-gradient(90deg,var(--card2) 25%,#f0f2f7 
     </div>
   </div>
 
+  <!-- ══ FOCUS NOW ══ -->
+  <div id="dashFocusNow" style="margin-bottom:14px"></div>
+
   <!-- ══ ROW 1: Score + Tasks + Habits + Sleep ══ -->
   <div class="db-grid-4">
 
@@ -3856,7 +3859,7 @@ body.light-mode .skel{background:linear-gradient(90deg,var(--card2) 25%,#f0f2f7 
         <button class="tvSwitchBtn" data-tab="tasks" onclick="navigateTo('tasks')"><span class="tvIco">✅</span>Список</button>
         <button class="tvSwitchBtn" data-tab="weekly" onclick="navigateTo('weekly')"><span class="tvIco">📅</span>Неделя</button>
         <button class="tvSwitchBtn" data-tab="calendar" onclick="navigateTo('calendar')"><span class="tvIco">📆</span>Календарь</button>
-        <button class="tvSwitchBtn" data-tab="kanban" onclick="navigateTo('kanban')"><span class="tvIco">🗂</span>Канбан</button>
+        <button class="tvSwitchBtn" data-tab="kanban" onclick="navigateTo('kanban')"><span class="tvIco">🗂</span>Канбан</button><button class="tvSwitchBtn" data-tab="matrix" onclick="navigateTo('matrix')"><span class="tvIco">⚡</span>Матрица</button>
       </div>
     </div>
     <div class="paneHeadActions">
@@ -3870,7 +3873,7 @@ body.light-mode .skel{background:linear-gradient(90deg,var(--card2) 25%,#f0f2f7 
         <button class="tvSwitchBtn" data-tab="tasks" onclick="navigateTo('tasks')"><span class="tvIco">✅</span>Список</button>
         <button class="tvSwitchBtn" data-tab="weekly" onclick="navigateTo('weekly')"><span class="tvIco">📅</span>Неделя</button>
         <button class="tvSwitchBtn" data-tab="calendar" onclick="navigateTo('calendar')"><span class="tvIco">📆</span>Календарь</button>
-        <button class="tvSwitchBtn" data-tab="kanban" onclick="navigateTo('kanban')"><span class="tvIco">🗂</span>Канбан</button>
+        <button class="tvSwitchBtn" data-tab="kanban" onclick="navigateTo('kanban')"><span class="tvIco">🗂</span>Канбан</button><button class="tvSwitchBtn" data-tab="matrix" onclick="navigateTo('matrix')"><span class="tvIco">⚡</span>Матрица</button>
       </div></div>
   <!-- Weekly focus banner -->
   <div id="weekFocusBanner" style="margin-bottom:16px;border-radius:16px;background:linear-gradient(135deg,rgba(155,143,245,.08),rgba(91,149,255,.06));border:1px solid rgba(155,143,245,.18);padding:12px 16px;display:flex;align-items:center;gap:12px">
@@ -3972,7 +3975,7 @@ body.light-mode .skel{background:linear-gradient(90deg,var(--card2) 25%,#f0f2f7 
         <button class="tvSwitchBtn" data-tab="tasks" onclick="navigateTo('tasks')"><span class="tvIco">✅</span>Список</button>
         <button class="tvSwitchBtn" data-tab="weekly" onclick="navigateTo('weekly')"><span class="tvIco">📅</span>Неделя</button>
         <button class="tvSwitchBtn" data-tab="calendar" onclick="navigateTo('calendar')"><span class="tvIco">📆</span>Календарь</button>
-        <button class="tvSwitchBtn" data-tab="kanban" onclick="navigateTo('kanban')"><span class="tvIco">🗂</span>Канбан</button>
+        <button class="tvSwitchBtn" data-tab="kanban" onclick="navigateTo('kanban')"><span class="tvIco">🗂</span>Канбан</button><button class="tvSwitchBtn" data-tab="matrix" onclick="navigateTo('matrix')"><span class="tvIco">⚡</span>Матрица</button>
       </div>
     </div>
     <div class="paneHeadActions">
@@ -3984,7 +3987,7 @@ body.light-mode .skel{background:linear-gradient(90deg,var(--card2) 25%,#f0f2f7 
         <button class="tvSwitchBtn" data-tab="tasks" onclick="navigateTo('tasks')"><span class="tvIco">✅</span>Список</button>
         <button class="tvSwitchBtn" data-tab="weekly" onclick="navigateTo('weekly')"><span class="tvIco">📅</span>Неделя</button>
         <button class="tvSwitchBtn" data-tab="calendar" onclick="navigateTo('calendar')"><span class="tvIco">📆</span>Календарь</button>
-        <button class="tvSwitchBtn" data-tab="kanban" onclick="navigateTo('kanban')"><span class="tvIco">🗂</span>Канбан</button>
+        <button class="tvSwitchBtn" data-tab="kanban" onclick="navigateTo('kanban')"><span class="tvIco">🗂</span>Канбан</button><button class="tvSwitchBtn" data-tab="matrix" onclick="navigateTo('matrix')"><span class="tvIco">⚡</span>Матрица</button>
       </div></div>
   <div class="card" style="padding:12px 14px;margin-bottom:12px">
     <!-- Stats strip -->
@@ -4080,7 +4083,7 @@ body.light-mode .skel{background:linear-gradient(90deg,var(--card2) 25%,#f0f2f7 
         <button class="tvSwitchBtn" data-tab="tasks" onclick="navigateTo('tasks')"><span class="tvIco">✅</span>Список</button>
         <button class="tvSwitchBtn" data-tab="weekly" onclick="navigateTo('weekly')"><span class="tvIco">📅</span>Неделя</button>
         <button class="tvSwitchBtn" data-tab="calendar" onclick="navigateTo('calendar')"><span class="tvIco">📆</span>Календарь</button>
-        <button class="tvSwitchBtn" data-tab="kanban" onclick="navigateTo('kanban')"><span class="tvIco">🗂</span>Канбан</button>
+        <button class="tvSwitchBtn" data-tab="kanban" onclick="navigateTo('kanban')"><span class="tvIco">🗂</span>Канбан</button><button class="tvSwitchBtn" data-tab="matrix" onclick="navigateTo('matrix')"><span class="tvIco">⚡</span>Матрица</button>
       </div>
     </div>
   </header>
@@ -4089,7 +4092,7 @@ body.light-mode .skel{background:linear-gradient(90deg,var(--card2) 25%,#f0f2f7 
         <button class="tvSwitchBtn" data-tab="tasks" onclick="navigateTo('tasks')"><span class="tvIco">✅</span>Список</button>
         <button class="tvSwitchBtn" data-tab="weekly" onclick="navigateTo('weekly')"><span class="tvIco">📅</span>Неделя</button>
         <button class="tvSwitchBtn" data-tab="calendar" onclick="navigateTo('calendar')"><span class="tvIco">📆</span>Календарь</button>
-        <button class="tvSwitchBtn" data-tab="kanban" onclick="navigateTo('kanban')"><span class="tvIco">🗂</span>Канбан</button>
+        <button class="tvSwitchBtn" data-tab="kanban" onclick="navigateTo('kanban')"><span class="tvIco">🗂</span>Канбан</button><button class="tvSwitchBtn" data-tab="matrix" onclick="navigateTo('matrix')"><span class="tvIco">⚡</span>Матрица</button>
       </div></div>
   <!-- Toolbar -->
   <div class="plCal-toolbar">
@@ -4142,7 +4145,7 @@ body.light-mode .skel{background:linear-gradient(90deg,var(--card2) 25%,#f0f2f7 
         <button class="tvSwitchBtn" data-tab="tasks" onclick="navigateTo('tasks')"><span class="tvIco">✅</span>Список</button>
         <button class="tvSwitchBtn" data-tab="weekly" onclick="navigateTo('weekly')"><span class="tvIco">📅</span>Неделя</button>
         <button class="tvSwitchBtn" data-tab="calendar" onclick="navigateTo('calendar')"><span class="tvIco">📆</span>Календарь</button>
-        <button class="tvSwitchBtn" data-tab="kanban" onclick="navigateTo('kanban')"><span class="tvIco">🗂</span>Канбан</button>
+        <button class="tvSwitchBtn" data-tab="kanban" onclick="navigateTo('kanban')"><span class="tvIco">🗂</span>Канбан</button><button class="tvSwitchBtn" data-tab="matrix" onclick="navigateTo('matrix')"><span class="tvIco">⚡</span>Матрица</button>
       </div>
     </div>
     <div class="paneHeadActions" id="kbBoardBarWrap"></div>
@@ -4151,7 +4154,7 @@ body.light-mode .skel{background:linear-gradient(90deg,var(--card2) 25%,#f0f2f7 
         <button class="tvSwitchBtn" data-tab="tasks" onclick="navigateTo('tasks')"><span class="tvIco">✅</span>Список</button>
         <button class="tvSwitchBtn" data-tab="weekly" onclick="navigateTo('weekly')"><span class="tvIco">📅</span>Неделя</button>
         <button class="tvSwitchBtn" data-tab="calendar" onclick="navigateTo('calendar')"><span class="tvIco">📆</span>Календарь</button>
-        <button class="tvSwitchBtn" data-tab="kanban" onclick="navigateTo('kanban')"><span class="tvIco">🗂</span>Канбан</button>
+        <button class="tvSwitchBtn" data-tab="kanban" onclick="navigateTo('kanban')"><span class="tvIco">🗂</span>Канбан</button><button class="tvSwitchBtn" data-tab="matrix" onclick="navigateTo('matrix')"><span class="tvIco">⚡</span>Матрица</button>
       </div></div>
   <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;flex-wrap:wrap;gap:8px">
     <div class="kbBoardBar" id="kbBoardBar">
@@ -4162,6 +4165,48 @@ body.light-mode .skel{background:linear-gradient(90deg,var(--card2) 25%,#f0f2f7 
     </div>
   </div>
   <div class="kbWrap"><div class="kbLayout" id="kbLayout"></div></div>
+</div>
+
+<!-- ═══ MATRIX (Eisenhower) ═══ -->
+<div id="tab-matrix" class="pane hInner">
+  <header class="paneHead">
+    <div class="paneHeadLeft">
+      <nav class="paneBreadcrumb">
+        <span onclick="navigateTo('dash')">PlannerPro</span>
+        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="m7 10 3 3 3-3"/><path d="m7 6 3 3 3-3"/></svg>
+        <span onclick="navigateTo('tasks')" class="pbc-active">Задачи</span>
+        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="m7 10 3 3 3-3"/><path d="m7 6 3 3 3-3"/></svg>
+        <span class="pbc-active">Матрица</span>
+      </nav>
+      <div class="paneHeadRow">
+        <div class="paneHeadIcon" style="background:rgba(240,107,176,.1);border-color:rgba(240,107,176,.25)">⚡</div>
+        <div>
+          <h1 class="paneTitle">Матрица Эйзенхауэра</h1>
+          <p class="paneSubtitle">Приоритизация по важности и срочности</p>
+        </div>
+      </div>
+    </div>
+    <div class="paneHeadCenter">
+      <div class="tvSwitch tvSwitch--inline" role="tablist">
+        <button class="tvSwitchBtn" data-tab="tasks" onclick="navigateTo('tasks')"><span class="tvIco">✅</span>Список</button>
+        <button class="tvSwitchBtn" data-tab="weekly" onclick="navigateTo('weekly')"><span class="tvIco">📅</span>Неделя</button>
+        <button class="tvSwitchBtn" data-tab="calendar" onclick="navigateTo('calendar')"><span class="tvIco">📆</span>Календарь</button>
+        <button class="tvSwitchBtn" data-tab="kanban" onclick="navigateTo('kanban')"><span class="tvIco">🗂</span>Канбан</button>
+        <button class="tvSwitchBtn" data-tab="matrix" onclick="navigateTo('matrix')"><span class="tvIco">⚡</span>Матрица</button>
+      </div>
+    </div>
+    <div class="paneHeadActions">
+      <button class="btn btnG" style="font-size:11px" onclick="_matrixShowDone=!_matrixShowDone;renderMatrix()" id="matrixDoneToggle">👁 Скрыть выполненные</button>
+    </div>
+  </header>
+  <div class="tvStickyBar"><div class="tvSwitch" role="tablist">
+    <button class="tvSwitchBtn" data-tab="tasks" onclick="navigateTo('tasks')"><span class="tvIco">✅</span>Список</button>
+    <button class="tvSwitchBtn" data-tab="weekly" onclick="navigateTo('weekly')"><span class="tvIco">📅</span>Неделя</button>
+    <button class="tvSwitchBtn" data-tab="calendar" onclick="navigateTo('calendar')"><span class="tvIco">📆</span>Календарь</button>
+    <button class="tvSwitchBtn" data-tab="kanban" onclick="navigateTo('kanban')"><span class="tvIco">🗂</span>Канбан</button>
+    <button class="tvSwitchBtn" data-tab="matrix" onclick="navigateTo('matrix')"><span class="tvIco">⚡</span>Матрица</button>
+  </div></div>
+  <div id="matrixRoot"></div>
 </div>
 
 <!-- ═══ 6. FINANCE ═══ -->
@@ -4225,6 +4270,9 @@ body.light-mode .skel{background:linear-gradient(90deg,var(--card2) 25%,#f0f2f7 
 
   <!-- Accounts row -->
   <div id="finAccountsRow" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:8px;margin-bottom:14px"></div>
+
+  <!-- Month forecast -->
+  <div id="finForecastBanner" style="margin-bottom:12px"></div>
 
   <!-- Expense category breakdown — ABOVE chart on mobile -->
   <div class="card finCatSpendCard" style="padding:14px 16px;margin-bottom:12px">
@@ -5812,7 +5860,7 @@ function setSyncDot(state){
 
 // ── Re-render whichever tab is currently visible (called after cloud sync) ──
 function reRenderCurrentTab(){
-  const renders={dash:renderDash,weekly:renderWP,habits:renderHT,tasks:renderTP,routine:renderRoutine,calendar:renderCal,kanban:renderKanban,finance:renderFin,goals:renderGrowth,rewards:rwRender,gym:gymRender,analytics:renderAnalytics,pomodoro:renderPomodoro,challenges:renderCh};
+  const renders={dash:renderDash,weekly:renderWP,habits:renderHT,tasks:renderTP,routine:renderRoutine,calendar:renderCal,kanban:renderKanban,matrix:renderMatrix,finance:renderFin,goals:renderGrowth,rewards:rwRender,gym:gymRender,analytics:renderAnalytics,pomodoro:renderPomodoro,challenges:renderCh};
   for(const[name,fn] of Object.entries(renders)){
     if(document.getElementById('tab-'+name)?.classList.contains('on')){
       try{fn();}catch(e){console.warn('rerender err',e);}
@@ -6569,7 +6617,7 @@ function updateThemeBtn(){
 // Map every tab-id to its nav group
 const TAB_GROUP={
   dash:'dash',
-  tasks:'planning',weekly:'planning',calendar:'planning',kanban:'planning',
+  tasks:'planning',weekly:'planning',calendar:'planning',kanban:'planning',matrix:'planning',
   habits:'health',gym:'health',sleep:'health',
   finance:'finance',
   goals:'progress',rewards:'progress',analytics:'progress',challenges:'progress',pomodoro:'progress'
@@ -6679,7 +6727,7 @@ function navigateTo(tabName){
 
   // ── Run render ──
   const renders={dash:renderDash,weekly:renderWP,habits:renderHT,tasks:renderTP,
-    routine:renderRoutine,calendar:renderCal,kanban:renderKanban,finance:renderFin,
+    routine:renderRoutine,calendar:renderCal,kanban:renderKanban,matrix:renderMatrix,finance:renderFin,
     goals:renderGrowth,rewards:rwRender,gym:gymRender,analytics:renderAnalytics,pomodoro:renderPomodoro,challenges:renderCh,
     sleep:renderSleepTracker};
   if(renders[tabName])renders[tabName]();
@@ -9595,6 +9643,44 @@ function setFinFilter(type){
   renderFinTxList();
 }
 
+/* ═══ Finance: Month spending forecast ═══ */
+function _renderFinForecast(currentMonthExp){
+  const el=document.getElementById('finForecastBanner');if(!el)return;
+  const now=new Date();
+  // Only show for current month
+  if(finY!==now.getFullYear()||finM!==now.getMonth()){el.innerHTML='';return;}
+  const dayOfMonth=now.getDate();
+  const daysInMonth=new Date(finY,finM+1,0).getDate();
+  const daysLeft=daysInMonth-dayOfMonth;
+  if(dayOfMonth<3){el.innerHTML='';return;} // not enough data yet
+  const dailyRate=currentMonthExp/dayOfMonth;
+  const projected=Math.round(dailyRate*daysInMonth);
+  // Get budget if set
+  const totalBudget=Object.values(G.catBudgets||{}).reduce((a,b)=>a+(b.limit||0),0);
+  const overBudget=totalBudget&&projected>totalBudget;
+  const color=overBudget?'var(--red)':projected>currentMonthExp*1.2?'var(--gold)':'var(--green)';
+  const pct=Math.min(100,Math.round(dayOfMonth/daysInMonth*100));
+  el.innerHTML=`<div style="background:${overBudget?'rgba(240,80,80,.06)':'rgba(80,220,140,.04)'};border:1px solid ${overBudget?'rgba(240,80,80,.25)':'rgba(80,220,140,.2)'};border-radius:14px;padding:12px 16px">
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">
+      <div>
+        <div style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);margin-bottom:4px">📈 Прогноз на конец месяца</div>
+        <div style="display:flex;align-items:baseline;gap:8px;flex-wrap:wrap">
+          <span style="font-family:var(--font-display);font-size:18px;font-weight:800;color:${color}">${fmtMoney(projected)}</span>
+          <span style="font-size:11px;color:var(--muted)">при темпе ${fmtMoney(Math.round(dailyRate))}/день</span>
+        </div>
+        ${overBudget?`<div style="font-size:11px;color:var(--red);margin-top:3px;font-weight:600">⚠️ Превышение бюджета на ${fmtMoney(projected-totalBudget)}</div>`:''}
+      </div>
+      <div style="text-align:right;flex-shrink:0">
+        <div style="font-size:10px;color:var(--muted);margin-bottom:4px">${dayOfMonth} из ${daysInMonth} дней</div>
+        <div style="width:100px;height:5px;background:rgba(255,255,255,.06);border-radius:4px;overflow:hidden">
+          <div style="height:100%;width:${pct}%;background:${color};border-radius:4px;transition:.5s"></div>
+        </div>
+        <div style="font-size:9px;color:var(--muted);margin-top:2px">${daysLeft} дн. осталось</div>
+      </div>
+    </div>
+  </div>`;
+}
+
 function renderFin(){
   document.getElementById('finMonName').textContent=`${MN[finM]} ${finY}`;
   const acctFilter=document.getElementById('finAcctFilter')?.value||'';
@@ -9615,6 +9701,9 @@ function renderFin(){
   });
   const displayBal=accts.length>0?totalBalance:(inc-exp);
   document.getElementById('finBalVal').textContent=fmtMoney(displayBal);
+
+  // ── Month spending forecast ──
+  _renderFinForecast(exp);
 
   // Accounts row
   const acctsRow=document.getElementById('finAccountsRow');
@@ -10563,7 +10652,189 @@ async function saveGoal(){
 async function delGoal(id){if(!await appConfirm('Удалить цель?'))return;const i=goalsD().findIndex(x=>x.id===id);if(i>=0){goalsD().splice(i,1);saveD();renderGoals()}}
 function toggleMs(gid,idx,c){const g=goalsD().find(x=>x.id===gid);if(g&&g.milestones&&g.milestones[idx])g.milestones[idx].done=c;saveD();renderGoals()}
 
-/* ─── Sync goal progress from linked tasks ─── */
+/* ═══════════════════════════════════════════════════
+   MATRIX EISENHOWER
+═══════════════════════════════════════════════════ */
+let _matrixShowDone=false;
+
+function _matrixQuadrant(t){
+  // urgent: deadline within 3 days or today
+  const today=new Date();
+  let urgent=false,important=false;
+  if(t.deadline){
+    const dl=new Date(t.deadline+'T00:00:00');
+    const diff=Math.ceil((dl-today)/(1000*60*60*24));
+    if(diff<=3&&diff>=0)urgent=true;
+    if(diff<0)urgent=true; // overdue = urgent
+  }
+  // important: based on labelIds that have "важн"/"important" in name, or no deadline but has goal
+  const lbls=t.labelIds||[];
+  const allLbls=(G.labelGroups||[]).flatMap(g=>g.labels||[]);
+  if(lbls.some(id=>{const l=allLbls.find(x=>x.id===id);return l&&/(важн|priorit|high|crit|срочн)/i.test(l.name);}))important=true;
+  if(t.goalId)important=true;
+  if(t.priority==='high'||t.priority==='critical')important=true;
+  // fallback heuristics: tasks with deadline = more important
+  if(t.deadline&&!important)important=true;
+  return{urgent,important};
+}
+
+function _matrixSetQ(taskIdx,urgent,important){
+  const t=tpD()[taskIdx];if(!t)return;
+  t._matrixUrgent=urgent;t._matrixImportant=important;
+  // set deadline hint if moving to urgent
+  saveD();renderMatrix();
+}
+
+function renderMatrix(){
+  const root=document.getElementById('matrixRoot');if(!root)return;
+  const btn=document.getElementById('matrixDoneToggle');
+  if(btn)btn.textContent=_matrixShowDone?'👁 Скрыть выполненные':'👁 Показать выполненные';
+
+  let tasks=tpD().filter(t=>_matrixShowDone||!t.done);
+
+  // Classify
+  const quads={ui:[],uni:[],nui:[],nuni:[]};
+  tasks.forEach((t,i)=>{
+    let urgent,important;
+    if(t._matrixUrgent!==undefined){urgent=t._matrixUrgent;important=t._matrixImportant;}
+    else{const q=_matrixQuadrant(t);urgent=q.urgent;important=q.important;}
+    const key=(important?'':'n')+'i'+(urgent?'u':'nu');
+    // ui=important+urgent, uni=important+not urgent, nui=not important+urgent, nuni=not important+not urgent
+    const bucket=important?(urgent?'ui':'uni'):(urgent?'nui':'nuni');
+    quads[bucket].push({t,i});
+  });
+
+  const quadDefs=[
+    {key:'ui',label:'Сделай сам',sub:'Важно · Срочно',color:'var(--red)',bg:'rgba(240,80,80,.07)',icon:'🔥',tip:'Кризисы, дедлайны, важные задачи на сегодня'},
+    {key:'uni',label:'Запланируй',sub:'Важно · Не срочно',color:'var(--green)',bg:'rgba(80,220,140,.07)',icon:'🎯',tip:'Стратегия, цели, рост — сюда уходит больше времени'},
+    {key:'nui',label:'Делегируй',sub:'Не важно · Срочно',color:'var(--gold)',bg:'rgba(240,180,60,.07)',icon:'⚡',tip:'Чужие приоритеты, прерывания — делегируй если можно'},
+    {key:'nuni',label:'Исключи',sub:'Не важно · Не срочно',color:'var(--muted)',bg:'rgba(255,255,255,.03)',icon:'🗑️',tip:'Рутина, отвлечения — минимизируй'},
+  ];
+
+  const renderCard=(item,fromKey)=>{
+    const {t,i}=item;
+    const overdue=t.deadline&&new Date(t.deadline+'T00:00:00')<new Date()&&!t.done;
+    const lblColor=(t.labelIds||[]).length?(()=>{const l=(G.labelGroups||[]).flatMap(g=>g.labels||[]).find(x=>x.id===t.labelIds[0]);return l?.color||'var(--muted)';})():'transparent';
+    return`<div class="mxCard ${t.done?'mxDone':''}" draggable="true"
+      ondragstart="event.dataTransfer.setData('text/plain','${i}|${fromKey}')"
+      onclick="openTaskModal(${i})">
+      <div class="mxCardTop">
+        <div class="mxCardDot" style="background:${lblColor}"></div>
+        <div class="mxCardText">${esc(t.text)}</div>
+        <input type="checkbox" class="mxCheck" ${t.done?'checked':''} onclick="event.stopPropagation();tpD()[${i}].done=this.checked;saveD();renderMatrix()" style="accent-color:var(--p);width:14px;height:14px;flex-shrink:0;cursor:pointer">
+      </div>
+      ${t.deadline?`<div class="mxCardMeta ${overdue?'mxOverdue':''}">${overdue?'⚠️ ':''} ${t.deadline}</div>`:''}
+      ${t.goalId?`<div class="mxCardMeta" style="color:var(--p)">🎯 ${esc((goalsD().find(g=>g.id===t.goalId)||{}).title||'').slice(0,28)}</div>`:''}
+    </div>`;
+  };
+
+  root.innerHTML=`
+  <style>
+  .mxGrid{display:grid;grid-template-columns:1fr 1fr;grid-template-rows:auto auto;gap:12px;margin-bottom:16px}
+  .mxAxisY{display:flex;flex-direction:column;align-items:center;justify-content:center;writing-mode:vertical-rl;font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:1.2px;color:var(--muted);gap:0;padding:0 6px;flex-shrink:0}
+  .mxAxisX{display:flex;justify-content:space-around;font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:var(--muted);padding:4px 0 0;margin-bottom:4px;margin-left:24px}
+  .mxWrap{display:flex;gap:4px}
+  .mxQuad{border:1px solid var(--border);border-radius:18px;padding:14px;min-height:200px;transition:border-color .2s,box-shadow .2s}
+  .mxQuad.drag-over{border-color:var(--p)!important;box-shadow:0 0 0 2px var(--pglow2)}
+  .mxQuadHead{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+  .mxQuadIcon{font-size:18px;line-height:1}
+  .mxQuadLabel{font-size:12px;font-weight:800;font-family:var(--font-display)}
+  .mxQuadSub{font-size:10px;color:var(--muted);margin-top:1px}
+  .mxQuadCount{margin-left:auto;font-size:10px;font-weight:700;font-family:var(--font-mono);padding:2px 8px;border-radius:20px;background:rgba(255,255,255,.06)}
+  .mxCard{background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:9px 10px;margin-bottom:7px;cursor:pointer;transition:border-color .15s,transform .1s,opacity .2s;user-select:none}
+  .mxCard:hover{border-color:var(--border2);transform:translateY(-1px)}
+  .mxCard[draggable]:active{opacity:.6;transform:scale(.97)}
+  .mxDone{opacity:.45}
+  .mxCardTop{display:flex;align-items:flex-start;gap:7px}
+  .mxCardDot{width:7px;height:7px;border-radius:50%;flex-shrink:0;margin-top:3px}
+  .mxCardText{font-size:12px;font-weight:500;color:var(--text);flex:1;line-height:1.4;word-break:break-word}
+  .mxCardMeta{font-size:10px;color:var(--muted);margin-top:5px;padding-left:14px}
+  .mxOverdue{color:var(--red)!important}
+  .mxCheck{margin-top:1px}
+  .mxEmpty{text-align:center;padding:24px 0;font-size:12px;color:var(--muted);opacity:.6}
+  .mxTip{font-size:10px;color:var(--muted);margin-top:8px;padding:6px 8px;background:rgba(255,255,255,.03);border-radius:8px;line-height:1.4}
+  </style>
+  <div class="mxAxisX"><span>◀ Не срочно</span><span>Срочно ▶</span></div>
+  <div class="mxWrap">
+    <div class="mxAxisY"><span>▲ Важно</span><span>Не важно ▼</span></div>
+    <div class="mxGrid">
+      ${quadDefs.map(q=>`
+      <div class="mxQuad" id="mxQ-${q.key}" style="background:${q.bg};border-color:rgba(255,255,255,.08)"
+        ondragover="event.preventDefault();document.getElementById('mxQ-${q.key}').classList.add('drag-over')"
+        ondragleave="document.getElementById('mxQ-${q.key}').classList.remove('drag-over')"
+        ondrop="event.preventDefault();document.getElementById('mxQ-${q.key}').classList.remove('drag-over');_mxDrop('${q.key}',event)">
+        <div class="mxQuadHead">
+          <span class="mxQuadIcon">${q.icon}</span>
+          <div>
+            <div class="mxQuadLabel" style="color:${q.color}">${q.label}</div>
+            <div class="mxQuadSub">${q.sub}</div>
+          </div>
+          <span class="mxQuadCount" style="color:${q.color}">${quads[q.key].length}</span>
+        </div>
+        <div id="mxCards-${q.key}">
+          ${quads[q.key].length?quads[q.key].map(item=>renderCard(item,q.key)).join(''):`<div class="mxEmpty">Нет задач</div>`}
+        </div>
+        <div class="mxTip">${q.tip}</div>
+      </div>`).join('')}
+    </div>
+  </div>`;
+}
+
+function _mxDrop(toKey,event){
+  const raw=event.dataTransfer.getData('text/plain');
+  const [idxStr]=raw.split('|');
+  const idx=parseInt(idxStr);
+  const t=tpD()[idx];if(!t)return;
+  const urgent=toKey==='ui'||toKey==='nui';
+  const important=toKey==='ui'||toKey==='uni';
+  t._matrixUrgent=urgent;t._matrixImportant=important;
+  saveD();renderMatrix();
+}
+
+/* ═══════════════════════════════════════════════════
+   NATURAL LANGUAGE TASK PARSER (for ⌘K)
+═══════════════════════════════════════════════════ */
+function _nlParse(text){
+  const now=new Date();
+  let result={cleanText:text,deadline:null,time:null};
+  const t=text.toLowerCase();
+  const relDays={'послезавтра':2,'через два дня':2,'через 2 дня':2,'завтра':1,'сегодня':0,'сейчас':0};
+  for(const[word,offset] of Object.entries(relDays)){
+    if(t.includes(word)){
+      const d=new Date(now);d.setDate(d.getDate()+offset);
+      result.deadline=dk(d);result.cleanText=text.replace(new RegExp(word,'i'),'').trim();break;
+    }
+  }
+  if(!result.deadline){
+    const m=t.match(/через\s+(\d+)\s+дн/);
+    if(m){const d=new Date(now);d.setDate(d.getDate()+parseInt(m[1]));result.deadline=dk(d);result.cleanText=text.replace(/через\s+\d+\s+дн\S*/i,'').trim();}
+  }
+  const dows=['воскресенье','понедельник','вторник','среду','четверг','пятницу','субботу'];
+  for(let di=0;di<dows.length;di++){
+    if(t.includes(dows[di])){
+      const d=new Date(now);let diff=(di-d.getDay()+7)%7||7;d.setDate(d.getDate()+diff);
+      result.deadline=dk(d);result.cleanText=text.replace(new RegExp('в\\s+'+dows[di],'i'),'').trim();break;
+    }
+  }
+  const timeM=t.match(/в\s+(\d{1,2}):(\d{2})/);
+  if(timeM){result.time=timeM[1].padStart(2,'0')+':'+timeM[2];result.cleanText=result.cleanText.replace(/в\s+\d{1,2}:\d{2}/i,'').trim();}
+  const timeM2=t.match(/в\s+(\d{1,2})\s+час/);
+  if(timeM2&&!result.time){result.time=timeM2[1].padStart(2,'0')+':00';result.cleanText=result.cleanText.replace(/в\s+\d{1,2}\s+час\S*/i,'').trim();}
+  result.cleanText=result.cleanText.replace(/^[,;\s]+|[,;\s]+$/g,'').replace(/\s{2,}/g,' ');
+  return result.deadline?result:null;
+}
+
+function _nlQuickAdd(rawText){
+  const parsed=_nlParse(rawText);
+  if(!parsed){openTaskModal(null);setTimeout(()=>{const el=document.getElementById('tm-text');if(el){el.value=rawText;el.dispatchEvent(new Event('input'));}},100);return;}
+  const task={id:'t'+Date.now(),text:parsed.cleanText||rawText,deadline:parsed.deadline,deadlineTime:parsed.time||null,done:false,labelId:'',labelIds:[],subtasks:[],notes:'',repeat:null,goalId:''};
+  tpD().push(task);saveD();_refreshAllTaskViews();
+  const toast=document.createElement('div');
+  toast.style.cssText='position:fixed;bottom:24px;left:50%;transform:translateX(-50%);z-index:9999;background:var(--card);border:1px solid rgba(155,143,245,.5);border-radius:16px;padding:12px 18px;box-shadow:var(--shadow3);animation:slideUp .3s var(--ease);display:flex;align-items:center;gap:12px;max-width:440px';
+  toast.innerHTML=`<span style="font-size:16px">✅</span><span style="font-size:12px;font-weight:600;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">«${esc((parsed.cleanText||rawText).slice(0,36))}» — ${parsed.deadline}${parsed.time?' в '+parsed.time:''}</span><span style="font-size:11px;color:var(--p);font-weight:700;flex-shrink:0;white-space:nowrap">Создано!</span>`;
+  document.body.appendChild(toast);setTimeout(()=>toast.remove(),3500);
+}
+
 function _syncGoalProgressFromTasks(){
   // For each goal, find tasks linked to it. Auto-add/check milestones from done tasks.
   // This is additive — we only check existing milestones if the task text matches, 
@@ -11278,6 +11549,7 @@ function renderDash(){
   renderDashSleepWidget();
   renderDashInsights();
   renderPomHeatmap();
+  _renderFocusNow();
   (function(){
     const weeks=6;const today=t0();let best=0;
     for(let w=0;w<weeks;w++){
@@ -11290,6 +11562,46 @@ function renderDash(){
   })();
 }
 
+
+/* ═══ Dashboard: Focus Now widget ═══ */
+function _renderFocusNow(){
+  const el=document.getElementById('dashFocusNow');if(!el)return;
+  const todK=dk(t0());
+  // Get urgent undone tasks: overdue + due today, sorted by deadline
+  const urgent=tpD().filter(t=>!t.done&&t.deadline&&t.deadline<=todK)
+    .sort((a,b)=>a.deadline<b.deadline?-1:1)
+    .slice(0,3);
+  if(!urgent.length){el.innerHTML='';return;}
+  const allLbls=(G.labelGroups||[]).flatMap(g=>g.labels||[]);
+  el.innerHTML=`<div style="background:linear-gradient(135deg,rgba(240,80,80,.07),rgba(240,107,176,.04));border:1px solid rgba(240,80,80,.2);border-radius:18px;padding:16px 18px">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+      <div style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:var(--red)">🎯 Что делать прямо сейчас</div>
+      <span style="font-size:10px;color:var(--muted)">${urgent.length} срочных</span>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:8px">
+    ${urgent.map((t,i)=>{
+      const idx=tpD().indexOf(t);
+      const overdue=t.deadline<todK;
+      const lbl=allLbls.find(l=>(t.labelIds||[]).includes(l.id));
+      const goal=t.goalId?goalsD().find(g=>g.id===t.goalId):null;
+      return`<div style="display:flex;align-items:center;gap:10px;background:var(--card2);border:1px solid ${overdue?'rgba(240,80,80,.25)':'var(--border)'};border-radius:12px;padding:10px 12px;cursor:pointer" onclick="openTaskModal(${idx})">
+        <div style="font-size:20px;line-height:1;flex-shrink:0">${i===0?'🔴':i===1?'🟠':'🟡'}</div>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:13px;font-weight:700;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(t.text)}</div>
+          <div style="display:flex;align-items:center;gap:6px;margin-top:3px;flex-wrap:wrap">
+            ${overdue?`<span style="font-size:10px;color:var(--red);font-weight:700">⚠️ Просрочено: ${t.deadline}</span>`:`<span style="font-size:10px;color:var(--gold);font-weight:600">📅 Сегодня</span>`}
+            ${lbl?`<span style="font-size:9px;font-weight:700;padding:1px 7px;border-radius:20px;background:${lbl.color}22;color:${lbl.color}">${esc(lbl.name)}</span>`:''}
+            ${goal?`<span style="font-size:9px;color:var(--p)">🎯 ${esc(goal.title.slice(0,20))}</span>`:''}
+          </div>
+        </div>
+        <button style="flex-shrink:0;padding:5px 12px;background:var(--pdim);border:1px solid rgba(155,143,245,.3);border-radius:8px;color:var(--p);font-size:10px;font-weight:700;cursor:pointer;white-space:nowrap"
+          onclick="event.stopPropagation();navigateTo('pomodoro')"
+          title="Запустить помодоро">▶ Старт</button>
+      </div>`;
+    }).join('')}
+    </div>
+  </div>`;
+}
 
 function drawDashRing(score){
   const svg=document.getElementById('dashRingSvg');if(!svg)return;
@@ -14111,6 +14423,12 @@ function renderAnalytics(){
     <!-- ── Sleep analytics ── -->
     ${buildSleepAnalyticsHTML()}
 
+    <!-- ── Year heatmap ── -->
+    ${_buildYearHeatmapHTML()}
+
+    <!-- ── Personal records ── -->
+    ${_buildPersonalRecordsHTML()}
+
     <!-- ── Empty state ── -->
     ${emptyHtml}
 
@@ -14132,6 +14450,144 @@ function renderAnalytics(){
     // Draw weekly trend canvas
     _anlDrawWkCanvas(weeklyTrend,maxWk,wkAvg);
   });
+}
+
+/* ═══ Year activity heatmap (GitHub-style) ═══ */
+function _buildYearHeatmapHTML(){
+  const today=new Date();
+  const yearAgo=new Date(today);yearAgo.setFullYear(yearAgo.getFullYear()-1);yearAgo.setDate(yearAgo.getDate()+1);
+  // Build day map: dstr → task count
+  const dayMap={};
+  tpD().forEach(t=>{
+    const d=t.deadline||t.doneDate||t.date||'';
+    if(!d)return;
+    const dt=new Date(d+'T00:00:00');
+    if(dt<yearAgo||dt>today)return;
+    const k=dk(dt);
+    if(!dayMap[k])dayMap[k]=0;
+    if(t.done||(t.doneDates&&t.doneDates.length)){
+      dayMap[k]+=(t.doneDates?t.doneDates.filter(dd=>{const x=new Date(dd+'T00:00:00');return x>=yearAgo&&x<=today;}).length:1);
+    }
+  });
+  const maxVal=Math.max(...Object.values(dayMap),1);
+  // Build 52-week grid starting from Monday of yearAgo
+  const startMon=getMon(yearAgo);
+  const weeks=[];let curWeek=[];
+  const cur=new Date(startMon);
+  while(cur<=today){
+    const k=dk(cur);const v=dayMap[k]||0;
+    const pct=v/maxVal;
+    const col=v===0?'rgba(255,255,255,.04)'
+      :pct<.25?'rgba(155,143,245,.25)'
+      :pct<.5?'rgba(155,143,245,.5)'
+      :pct<.75?'rgba(155,143,245,.75)'
+      :'rgba(155,143,245,1)';
+    const isToday=k===dk(today);
+    curWeek.push({k,v,col,isToday,d:new Date(cur)});
+    if(curWeek.length===7){weeks.push(curWeek);curWeek=[];}
+    cur.setDate(cur.getDate()+1);
+  }
+  if(curWeek.length)weeks.push(curWeek);
+  const totalDone=Object.values(dayMap).reduce((a,b)=>a+b,0);
+  const activeDays=Object.values(dayMap).filter(v=>v>0).length;
+  const MN=['Янв','Фев','Мар','Апр','Май','Июн','Июл','Авг','Сен','Окт','Ноя','Дек'];
+  // Month labels: find first week of each month
+  const monthLabels=[];
+  weeks.forEach((wk,wi)=>{
+    const m=wk[0]?.d?.getMonth();
+    if(m!==undefined&&!monthLabels.some(ml=>ml.m===m)){
+      monthLabels.push({wi,m,label:MN[m]});
+    }
+  });
+  const cellSize=13,gap=2;
+  const svgW=weeks.length*(cellSize+gap);
+  const svgH=7*(cellSize+gap)+20;
+  return`<div class="chartCard" style="margin-bottom:16px;overflow:hidden">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px">
+      <div class="secLbl">📅 Активность за год</div>
+      <div style="display:flex;gap:12px;font-size:11px;color:var(--muted);font-family:var(--font-mono)">
+        <span>${totalDone} <span style="color:var(--text2)">задач</span></span>
+        <span>${activeDays} <span style="color:var(--text2)">активных дней</span></span>
+      </div>
+    </div>
+    <div style="overflow-x:auto;padding-bottom:4px">
+    <svg width="${svgW}" height="${svgH}" viewBox="0 0 ${svgW} ${svgH}" xmlns="http://www.w3.org/2000/svg" style="display:block;min-width:${svgW}px">
+      ${monthLabels.map(ml=>`<text x="${ml.wi*(cellSize+gap)}" y="10" font-size="9" fill="rgba(255,255,255,.3)" font-family="sans-serif">${ml.label}</text>`).join('')}
+      ${weeks.map((wk,wi)=>wk.map((day,di)=>{
+        const x=wi*(cellSize+gap);const y=16+di*(cellSize+gap);
+        return`<rect x="${x}" y="${y}" width="${cellSize}" height="${cellSize}" rx="2"
+          fill="${day.col}"
+          ${day.isToday?`stroke="rgba(155,143,245,.9)" stroke-width="1.5"`:''}
+          ${day.v?`opacity="1"`:'opacity=".7"'}>
+          <title>${day.k}: ${day.v} задач</title>
+        </rect>`;
+      }).join('')).join('')}
+    </svg>
+    </div>
+    <div style="display:flex;align-items:center;gap:6px;margin-top:10px;font-size:10px;color:var(--muted)">
+      <span>меньше</span>
+      ${['rgba(255,255,255,.04)','rgba(155,143,245,.25)','rgba(155,143,245,.5)','rgba(155,143,245,.75)','rgba(155,143,245,1)'].map(c=>`<span style="width:11px;height:11px;border-radius:2px;background:${c};display:inline-block"></span>`).join('')}
+      <span>больше</span>
+    </div>
+  </div>`;
+}
+
+/* ═══ Personal records card ═══ */
+function _buildPersonalRecordsHTML(){
+  // Best week by tasks done
+  let bestWeekCount=0,bestWeekLabel='—';
+  const weekMap={};
+  tpD().filter(t=>t.done).forEach(t=>{
+    const d=t.deadline||t.date||'';if(!d)return;
+    const mon=dk(getMon(new Date(d+'T00:00:00')));
+    if(!weekMap[mon])weekMap[mon]=0;weekMap[mon]++;
+  });
+  Object.entries(weekMap).forEach(([k,v])=>{if(v>bestWeekCount){bestWeekCount=v;const d=new Date(k+'T00:00:00');bestWeekLabel=d.getDate()+'.'+(d.getMonth()+1);}});
+  // Best pomodoro day
+  const sessions=typeof pomD==='function'?pomD().sessions:[];
+  const pomByDay={};
+  sessions.filter(s=>s.mode==='work').forEach(s=>{if(!pomByDay[s.date])pomByDay[s.date]=0;pomByDay[s.date]++;});
+  let bestPomDay=0;Object.values(pomByDay).forEach(v=>{if(v>bestPomDay)bestPomDay=v;});
+  // Longest habit streak (across all habits, ever)
+  const ht=typeof htD==='function'?htD():{habits:[],checks:{}};
+  let longestStreak=0;
+  (ht.habits||[]).forEach((h,hi)=>{
+    let cur=0,best=0;
+    const today=new Date();
+    for(let i=365;i>=0;i--){const d=new Date(today);d.setDate(d.getDate()-i);const k=`${hi}_${dk(d)}`;if(ht.checks[k])cur++;else cur=0;if(cur>best)best=cur;}
+    if(best>longestStreak)longestStreak=best;
+  });
+  // Best finance savings month (income - expenses)
+  let bestSavings=null,bestSavingsLabel='—';
+  const finByMonth={};
+  (typeof finTxD==='function'?finTxD():[]).forEach(tx=>{
+    const m=(tx.date||'').slice(0,7);if(!m)return;
+    if(!finByMonth[m])finByMonth[m]={inc:0,exp:0};
+    if(tx.type==='income')finByMonth[m].inc+=tx.amount||0;
+    else finByMonth[m].exp+=tx.amount||0;
+  });
+  Object.entries(finByMonth).forEach(([m,v])=>{
+    const sav=v.inc-v.exp;
+    if(bestSavings===null||sav>bestSavings){bestSavings=sav;const[y,mo]=m.split('-');const MN=['Янв','Фев','Мар','Апр','Май','Июн','Июл','Авг','Сен','Окт','Ноя','Дек'];bestSavingsLabel=MN[parseInt(mo)-1]+' '+y;}
+  });
+  const records=[
+    {icon:'✅',label:'Лучшая неделя',value:bestWeekCount?bestWeekCount+' задач':'—',sub:bestWeekCount?'нед. с '+bestWeekLabel:'ещё нет данных',color:'var(--green)'},
+    {icon:'🔥',label:'Макс. стрик привычки',value:longestStreak?longestStreak+' дн.':'—',sub:longestStreak?'подряд':'ещё нет данных',color:'var(--orange)'},
+    {icon:'🍅',label:'Рекорд помодоро/день',value:bestPomDay?bestPomDay+' сес.':'—',sub:bestPomDay?'за один день':'ещё нет данных',color:'var(--red)'},
+    {icon:'💰',label:'Лучший месяц (экономия)',value:bestSavings!==null&&bestSavings>0?'+'+Math.round(bestSavings).toLocaleString():'—',sub:bestSavings>0?bestSavingsLabel:'ещё нет данных',color:'var(--gold)'},
+  ];
+  return`<div class="chartCard" style="margin-bottom:16px">
+    <div class="secLbl" style="margin-bottom:14px">🏆 Личные рекорды</div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px">
+      ${records.map(r=>`<div style="background:var(--card2);border:1px solid var(--border);border-radius:14px;padding:14px;position:relative;overflow:hidden">
+        <div style="font-size:22px;margin-bottom:8px">${r.icon}</div>
+        <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);margin-bottom:4px">${r.label}</div>
+        <div style="font-family:var(--font-display);font-size:20px;font-weight:800;color:${r.color};letter-spacing:-.5px;line-height:1.1">${r.value}</div>
+        <div style="font-size:10px;color:var(--muted);margin-top:3px">${r.sub}</div>
+        <div style="position:absolute;bottom:-12px;right:-8px;font-size:44px;opacity:.07;pointer-events:none;line-height:1">${r.icon}</div>
+      </div>`).join('')}
+    </div>
+  </div>`;
 }
 
 /* ── Analytics: daily time bar chart ── */
@@ -14688,6 +15144,11 @@ const CMD_ITEMS=[
   {icon:'💸',label:'Добавить транзакцию',action:()=>{navigateTo('finance');setTimeout(()=>openFinModal(),200)}},
   {icon:'🎯',label:'Новая цель',action:()=>{navigateTo('goals');setTimeout(()=>openGoalModal(null),200)}},
   {icon:'🌙',label:'Записать сон',shortcut:'S',action:()=>sleepQuickAdd()},
+  {icon:'⚡',label:'Матрица Эйзенхауэра',action:()=>navigateTo('matrix')},
+  {icon:'📋',label:'Еженедельный обзор',action:()=>openWeeklyReview()},
+  {icon:'💾',label:'Экспорт данных JSON',action:()=>_exportAllData()},
+  {icon:'📂',label:'Импорт данных JSON',action:()=>_importAllData()},
+  {icon:'🔔',label:'Настройки уведомлений',action:()=>openNotifSettings()},
 ];
 let _cmdIdx=0;
 
@@ -14701,16 +15162,41 @@ function openCmdPalette(){
 function closeCmdPalette(){document.getElementById('cmdOverlay').classList.remove('open');}
 function renderCmdList(q){
   const q2=q.toLowerCase();
+  const list=document.getElementById('cmdList');
+  // NL quick-add: if query looks like a task (longer than 3 chars, not matching nav items)
+  const nlParsed=q.length>3?_nlParse(q):null;
   const items=CMD_ITEMS.filter(i=>!q2||i.label.toLowerCase().includes(q2));
   _cmdIdx=0;
-  const list=document.getElementById('cmdList');
-  if(!items.length){list.innerHTML=`<div class="cmdEmpty">Ничего не найдено по "${q}"</div>`;return;}
-  list.innerHTML=`<div class="cmdGroup">Разделы и действия</div>`+items.map((it,i)=>`
-    <div class="cmdItem${i===0?' active':''}" data-idx="${i}" onclick="cmdExec(${CMD_ITEMS.indexOf(it)})">
+  let html='';
+  // Show NL quick-add at top if date detected
+  if(nlParsed){
+    html+=`<div class="cmdGroup">⌨️ Быстрое создание задачи</div>
+    <div class="cmdItem active" data-idx="nl" onclick="closeCmdPalette();_nlQuickAdd(${JSON.stringify(q)})">
+      <div class="cmdItemIcon">✅</div>
+      <div class="cmdItemText">
+        <div style="font-weight:700">${esc(nlParsed.cleanText||q)}</div>
+        <div style="font-size:10px;color:var(--p);margin-top:2px">📅 ${nlParsed.deadline}${nlParsed.time?' · ⏰ '+nlParsed.time:''} — нажми Enter для создания</div>
+      </div>
+    </div>`;
+    _cmdIdx=0;
+  } else if(q.length>2&&!items.length){
+    // No date but long text — offer to open task modal
+    html+=`<div class="cmdGroup">⌨️ Создать задачу</div>
+    <div class="cmdItem active" data-idx="nl" onclick="closeCmdPalette();_nlQuickAdd(${JSON.stringify(q)})">
+      <div class="cmdItemIcon">✅</div>
+      <div class="cmdItemText">Создать задачу: <strong>${esc(q.slice(0,40))}</strong></div>
+    </div>`;
+  }
+  if(items.length){
+    html+=`<div class="cmdGroup">Разделы и действия</div>`+items.map((it,i)=>`
+    <div class="cmdItem${!nlParsed&&i===0?' active':''}" data-idx="${i}" onclick="cmdExec(${CMD_ITEMS.indexOf(it)})">
       <div class="cmdItemIcon">${it.icon}</div>
       <div class="cmdItemText">${it.label}</div>
       ${it.shortcut?`<div class="cmdItemShortcut">${it.shortcut}</div>`:''}
     </div>`).join('');
+  }
+  if(!html){html=`<div class="cmdEmpty">Ничего не найдено · начни вводить текст задачи</div>`;}
+  list.innerHTML=html;
 }
 function cmdFilter(){renderCmdList(document.getElementById('cmdInput').value);}
 function cmdKeyNav(e){
@@ -18698,6 +19184,64 @@ function renderPomodoro(){
   if(POM.running){
     pomUpdateTimerDisplay();
   }
+}
+
+/* ═══════════════════════════════════════════════════
+   EXPORT / IMPORT ALL DATA
+═══════════════════════════════════════════════════ */
+function _exportAllData(){
+  try{
+    const snapshot={
+      exportedAt:new Date().toISOString(),
+      version:'plannerPro-v1',
+      data:JSON.parse(JSON.stringify(G))
+    };
+    const blob=new Blob([JSON.stringify(snapshot,null,2)],{type:'application/json'});
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement('a');
+    a.href=url;
+    a.download=`plannerpro-backup-${dk(new Date())}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+    // Show success toast
+    const t=document.createElement('div');
+    t.style.cssText='position:fixed;bottom:24px;left:50%;transform:translateX(-50%);z-index:9999;background:var(--card);border:1px solid rgba(80,220,140,.5);border-radius:16px;padding:12px 20px;box-shadow:var(--shadow3);animation:slideUp .3s var(--ease);display:flex;align-items:center;gap:10px;white-space:nowrap';
+    t.innerHTML=`<span style="font-size:18px">💾</span><span style="font-size:12px;font-weight:600;color:var(--text)">Экспорт готов: plannerpro-backup-${dk(new Date())}.json</span>`;
+    document.body.appendChild(t);setTimeout(()=>t.remove(),4000);
+  }catch(e){alert('Ошибка экспорта: '+e.message);}
+}
+
+function _importAllData(){
+  const input=document.createElement('input');
+  input.type='file';input.accept='.json,application/json';
+  input.onchange=async(e)=>{
+    const file=e.target.files[0];if(!file)return;
+    try{
+      const text=await file.text();
+      const parsed=JSON.parse(text);
+      const data=parsed.data||parsed; // support both wrapped and raw G
+      if(!data||typeof data!=='object')throw new Error('Неверный формат файла');
+      // Confirm
+      const ok=await appConfirm(`Импортировать данные из «${file.name}»?\n\nЭто ЗАМЕНИТ все текущие данные. Убедись что сделал экспорт текущих данных.`);
+      if(!ok)return;
+      // Merge carefully
+      Object.assign(G,data);
+      saveD();
+      // Reload current tab
+      const activeTab=document.querySelector('.pane.on')?.id?.replace('tab-','');
+      if(activeTab&&typeof window[`render${activeTab.charAt(0).toUpperCase()+activeTab.slice(1)}`]==='function'){
+        window[`render${activeTab.charAt(0).toUpperCase()+activeTab.slice(1)}`]();
+      }
+      renderDash();
+      const t=document.createElement('div');
+      t.style.cssText='position:fixed;bottom:24px;left:50%;transform:translateX(-50%);z-index:9999;background:var(--card);border:1px solid rgba(155,143,245,.5);border-radius:16px;padding:12px 20px;box-shadow:var(--shadow3);animation:slideUp .3s var(--ease);display:flex;align-items:center;gap:10px;white-space:nowrap';
+      t.innerHTML=`<span style="font-size:18px">✅</span><span style="font-size:12px;font-weight:600;color:var(--text)">Данные импортированы успешно!</span>`;
+      document.body.appendChild(t);setTimeout(()=>t.remove(),4000);
+    }catch(err){
+      alert('Ошибка импорта: '+err.message);
+    }
+  };
+  input.click();
 }
 
 /* ═══════════════════════════════════════════════════
