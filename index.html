@@ -386,6 +386,25 @@ body.light-mode .rwTask:hover{border-color:var(--border2)}
 /* Goals */
 body.light-mode .goalCard{background:#fff;border-color:var(--border)}
 
+/* ── Goal horizon picker (modal) ── */
+.goalHznBtn{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;padding:10px 6px;border-radius:12px;border:1.5px solid var(--border);background:var(--card2);color:var(--text2);cursor:pointer;font-size:18px;transition:.15s;font-family:var(--font-body);line-height:1.2}
+.goalHznBtn span{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.4px}
+.goalHznBtn:hover{border-color:var(--border2);background:var(--card3);color:var(--text)}
+.goalHznBtn.on{border-color:var(--p);background:rgba(155,143,245,.15);color:var(--p)}
+
+/* ── Goal filter buttons (tab) ── */
+.goalFltBtn{padding:5px 13px;border-radius:20px;border:1px solid var(--border);background:var(--card2);color:var(--text2);font-size:11px;font-weight:600;cursor:pointer;transition:.14s;font-family:var(--font-body);white-space:nowrap}
+.goalFltBtn:hover{border-color:var(--border2);color:var(--text)}
+.goalFltBtn.on{border-color:var(--green);background:rgba(15,221,170,.12);color:var(--green)}
+
+/* ── Goal stat card ── */
+.goalStatCard{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:12px 14px;display:flex;flex-direction:column;gap:3px}
+.goalStatCard .gscV{font-family:var(--font-display);font-size:22px;font-weight:800;color:var(--text);letter-spacing:-.5px}
+.goalStatCard .gscL{font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px}
+
+/* ── Goal horizon badge (card) ── */
+.goalHznBadge{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:20px;font-size:9px;font-weight:800;letter-spacing:.4px;text-transform:uppercase}
+
 /* Auth */
 body.light-mode .authCard{background:#fff;box-shadow:0 8px 32px rgba(30,40,90,.12)}
 
@@ -4293,13 +4312,11 @@ body.light-mode .skel{background:linear-gradient(90deg,var(--card2) 25%,#f0f2f7 
   <!-- GOALS tab -->
   <div id="gst-goals">
     <!-- ═══ МОЯ МИССИЯ — beautiful inline banner ═══ -->
-    <div id="missionBanner" style="position:relative;margin-bottom:28px;border-radius:24px;overflow:hidden;background:linear-gradient(135deg,rgba(155,143,245,.08) 0%,rgba(240,107,176,.06) 50%,rgba(240,171,48,.07) 100%);border:1px solid rgba(155,143,245,.2);box-shadow:0 0 60px rgba(155,143,245,.08),inset 0 1px 0 rgba(255,255,255,.06)">
-      <!-- Decorative glow blobs -->
+    <div id="missionBanner" style="position:relative;margin-bottom:24px;border-radius:24px;overflow:hidden;background:linear-gradient(135deg,rgba(155,143,245,.08) 0%,rgba(240,107,176,.06) 50%,rgba(240,171,48,.07) 100%);border:1px solid rgba(155,143,245,.2);box-shadow:0 0 60px rgba(155,143,245,.08),inset 0 1px 0 rgba(255,255,255,.06)">
       <div style="position:absolute;top:-40px;right:-40px;width:200px;height:200px;border-radius:50%;background:radial-gradient(circle,rgba(240,171,48,.12),transparent 70%);pointer-events:none"></div>
       <div style="position:absolute;bottom:-30px;left:-30px;width:160px;height:160px;border-radius:50%;background:radial-gradient(circle,rgba(155,143,245,.1),transparent 70%);pointer-events:none"></div>
-      <div style="padding:24px 28px 20px;position:relative">
-        <!-- Header row -->
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;gap:12px;flex-wrap:wrap">
+      <div style="padding:22px 26px 18px;position:relative">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;gap:12px;flex-wrap:wrap">
           <div style="display:flex;align-items:center;gap:12px">
             <div style="width:44px;height:44px;border-radius:14px;background:linear-gradient(135deg,rgba(240,171,48,.25),rgba(155,143,245,.2));border:1px solid rgba(240,171,48,.3);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;box-shadow:0 0 20px rgba(240,171,48,.15)">🚀</div>
             <div>
@@ -4309,20 +4326,23 @@ body.light-mode .skel{background:linear-gradient(90deg,var(--card2) 25%,#f0f2f7 
           </div>
           <button id="missionEditToggle" onclick="toggleMissionEdit()" style="border:none;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:var(--text2);padding:6px 14px;border-radius:10px;font-size:11px;font-weight:600;cursor:pointer;font-family:var(--font-body);transition:all .18s;display:flex;align-items:center;gap:6px" onmouseover="this.style.background='rgba(155,143,245,.15)';this.style.borderColor='rgba(155,143,245,.35)'" onmouseout="this.style.background='rgba(255,255,255,.06)';this.style.borderColor='rgba(255,255,255,.1)'">✏️ Изменить</button>
         </div>
-        <!-- Mission text display -->
         <div id="missionTextDisplay" style="min-height:52px;padding:14px 18px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:14px;font-family:var(--font-display);font-size:16px;font-weight:600;color:var(--text);line-height:1.65;letter-spacing:-.1px;cursor:text;transition:.2s" onclick="toggleMissionEdit()" id="missionDisplayClick"></div>
-        <!-- Mission text edit -->
         <textarea id="missionTextInp" class="inp" rows="3" placeholder="Напиши свою жизненную миссию — зачем ты здесь, что важно, к чему стремишься..." style="display:none;font-size:14px;font-weight:600;font-family:var(--font-display);line-height:1.65;border-color:rgba(155,143,245,.35);background:rgba(22,23,46,.8);margin-top:0;resize:none" oninput="saveMissionStatementInline(this.value)"></textarea>
-        <!-- Horizon pills -->
         <div id="missionHorizonPills" style="display:flex;gap:8px;flex-wrap:wrap;margin-top:14px"></div>
       </div>
     </div>
 
-    <!-- ═══ GOALS HEADER ═══ -->
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:10px">
-      <div>
-        <div style="font-family:var(--font-display);font-size:22px;font-weight:800;letter-spacing:-.4px;color:var(--green)">🌱 Мои цели</div>
-        <div style="font-size:12px;color:var(--text2);margin-top:2px">Карточки желаний — твои мечты и шаги к ним</div>
+    <!-- ═══ GOALS STATS STRIP ═══ -->
+    <div id="goalStatsStrip" style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:20px"></div>
+
+    <!-- ═══ GOALS HEADER + FILTER ═══ -->
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:10px">
+      <div style="display:flex;gap:6px;flex-wrap:wrap" id="goalHznFilter">
+        <button class="goalFltBtn on" data-hzn="all"       onclick="setGoalFilter('all',this)">🌐 Все</button>
+        <button class="goalFltBtn"    data-hzn="monthly"   onclick="setGoalFilter('monthly',this)">📅 Месяц</button>
+        <button class="goalFltBtn"    data-hzn="quarterly" onclick="setGoalFilter('quarterly',this)">📆 Квартал</button>
+        <button class="goalFltBtn"    data-hzn="annual"    onclick="setGoalFilter('annual',this)">🗓️ Год</button>
+        <button class="goalFltBtn"    data-hzn="longterm"  onclick="setGoalFilter('longterm',this)">🚀 Долгосрочные</button>
       </div>
       <button class="btn btnE" onclick="openGoalModal(null)">+ Новая цель</button>
     </div>
@@ -5395,6 +5415,17 @@ body.light-mode .skel{background:linear-gradient(90deg,var(--card2) 25%,#f0f2f7 
 
     <div class="fldGrp"><div class="fldLbl">Название цели</div><input class="inp" id="goalTitleInp" placeholder="Чего хочу достичь..."></div>
     <div class="fldGrp"><div class="fldLbl">Зачем это нужно (Аффирмация / Мотивация)</div><textarea class="kbTxtarea" id="goalWhyInp" placeholder="Я достигну этого потому что..." style="min-height:55px"></textarea></div>
+    <!-- Horizon selector -->
+    <div class="fldGrp">
+      <div class="fldLbl">⏱️ Горизонт цели</div>
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:7px" id="goalHorizonPicker">
+        <button type="button" class="goalHznBtn" data-h="monthly"    onclick="selGoalHorizon('monthly')"   >📅<br><span>Месяц</span></button>
+        <button type="button" class="goalHznBtn" data-h="quarterly"  onclick="selGoalHorizon('quarterly')" >📆<br><span>Квартал</span></button>
+        <button type="button" class="goalHznBtn" data-h="annual"     onclick="selGoalHorizon('annual')"    >🗓️<br><span>Год</span></button>
+        <button type="button" class="goalHznBtn" data-h="longterm"   onclick="selGoalHorizon('longterm')"  >🚀<br><span>Долгосрочная</span></button>
+      </div>
+      <input type="hidden" id="goalHorizonInp" value="annual">
+    </div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
       <div class="fldGrp"><div class="fldLbl">Категория</div><select class="inp" id="goalCatInp"></select></div>
       <div class="fldGrp"><div class="fldLbl">Срок достижения</div><div id="goalDlInp-dp"></div></div>
@@ -10167,61 +10198,107 @@ const GOAL_CAT_COLORS={'🏋️ Здоровье':'var(--green)','📚 Обра�
 
 function goalsD(){if(!G.goals)G.goals=[];return G.goals}
 function journalD(){if(!G.journal)G.journal=[];return G.journal}
-let goalEditId=null,jMoodSel='😊',_goalPhotoData=null,_goalPhotoFile=null;
+let goalEditId=null,jMoodSel='😊',_goalPhotoData=null,_goalPhotoFile=null,_goalHznFilter='all';
+
+const GOAL_HORIZONS={
+  monthly:  {label:'Месяц',       emoji:'📅', color:'var(--cyan)',   hint:'Цель на этот месяц'},
+  quarterly:{label:'Квартал',     emoji:'📆', color:'var(--blue)',   hint:'Цель на квартал'},
+  annual:   {label:'Год',         emoji:'🗓️', color:'var(--green)',  hint:'Цель на этот год'},
+  longterm: {label:'Долгосрочная',emoji:'🚀', color:'var(--purple)', hint:'3–10+ лет'},
+};
+
+function selGoalHorizon(h){
+  document.querySelectorAll('.goalHznBtn').forEach(b=>b.classList.toggle('on',b.dataset.h===h));
+  document.getElementById('goalHorizonInp').value=h;
+}
+
+function setGoalFilter(hzn,btn){
+  _goalHznFilter=hzn;
+  document.querySelectorAll('.goalFltBtn').forEach(b=>b.classList.toggle('on',b.dataset.hzn===hzn));
+  renderGoals();
+}
 
 function renderGoals(){
   // ── Render mission banner ──
   renderMissionBanner();
 
+  // ── Stats strip ──
+  const strip=document.getElementById('goalStatsStrip');
+  if(strip){
+    const all=goalsD();
+    const totalMs=all.reduce((s,g)=>(s+(g.milestones||[]).length),0);
+    const doneMs=all.reduce((s,g)=>(s+(g.milestones||[]).filter(m=>m.done).length),0);
+    const pctAll=totalMs?Math.round(doneMs/totalMs*100):0;
+    const byHzn=k=>all.filter(g=>(g.horizon||'annual')===k).length;
+    strip.innerHTML=`
+      <div class="goalStatCard"><div class="gscV" style="color:var(--green)">${all.length}</div><div class="gscL">Всего целей</div></div>
+      <div class="goalStatCard"><div class="gscV" style="color:var(--cyan)">${byHzn('monthly')}</div><div class="gscL">📅 Месячных</div></div>
+      <div class="goalStatCard"><div class="gscV" style="color:var(--blue)">${byHzn('quarterly')}</div><div class="gscL">📆 Квартальных</div></div>
+      <div class="goalStatCard" style="position:relative;overflow:hidden">
+        <div style="position:absolute;bottom:0;left:0;height:3px;width:${pctAll}%;background:linear-gradient(90deg,var(--purple),var(--p));border-radius:0 0 14px 14px;transition:.5s"></div>
+        <div class="gscV" style="color:var(--p)">${pctAll}%</div>
+        <div class="gscL">Общий прогресс</div>
+      </div>`;
+  }
+
   const list=document.getElementById('goalsList');list.innerHTML='';
-  const goals=goalsD();
+  let goals=goalsD();
+
+  // Apply horizon filter
+  if(_goalHznFilter!=='all'){
+    goals=goals.filter(g=>(g.horizon||'annual')===_goalHznFilter);
+  }
+
   if(!goals.length){
+    const msg=_goalHznFilter==='all'
+      ?'Создай свою первую цель'
+      :`Нет целей в категории «${GOAL_HORIZONS[_goalHznFilter]?.label||_goalHznFilter}»`;
     list.innerHTML=`<div style="padding:40px;text-align:center;background:var(--card);border-radius:20px;border:2px dashed rgba(155,143,245,.2)">
       <div style="font-size:48px;margin-bottom:12px;filter:drop-shadow(0 0 20px rgba(155,143,245,.3))">🌱</div>
-      <div style="font-family:var(--font-display);font-size:16px;font-weight:700;margin-bottom:6px;color:var(--text)">Создай свою первую карту желаний</div>
+      <div style="font-family:var(--font-display);font-size:16px;font-weight:700;margin-bottom:6px;color:var(--text)">${msg}</div>
       <div style="font-size:12px;color:var(--muted);margin-bottom:20px;max-width:320px;margin-left:auto;margin-right:auto">Добавь фото, опиши цель и разбей на шаги — это твоя карта желаний</div>
-      <button class="btn btnE" onclick="openGoalModal(null)">✦ Добавить первую цель</button>
+      <button class="btn btnE" onclick="openGoalModal(null)">✦ Добавить цель</button>
     </div>`;
     return;
   }
 
-  const now=new Date();
-  const thisYear=now.getFullYear();
-
-  function deadlineYear(dl){
-    if(!dl)return Infinity;
-    return new Date(dl).getFullYear();
-  }
-
-  const periods=[
-    {key:'y0',  icon:'🎯', label:`${thisYear} — Этот год`,  color:'var(--green)',  test:y=>y<=thisYear},
-    {key:'y3',  icon:'⚡', label:'3 года',                  color:'var(--cyan)',   test:y=>y>thisYear&&y<=thisYear+3},
-    {key:'y5',  icon:'🚀', label:'5 лет',                   color:'var(--blue)',   test:y=>y>thisYear+3&&y<=thisYear+5},
-    {key:'y10', icon:'🌟', label:'10 лет',                  color:'var(--purple)', test:y=>y>thisYear+5&&y<=thisYear+10},
-    {key:'y15', icon:'🌌', label:'15 лет',                  color:'var(--p)',      test:y=>y>thisYear+10&&y<=thisYear+15},
-    {key:'long',icon:'♾️', label:'Долгосрочные',             color:'var(--muted)', test:y=>y>thisYear+15||y===Infinity},
-  ];
-
-  const buckets={y0:[],y3:[],y5:[],y10:[],y15:[],long:[]};
+  // Group by horizon
+  const hznOrder=['monthly','quarterly','annual','longterm'];
+  const buckets={monthly:[],quarterly:[],annual:[],longterm:[]};
   goals.forEach(g=>{
-    const y=deadlineYear(g.deadline);
-    const p=periods.find(p=>p.test(y));
-    if(p)buckets[p.key].push(g);
+    const h=g.horizon||'annual';
+    if(buckets[h])buckets[h].push(g);
+    else buckets.longterm.push(g);
   });
 
-  let anyRendered=false;
-  periods.forEach(p=>{
-    const grp=buckets[p.key];
+  // Helper: days remaining label
+  function dlLabel(dl,hzn){
+    if(!dl)return null;
+    const diff=Math.ceil((new Date(dl)-new Date())/(1000*60*60*24));
+    if(diff<0)return{text:'⚠️ Просрочена',color:'var(--red)'};
+    if(diff===0)return{text:'🔥 Сегодня!',color:'var(--orange)'};
+    if(diff<=7)return{text:`🔥 ${diff} дн.`,color:'var(--orange)'};
+    if(diff<=30)return{text:`⏳ ${diff} дн.`,color:'var(--gold)'};
+    return{text:`📅 ${diff} дн.`,color:'var(--muted)'};
+  }
+
+  hznOrder.forEach(hzn=>{
+    const grp=buckets[hzn];
     if(!grp.length)return;
-    anyRendered=true;
+    const hz=GOAL_HORIZONS[hzn];
+
     // Section header
     const header=document.createElement('div');
     header.style.cssText='display:flex;align-items:center;gap:10px;margin-bottom:14px;margin-top:8px';
+    const doneInGrp=grp.filter(g=>{const ms=g.milestones||[];return ms.length&&ms.every(m=>m.done);}).length;
     header.innerHTML=`
-      <div style="width:32px;height:32px;border-radius:10px;background:${p.color}22;border:1px solid ${p.color}44;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0">${p.icon}</div>
-      <div style="font-family:var(--font-display);font-size:14px;font-weight:800;color:${p.color};letter-spacing:-.1px">${p.label}</div>
-      <div style="flex:1;height:1px;background:linear-gradient(90deg,${p.color}33,transparent)"></div>
-      <div style="font-size:10px;font-weight:700;color:var(--muted);font-family:var(--font-mono)">${grp.length} ${grp.length===1?'цель':'целей'}</div>`;
+      <div style="width:32px;height:32px;border-radius:10px;background:${hz.color}22;border:1px solid ${hz.color}44;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0">${hz.emoji}</div>
+      <div>
+        <div style="font-family:var(--font-display);font-size:14px;font-weight:800;color:${hz.color};letter-spacing:-.1px">${hz.label}</div>
+        <div style="font-size:10px;color:var(--muted);margin-top:1px">${hz.hint}</div>
+      </div>
+      <div style="flex:1;height:1px;background:linear-gradient(90deg,${hz.color}33,transparent)"></div>
+      <div style="font-size:10px;font-weight:700;color:var(--muted);font-family:var(--font-mono)">${doneInGrp}/${grp.length} выполнено</div>`;
     list.appendChild(header);
 
     // Goals grid
@@ -10233,26 +10310,39 @@ function renderGoals(){
       const doneCnt=ms.filter(m=>m.done).length;
       const pct=ms.length?Math.round(doneCnt/ms.length*100):0;
       const color=GOAL_CAT_COLORS[g.cat]||'var(--muted)';
+      const hz2=GOAL_HORIZONS[g.horizon||'annual']||GOAL_HORIZONS.annual;
+      const dl=dlLabel(g.deadline,g.horizon);
+      const allDone=ms.length>0&&doneCnt===ms.length;
       const card=document.createElement('div');card.className='goalCard';
+      if(allDone)card.style.cssText='border-color:rgba(15,221,170,.3);box-shadow:0 0 20px rgba(15,221,170,.08)';
 
       const photoHtml=g.photo
         ?`<div class="goalPhotoStrip"><img class="goalPhotoStripImg" src="${g.photo}" alt="vision" loading="lazy"><div style="position:absolute;inset:0;background:linear-gradient(to bottom,rgba(5,6,14,.1) 0%,rgba(5,6,14,.5) 40%,rgba(5,6,14,.92) 100%)"></div><div style="position:absolute;bottom:12px;left:14px;right:14px"><div class="goalCatBadge" style="background:${color}55;color:#fff;border:1px solid ${color}88;backdrop-filter:blur(8px);margin-bottom:6px;display:inline-block">${esc(g.cat||'')}</div><div class="goalTitle" style="color:#fff;font-size:15px;text-shadow:0 1px 4px rgba(0,0,0,.9),-webkit-line-clamp:2">${esc(g.title)}</div></div></div>`
         :`<div class="goalPhotoStripEmpty"><div class="goalNoPhotoOverlay"><span>${goalCatEmoji(g.cat)}</span></div></div>`;
 
       card.innerHTML=`
-      <div style="position:relative">${photoHtml}</div>
+      <div style="position:relative">${photoHtml}
+        ${allDone?`<div style="position:absolute;top:8px;left:8px;background:rgba(15,221,170,.9);color:#000;border-radius:20px;padding:2px 10px;font-size:9px;font-weight:900;letter-spacing:.5px">✓ ВЫПОЛНЕНО</div>`:''}
+      </div>
       <div class="goalBody">
-        ${!g.photo?`<div style="display:flex;align-items:flex-start;gap:8px;margin-bottom:10px"><div class="goalCatBadge" style="background:${color}22;color:${color};flex-shrink:0;margin-top:2px">${esc(g.cat||'')}</div><div class="goalTitle">${esc(g.title)}</div></div>`:''}
+        ${!g.photo?`<div style="display:flex;align-items:flex-start;gap:8px;margin-bottom:8px">
+          <div class="goalCatBadge" style="background:${color}22;color:${color};flex-shrink:0;margin-top:2px">${esc(g.cat||'')}</div>
+          <div class="goalTitle">${esc(g.title)}</div>
+        </div>`:''}
+        <div style="display:flex;align-items:center;gap:6px;margin-bottom:8px;flex-wrap:wrap">
+          <span class="goalHznBadge" style="background:${hz2.color}18;color:${hz2.color};border:1px solid ${hz2.color}30">${hz2.emoji} ${hz2.label}</span>
+          ${dl?`<span style="font-size:10px;font-weight:700;color:${dl.color}">${dl.text}</span>`:''}
+        </div>
         ${g.why?`<div class="goalWhy">"${esc(g.why)}"</div>`:''}
-        <div class="goalProg"><div class="goalProgFill" style="width:${pct}%"></div></div>
-        <div class="goalProgRow"><span>${doneCnt} из ${ms.length} шагов</span><span>${pct}%</span></div>
+        <div class="goalProg"><div class="goalProgFill" style="width:${pct}%;${allDone?'background:linear-gradient(90deg,var(--green),var(--cyan));':''}"></div></div>
+        <div class="goalProgRow"><span>${doneCnt} из ${ms.length} шагов</span><span style="${allDone?'color:var(--green)':''}"><b>${pct}%</b></span></div>
         ${ms.length?`<div class="goalMsList">${ms.map((m,i)=>`<label class="goalMs${m.done?' done':''}"><input type="checkbox" ${m.done?'checked':''} onchange="toggleMs('${g.id}',${i},this.checked)">${esc(m.text)}</label>`).join('')}</div>`:''}
         <div class="goalCardFoot">
-          ${g.deadline?`<div class="goalDl">📅 до ${g.deadline}</div>`:'<div></div>'}
           <div style="display:flex;gap:6px">
             <button class="btn btnG" style="padding:4px 10px;font-size:10px" onclick="openGoalModal('${g.id}')">✏️ Изменить</button>
             <button class="goalDelBtn" onclick="delGoal('${g.id}')">🗑️</button>
           </div>
+          ${g.deadline?`<div class="goalDl">до ${g.deadline}</div>`:'<div></div>'}
         </div>
       </div>`;
       grid.appendChild(card);
@@ -10335,6 +10425,9 @@ function openGoalModal(id){
   document.getElementById('goalMsInp').value=g?(g.milestones||[]).map(m=>m.text).join('\n'):'';
   const sel=document.getElementById('goalCatInp');sel.innerHTML='';
   GOAL_CATS.forEach(c=>{const o=document.createElement('option');o.value=c;o.textContent=c;if(g&&g.cat===c)o.selected=true;sel.appendChild(o)});
+  // Horizon
+  const hzn=g?(g.horizon||'annual'):'annual';
+  selGoalHorizon(hzn);
   // Photo preview
   const img=document.getElementById('goalPhotoImg');
   const ph=document.getElementById('goalPhotoPlaceholder');
@@ -10401,7 +10494,7 @@ async function saveGoal(){
   const milestones=msLines.map((text,i)=>({text,done:existingMs[i]?existingMs[i].done:false}));
   const goalId=goalEditId||uid();
   console.log('[saveGoal] photo length:', photo?.length||0, 'KB:', Math.round((photo?.length||0)/1024));
-  const data={title,why:document.getElementById('goalWhyInp').value,cat:document.getElementById('goalCatInp').value,deadline:document.getElementById('goalDlInp').value,milestones,photo};
+  const data={title,why:document.getElementById('goalWhyInp').value,cat:document.getElementById('goalCatInp').value,deadline:document.getElementById('goalDlInp').value,horizon:document.getElementById('goalHorizonInp').value||'annual',milestones,photo};
   if(goalEditId){const idx=goalsD().findIndex(x=>x.id===goalEditId);if(idx>=0)goalsD()[idx]={...goalsD()[idx],...data};}
   else{goalsD().push({...data,id:goalId});}
   saveD(); closeGoalModal(); renderGoals();
