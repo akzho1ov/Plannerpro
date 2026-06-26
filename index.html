@@ -3707,6 +3707,8 @@ body.light-mode .skel{background:linear-gradient(90deg,var(--card2) 25%,#f0f2f7 
     <!-- Goals -->
     <div class="dashCard">
       <div class="db-card-label">🌱 Цели</div>
+      <!-- Month goal highlight -->
+      <div id="dashMonthGoal" style="margin-bottom:10px"></div>
       <div id="dashGoals" style="margin-top:2px"></div>
     </div>
   </div>
@@ -3870,6 +3872,19 @@ body.light-mode .skel{background:linear-gradient(90deg,var(--card2) 25%,#f0f2f7 
         <button class="tvSwitchBtn" data-tab="calendar" onclick="navigateTo('calendar')"><span class="tvIco">📆</span>Календарь</button>
         <button class="tvSwitchBtn" data-tab="kanban" onclick="navigateTo('kanban')"><span class="tvIco">🗂</span>Канбан</button>
       </div></div>
+  <!-- Weekly focus banner -->
+  <div id="weekFocusBanner" style="margin-bottom:16px;border-radius:16px;background:linear-gradient(135deg,rgba(155,143,245,.08),rgba(91,149,255,.06));border:1px solid rgba(155,143,245,.18);padding:14px 18px;display:flex;align-items:center;gap:14px;flex-wrap:wrap">
+    <div style="font-size:28px;flex-shrink:0">🚀</div>
+    <div style="flex:1;min-width:180px">
+      <div style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:var(--p);margin-bottom:4px">Фокус этой недели</div>
+      <input id="weekFocusInp" class="inp" placeholder="Главное намерение на эту неделю..." style="font-size:13px;font-weight:600;font-family:var(--font-display);background:transparent;border-color:rgba(155,143,245,.25);padding:6px 10px" oninput="_saveWeekFocus(this.value)">
+    </div>
+    <div style="flex-shrink:0">
+      <select id="weekFocusGoalLink" class="inp sel" style="font-size:11px;min-width:160px" onchange="_saveWeekFocusGoal(this.value)">
+        <option value="">🎯 Привязать к цели...</option>
+      </select>
+    </div>
+  </div>
   <div class="wGrid" id="wGrid"></div>
 </div>
 
@@ -4298,6 +4313,7 @@ body.light-mode .skel{background:linear-gradient(90deg,var(--card2) 25%,#f0f2f7 
       </div>
     </div>
     <div class="paneHeadActions" id="goalsHeadActions">
+      <button class="btn btnG" style="font-size:11px" onclick="openWeeklyReview()">📋 Обзор недели</button>
       <button class="btn btnE" onclick="openGoalModal(null)">+ Цель</button>
     </div>
   </header>
@@ -5106,6 +5122,14 @@ body.light-mode .skel{background:linear-gradient(90deg,var(--card2) 25%,#f0f2f7 
         <input class="stAddInp" id="tm-st-inp" placeholder="Добавить пункт..." onkeydown="if(event.key==='Enter'){event.preventDefault();tmAddSubtask()}">
         <button class="stAddBtn" onclick="tmAddSubtask()" title="Добавить">＋</button>
       </div>
+    </div>
+
+    <!-- Linked Goal -->
+    <div class="tmField">
+      <label class="tmLabel">🎯 Связать с целью</label>
+      <select class="inp sel" id="tm-goalLink" style="font-size:12px">
+        <option value="">— Без цели —</option>
+      </select>
     </div>
 
     <!-- Done toggle -->
@@ -6879,7 +6903,30 @@ function wkKey(){return 'w_'+dk(curMon)}
 function wkD(){if(!G[wkKey()])G[wkKey()]={days:{}};return G[wkKey()]}
 function dayD(k){const w=wkD();if(!w.days[k])w.days[k]={focus:'',tasks:[],notes:'',impr:['','','',''],focus3:[{t:'',d:false},{t:'',d:false},{t:'',d:false}]};const day=w.days[k];if(!day.focus3)day.focus3=[{t:'',d:false},{t:'',d:false},{t:'',d:false}];return day}
 
+/* ── Week focus functions ── */
+function _weekFocusKey(){const m=getMon(t0());return'wfocus_'+dk(m);}
+function _saveWeekFocus(v){if(!G.weekFocus)G.weekFocus={};G.weekFocus[_weekFocusKey()]=Object.assign(G.weekFocus[_weekFocusKey()]||{},{text:v});saveD();}
+function _saveWeekFocusGoal(v){if(!G.weekFocus)G.weekFocus={};G.weekFocus[_weekFocusKey()]=Object.assign(G.weekFocus[_weekFocusKey()]||{},{goalId:v});saveD();}
+function _renderWeekFocusBanner(){
+  const banner=document.getElementById('weekFocusBanner');if(!banner)return;
+  const key=_weekFocusKey();
+  const data=(G.weekFocus&&G.weekFocus[key])||{};
+  const inp=document.getElementById('weekFocusInp');
+  if(inp)inp.value=data.text||'';
+  const glSel=document.getElementById('weekFocusGoalLink');
+  if(glSel){
+    glSel.innerHTML='<option value="">🎯 Привязать к цели...</option>';
+    goalsD().forEach(g=>{
+      const opt=document.createElement('option');
+      opt.value=g.id;opt.textContent=(g.horizon==='monthly'?'📅':g.horizon==='quarterly'?'📆':'🗓️')+' '+g.title;
+      if(data.goalId===g.id)opt.selected=true;
+      glSel.appendChild(opt);
+    });
+  }
+}
+
 function renderWP(){
+  _renderWeekFocusBanner();
   const g=document.getElementById('wGrid');
   const sun=new Date(curMon);sun.setDate(sun.getDate()+6);
   document.getElementById('wNavLbl').textContent=`${curMon.getDate()} ${MG[curMon.getMonth()]} — ${sun.getDate()} ${MG[sun.getMonth()]} ${sun.getFullYear()}`;
@@ -7898,6 +7945,18 @@ function openTaskModal(idx,prefillDate,dstr){
   tmSelRepeat(_tmRepeatVal);
   _updateModalLabelDots(initIds);
   tmLoadSubtasks(t);
+  // Populate goal link selector
+  const glSel=document.getElementById('tm-goalLink');
+  if(glSel){
+    glSel.innerHTML='<option value="">— Без цели —</option>';
+    goalsD().forEach(g=>{
+      const opt=document.createElement('option');
+      opt.value=g.id;
+      opt.textContent=(g.horizon==='monthly'?'📅':g.horizon==='quarterly'?'📆':g.horizon==='annual'?'🗓️':'🚀')+' '+g.title;
+      if(t&&t.goalId===g.id)opt.selected=true;
+      glSel.appendChild(opt);
+    });
+  }
   document.getElementById('taskModal').classList.add('open');
   setTimeout(()=>document.getElementById('tm-text').focus(),60);
 }
@@ -8013,6 +8072,7 @@ function taskModalSave(){
     labelId,labelIds,
     repeat:_tmRepeatVal,
     subtasks:JSON.parse(JSON.stringify(_tmSubtasks)),
+    goalId:document.getElementById('tm-goalLink')?.value||'',
   };
 
   // ← FIX: find task by id at save-time (immune to reorder/sync)
@@ -8050,6 +8110,7 @@ function taskModalSave(){
     }
   }
   saveD();closeTaskModal();_refreshAllTaskViews();setTimeout(taskScheduleAllReminders,100);
+  _syncGoalProgressFromTasks();
 }
 
 async function _doSaveRecurring(existingTask, data, dstr){
@@ -10342,7 +10403,10 @@ function renderGoals(){
             <button class="btn btnG" style="padding:4px 10px;font-size:10px" onclick="openGoalModal('${g.id}')">✏️ Изменить</button>
             <button class="goalDelBtn" onclick="delGoal('${g.id}')">🗑️</button>
           </div>
-          ${g.deadline?`<div class="goalDl">до ${g.deadline}</div>`:'<div></div>'}
+          <div style="display:flex;align-items:center;gap:6px">
+            ${(()=>{const linked=tpD().filter(t=>t.goalId===g.id);const doneL=linked.filter(t=>t.done).length;return linked.length?`<span style="font-size:10px;color:var(--text2);font-weight:600">🔗 ${doneL}/${linked.length} задач</span>`:''})()}
+            ${g.deadline?`<div class="goalDl">до ${g.deadline}</div>`:'<div></div>'}
+          </div>
         </div>
       </div>`;
       grid.appendChild(card);
@@ -10502,6 +10566,38 @@ async function saveGoal(){
 
 async function delGoal(id){if(!await appConfirm('Удалить цель?'))return;const i=goalsD().findIndex(x=>x.id===id);if(i>=0){goalsD().splice(i,1);saveD();renderGoals()}}
 function toggleMs(gid,idx,c){const g=goalsD().find(x=>x.id===gid);if(g&&g.milestones&&g.milestones[idx])g.milestones[idx].done=c;saveD();renderGoals()}
+
+/* ─── Sync goal progress from linked tasks ─── */
+function _syncGoalProgressFromTasks(){
+  // For each goal, find tasks linked to it. Auto-add/check milestones from done tasks.
+  // This is additive — we only check existing milestones if the task text matches, 
+  // and auto-mark them done when the task is done.
+  goalsD().forEach(g=>{
+    const linked=tpD().filter(t=>t.goalId===g.id);
+    if(!linked.length)return;
+    // Auto-sync milestone done state from tasks
+    (g.milestones||[]).forEach(ms=>{
+      const match=linked.find(t=>t.text.trim().toLowerCase()===ms.text.trim().toLowerCase());
+      if(match)ms.done=match.done||false;
+    });
+    // Auto-add new tasks as milestones if not already present
+    linked.forEach(t=>{
+      const exists=(g.milestones||[]).some(ms=>ms.text.trim().toLowerCase()===t.text.trim().toLowerCase());
+      if(!exists){
+        if(!g.milestones)g.milestones=[];
+        g.milestones.push({text:t.text,done:t.done||false,fromTask:true});
+      }
+    });
+  });
+  saveD();
+}
+
+/* ─── Get current month's highlight goal ─── */
+function _getMonthGoal(){
+  const monthly=goalsD().filter(g=>g.horizon==='monthly'||(g.horizon==='annual'&&g.deadline&&g.deadline.slice(0,7)===new Date().toISOString().slice(0,7)));
+  if(monthly.length)return monthly[0];
+  return goalsD()[0]||null;
+}
 
 function renderJournal(){
   const list=document.getElementById('journalList');if(!list)return;
@@ -11155,6 +11251,23 @@ function renderDash(){
     goalsEl.innerHTML+=`<div class="dashGoalRow"><div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:5px"><span style="color:var(--text2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:160px">${esc(g.title)}</span><span style="color:var(--p);font-weight:700;font-family:var(--font-display)">${pct2}%</span></div><div class="dashGoalRowBar"><div class="dashGoalRowFill" style="width:${pct2}%"></div></div></div>`;
   });
   if(!goalsD().length)goalsEl.innerHTML='<div style="font-size:12px;color:var(--muted);text-align:center;padding:16px 0">Нет целей</div>';}
+  // Month goal highlight card
+  const mgoalEl=document.getElementById('dashMonthGoal');
+  if(mgoalEl){
+    const mg=_getMonthGoal();
+    if(mg){
+      const ms=mg.milestones||[];const pct3=ms.length?Math.round(ms.filter(m=>m.done).length/ms.length*100):0;
+      const color=pct3>=80?'var(--green)':pct3>=50?'var(--gold)':'var(--p)';
+      mgoalEl.innerHTML=`<div style="background:linear-gradient(135deg,rgba(155,143,245,.08),rgba(240,107,176,.05));border:1px solid rgba(155,143,245,.2);border-radius:12px;padding:10px 12px;cursor:pointer" onclick="navigateTo('goals')" title="Перейти к целям">
+        <div style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.8px;color:var(--p);margin-bottom:5px">🎯 Цель месяца</div>
+        <div style="font-size:12px;font-weight:700;color:var(--text);margin-bottom:7px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(mg.title)}</div>
+        <div style="height:5px;background:rgba(255,255,255,.06);border-radius:4px;overflow:hidden;margin-bottom:4px"><div style="height:100%;width:${pct3}%;background:linear-gradient(90deg,${color},var(--p));border-radius:4px;transition:.5s"></div></div>
+        <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--muted);font-family:var(--font-mono)"><span>${ms.filter(m=>m.done).length}/${ms.length} шагов</span><span style="color:${color};font-weight:700">${pct3}%</span></div>
+      </div>`;
+    } else {
+      mgoalEl.innerHTML='';
+    }
+  }
 
   drawDashHabChart();
   drawDashFinChart();
@@ -17116,7 +17229,10 @@ function buildSleepAnalyticsHTML(){
           <div style="font-size:12px;font-weight:700;color:var(--text)">🔔 Браузерные уведомления</div>
           <div style="font-size:10px;color:var(--muted);margin-top:2px">Работает когда вкладка свёрнута</div>
         </div>
-        <button onclick="pomRequestNotif()" id="pom-notif-btn" style="padding:6px 12px;background:var(--pdim);border:1px solid rgba(155,143,245,.3);border-radius:8px;color:var(--p);font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0">Включить</button>
+        <div style="display:flex;gap:6px">
+          <button onclick="pomRequestNotif()" id="pom-notif-btn" style="padding:6px 12px;background:var(--pdim);border:1px solid rgba(155,143,245,.3);border-radius:8px;color:var(--p);font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0">Включить</button>
+          <button onclick="openNotifSettings()" style="padding:6px 12px;background:var(--card3);border:1px solid var(--border2);border-radius:8px;color:var(--text2);font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0">⚙️ Настроить</button>
+        </div>
       </div>
     </div>
 
@@ -18587,6 +18703,296 @@ function renderPomodoro(){
     pomUpdateTimerDisplay();
   }
 }
+
+/* ═══════════════════════════════════════════════════
+   WEEKLY REVIEW SYSTEM
+═══════════════════════════════════════════════════ */
+function _shouldShowWeeklyReview(){
+  // Show on Sunday or if last shown was > 6 days ago
+  const today=new Date();
+  const isSunday=today.getDay()===0;
+  const lastShown=G.lastWeeklyReview||'';
+  const todayStr=dk(today);
+  if(lastShown===todayStr)return false; // already shown today
+  if(!lastShown&&!isSunday)return false; // first time: only on sunday
+  if(lastShown){
+    const diff=(today-new Date(lastShown))/(1000*60*60*24);
+    if(diff<6)return false;
+  }
+  return isSunday||(!lastShown&&false);
+}
+
+function openWeeklyReview(){
+  // Gather stats for the week
+  const mon=getMon(t0());
+  const days=[];
+  for(let i=0;i<7;i++){const d=new Date(mon);d.setDate(d.getDate()+i);days.push(dk(d));}
+  const weekTasks=tpD().filter(t=>days.some(dk2=>taskAppearsOnDate(t,dk2)));
+  const doneTasks=weekTasks.filter(t=>t.done||days.some(dk2=>(t.doneDates||[]).includes(dk2)));
+  const pct=weekTasks.length?Math.round(doneTasks.length/weekTasks.length*100):0;
+  const activeGoals=goalsD().filter(g=>!((g.milestones||[]).length&&(g.milestones||[]).every(m=>m.done)));
+
+  const overlay=document.createElement('div');
+  overlay.id='weeklyReviewOverlay';
+  overlay.style.cssText='position:fixed;inset:0;z-index:9000;background:rgba(0,0,0,.8);backdrop-filter:blur(16px);display:flex;align-items:center;justify-content:center;padding:16px;animation:fadeOverlay .2s var(--ease)';
+  overlay.innerHTML=`
+  <div style="background:var(--card);border:1px solid rgba(155,143,245,.25);border-radius:24px;max-width:520px;width:100%;box-shadow:0 8px 60px rgba(0,0,0,.8),0 0 0 1px rgba(155,143,245,.1);max-height:90vh;overflow-y:auto">
+    <div style="background:linear-gradient(135deg,rgba(155,143,245,.12),rgba(240,107,176,.08));padding:24px;border-radius:24px 24px 0 0;border-bottom:1px solid var(--border)">
+      <div style="font-size:32px;margin-bottom:8px">📋</div>
+      <div style="font-family:var(--font-display);font-size:20px;font-weight:800;color:var(--text);letter-spacing:-.4px">Еженедельный обзор</div>
+      <div style="font-size:12px;color:var(--text2);margin-top:4px">Проверь прогресс и обнови фокус</div>
+    </div>
+    <div style="padding:20px">
+      <!-- Week stats -->
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:20px">
+        <div style="background:var(--card2);border:1px solid var(--border);border-radius:12px;padding:12px;text-align:center">
+          <div style="font-size:22px;font-weight:800;color:var(--green);font-family:var(--font-display)">${doneTasks.length}</div>
+          <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted)">Задач сделано</div>
+        </div>
+        <div style="background:var(--card2);border:1px solid var(--border);border-radius:12px;padding:12px;text-align:center">
+          <div style="font-size:22px;font-weight:800;color:var(--p);font-family:var(--font-display)">${pct}%</div>
+          <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted)">Выполнено</div>
+        </div>
+        <div style="background:var(--card2);border:1px solid var(--border);border-radius:12px;padding:12px;text-align:center">
+          <div style="font-size:22px;font-weight:800;color:var(--gold);font-family:var(--font-display)">${activeGoals.length}</div>
+          <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted)">Активных целей</div>
+        </div>
+      </div>
+      <!-- Active goals with progress -->
+      ${activeGoals.length?`
+      <div style="margin-bottom:18px">
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);margin-bottom:10px">🌱 Прогресс по целям</div>
+        ${activeGoals.slice(0,4).map(g=>{
+          const ms=g.milestones||[];const pctG=ms.length?Math.round(ms.filter(m=>m.done).length/ms.length*100):0;
+          const color=pctG>=80?'var(--green)':pctG>=50?'var(--gold)':'var(--p)';
+          const linkedTasks=tpD().filter(t=>t.goalId===g.id);
+          const doneLinked=linkedTasks.filter(t=>t.done).length;
+          return`<div style="margin-bottom:10px">
+            <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px">
+              <span style="color:var(--text);font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:300px">${esc(g.title)}</span>
+              <span style="color:${color};font-weight:700;font-family:var(--font-mono);flex-shrink:0;margin-left:8px">${pctG}%</span>
+            </div>
+            <div style="height:5px;background:rgba(255,255,255,.06);border-radius:4px;overflow:hidden;margin-bottom:3px">
+              <div style="height:100%;width:${pctG}%;background:linear-gradient(90deg,${color},var(--p));border-radius:4px"></div>
+            </div>
+            ${linkedTasks.length?`<div style="font-size:10px;color:var(--muted)">${doneLinked}/${linkedTasks.length} связанных задач выполнено</div>`:''}
+          </div>`;
+        }).join('')}
+      </div>`:
+      '<div style="background:var(--card2);border:1px solid var(--border);border-radius:12px;padding:16px;text-align:center;margin-bottom:18px"><div style="font-size:24px;margin-bottom:6px">🌱</div><div style="font-size:12px;color:var(--text2)">Нет активных целей. Добавь цели чтобы отслеживать прогресс!</div></div>'}
+      <!-- Milestone checklist -->
+      ${activeGoals.length?`
+      <div style="margin-bottom:18px">
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);margin-bottom:8px">✅ Быстрое обновление шагов</div>
+        ${activeGoals.slice(0,2).flatMap(g=>(g.milestones||[]).filter(m=>!m.done).slice(0,3).map((ms,i)=>`
+        <label style="display:flex;align-items:center;gap:10px;padding:7px 0;cursor:pointer;border-bottom:1px solid var(--border);font-size:12px;color:var(--text2)">
+          <input type="checkbox" style="accent-color:var(--p);width:14px;height:14px;flex-shrink:0" onchange="toggleMs('${g.id}',${(g.milestones||[]).indexOf(ms)},this.checked);this.parentElement.querySelector('span').style.textDecoration=this.checked?'line-through':'none';this.parentElement.querySelector('span').style.opacity=this.checked?.5:1">
+          <span>${esc(ms.text)}</span>
+          <span style="font-size:10px;color:var(--muted);flex-shrink:0;margin-left:auto">${esc(g.title.slice(0,20))}${g.title.length>20?'…':''}</span>
+        </label>`)).join('')}
+      </div>`:''}
+      <!-- Actions -->
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button class="btn btnE" style="flex:1;justify-content:center" onclick="document.getElementById('weeklyReviewOverlay').remove();navigateTo('goals')">🌱 Открыть цели</button>
+        <button class="btn btnG" style="flex:1;justify-content:center" onclick="_dismissWeeklyReview()">✓ Закрыть</button>
+      </div>
+    </div>
+  </div>`;
+  document.body.appendChild(overlay);
+  overlay.addEventListener('click',e=>{if(e.target===overlay)_dismissWeeklyReview();});
+  G.lastWeeklyReview=dk(new Date());saveD();
+}
+
+function _dismissWeeklyReview(){
+  const el=document.getElementById('weeklyReviewOverlay');if(el)el.remove();
+}
+
+function _checkWeeklyReview(){
+  if(_shouldShowWeeklyReview()){
+    // Show after 3 seconds on app load
+    setTimeout(openWeeklyReview,3000);
+  }
+}
+
+/* ═══════════════════════════════════════════════════
+   ENHANCED PUSH NOTIFICATIONS SYSTEM
+   — Habits, goals deadlines, weekly review
+═══════════════════════════════════════════════════ */
+const _notifTimers=[];
+
+function _clearAllNotifTimers(){_notifTimers.forEach(t=>clearTimeout(t));_notifTimers.length=0;}
+
+function _pushNotif(title,body,tag){
+  if(Notification.permission!=='granted')return;
+  try{
+    new Notification(title,{
+      body,tag:tag||'plannerpro',
+      icon:'data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 32 32%22><rect width=%2232%22 height=%2232%22 rx=%227%22 fill=%22%230a0c16%22/><text y=%2224%22 x=%2216%22 text-anchor=%22middle%22 font-size=%2218%22>✦</text></svg>',
+      requireInteraction:false
+    });
+  }catch(e){}
+}
+
+function _scheduleHabitReminders(){
+  if(Notification.permission!=='granted')return;
+  _clearAllNotifTimers();
+  const prefs=G.notifPrefs||{};
+  if(prefs.habitsDisabled)return;
+  // Default: remind at 21:00 if habits not all done today
+  const reminderH=prefs.habitHour!==undefined?prefs.habitHour:21;
+  const now=new Date();
+  const fireTime=new Date(now);
+  fireTime.setHours(reminderH,0,0,0);
+  if(fireTime<=now)fireTime.setDate(fireTime.getDate()+1);
+  const delay=fireTime-now;
+  if(delay<0||delay>25*3600000)return;
+  const t=setTimeout(()=>{
+    const habits=G.habits||[];
+    const todK=dk(t0());
+    const undone=habits.filter(h=>!((G.habitLog&&G.habitLog[todK]&&G.habitLog[todK][h.id])));
+    if(undone.length>0){
+      _pushNotif('🔥 Привычки',`Осталось ${undone.length} привычек на сегодня: ${undone.slice(0,3).map(h=>h.name).join(', ')}...`,'habits');
+    }
+    setTimeout(_scheduleHabitReminders,3000); // reschedule for next day
+  },delay);
+  _notifTimers.push(t);
+}
+
+function _scheduleGoalDeadlineReminders(){
+  if(Notification.permission!=='granted')return;
+  const now=new Date();
+  goalsD().forEach(g=>{
+    if(!g.deadline)return;
+    const dl=new Date(g.deadline);
+    const diff=Math.ceil((dl-now)/(1000*60*60*24));
+    if(diff===3){
+      // 3 days: fire tomorrow as a "heads up"
+      const t=setTimeout(()=>{
+        const ms=g.milestones||[];const pct=ms.length?Math.round(ms.filter(m=>m.done).length/ms.length*100):0;
+        _pushNotif('⏳ Цель через 3 дня',`«${g.title}» — выполнено ${pct}%`,'goal_'+g.id);
+      },60000); // test: 1 min; in prod would be calculated
+      _notifTimers.push(t);
+    }
+    if(diff===7){
+      const t=setTimeout(()=>{
+        _pushNotif('📅 Цель через неделю',`«${g.title}» — не забудь!`,'goal_'+g.id);
+      },2000);
+      _notifTimers.push(t);
+    }
+  });
+}
+
+function _scheduleWeeklyReviewReminder(){
+  if(Notification.permission!=='granted')return;
+  const now=new Date();
+  const isSunday=now.getDay()===0;
+  if(!isSunday)return;
+  const prefs=G.notifPrefs||{};
+  const reviewH=prefs.reviewHour!==undefined?prefs.reviewHour:19;
+  const fireTime=new Date(now);
+  fireTime.setHours(reviewH,0,0,0);
+  if(fireTime<=now)return;
+  const delay=fireTime-now;
+  const t=setTimeout(()=>{
+    _pushNotif('📋 Еженедельный обзор','Воскресенье — время проверить прогресс по целям!','weekly_review');
+  },delay);
+  _notifTimers.push(t);
+}
+
+function initAllNotifications(){
+  if(Notification.permission==='granted'){
+    _scheduleHabitReminders();
+    _scheduleGoalDeadlineReminders();
+    _scheduleWeeklyReviewReminder();
+  }
+}
+
+function requestAndInitNotifications(){
+  if(Notification.permission==='granted'){
+    initAllNotifications();
+    return;
+  }
+  if(Notification.permission==='denied'){
+    appToast('Уведомления заблокированы в браузере. Разрешите в настройках браузера.',4000);
+    return;
+  }
+  Notification.requestPermission().then(p=>{
+    if(p==='granted'){
+      appToast('✅ Уведомления включены!');
+      initAllNotifications();
+    }
+  });
+}
+
+/* ── Notification settings panel (opens from settings) ── */
+function openNotifSettings(){
+  const prefs=G.notifPrefs||{};
+  const overlay=document.createElement('div');
+  overlay.style.cssText='position:fixed;inset:0;z-index:9500;background:rgba(0,0,0,.75);backdrop-filter:blur(12px);display:flex;align-items:center;justify-content:center;padding:16px';
+  overlay.innerHTML=`
+  <div style="background:var(--card);border:1px solid var(--border2);border-radius:20px;max-width:400px;width:100%;padding:24px;box-shadow:0 8px 48px rgba(0,0,0,.7)">
+    <div style="font-family:var(--font-display);font-size:16px;font-weight:800;color:var(--text);margin-bottom:16px;letter-spacing:-.3px">🔔 Настройки уведомлений</div>
+    <div style="margin-bottom:14px">
+      <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);margin-bottom:6px">Статус</div>
+      <div style="font-size:13px;font-weight:600;color:${Notification.permission==='granted'?'var(--green)':Notification.permission==='denied'?'var(--red)':'var(--gold)'}">
+        ${Notification.permission==='granted'?'✅ Уведомления разрешены':Notification.permission==='denied'?'🚫 Заблокированы (измени в браузере)':'⏳ Не запрошены'}
+      </div>
+      ${Notification.permission!=='granted'?`<button class="btn btnE" style="margin-top:8px;font-size:11px" onclick="requestAndInitNotifications();this.closest('[style*=fixed]').remove()">Разрешить уведомления</button>`:''}
+    </div>
+    <div style="margin-bottom:14px">
+      <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);margin-bottom:8px">Привычки — напомнить в</div>
+      <div style="display:flex;align-items:center;gap:8px">
+        <input type="number" class="inp" id="ns-habitHour" min="6" max="23" value="${prefs.habitHour!==undefined?prefs.habitHour:21}" style="max-width:80px;font-family:var(--font-mono);font-size:13px;font-weight:700">
+        <span style="font-size:12px;color:var(--text2)">:00 (час)</span>
+        <label style="display:flex;align-items:center;gap:6px;font-size:11px;color:var(--text2);margin-left:8px;cursor:pointer">
+          <input type="checkbox" ${prefs.habitsDisabled?'checked':''} id="ns-habitsOff" style="accent-color:var(--red)"> Выключить
+        </label>
+      </div>
+    </div>
+    <div style="margin-bottom:20px">
+      <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);margin-bottom:8px">Еженедельный обзор — напомнить в</div>
+      <div style="display:flex;align-items:center;gap:8px">
+        <input type="number" class="inp" id="ns-reviewHour" min="8" max="22" value="${prefs.reviewHour!==undefined?prefs.reviewHour:19}" style="max-width:80px;font-family:var(--font-mono);font-size:13px;font-weight:700">
+        <span style="font-size:12px;color:var(--text2)">:00 (воскресенье)</span>
+      </div>
+    </div>
+    <div style="display:flex;gap:8px">
+      <button class="btn btnG" style="flex:1;justify-content:center" onclick="this.closest('[style*=fixed]').remove()">Отмена</button>
+      <button class="btn btnE" style="flex:1;justify-content:center" onclick="_saveNotifPrefs();this.closest('[style*=fixed]').remove()">Сохранить</button>
+    </div>
+  </div>`;
+  document.body.appendChild(overlay);
+  overlay.addEventListener('click',e=>{if(e.target===overlay)overlay.remove();});
+}
+
+function _saveNotifPrefs(){
+  if(!G.notifPrefs)G.notifPrefs={};
+  G.notifPrefs.habitHour=parseInt(document.getElementById('ns-habitHour')?.value||21);
+  G.notifPrefs.reviewHour=parseInt(document.getElementById('ns-reviewHour')?.value||19);
+  G.notifPrefs.habitsDisabled=document.getElementById('ns-habitsOff')?.checked||false;
+  saveD();
+  _clearAllNotifTimers();
+  initAllNotifications();
+  appToast('✅ Настройки уведомлений сохранены');
+}
+
+/* ── init on data load ── */
+(function _initExtras(){
+  // Patch into existing app-ready flow
+  const _origOnAuth=window._onAuthReady;
+  const _patchInterval=setInterval(()=>{
+    if(typeof appToast==='function'&&typeof goalsD==='function'){
+      clearInterval(_patchInterval);
+      // Wait for data
+      setTimeout(()=>{
+        initAllNotifications();
+        _checkWeeklyReview();
+        _syncGoalProgressFromTasks();
+      },1500);
+    }
+  },300);
+})();
+
 </script>
 
 </div><!-- /appWrap -->
