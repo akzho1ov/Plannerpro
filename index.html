@@ -10732,7 +10732,11 @@ function renderGoals(){
           </div>
           <div style="display:flex;align-items:center;gap:6px">
             ${linked.length?`<span style="font-size:10px;color:var(--text2);font-weight:600">🔗 ${linkedDone.length}/${linked.length}</span>`:''}
-            ${g.deadline?`<div class="goalDl">до ${g.deadline}</div>`:'<div></div>'}
+            ${g.deadline?`<div class="goalDl">до ${g.deadline}</div>`:''}
+            ${allDone
+              ?`<button style="padding:4px 12px;background:linear-gradient(135deg,rgba(15,221,170,.2),rgba(91,149,255,.15));border:1px solid rgba(15,221,170,.4);border-radius:10px;color:var(--green);font-size:10px;font-weight:800;cursor:pointer;letter-spacing:.3px" onclick="_goalAlreadyDone('${g.id}')">✓ Выполнено!</button>`
+              :`<button style="padding:4px 12px;background:rgba(155,143,245,.1);border:1px solid rgba(155,143,245,.3);border-radius:10px;color:var(--p);font-size:10px;font-weight:800;cursor:pointer;transition:all .2s" onmouseover="this.style.background='rgba(155,143,245,.2)'" onmouseout="this.style.background='rgba(155,143,245,.1)'" onclick="_goalAchieve('${g.id}')">🏆 Достиг!</button>`
+            }
           </div>
         </div>
       </div>`;
@@ -11159,6 +11163,128 @@ function _mxDrop(toKey,event){
   const important=toKey==='ui'||toKey==='uni';
   t._matrixUrgent=urgent;t._matrixImportant=important;
   saveD();renderMatrix();
+}
+
+/* ═══════════════════════════════════════════════════
+   GOAL ACHIEVEMENT CELEBRATION
+═══════════════════════════════════════════════════ */
+function _goalAlreadyDone(id){
+  const g=goalsD().find(x=>x.id===id);if(!g)return;
+  _showGoalCelebration(g,false);
+}
+
+async function _goalAchieve(id){
+  const g=goalsD().find(x=>x.id===id);if(!g)return;
+  // Mark all milestones done
+  (g.milestones||[]).forEach(m=>m.done=true);
+  // Mark all linked tasks done
+  tpD().filter(t=>t.goalId===id).forEach(t=>t.done=true);
+  g._achievedAt=dk(new Date());
+  saveD();
+  renderGoals();
+  _showGoalCelebration(g,true);
+}
+
+function _showGoalCelebration(g,isNew){
+  // Confetti burst
+  _launchConfetti();
+
+  // Celebration overlay
+  const ov=document.createElement('div');
+  ov.id='goalCelebOverlay';
+  ov.style.cssText='position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px;background:rgba(5,6,16,.85);backdrop-filter:blur(20px);animation:fadeOverlay .25s ease';
+  const ms=g.milestones||[];
+  const linkedTasks=tpD().filter(t=>t.goalId===g.id);
+  const totalMin=linkedTasks.reduce((s,t)=>s+(t.actualDuration||0),0);
+  const hoursStr=totalMin>=60?`${Math.floor(totalMin/60)}ч ${totalMin%60>0?totalMin%60+'м':''}`:totalMin>0?`${totalMin}м`:'—';
+  const daysWorked=g._achievedAt&&g.deadline
+    ?(Math.ceil((new Date(g._achievedAt)-new Date(g.deadline.replace(/(\d{4})-(\d{2})-(\d{2})/,'$1/$2/$3')))/(1000*60*60*24*-1))||'—')
+    :'—';
+
+  ov.innerHTML=`
+  <div style="background:var(--card);border:1px solid rgba(15,221,170,.3);border-radius:28px;max-width:460px;width:100%;box-shadow:0 0 80px rgba(15,221,170,.15),0 20px 60px rgba(0,0,0,.8);overflow:hidden;animation:celebPop .4s cubic-bezier(.34,1.56,.64,1)">
+
+    <!-- Top gradient banner -->
+    <div style="background:linear-gradient(135deg,rgba(15,221,170,.15),rgba(91,149,255,.1),rgba(155,143,245,.12));padding:32px 28px 24px;text-align:center;position:relative;overflow:hidden">
+      <div style="position:absolute;inset:0;background:repeating-linear-gradient(45deg,transparent,transparent 30px,rgba(255,255,255,.01) 30px,rgba(255,255,255,.01) 31px)"></div>
+      <!-- Trophy emoji with glow -->
+      <div style="font-size:64px;line-height:1;margin-bottom:12px;filter:drop-shadow(0 0 24px rgba(255,215,0,.6));animation:celebBounce 1s ease infinite alternate">🏆</div>
+      <div style="font-family:var(--font-display);font-size:22px;font-weight:900;color:var(--text);letter-spacing:-.5px;margin-bottom:6px">${isNew?'Цель достигнута!':'Уже выполнено!'}</div>
+      <div style="font-size:14px;font-weight:700;color:var(--green);margin-bottom:4px">${esc(g.title)}</div>
+      ${g.why?`<div style="font-size:12px;color:var(--text2);font-style:italic;margin-top:8px;padding:0 20px">"${esc(g.why)}"</div>`:''}
+    </div>
+
+    <!-- Stats -->
+    <div style="padding:20px 24px">
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:20px">
+        ${[
+          {v:ms.length,l:'Шагов пройдено',c:'var(--green)',e:'✅'},
+          {v:linkedTasks.length,l:'Задач выполнено',c:'var(--p)',e:'🔗'},
+          {v:hoursStr,l:'Часов вложено',c:'var(--gold)',e:'⏱'},
+        ].map(s=>`<div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:14px 10px;text-align:center">
+          <div style="font-size:20px;margin-bottom:4px">${s.e}</div>
+          <div style="font-family:var(--font-display);font-size:20px;font-weight:900;color:${s.c};letter-spacing:-.5px;line-height:1">${s.v||'—'}</div>
+          <div style="font-size:9px;color:var(--muted);margin-top:4px;font-weight:700;letter-spacing:.3px">${s.l}</div>
+        </div>`).join('')}
+      </div>
+
+      <!-- Motivational message -->
+      <div style="background:linear-gradient(135deg,rgba(155,143,245,.08),rgba(15,221,170,.06));border:1px solid rgba(155,143,245,.2);border-radius:14px;padding:14px 16px;margin-bottom:18px;text-align:center">
+        <div style="font-size:13px;font-weight:600;color:var(--text);line-height:1.6">${_celebMessage()}</div>
+      </div>
+
+      <!-- Actions -->
+      <div style="display:flex;gap:8px">
+        <button style="flex:1;padding:11px 0;background:rgba(255,255,255,.05);border:1px solid var(--border2);border-radius:12px;color:var(--text2);font-size:12px;font-weight:700;cursor:pointer" onclick="document.getElementById('goalCelebOverlay').remove()">Закрыть</button>
+        <button style="flex:2;padding:11px 0;background:linear-gradient(135deg,var(--p),rgba(91,149,255,.8));border:none;border-radius:12px;color:#fff;font-size:12px;font-weight:800;cursor:pointer;letter-spacing:.2px" onclick="document.getElementById('goalCelebOverlay').remove();openGoalModal(null)">🌱 Новая цель</button>
+      </div>
+    </div>
+  </div>`;
+
+  document.body.appendChild(ov);
+  ov.addEventListener('click',e=>{if(e.target===ov)ov.remove();});
+
+  // Inject keyframes if not present
+  if(!document.getElementById('celebStyles')){
+    const st=document.createElement('style');
+    st.id='celebStyles';
+    st.textContent=`
+    @keyframes celebPop{from{opacity:0;transform:scale(.8) translateY(30px)}to{opacity:1;transform:none}}
+    @keyframes celebBounce{from{transform:translateY(0) rotate(-5deg)}to{transform:translateY(-8px) rotate(5deg)}}
+    @keyframes confettiFall{to{transform:translateY(110vh) rotate(720deg);opacity:0}}`;
+    document.head.appendChild(st);
+  }
+}
+
+function _celebMessage(){
+  const msgs=[
+    'Каждая большая победа — это сумма маленьких шагов. Ты доказал это.',
+    'Цель поставлена. Цель достигнута. Именно так работает дисциплина.',
+    'Это не просто галочка. Это часть тебя, которую ты построил.',
+    'Гордись — большинство людей даже не начинают. Ты дошёл до конца.',
+    'Успех — это привычка. Ты только что укрепил её.',
+  ];
+  return msgs[Math.floor(Math.random()*msgs.length)];
+}
+
+function _launchConfetti(){
+  const colors=['#9b8ff5','#5b95ff','#0fddaa','#f06bb0','#fbbf24','#f87171','#a78bfa'];
+  const count=120;
+  for(let i=0;i<count;i++){
+    setTimeout(()=>{
+      const el=document.createElement('div');
+      const size=Math.random()*10+5;
+      const color=colors[Math.floor(Math.random()*colors.length)];
+      const left=Math.random()*100;
+      const dur=Math.random()*2+2;
+      const delay=Math.random()*1.5;
+      const rot=Math.random()*360;
+      const shape=Math.random()>.5?'50%':'3px';
+      el.style.cssText=`position:fixed;top:-20px;left:${left}vw;width:${size}px;height:${size}px;background:${color};border-radius:${shape};z-index:10000;pointer-events:none;animation:confettiFall ${dur}s ${delay}s ease-in forwards;transform:rotate(${rot}deg)`;
+      document.body.appendChild(el);
+      setTimeout(()=>el.remove(),(dur+delay)*1000+200);
+    },Math.random()*300);
+  }
 }
 
 /* ═══════════════════════════════════════════════════
