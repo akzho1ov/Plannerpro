@@ -1602,6 +1602,8 @@ body.light-mode .tvSwitchBtn.on{color:#fff}
 .goalProgRow{display:flex;justify-content:space-between;font-size:10px;color:var(--muted);margin-bottom:10px;font-weight:600;font-family:var(--font-mono)}
 .goalMsList{display:flex;flex-direction:column;gap:5px;margin-bottom:12px;max-height:110px;overflow-y:auto;padding-right:2px}
 .goalMsList::-webkit-scrollbar{width:3px}.goalMsList::-webkit-scrollbar-thumb{background:rgba(155,143,245,.25);border-radius:4px}
+.goalExpandBtn{transition:background .15s,border-color .15s,color .15s}
+.goalExpandBtn:hover{background:rgba(155,143,245,.1)!important;border-color:rgba(155,143,245,.3)!important;color:var(--p)!important}
 .goalMs{display:flex;align-items:center;gap:8px;font-size:11px;color:var(--text2);padding:4px 0;cursor:pointer}
 .goalMs input{accent-color:var(--purple);cursor:pointer;width:14px;height:14px;flex-shrink:0}
 .goalMs.done{text-decoration:line-through;color:var(--muted);opacity:.7}
@@ -10543,12 +10545,34 @@ function renderGoals(){
       const hz2=GOAL_HORIZONS[g.horizon||'annual']||GOAL_HORIZONS.annual;
       const dl=dlLabel(g.deadline,g.horizon);
       const allDone=ms.length>0&&doneCnt===ms.length;
+
+      // ── Linked tasks stats ──
+      const linked=tpD().filter(t=>t.goalId===g.id);
+      const linkedDone=linked.filter(t=>t.done);
+      const linkedPending=linked.filter(t=>!t.done);
+      const linkedOverdue=linkedPending.filter(t=>t.deadline&&t.deadline<dk(new Date()));
+      const totalMinutes=linked.reduce((s,t)=>s+(t.actualDuration||0),0);
+      const totalHours=totalMinutes>=60?`${Math.floor(totalMinutes/60)}ч ${totalMinutes%60>0?totalMinutes%60+'м':''}`
+        :totalMinutes>0?`${totalMinutes}м`:'—';
+
+      // ── 7-day task activity for sparkbar ──
+      const today=new Date();
+      const spark7=[];
+      for(let i=6;i>=0;i--){const d=new Date(today);d.setDate(d.getDate()-i);const dk2=dk(d);spark7.push(linked.filter(t=>(t.doneDates||[]).includes(dk2)||(t.done&&t.deadline===dk2)).length);}
+      const sparkMax=Math.max(...spark7,1);
+      const dayNames=['Пн','Вт','Ср','Чт','Пт','Сб','Вс'];
+      const todayDow=today.getDay();
+      const orderedDays=[];for(let i=6;i>=0;i--){orderedDays.push(dayNames[(todayDow-i+7)%7]);}
+
       const card=document.createElement('div');card.className='goalCard';
       if(allDone)card.style.cssText='border-color:rgba(15,221,170,.3);box-shadow:0 0 20px rgba(15,221,170,.08)';
 
       const photoHtml=g.photo
-        ?`<div class="goalPhotoStrip"><img class="goalPhotoStripImg" src="${g.photo}" alt="vision" loading="lazy"><div style="position:absolute;inset:0;background:linear-gradient(to bottom,rgba(5,6,14,.1) 0%,rgba(5,6,14,.5) 40%,rgba(5,6,14,.92) 100%)"></div><div style="position:absolute;bottom:12px;left:14px;right:14px"><div class="goalCatBadge" style="background:${color}55;color:#fff;border:1px solid ${color}88;backdrop-filter:blur(8px);margin-bottom:6px;display:inline-block">${esc(g.cat||'')}</div><div class="goalTitle" style="color:#fff;font-size:15px;text-shadow:0 1px 4px rgba(0,0,0,.9),-webkit-line-clamp:2">${esc(g.title)}</div></div></div>`
+        ?`<div class="goalPhotoStrip"><img class="goalPhotoStripImg" src="${g.photo}" alt="vision" loading="lazy"><div style="position:absolute;inset:0;background:linear-gradient(to bottom,rgba(5,6,14,.1) 0%,rgba(5,6,14,.5) 40%,rgba(5,6,14,.92) 100%)"></div><div style="position:absolute;bottom:12px;left:14px;right:14px"><div class="goalCatBadge" style="background:${color}55;color:#fff;border:1px solid ${color}88;backdrop-filter:blur(8px);margin-bottom:6px;display:inline-block">${esc(g.cat||'')}</div><div class="goalTitle" style="color:#fff;font-size:15px;text-shadow:0 1px 4px rgba(0,0,0,.9)">${esc(g.title)}</div></div></div>`
         :`<div class="goalPhotoStripEmpty"><div class="goalNoPhotoOverlay"><span>${goalCatEmoji(g.cat)}</span></div></div>`;
+
+      // ── Upcoming tasks (next 3 undone) ──
+      const upcoming=linkedPending.filter(t=>t.deadline).sort((a,b)=>a.deadline<b.deadline?-1:1).slice(0,3);
 
       card.innerHTML=`
       <div style="position:relative">${photoHtml}
@@ -10567,13 +10591,71 @@ function renderGoals(){
         <div class="goalProg"><div class="goalProgFill" style="width:${pct}%;${allDone?'background:linear-gradient(90deg,var(--green),var(--cyan));':''}"></div></div>
         <div class="goalProgRow"><span>${doneCnt} из ${ms.length} шагов</span><span style="${allDone?'color:var(--green)':''}"><b>${pct}%</b></span></div>
         ${ms.length?`<div class="goalMsList">${ms.map((m,i)=>`<label class="goalMs${m.done?' done':''}"><input type="checkbox" ${m.done?'checked':''} onchange="toggleMs('${g.id}',${i},this.checked)">${esc(m.text)}</label>`).join('')}</div>`:''}
+
+        <!-- ── Expand toggle ── -->
+        <button class="goalExpandBtn" onclick="_toggleGoalPanel(this,'gpanel-${g.id}')" style="width:100%;display:flex;align-items:center;justify-content:center;gap:6px;padding:7px 0;margin:8px 0 0;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:10px;cursor:pointer;color:var(--muted);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;transition:all .15s">
+          <span style="font-size:14px;transition:transform .2s" class="gepArrow">▾</span>
+          <span class="gepLabel">Аналитика</span>
+          ${linked.length?`<span style="background:rgba(155,143,245,.15);color:var(--p);padding:1px 8px;border-radius:20px;font-size:9px">${linked.length} задач</span>`:''}
+        </button>
+
+        <!-- ── Analytics panel (hidden by default) ── -->
+        <div id="gpanel-${g.id}" style="display:none;margin-top:2px">
+
+          <!-- Stats row -->
+          <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:12px">
+            ${[
+              {v:linked.length,l:'Задач всего',c:'var(--text2)'},
+              {v:linkedDone.length,l:'Выполнено',c:'var(--green)'},
+              {v:linkedOverdue.length,l:'Просрочено',c:linkedOverdue.length?'var(--red)':'var(--muted)'},
+              {v:totalHours,l:'Часов потрачено',c:'var(--gold)'},
+            ].map(s=>`<div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:10px;padding:9px 8px;text-align:center">
+              <div style="font-family:var(--font-display);font-size:17px;font-weight:800;color:${s.c};letter-spacing:-.5px;line-height:1">${s.v}</div>
+              <div style="font-size:9px;color:var(--muted);margin-top:3px;font-weight:600;letter-spacing:.2px">${s.l}</div>
+            </div>`).join('')}
+          </div>
+
+          <!-- Sparkbar 7 days -->
+          ${linked.length?`<div style="margin-bottom:12px">
+            <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);margin-bottom:6px">Активность за 7 дней</div>
+            <div style="display:flex;align-items:flex-end;gap:3px;height:32px">
+              ${spark7.map((v,i)=>`<div style="flex:1;border-radius:3px 3px 0 0;background:${v>0?'rgba(155,143,245,'+(0.3+v/sparkMax*0.7)+')':'rgba(255,255,255,.05)'};height:${v>0?Math.max(20,Math.round(v/sparkMax*100))+'%':'15%'};transition:.3s" title="${orderedDays[i]}: ${v} задач"></div>`).join('')}
+            </div>
+            <div style="display:flex;justify-content:space-between;font-size:9px;color:var(--muted);margin-top:3px;font-family:var(--font-mono)">
+              ${orderedDays.map(d=>`<span>${d}</span>`).join('')}
+            </div>
+          </div>`:''}
+
+          <!-- Upcoming tasks -->
+          ${linked.length?`<div style="margin-bottom:10px">
+            <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);margin-bottom:6px">Связанные задачи</div>
+            <div style="display:flex;flex-direction:column;gap:4px">
+              ${linked.slice(0,5).map(t=>{
+                const isOverdue=!t.done&&t.deadline&&t.deadline<dk(new Date());
+                const idx=tpD().indexOf(t);
+                return`<div style="display:flex;align-items:center;gap:8px;padding:6px 8px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:8px;cursor:pointer" onclick="openTaskModal(${idx})">
+                  <div style="width:12px;height:12px;border-radius:3px;flex-shrink:0;background:${t.done?'var(--green)':'rgba(255,255,255,.1)'};border:1px solid ${t.done?'var(--green)':isOverdue?'var(--red)':'rgba(255,255,255,.15)'};display:flex;align-items:center;justify-content:center">
+                    ${t.done?'<svg width="8" height="8" viewBox="0 0 8 8"><path d="M1 4l2 2 4-4" stroke="#000" stroke-width="1.5" fill="none" stroke-linecap="round"/></svg>':''}
+                  </div>
+                  <span style="font-size:11px;font-weight:500;color:${t.done?'var(--muted)':'var(--text)'};flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;${t.done?'text-decoration:line-through;':''}">${esc(t.text)}</span>
+                  ${t.deadline?`<span style="font-size:9px;color:${isOverdue?'var(--red)':t.done?'var(--muted)':'var(--text2)'};font-family:var(--font-mono);flex-shrink:0">${t.deadline.slice(5)}</span>`:''}
+                  ${t.actualDuration?`<span style="font-size:9px;color:var(--gold);flex-shrink:0">⏱${t.actualDuration}м</span>`:''}
+                </div>`;
+              }).join('')}
+              ${linked.length>5?`<div style="font-size:10px;color:var(--muted);text-align:center;padding:4px;cursor:pointer" onclick="navigateTo('tasks')">+${linked.length-5} ещё задач →</div>`:''}
+              ${linked.length===0?`<div style="font-size:11px;color:var(--muted);text-align:center;padding:12px 0">Нет задач — <span style="color:var(--p);cursor:pointer" onclick="openTaskModal(null)">добавить</span></div>`:''}
+            </div>
+          </div>
+          <button onclick="openTaskModal(null);setTimeout(()=>{const s=document.getElementById('tm-goalLink');if(s){s.value='${g.id}';}},150)" style="width:100%;padding:5px 0;background:rgba(155,143,245,.08);border:1px solid rgba(155,143,245,.2);border-radius:8px;color:var(--p);font-size:10px;font-weight:700;cursor:pointer;margin-bottom:2px">+ Добавить задачу к цели</button>`:'<div style="font-size:11px;color:var(--muted);text-align:center;padding:12px 0">Нет связанных задач<br><span style="color:var(--p);cursor:pointer;font-weight:600" onclick="openTaskModal(null)">+ Добавить</span></div>'}
+        </div>
+
         <div class="goalCardFoot">
           <div style="display:flex;gap:6px">
             <button class="btn btnG" style="padding:4px 10px;font-size:10px" onclick="openGoalModal('${g.id}')">✏️ Изменить</button>
             <button class="goalDelBtn" onclick="delGoal('${g.id}')">🗑️</button>
           </div>
           <div style="display:flex;align-items:center;gap:6px">
-            ${(()=>{const linked=tpD().filter(t=>t.goalId===g.id);const doneL=linked.filter(t=>t.done).length;return linked.length?`<span style="font-size:10px;color:var(--text2);font-weight:600">🔗 ${doneL}/${linked.length} задач</span>`:''})()}
+            ${linked.length?`<span style="font-size:10px;color:var(--text2);font-weight:600">🔗 ${linkedDone.length}/${linked.length}</span>`:''}
             ${g.deadline?`<div class="goalDl">до ${g.deadline}</div>`:'<div></div>'}
           </div>
         </div>
@@ -10731,6 +10813,19 @@ async function saveGoal(){
   if(goalEditId){const idx=goalsD().findIndex(x=>x.id===goalEditId);if(idx>=0)goalsD()[idx]={...goalsD()[idx],...data};}
   else{goalsD().push({...data,id:goalId});}
   saveD(); closeGoalModal(); renderGoals();
+}
+
+function _toggleGoalPanel(btn,panelId){
+  const panel=document.getElementById(panelId);if(!panel)return;
+  const open=panel.style.display!=='none';
+  panel.style.display=open?'none':'block';
+  const arrow=btn.querySelector('.gepArrow');
+  const label=btn.querySelector('.gepLabel');
+  if(arrow)arrow.style.transform=open?'rotate(0)':'rotate(180deg)';
+  if(label)label.textContent=open?'Аналитика':'Свернуть';
+  btn.style.background=open?'rgba(255,255,255,.03)':'rgba(155,143,245,.08)';
+  btn.style.borderColor=open?'rgba(255,255,255,.07)':'rgba(155,143,245,.25)';
+  btn.style.color=open?'var(--muted)':'var(--p)';
 }
 
 async function delGoal(id){if(!await appConfirm('Удалить цель?'))return;const i=goalsD().findIndex(x=>x.id===id);if(i>=0){goalsD().splice(i,1);saveD();renderGoals()}}
