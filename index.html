@@ -10735,23 +10735,24 @@ function toggleMs(gid,idx,c){const g=goalsD().find(x=>x.id===gid);if(g&&g.milest
 let _matrixShowDone=false;
 
 function _matrixQuadrant(t){
-  // urgent: deadline within 3 days or today
-  const today=new Date();
-  let urgent=false,important=false;
+  // ── URGENCY — pure time-pressure signal (overdue, today, tomorrow) ──
+  // Date-only comparison: a deadline of "today" must read as "due today", not "overdue".
+  let urgent=false,daysLeft=null;
   if(t.deadline){
     const dl=new Date(t.deadline+'T00:00:00');
-    const diff=Math.ceil((dl-today)/(1000*60*60*24));
-    if(diff<=3&&diff>=0)urgent=true;
-    if(diff<0)urgent=true; // overdue = urgent
+    daysLeft=Math.round((dl-t0())/86400000);
+    urgent=daysLeft<=1; // overdue, due today, or due tomorrow
   }
-  // important: based on labelIds that have "важн"/"important" in name, or no deadline but has goal
+  // ── IMPORTANCE — strategic weight, independent of timing ──
+  // A deadline alone says nothing about importance — that was the bug collapsing
+  // almost every task into "Сделай сам". Importance now comes only from explicit signals:
+  // a goal link, a high-priority flag, or a label explicitly marked as important.
+  let important=false;
   const lbls=t.labelIds||[];
   const allLbls=(G.labelGroups||[]).flatMap(g=>g.labels||[]);
-  if(lbls.some(id=>{const l=allLbls.find(x=>x.id===id);return l&&/(важн|priorit|high|crit|срочн)/i.test(l.name);}))important=true;
+  if(lbls.some(id=>{const l=allLbls.find(x=>x.id===id);return l&&/(важн|priorit|high|crit)/i.test(l.name);}))important=true;
   if(t.goalId)important=true;
-  if(t.priority==='high'||t.priority==='critical')important=true;
-  // fallback heuristics: tasks with deadline = more important
-  if(t.deadline&&!important)important=true;
+  if(t.priority===1)important=true; // числовой приоритет: 1=высокий,2=средний(по умолч.),3=низкий
   return{urgent,important};
 }
 
@@ -10790,7 +10791,17 @@ function renderMatrix(){
 
   const renderCard=(item,fromKey)=>{
     const {t,i}=item;
-    const overdue=t.deadline&&new Date(t.deadline+'T00:00:00')<new Date()&&!t.done;
+    let dlMeta='';
+    if(t.deadline){
+      const daysLeft=Math.round((new Date(t.deadline+'T00:00:00')-t0())/86400000);
+      const overdue=daysLeft<0&&!t.done;
+      const label=overdue?`Просрочено на ${Math.abs(daysLeft)} дн.`
+        :daysLeft===0?'Сегодня'
+        :daysLeft===1?'Завтра'
+        :daysLeft<=6?`Через ${daysLeft} дн.`
+        :t.deadline;
+      dlMeta=`<div class="mxCardMeta ${overdue?'mxOverdue':daysLeft===0?'mxDueToday':''}">${overdue?'⚠️ ':daysLeft===0?'📌 ':''}${label}</div>`;
+    }
     const lblColor=(t.labelIds||[]).length?(()=>{const l=(G.labelGroups||[]).flatMap(g=>g.labels||[]).find(x=>x.id===t.labelIds[0]);return l?.color||'var(--muted)';})():'transparent';
     return`<div class="mxCard ${t.done?'mxDone':''}" draggable="true"
       ondragstart="event.dataTransfer.setData('text/plain','${i}|${fromKey}')"
@@ -10800,7 +10811,7 @@ function renderMatrix(){
         <div class="mxCardText">${esc(t.text)}</div>
         <input type="checkbox" class="mxCheck" ${t.done?'checked':''} onclick="event.stopPropagation();tpD()[${i}].done=this.checked;saveD();renderMatrix()" style="accent-color:var(--p);width:14px;height:14px;flex-shrink:0;cursor:pointer">
       </div>
-      ${t.deadline?`<div class="mxCardMeta ${overdue?'mxOverdue':''}">${overdue?'⚠️ ':''} ${t.deadline}</div>`:''}
+      ${dlMeta}
       ${t.goalId?`<div class="mxCardMeta" style="color:var(--p)">🎯 ${esc((goalsD().find(g=>g.id===t.goalId)||{}).title||'').slice(0,28)}</div>`:''}
     </div>`;
   };
@@ -10829,6 +10840,7 @@ function renderMatrix(){
   .mxCardText{font-size:12px;font-weight:500;color:var(--text);flex:1;line-height:1.4;word-break:break-word}
   .mxCardMeta{font-size:10px;color:var(--muted);margin-top:4px;padding-left:13px;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
   .mxOverdue{color:var(--red)!important;font-weight:700}
+  .mxDueToday{color:var(--gold)!important;font-weight:700}
   .mxCheck{margin-top:0;flex-shrink:0}
   .mxEmpty{text-align:center;font-size:11px;color:var(--muted);opacity:.5}
   .mxTip{font-size:10px;color:var(--muted);margin-top:8px;padding:5px 8px;background:rgba(255,255,255,.025);border-radius:7px;line-height:1.5;font-style:italic;flex-shrink:0}
