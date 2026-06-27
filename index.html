@@ -1981,6 +1981,30 @@ body.light-mode .db-num{color:var(--text)}
 .shCell.s4{background:var(--pink);border-color:rgba(0,0,0,.3)}
 /* Dashboard heatmap grid override */
 #streakHeatmap.grid-mode .shCell{border-radius:2px}
+.pomHeatmap{
+  display:grid;
+  grid-auto-flow:column;
+  gap:2px;
+  margin-top:0;
+  width:100%;
+  isolation:isolate;
+}
+.pomCell{
+  min-width:0;
+  height:12px;
+  border-radius:2px;
+  background:rgba(255,255,255,.07);
+  border:1px solid rgba(0,0,0,.45);
+  cursor:default;
+  box-sizing:border-box;
+  display:block;
+  transition:transform .1s;
+}
+.pomCell:hover{transform:scale(1.2);z-index:10;border-color:rgba(255,255,255,.3);position:relative}
+.pomCell.p1{background:rgba(155,143,245,.25);border-color:rgba(0,0,0,.5)}
+.pomCell.p2{background:rgba(155,143,245,.48);border-color:rgba(0,0,0,.4)}
+.pomCell.p3{background:rgba(155,143,245,.7);border-color:rgba(0,0,0,.35)}
+.pomCell.p4{background:var(--p);border-color:rgba(0,0,0,.3)}
 
 /* ══════════════════════════════
    REWARD SYSTEM
@@ -3132,6 +3156,8 @@ body.light-mode .skel{background:linear-gradient(90deg,var(--card2) 25%,#f0f2f7 
   .moodTlBar{width:8px}
   .streakHeatmap{gap:2px;isolation:isolate}
   .shCell{}
+  .pomHeatmap{gap:2px;isolation:isolate}
+  .pomCell{}
 
   /* ── Principles grid ── */
   .princGrid{grid-template-columns:1fr}
@@ -3820,10 +3846,56 @@ body.light-mode .skel{background:linear-gradient(90deg,var(--card2) 25%,#f0f2f7 
     </div>
 
     <!-- Pomodoro heatmap -->
-    <div class="dashCard" style="overflow:auto">
-      <div class="db-card-label">🍅 Фокус — активность</div>
-      <div style="font-size:9.5px;color:var(--muted);margin-bottom:10px">Минуты концентрации · 18 недель</div>
-      <div id="pomHeatmapBlock" style="overflow-x:auto"></div>
+    <div class="dashCard dashGrowthCard" id="pomHeatmapCard" style="position:relative;overflow:hidden">
+      <div style="position:absolute;inset:0;background:linear-gradient(135deg,rgba(155,143,245,.07) 0%,rgba(91,149,255,.03) 50%,transparent 80%);pointer-events:none;border-radius:inherit"></div>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;position:relative">
+        <div>
+          <div class="db-card-label" style="margin-bottom:2px">🍅 Фокус — активность</div>
+          <div style="font-size:9.5px;color:var(--muted)" id="pomHeatmapSubLbl">Минуты концентрации · 18 недель</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:3px">
+          <span style="font-size:8px;color:var(--muted)">меньше</span>
+          <div style="width:8px;height:8px;border-radius:2px;background:var(--border)"></div>
+          <div style="width:8px;height:8px;border-radius:2px;background:rgba(155,143,245,.25)"></div>
+          <div style="width:8px;height:8px;border-radius:2px;background:rgba(155,143,245,.48)"></div>
+          <div style="width:8px;height:8px;border-radius:2px;background:rgba(155,143,245,.7)"></div>
+          <div style="width:8px;height:8px;border-radius:2px;background:var(--p)"></div>
+          <span style="font-size:8px;color:var(--muted)">больше</span>
+        </div>
+      </div>
+      <div style="display:flex;gap:4px;align-items:flex-start;position:relative">
+        <div style="display:flex;flex-direction:column;gap:2px;flex-shrink:0;padding-top:17px">
+          <div style="font-size:7px;color:var(--muted);font-weight:700;height:12px;line-height:12px">Пн</div>
+          <div style="height:12px"></div>
+          <div style="font-size:7px;color:var(--muted);font-weight:700;height:12px;line-height:12px">Ср</div>
+          <div style="height:12px"></div>
+          <div style="font-size:7px;color:var(--muted);font-weight:700;height:12px;line-height:12px">Пт</div>
+          <div style="height:12px"></div>
+          <div style="font-size:7px;color:var(--p);font-weight:700;height:12px;line-height:12px">Вс</div>
+        </div>
+        <div style="flex:1;min-width:0">
+          <div id="pomHeatmapMonthLabels" style="margin-bottom:3px"></div>
+          <div class="pomHeatmap" id="pomHeatmapBlock"></div>
+        </div>
+        <!-- Right stats panel -->
+        <div style="display:flex;flex-direction:column;gap:8px;flex-shrink:0;min-width:72px">
+          <div style="background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:8px;text-align:center">
+            <div style="font-size:7px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;font-weight:700;margin-bottom:3px">Стрик</div>
+            <div style="font-family:var(--font-display);font-size:18px;font-weight:800;color:var(--p);line-height:1" id="pomHmStreakVal">0</div>
+            <div style="font-size:7px;color:var(--muted);margin-top:2px">дней</div>
+          </div>
+          <div style="background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:8px;text-align:center">
+            <div style="font-size:7px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;font-weight:700;margin-bottom:3px">Лучший</div>
+            <div style="font-family:var(--font-display);font-size:18px;font-weight:800;color:var(--gold);line-height:1" id="pomHmBestVal">0</div>
+            <div style="font-size:7px;color:var(--muted);margin-top:2px">мин</div>
+          </div>
+          <div style="background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:8px;text-align:center">
+            <div style="font-size:7px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;font-weight:700;margin-bottom:3px">Всего</div>
+            <div style="font-family:var(--font-display);font-size:18px;font-weight:800;color:var(--cyan);line-height:1" id="pomHmTotalVal">0</div>
+            <div style="font-size:7px;color:var(--muted);margin-top:2px">мин</div>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -10730,7 +10802,7 @@ function renderMatrix(){
 
   root.innerHTML=`
   <style>
-  .mxGrid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px;align-items:start}
+  .mxGrid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px;align-items:start;flex:1;min-width:0;width:100%}
   .mxAxisY{display:flex;flex-direction:column;align-items:center;justify-content:center;writing-mode:vertical-rl;font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:1.2px;color:var(--muted);padding:0 4px;flex-shrink:0;user-select:none}
   .mxAxisX{display:flex;justify-content:space-around;font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:var(--muted);padding:4px 0 0;margin-bottom:4px;margin-left:20px;user-select:none}
   .mxWrap{display:flex;gap:2px}
@@ -11708,9 +11780,14 @@ function renderDashInsights(){
 function renderPomHeatmap(){
   const el=document.getElementById('pomHeatmapBlock');
   if(!el)return;
+  const MN_SHORT=['янв','фев','мар','апр','май','июн','июл','авг','сен','окт','ноя','дек'];
   const sessions=pomD?pomD().sessions:[];
-  const weeks=18; // ~4 месяца
+  const WEEKS=18,GAP=2,ROW=12;
+  const TOTAL=WEEKS*7;
   const today=t0();
+  const todayDow=today.getDay();
+  const daysToMon=todayDow===0?6:todayDow-1;
+
   // Build day map: date -> minutes
   const dayMap={};
   sessions.filter(s=>s.mode==='work').forEach(s=>{
@@ -11718,63 +11795,64 @@ function renderPomHeatmap(){
   });
   const maxMin=Math.max(...Object.values(dayMap),1);
 
-  function getColor(min){
-    if(!min)return 'var(--border)';
-    const pct=min/maxMin;
-    if(pct<0.25)return 'rgba(155,143,245,0.2)';
-    if(pct<0.5) return 'rgba(155,143,245,0.45)';
-    if(pct<0.75)return 'rgba(155,143,245,0.7)';
-    return 'var(--p)';
-  }
-
-  // Start from Monday weeks ago
   const startDate=new Date(today);
-  startDate.setDate(startDate.getDate()-(weeks*7-1));
-  // Align to Monday
-  const dow=startDate.getDay();
-  const offset=dow===0?-6:1-dow;
-  startDate.setDate(startDate.getDate()+offset);
+  startDate.setDate(today.getDate()-daysToMon-(WEEKS-1)*7);
 
-  const dayLabels=['','Пн','','Ср','','Пт',''];
-  const monthsSeen=[];
-
-  let gridHTML='<div style="display:flex;gap:3px">';
-  // Day labels column
-  gridHTML+='<div style="display:flex;flex-direction:column;gap:2px;padding-top:18px">';
-  dayLabels.forEach(l=>`${gridHTML+='<div style="height:12px;font-size:8px;color:var(--muted);line-height:12px;text-align:right;padding-right:4px;min-width:16px">'+(l)+'</div>'}`);
-  gridHTML+='</div>';
-
-  for(let w=0;w<weeks;w++){
-    gridHTML+='<div style="display:flex;flex-direction:column;gap:2px">';
-    // Month label on top
-    const firstDay=new Date(startDate);firstDay.setDate(firstDay.getDate()+w*7);
-    const monthKey=firstDay.getFullYear()+'-'+firstDay.getMonth();
-    const monthLabel=(!monthsSeen.includes(monthKey)&&firstDay.getDate()<=7)?
-      ['Янв','Фев','Мар','Апр','Май','Июн','Июл','Авг','Сен','Окт','Ноя','Дек'][firstDay.getMonth()]:'';
-    monthsSeen.push(monthKey);
-    gridHTML+=`<div style="height:14px;font-size:8px;color:var(--muted);text-align:center;line-height:14px">${monthLabel}</div>`;
-
-    for(let d=0;d<7;d++){
-      const date=new Date(startDate);date.setDate(date.getDate()+w*7+d);
-      if(date>today){gridHTML+='<div style="width:12px;height:12px"></div>';continue;}
-      const k=dk(date);
-      const min=dayMap[k]||0;
-      const color=getColor(min);
-      const isToday=k===dk(today);
-      gridHTML+=`<div style="width:12px;height:12px;border-radius:2px;background:${color};${isToday?'outline:1.5px solid var(--p);outline-offset:1px;':''}" title="${k}: ${min?min+'мин':'нет активности'}"></div>`;
-    }
-    gridHTML+='</div>';
+  // Build cells (Monday-first, matching habit heatmap)
+  const cells=[];
+  let totalMin=0,bestMin=0;
+  for(let i=0;i<TOTAL;i++){
+    const d=new Date(startDate);d.setDate(startDate.getDate()+i);
+    const isFuture=d>today;
+    if(isFuture){cells.push({d,level:-1,min:0,isToday:false,isFuture:true});continue;}
+    const k=dk(d);
+    const min=dayMap[k]||0;
+    if(min>bestMin)bestMin=min;
+    totalMin+=min;
+    const pct=min/maxMin;
+    const level=min===0?0:pct<0.25?1:pct<0.5?2:pct<0.75?3:4;
+    const isToday=k===dk(today);
+    cells.push({d,level,min,isToday,isFuture:false});
   }
-  gridHTML+='</div>';
 
-  // Legend
-  gridHTML+=`<div style="display:flex;align-items:center;gap:5px;margin-top:8px;justify-content:flex-end">
-    <span style="font-size:9px;color:var(--muted)">меньше</span>
-    ${['var(--border)','rgba(155,143,245,0.2)','rgba(155,143,245,0.45)','rgba(155,143,245,0.7)','var(--p)'].map(c=>`<div style="width:10px;height:10px;border-radius:2px;background:${c}"></div>`).join('')}
-    <span style="font-size:9px;color:var(--muted)">больше</span>
-  </div>`;
+  // Render grid — fixed weeks count, CSS grid 1fr fills available width automatically
+  el.style.cssText=`display:grid;grid-template-columns:repeat(${WEEKS},1fr);grid-template-rows:repeat(7,${ROW}px);grid-auto-flow:column;gap:${GAP}px;width:100%;isolation:isolate;`;
+  let html='';
+  cells.forEach(c=>{
+    if(c.isFuture){html+=`<div class="pomCell" style="opacity:.2"></div>`;return;}
+    const todayStyle=c.isToday?'box-shadow:0 0 0 2px rgba(155,143,245,.9),inset 0 0 0 1px rgba(155,143,245,.3);z-index:1;position:relative;':'';
+    const tooltip=`${c.d.toLocaleDateString('ru-RU',{weekday:'short',day:'numeric',month:'short'})} — ${c.min?c.min+' мин':'нет активности'}`;
+    html+=`<div class="pomCell${c.level>0?' p'+c.level:''}" style="${todayStyle}" title="${tooltip}"></div>`;
+  });
+  el.innerHTML=html;
 
-  el.innerHTML=gridHTML;
+  // Month labels
+  const lblEl=document.getElementById('pomHeatmapMonthLabels');
+  if(lblEl){
+    const weekLabels=Array.from({length:WEEKS},(_,wi)=>{
+      const mon=new Date(startDate);mon.setDate(startDate.getDate()+wi*7);
+      const prevMon=wi>0?new Date(startDate):null;if(prevMon)prevMon.setDate(startDate.getDate()+(wi-1)*7);
+      const isNewMonth=wi===0||mon.getMonth()!==(prevMon?.getMonth());
+      return isNewMonth?MN_SHORT[mon.getMonth()]:'';
+    });
+    lblEl.style.cssText=`display:grid;grid-template-columns:repeat(${WEEKS},1fr);gap:${GAP}px;margin-bottom:3px;width:100%;`;
+    lblEl.innerHTML=weekLabels.map(l=>`<div style="font-size:7.5px;color:var(--muted);font-weight:700;text-align:center;white-space:nowrap;overflow:hidden">${l}</div>`).join('');
+  }
+
+  // ── Stats panel ──
+  // Streak: consecutive days (back from today) with any focus minutes
+  let streak=0;
+  for(let i=0;i<365;i++){
+    const d=new Date(today);d.setDate(d.getDate()-i);
+    if(dayMap[dk(d)])streak++;else break;
+  }
+  const streakEl=document.getElementById('pomHmStreakVal');if(streakEl)streakEl.textContent=streak;
+  const bestEl=document.getElementById('pomHmBestVal');if(bestEl)bestEl.textContent=bestMin;
+  const totalEl=document.getElementById('pomHmTotalVal');if(totalEl)totalEl.textContent=totalMin>=1000?(totalMin/1000).toFixed(1)+'k':totalMin;
+
+  // Sub label
+  const subLbl=document.getElementById('pomHeatmapSubLbl');
+  if(subLbl)subLbl.textContent=`Минуты концентрации · ${WEEKS} недель`;
 }
 
 function drawDashHabChart(){
