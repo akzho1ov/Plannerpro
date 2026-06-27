@@ -10730,36 +10730,38 @@ function renderMatrix(){
 
   root.innerHTML=`
   <style>
-  .mxGrid{display:grid;grid-template-columns:1fr 1fr;grid-template-rows:auto auto;gap:12px;margin-bottom:16px}
-  .mxAxisY{display:flex;flex-direction:column;align-items:center;justify-content:center;writing-mode:vertical-rl;font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:1.2px;color:var(--muted);gap:0;padding:0 6px;flex-shrink:0}
-  .mxAxisX{display:flex;justify-content:space-around;font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:var(--muted);padding:4px 0 0;margin-bottom:4px;margin-left:24px}
-  .mxWrap{display:flex;gap:4px}
-  .mxQuad{border:1px solid var(--border);border-radius:18px;padding:14px;min-height:200px;transition:border-color .2s,box-shadow .2s}
+  .mxGrid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px;align-items:start}
+  .mxAxisY{display:flex;flex-direction:column;align-items:center;justify-content:center;writing-mode:vertical-rl;font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:1.2px;color:var(--muted);padding:0 4px;flex-shrink:0;user-select:none}
+  .mxAxisX{display:flex;justify-content:space-around;font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:var(--muted);padding:4px 0 0;margin-bottom:4px;margin-left:20px;user-select:none}
+  .mxWrap{display:flex;gap:2px}
+  .mxQuad{border:1px solid var(--border);border-radius:16px;padding:12px 14px;transition:border-color .2s,box-shadow .2s}
   .mxQuad.drag-over{border-color:var(--p)!important;box-shadow:0 0 0 2px var(--pglow2)}
-  .mxQuadHead{display:flex;align-items:center;gap:8px;margin-bottom:10px}
-  .mxQuadIcon{font-size:18px;line-height:1}
-  .mxQuadLabel{font-size:12px;font-weight:800;font-family:var(--font-display)}
-  .mxQuadSub{font-size:10px;color:var(--muted);margin-top:1px}
-  .mxQuadCount{margin-left:auto;font-size:10px;font-weight:700;font-family:var(--font-mono);padding:2px 8px;border-radius:20px;background:rgba(255,255,255,.06)}
-  .mxCard{background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:9px 10px;margin-bottom:7px;cursor:pointer;transition:border-color .15s,transform .1s,opacity .2s;user-select:none}
+  .mxQuadHead{display:flex;align-items:center;gap:8px;margin-bottom:8px;padding-bottom:8px;border-bottom:1px solid rgba(255,255,255,.05)}
+  .mxQuadIcon{font-size:16px;line-height:1}
+  .mxQuadLabel{font-size:12px;font-weight:800;font-family:var(--font-display);letter-spacing:-.2px}
+  .mxQuadSub{font-size:9px;color:var(--muted);margin-top:1px;font-weight:600;letter-spacing:.3px}
+  .mxQuadCount{margin-left:auto;font-size:11px;font-weight:800;font-family:var(--font-mono);padding:2px 8px;border-radius:20px;background:rgba(255,255,255,.06);flex-shrink:0}
+  .mxCards{display:flex;flex-direction:column;gap:5px}
+  .mxCard{background:var(--card2);border:1px solid var(--border);border-radius:9px;padding:8px 10px;cursor:pointer;transition:border-color .15s,transform .1s,opacity .2s;user-select:none}
   .mxCard:hover{border-color:var(--border2);transform:translateY(-1px)}
   .mxCard[draggable]:active{opacity:.6;transform:scale(.97)}
-  .mxDone{opacity:.45}
+  .mxDone{opacity:.4}
   .mxCardTop{display:flex;align-items:flex-start;gap:7px}
-  .mxCardDot{width:7px;height:7px;border-radius:50%;flex-shrink:0;margin-top:3px}
+  .mxCardDot{width:6px;height:6px;border-radius:50%;flex-shrink:0;margin-top:4px}
   .mxCardText{font-size:12px;font-weight:500;color:var(--text);flex:1;line-height:1.4;word-break:break-word}
-  .mxCardMeta{font-size:10px;color:var(--muted);margin-top:5px;padding-left:14px}
-  .mxOverdue{color:var(--red)!important}
-  .mxCheck{margin-top:1px}
-  .mxEmpty{text-align:center;padding:24px 0;font-size:12px;color:var(--muted);opacity:.6}
-  .mxTip{font-size:10px;color:var(--muted);margin-top:8px;padding:6px 8px;background:rgba(255,255,255,.03);border-radius:8px;line-height:1.4}
+  .mxCardMeta{font-size:10px;color:var(--muted);margin-top:4px;padding-left:13px;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+  .mxOverdue{color:var(--red)!important;font-weight:700}
+  .mxCheck{margin-top:0;flex-shrink:0}
+  .mxEmpty{text-align:center;padding:20px 0;font-size:11px;color:var(--muted);opacity:.5}
+  .mxTip{font-size:10px;color:var(--muted);margin-top:8px;padding:5px 8px;background:rgba(255,255,255,.025);border-radius:7px;line-height:1.5;font-style:italic}
+  .mxDivider{display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:var(--muted);padding:6px 0;opacity:.5;user-select:none}
   </style>
   <div class="mxAxisX"><span>◀ Не срочно</span><span>Срочно ▶</span></div>
   <div class="mxWrap">
-    <div class="mxAxisY"><span>▲ Важно</span><span>Не важно ▼</span></div>
+    <div class="mxAxisY"><span style="transform:rotate(180deg)">▼ Не важно</span><span>▲ Важно</span></div>
     <div class="mxGrid">
       ${quadDefs.map(q=>`
-      <div class="mxQuad" id="mxQ-${q.key}" style="background:${q.bg};border-color:rgba(255,255,255,.08)"
+      <div class="mxQuad" id="mxQ-${q.key}" style="background:${q.bg};border-color:rgba(255,255,255,.06)"
         ondragover="event.preventDefault();document.getElementById('mxQ-${q.key}').classList.add('drag-over')"
         ondragleave="document.getElementById('mxQ-${q.key}').classList.remove('drag-over')"
         ondrop="event.preventDefault();document.getElementById('mxQ-${q.key}').classList.remove('drag-over');_mxDrop('${q.key}',event)">
@@ -10771,10 +10773,12 @@ function renderMatrix(){
           </div>
           <span class="mxQuadCount" style="color:${q.color}">${quads[q.key].length}</span>
         </div>
-        <div id="mxCards-${q.key}">
-          ${quads[q.key].length?quads[q.key].map(item=>renderCard(item,q.key)).join(''):`<div class="mxEmpty">Нет задач</div>`}
+        <div class="mxCards" id="mxCards-${q.key}">
+          ${quads[q.key].length
+            ? quads[q.key].map(item=>renderCard(item,q.key)).join('')
+            : `<div class="mxEmpty">—</div>`}
         </div>
-        <div class="mxTip">${q.tip}</div>
+        ${quads[q.key].length===0?`<div class="mxTip">${q.tip}</div>`:''}
       </div>`).join('')}
     </div>
   </div>`;
@@ -11567,36 +11571,36 @@ function renderDash(){
 function _renderFocusNow(){
   const el=document.getElementById('dashFocusNow');if(!el)return;
   const todK=dk(t0());
-  // Get urgent undone tasks: overdue + due today, sorted by deadline
   const urgent=tpD().filter(t=>!t.done&&t.deadline&&t.deadline<=todK)
     .sort((a,b)=>a.deadline<b.deadline?-1:1)
     .slice(0,3);
   if(!urgent.length){el.innerHTML='';return;}
   const allLbls=(G.labelGroups||[]).flatMap(g=>g.labels||[]);
-  el.innerHTML=`<div style="background:linear-gradient(135deg,rgba(240,80,80,.07),rgba(240,107,176,.04));border:1px solid rgba(240,80,80,.2);border-radius:18px;padding:16px 18px">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
-      <div style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:var(--red)">🎯 Что делать прямо сейчас</div>
-      <span style="font-size:10px;color:var(--muted)">${urgent.length} срочных</span>
+  const colors=['var(--red)','var(--gold)','var(--p)'];
+  const icons=['🔴','🟠','🟡'];
+  el.innerHTML=`<div style="margin-bottom:14px">
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+      <span style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:var(--red)">🎯 Что делать прямо сейчас</span>
+      <span style="font-size:9px;color:var(--muted);font-weight:600">${urgent.length} срочных</span>
     </div>
-    <div style="display:flex;flex-direction:column;gap:8px">
+    <div style="display:grid;grid-template-columns:repeat(${urgent.length},1fr);gap:10px">
     ${urgent.map((t,i)=>{
       const idx=tpD().indexOf(t);
       const overdue=t.deadline<todK;
       const lbl=allLbls.find(l=>(t.labelIds||[]).includes(l.id));
       const goal=t.goalId?goalsD().find(g=>g.id===t.goalId):null;
-      return`<div style="display:flex;align-items:center;gap:10px;background:var(--card2);border:1px solid ${overdue?'rgba(240,80,80,.25)':'var(--border)'};border-radius:12px;padding:10px 12px;cursor:pointer" onclick="openTaskModal(${idx})">
-        <div style="font-size:20px;line-height:1;flex-shrink:0">${i===0?'🔴':i===1?'🟠':'🟡'}</div>
-        <div style="flex:1;min-width:0">
-          <div style="font-size:13px;font-weight:700;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(t.text)}</div>
-          <div style="display:flex;align-items:center;gap:6px;margin-top:3px;flex-wrap:wrap">
-            ${overdue?`<span style="font-size:10px;color:var(--red);font-weight:700">⚠️ Просрочено: ${t.deadline}</span>`:`<span style="font-size:10px;color:var(--gold);font-weight:600">📅 Сегодня</span>`}
-            ${lbl?`<span style="font-size:9px;font-weight:700;padding:1px 7px;border-radius:20px;background:${lbl.color}22;color:${lbl.color}">${esc(lbl.name)}</span>`:''}
-            ${goal?`<span style="font-size:9px;color:var(--p)">🎯 ${esc(goal.title.slice(0,20))}</span>`:''}
-          </div>
+      const accent=colors[i];
+      return`<div style="background:var(--card2);border:1px solid ${overdue?'rgba(240,80,80,.3)':'var(--border)'};border-top:2px solid ${accent};border-radius:12px;padding:12px;cursor:pointer;transition:border-color .15s,transform .1s;display:flex;flex-direction:column;gap:6px" onclick="openTaskModal(${idx})" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform=''">
+        <div style="font-size:12px;font-weight:700;color:var(--text);line-height:1.4;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical">${esc(t.text)}</div>
+        <div style="display:flex;align-items:center;gap:5px;flex-wrap:wrap;margin-top:auto">
+          ${overdue
+            ?`<span style="font-size:10px;color:var(--red);font-weight:700;background:rgba(240,80,80,.1);padding:1px 7px;border-radius:20px">⚠️ ${t.deadline}</span>`
+            :`<span style="font-size:10px;color:var(--gold);font-weight:600;background:rgba(240,180,60,.1);padding:1px 7px;border-radius:20px">📅 Сегодня</span>`}
+          ${lbl?`<span style="font-size:9px;font-weight:700;padding:1px 6px;border-radius:20px;background:${lbl.color}22;color:${lbl.color}">${esc(lbl.name)}</span>`:''}
         </div>
-        <button style="flex-shrink:0;padding:5px 12px;background:var(--pdim);border:1px solid rgba(155,143,245,.3);border-radius:8px;color:var(--p);font-size:10px;font-weight:700;cursor:pointer;white-space:nowrap"
-          onclick="event.stopPropagation();navigateTo('pomodoro')"
-          title="Запустить помодоро">▶ Старт</button>
+        ${goal?`<div style="font-size:10px;color:var(--p);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">🎯 ${esc(goal.title)}</div>`:''}
+        <button style="margin-top:4px;width:100%;padding:5px 0;background:var(--pdim);border:1px solid rgba(155,143,245,.25);border-radius:8px;color:var(--p);font-size:10px;font-weight:700;cursor:pointer"
+          onclick="event.stopPropagation();navigateTo('pomodoro')">▶ Старт помодоро</button>
       </div>`;
     }).join('')}
     </div>
@@ -14505,25 +14509,23 @@ function _buildYearHeatmapHTML(){
   return`<div class="chartCard" style="margin-bottom:16px;overflow:hidden">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px">
       <div class="secLbl">📅 Активность за год</div>
-      <div style="display:flex;gap:12px;font-size:11px;color:var(--muted);font-family:var(--font-mono)">
-        <span>${totalDone} <span style="color:var(--text2)">задач</span></span>
-        <span>${activeDays} <span style="color:var(--text2)">активных дней</span></span>
+      <div style="display:flex;gap:16px;font-size:11px;color:var(--muted);font-family:var(--font-mono)">
+        <span><span style="color:var(--p);font-weight:800">${totalDone}</span> задач</span>
+        <span><span style="color:var(--text2);font-weight:800">${activeDays}</span> активных дней</span>
       </div>
     </div>
-    <div style="overflow-x:auto;padding-bottom:4px">
-    <svg width="${svgW}" height="${svgH}" viewBox="0 0 ${svgW} ${svgH}" xmlns="http://www.w3.org/2000/svg" style="display:block;min-width:${svgW}px">
+    <svg width="100%" height="${svgH}" viewBox="0 0 ${svgW} ${svgH}" preserveAspectRatio="xMinYMin meet" xmlns="http://www.w3.org/2000/svg" style="display:block">
       ${monthLabels.map(ml=>`<text x="${ml.wi*(cellSize+gap)}" y="10" font-size="9" fill="rgba(255,255,255,.3)" font-family="sans-serif">${ml.label}</text>`).join('')}
       ${weeks.map((wk,wi)=>wk.map((day,di)=>{
         const x=wi*(cellSize+gap);const y=16+di*(cellSize+gap);
         return`<rect x="${x}" y="${y}" width="${cellSize}" height="${cellSize}" rx="2"
           fill="${day.col}"
           ${day.isToday?`stroke="rgba(155,143,245,.9)" stroke-width="1.5"`:''}
-          ${day.v?`opacity="1"`:'opacity=".7"'}>
+          opacity="${day.v?1:.55}">
           <title>${day.k}: ${day.v} задач</title>
         </rect>`;
       }).join('')).join('')}
     </svg>
-    </div>
     <div style="display:flex;align-items:center;gap:6px;margin-top:10px;font-size:10px;color:var(--muted)">
       <span>меньше</span>
       ${['rgba(255,255,255,.04)','rgba(155,143,245,.25)','rgba(155,143,245,.5)','rgba(155,143,245,.75)','rgba(155,143,245,1)'].map(c=>`<span style="width:11px;height:11px;border-radius:2px;background:${c};display:inline-block"></span>`).join('')}
