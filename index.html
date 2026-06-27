@@ -2120,7 +2120,7 @@ body.light-mode .db-num{color:var(--text)}
 
 .chGrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px}
 
-.chCard{background:linear-gradient(135deg,var(--card) 0%,rgba(12,13,30,.95) 100%);border-radius:var(--r);border:1px solid var(--border);box-shadow:var(--shadow);padding:16px;position:relative;overflow:hidden;transition:all var(--dur2) var(--ease)}
+.chCard{background:linear-gradient(135deg,var(--card) 0%,var(--bg2) 100%);border-radius:var(--r);border:1px solid var(--border);box-shadow:var(--shadow);padding:16px;position:relative;overflow:hidden;transition:all var(--dur2) var(--ease)}
 .chCard::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--CC)}
 .chCard:hover{border-color:var(--border2);transform:translateY(-2px);box-shadow:var(--shadow2)}
 .chCard.chDone{opacity:.92}
@@ -2354,22 +2354,6 @@ body.light-mode .db-num{color:var(--text)}
 .syncDot.syncing{background:var(--gold);animation:syncPulse 1s infinite}
 .syncDot.error{background:var(--red)}
 @keyframes syncPulse{0%,100%{opacity:1}50%{opacity:.4}}
-/* Save status toast */
-#saveStatus{
-  position:fixed;top:20px;right:20px;z-index:800;
-  font-size:10.5px;font-weight:700;letter-spacing:.02em;
-  padding:6px 14px 6px 10px;border-radius:24px;
-  background:rgba(12,13,30,.95);backdrop-filter:blur(16px);
-  border:1px solid var(--border2);color:var(--muted);
-  transition:all .3s var(--ease);pointer-events:none;
-  opacity:0;transform:translateY(-8px) scale(.95);
-  display:flex;align-items:center;gap:6px;
-  box-shadow:var(--shadow2);
-}
-#saveStatus.show{opacity:1;transform:translateY(0) scale(1)}
-#saveStatus.saved{color:var(--green);border-color:rgba(15,221,170,.3);background:rgba(8,30,22,.95);box-shadow:0 0 20px rgba(15,221,170,.1)}
-#saveStatus.saving{color:var(--gold);border-color:rgba(240,171,48,.3)}
-#saveStatus.error{color:var(--red);border-color:rgba(255,79,114,.3);background:rgba(30,8,12,.95)}
 /* Rewards qty dots */
 .rwQtyProgress{display:flex;gap:3px;flex-wrap:wrap;align-items:center}
 .rwQtyDot{width:9px;height:9px;border-radius:50%;background:var(--border2);transition:.2s;flex-shrink:0}
@@ -5935,7 +5919,7 @@ function setSyncDot(state){
 
 // ── Re-render whichever tab is currently visible (called after cloud sync) ──
 function reRenderCurrentTab(){
-  const renders={dash:renderDash,weekly:renderWP,habits:renderHT,tasks:renderTP,routine:renderRoutine,calendar:renderCal,kanban:renderKanban,matrix:renderMatrix,finance:renderFin,goals:renderGrowth,rewards:rwRender,gym:gymRender,analytics:renderAnalytics,pomodoro:renderPomodoro,challenges:renderCh};
+  const renders={dash:renderDash,weekly:renderWP,habits:renderHT,tasks:renderTP,routine:renderRoutine,calendar:renderCal,kanban:renderKanban,matrix:renderMatrix,finance:renderFin,goals:renderGrowth,rewards:rwRender,gym:gymRender,analytics:renderAnalytics,pomodoro:renderPomodoro,challenges:renderCh,sleep:renderSleepTracker};
   for(const[name,fn] of Object.entries(renders)){
     if(document.getElementById('tab-'+name)?.classList.contains('on')){
       try{fn();}catch(e){console.warn('rerender err',e);}
@@ -6667,10 +6651,31 @@ function dpSetValue(id,isoDate){
 }
 
 /* ── THEME TOGGLE ── */
+// Canvas can't read CSS variables — every chart must resolve real colours
+// at draw time. This is the single source of truth so charts stay legible
+// and on-theme in both dark and light mode.
+function _CT(){
+  const cs=getComputedStyle(document.documentElement);
+  const g=(name,fb)=>{const v=cs.getPropertyValue(name).trim();return v||fb;};
+  return{
+    grid:g('--gridline','rgba(255,255,255,.08)'),
+    gridFaint:g('--gridline2','rgba(255,255,255,.04)'),
+    label:g('--gridline-label','rgba(255,255,255,.4)'),
+    labelStrong:g('--gridline-label2','rgba(255,255,255,.55)'),
+    text:g('--text','#F2F4FF'),
+    text2:g('--text2','#BCC5E8'),
+    muted:g('--muted','#8490B8'),
+    card:g('--card','#10122A'),
+    card2:g('--card2','#151730'),
+    bg2:g('--bg2','#0A0B1C'),
+    p:g('--p','#9B8FF5'),
+  };
+}
 function toggleTheme(){
   const isLight=document.body.classList.toggle('light-mode');
   localStorage.setItem('pp_theme',isLight?'light':'dark');
   updateThemeBtn();
+  reRenderCurrentTab(); // redraw any canvas charts on the active tab with correct theme colours
 }
 function updateThemeBtn(){
   const isLight=document.body.classList.contains('light-mode');
@@ -7277,13 +7282,14 @@ function drawHChart(d,days){
   const ctx=cv.getContext('2d'),W=cv.width,H=cv.height,p={t:10,r:20,b:26,l:34};
   ctx.clearRect(0,0,W,H);
   const hn=d.habits.length;if(!hn)return;
+  const CT=_CT();
   const vals=[];
   for(let day=1;day<=days;day++)vals.push(d.habits.filter((_,hi)=>d.checks[`${hi}_${day}`]).length);
   const cW=W-p.l-p.r,cH=H-p.t-p.b;
   const sx=i=>days>1?p.l+(i/(days-1))*cW:p.l+cW/2;
   const sy=v=>p.t+cH*(1-v/(hn||1));
   // grid
-  ctx.strokeStyle='rgba(255,255,255,.05)';ctx.lineWidth=1;
+  ctx.strokeStyle=CT.grid;ctx.lineWidth=1;
   for(let i=0;i<=4;i++){const y=p.t+(cH/4)*i;ctx.beginPath();ctx.moveTo(p.l,y);ctx.lineTo(W-p.r,y);ctx.stroke()}
   // fill
   if(days>1){
@@ -7301,7 +7307,7 @@ function drawHChart(d,days){
   const todK=dk(t0());
   for(let i=0;i<days;i++){const dstr=`${htY}-${z(htM+1)}-${z(i+1)}`;if(dstr===todK){ctx.beginPath();ctx.arc(sx(i),sy(vals[i]),5,0,Math.PI*2);ctx.fillStyle='#f472b6';ctx.fill();break}}
   // y labels
-  ctx.fillStyle='rgba(255,255,255,.3)';ctx.font='10px Instrument Sans, sans-serif';ctx.textAlign='right';
+  ctx.fillStyle=CT.label;ctx.font='10px Instrument Sans, sans-serif';ctx.textAlign='right';
   for(let i=0;i<=4;i++)ctx.fillText(Math.round(hn*(1-i/4)),p.l-4,p.t+(cH/4)*i+4);
   // x labels
   ctx.textAlign='center';
@@ -10021,13 +10027,14 @@ function drawFinLineChart(){
   const chartW=W-pad.l-pad.r,chartH=H-pad.t-pad.b;
   const xStep=n>1?chartW/(n-1):chartW;
   const yToCanvas=v=>pad.t+chartH-(v/maxV)*chartH;
+  const CT=_CT();
   // Grid lines
   [0,.25,.5,.75,1].forEach(f=>{
     const y=pad.t+chartH*(1-f);
-    ctx.beginPath();ctx.strokeStyle='rgba(255,255,255,.05)';ctx.lineWidth=1;
+    ctx.beginPath();ctx.strokeStyle=CT.grid;ctx.lineWidth=1;
     ctx.moveTo(pad.l,y);ctx.lineTo(W-pad.r,y);ctx.stroke();
     if(f>0){
-      ctx.fillStyle='rgba(90,97,130,.5)';ctx.font='8px Instrument Sans,sans-serif';ctx.textAlign='left';
+      ctx.fillStyle=CT.muted;ctx.font='8px Instrument Sans,sans-serif';ctx.textAlign='left';
       ctx.fillText(fmtMoney(maxV*f),pad.l+2,y-2);
     }
   });
@@ -10054,7 +10061,7 @@ function drawFinLineChart(){
   // Labels
   labels.forEach((lbl,i)=>{
     const x=pad.l+(n>1?i*xStep:chartW/2);
-    ctx.fillStyle='rgba(90,97,130,.85)';ctx.font='8px Instrument Sans,sans-serif';ctx.textAlign='center';
+    ctx.fillStyle=CT.muted;ctx.font='8px Instrument Sans,sans-serif';ctx.textAlign='center';
     ctx.fillText(lbl,x,H-5);
   });
   // Dots
@@ -10066,6 +10073,7 @@ function drawFinPieChart(txs){
   const cv=document.getElementById('finPieChart');if(!cv)return;
   const ctx=cv.getContext('2d'),S=cv.width,cx=S/2,cy=S/2,R=S/2-8,rInner=R*0.55;
   ctx.clearRect(0,0,S,S);
+  const CT=_CT();
   // Use parent cats for pie (aggregate subcats)
   const outParents=FIN_CATS.filter(c=>c.type==='out'&&!c.parentId);
   const slices=outParents.map(cat=>{
@@ -10076,8 +10084,8 @@ function drawFinPieChart(txs){
   const total=slices.reduce((a,s)=>a+s.amt,0);
   const legend=document.getElementById('finPieLegend');
   if(!total){
-    ctx.beginPath();ctx.arc(cx,cy,R,0,Math.PI*2);ctx.fillStyle='rgba(255,255,255,.05)';ctx.fill();
-    ctx.beginPath();ctx.arc(cx,cy,rInner,0,Math.PI*2);ctx.fillStyle='var(--bg,#0f1117)';ctx.fill();
+    ctx.beginPath();ctx.arc(cx,cy,R,0,Math.PI*2);ctx.fillStyle=CT.gridFaint;ctx.fill();
+    ctx.beginPath();ctx.arc(cx,cy,rInner,0,Math.PI*2);ctx.fillStyle=CT.card;ctx.fill();
     if(legend)legend.innerHTML='<div style="font-size:11px;color:var(--muted)">Нет расходов</div>';
     return;
   }
@@ -10086,15 +10094,14 @@ function drawFinPieChart(txs){
     const sweep=(s.amt/total)*Math.PI*2;
     ctx.beginPath();ctx.moveTo(cx,cy);ctx.arc(cx,cy,R,angle,angle+sweep);ctx.closePath();
     ctx.fillStyle=s.cat.color;ctx.fill();
-    ctx.beginPath();ctx.arc(cx,cy,R+1,angle,angle+sweep);ctx.strokeStyle='rgba(0,0,0,.4)';ctx.lineWidth=2;ctx.stroke();
+    ctx.beginPath();ctx.arc(cx,cy,R+1,angle,angle+sweep);ctx.strokeStyle=CT.card;ctx.lineWidth=2;ctx.stroke();
     angle+=sweep;
   });
   ctx.beginPath();ctx.arc(cx,cy,rInner,0,Math.PI*2);
-  const bg=getComputedStyle(document.documentElement).getPropertyValue('--bg2').trim()||'#141722';
-  ctx.fillStyle=bg;ctx.fill();
-  ctx.fillStyle='rgba(255,255,255,.9)';ctx.font=`bold 13px Instrument Sans,sans-serif`;ctx.textAlign='center';ctx.textBaseline='middle';
+  ctx.fillStyle=CT.card;ctx.fill();
+  ctx.fillStyle=CT.text;ctx.font=`bold 13px Instrument Sans,sans-serif`;ctx.textAlign='center';ctx.textBaseline='middle';
   ctx.fillText(fmtMoney(total),cx,cy-6);
-  ctx.fillStyle='rgba(255,255,255,.4)';ctx.font=`9px Instrument Sans,sans-serif`;
+  ctx.fillStyle=CT.muted;ctx.font=`9px Instrument Sans,sans-serif`;
   ctx.fillText('расходы',cx,cy+8);
   if(legend){
     legend.innerHTML=slices.slice(0,7).map(s=>{
@@ -11878,6 +11885,7 @@ function drawDashHabChart(){
   cv.width=cv.offsetWidth||500;cv.height=100;
   const ctx=cv.getContext('2d'),W=cv.width,H=cv.height;
   ctx.clearRect(0,0,W,H);
+  const CT=_CT();
   const days=28;const vals=[];
   const today=t0();
   for(let i=days-1;i>=0;i--){
@@ -11894,7 +11902,7 @@ function drawDashHabChart(){
     const isWe=v.d.getDay()===0||v.d.getDay()===6;
     ctx.fillStyle=isWe?'rgba(244,114,182,0.5)':'rgba(244,114,182,0.75)';
     ctx.beginPath();ctx.roundRect(x+1,H-bh-8,bw-2,bh,2);ctx.fill();
-    if(i%7===0){ctx.fillStyle='rgba(90,97,130,0.7)';ctx.font='8px Instrument Sans, sans-serif';ctx.textAlign='center';ctx.fillText(`${v.d.getDate()}/${v.d.getMonth()+1}`,x+bw/2,H-1)}
+    if(i%7===0){ctx.fillStyle=CT.muted;ctx.font='8px Instrument Sans, sans-serif';ctx.textAlign='center';ctx.fillText(`${v.d.getDate()}/${v.d.getMonth()+1}`,x+bw/2,H-1)}
   });
 }
 
@@ -11903,6 +11911,7 @@ function drawDashFinChart(){
   cv.width=cv.offsetWidth||500;cv.height=110;
   const ctx=cv.getContext('2d'),W=cv.width,H=cv.height;
   ctx.clearRect(0,0,W,H);
+  const CT=_CT();
   const months=6;const data=[];
   const now=new Date();
   for(let i=months-1;i>=0;i--){
@@ -11918,7 +11927,7 @@ function drawDashFinChart(){
     const ih=Math.max(2,(d.inc/maxV)*(H-18));const eh=Math.max(2,(d.exp/maxV)*(H-18));
     ctx.fillStyle='rgba(45,212,166,0.75)';ctx.beginPath();ctx.roundRect(x,H-ih-8,bw,ih,2);ctx.fill();
     ctx.fillStyle='rgba(248,113,113,0.75)';ctx.beginPath();ctx.roundRect(x+bw,H-eh-8,bw,eh,2);ctx.fill();
-    ctx.fillStyle='rgba(90,97,130,0.7)';ctx.font='8px Instrument Sans, sans-serif';ctx.textAlign='center';ctx.fillText(d.lbl,x+bw,H-1);
+    ctx.fillStyle=CT.muted;ctx.font='8px Instrument Sans, sans-serif';ctx.textAlign='center';ctx.fillText(d.lbl,x+bw,H-1);
   });
 }
 
@@ -12060,9 +12069,9 @@ function renderDashLabelDonut(filteredTasks, period){
   }
 
   // Resolve actual CSS colours for Canvas (Canvas ignores CSS vars)
-  const csRoot=getComputedStyle(document.documentElement);
-  const bgColor=csRoot.getPropertyValue('--card').trim()||'#10122A';
-  const mutedColor=csRoot.getPropertyValue('--muted').trim()||'#8490B8';
+  const CT=_CT();
+  const bgColor=CT.card;
+  const mutedColor=CT.muted;
 
   const DPR=window.devicePixelRatio||1;
   const SIZE=120;
@@ -12098,7 +12107,7 @@ function renderDashLabelDonut(filteredTasks, period){
     ctx.beginPath();
     ctx.arc(cx,cy,R,0,Math.PI*2);
     ctx.arc(cx,cy,r,Math.PI*2,0,true);
-    ctx.fillStyle='rgba(255,255,255,.06)';
+    ctx.fillStyle=CT.gridFaint;
     ctx.fill('evenodd');
     ctx.beginPath();ctx.arc(cx,cy,r-1,0,Math.PI*2);
     ctx.fillStyle=bgColor;ctx.fill();
@@ -12106,7 +12115,7 @@ function renderDashLabelDonut(filteredTasks, period){
     ctx.save();
     ctx.setLineDash([4,4]);
     ctx.lineWidth=1.5;
-    ctx.strokeStyle='rgba(255,255,255,.15)';
+    ctx.strokeStyle=CT.grid;
     ctx.beginPath();ctx.arc(cx,cy,(R+r)/2,0,Math.PI*2);ctx.stroke();
     ctx.restore();
     legendEl.innerHTML=
@@ -12175,6 +12184,7 @@ function renderTaskWeekChart(){
   const cv=document.getElementById('taskWeekChart');if(!cv)return;
   cv.width=cv.offsetWidth||250;cv.height=90;
   const ctx=cv.getContext('2d'),W=cv.width,H=cv.height;ctx.clearRect(0,0,W,H);
+  const CT=_CT();
   const weeks=6;const data=[];
   const today=t0();
   for(let w=weeks-1;w>=0;w--){
@@ -12186,7 +12196,7 @@ function renderTaskWeekChart(){
   const maxV=Math.max(...data.map(d=>d.cnt),1);
   const bw=(W-16)/weeks;
   // Background grid lines
-  ctx.strokeStyle='rgba(255,255,255,.04)';ctx.lineWidth=1;
+  ctx.strokeStyle=CT.gridFaint;ctx.lineWidth=1;
   for(let i=0;i<=4;i++){const y=H-10-(i/4)*(H-20);ctx.beginPath();ctx.moveTo(8,y);ctx.lineTo(W-8,y);ctx.stroke();}
   data.forEach((d,i)=>{
     const x=8+i*bw;
@@ -12210,11 +12220,11 @@ function renderTaskWeekChart(){
       ctx.shadowBlur=0;
     }
     if(d.cnt>0){
-      ctx.fillStyle=d.isCurrent?'rgba(220,216,255,1)':'rgba(180,195,240,0.8)';
+      ctx.fillStyle=d.isCurrent?CT.p:CT.text2;
       ctx.font=`${d.isCurrent?800:700} 9px Bricolage Grotesque, sans-serif`;
       ctx.textAlign='center';ctx.fillText(d.cnt,x+bw/2,barY-3);
     }
-    ctx.fillStyle=d.isCurrent?'rgba(155,143,245,0.9)':'rgba(90,97,130,0.7)';
+    ctx.fillStyle=d.isCurrent?CT.p:CT.muted;
     ctx.font=`${d.isCurrent?700:500} 8px Instrument Sans, sans-serif`;
     ctx.textAlign='center';ctx.fillText(d.lbl,x+bw/2,H-1);
   });
@@ -12999,8 +13009,9 @@ function wtDrawChart(entries){
     cv.width=W;cv.height=130;
     const ctx=cv.getContext('2d'),H=cv.height,p={t:12,r:16,b:24,l:42};
     ctx.clearRect(0,0,W,H);
+    const CT=_CT();
     if(entries.length<2){
-      ctx.fillStyle='rgba(90,99,130,.5)';ctx.font='12px Instrument Sans, sans-serif';ctx.textAlign='center';
+      ctx.fillStyle=CT.muted;ctx.font='12px Instrument Sans, sans-serif';ctx.textAlign='center';
       ctx.fillText(entries.length===0?'Нет данных':'Добавь минимум 2 записи',W/2,H/2);return;
     }
     const vals=entries.map(e=>e.weight);
@@ -13011,7 +13022,7 @@ function wtDrawChart(entries){
     const sx=i=>p.l+(i/(entries.length-1))*cW;
     const sy=v=>p.t+cH*(1-(v-minV)/(maxV-minV));
     // Grid
-    ctx.strokeStyle='rgba(255,255,255,.05)';ctx.lineWidth=1;
+    ctx.strokeStyle=CT.grid;ctx.lineWidth=1;
     for(let i=0;i<=4;i++){const y=p.t+(cH/4)*i;ctx.beginPath();ctx.moveTo(p.l,y);ctx.lineTo(W-p.r,y);ctx.stroke();}
     // Fill
     const g=ctx.createLinearGradient(0,p.t,0,H-p.b);
@@ -13024,17 +13035,19 @@ function wtDrawChart(entries){
     for(let i=1;i<vals.length;i++){const x0=sx(i-1),y0=sy(vals[i-1]),x1=sx(i),y1=sy(vals[i]),cp=(x1-x0)/2;ctx.bezierCurveTo(x0+cp,y0,x1-cp,y1,x1,y1);}
     ctx.strokeStyle='#22d3ee';ctx.lineWidth=2;ctx.stroke();
     // Dots
+    const dotGreen=getComputedStyle(document.documentElement).getPropertyValue('--green').trim()||'#0FDDAA';
+    const dotRed=getComputedStyle(document.documentElement).getPropertyValue('--red').trim()||'#FF4F72';
     vals.forEach((v,i)=>{
       ctx.beginPath();ctx.arc(sx(i),sy(v),3.5,0,Math.PI*2);
-      ctx.fillStyle=v===mn?'var(--green)':v===mx?'var(--red)':'#22d3ee';ctx.fill();
+      ctx.fillStyle=v===mn?dotGreen:v===mx?dotRed:'#22d3ee';ctx.fill();
     });
     // Y labels
-    ctx.fillStyle='rgba(255,255,255,.35)';ctx.font='9px Instrument Sans, sans-serif';ctx.textAlign='right';
+    ctx.fillStyle=CT.label;ctx.font='9px Instrument Sans, sans-serif';ctx.textAlign='right';
     for(let i=0;i<=4;i++){const v=minV+(maxV-minV)*(1-i/4);ctx.fillText(v.toFixed(1),p.l-4,p.t+(cH/4)*i+4);}
     // X labels
     ctx.textAlign='center';const step=Math.max(1,Math.floor(entries.length/6));
     entries.forEach((e,i)=>{
-      if(i%step===0){const dt=new Date(e.date+'T00:00:00');ctx.fillStyle='rgba(255,255,255,.3)';ctx.fillText(dt.getDate()+'.'+(dt.getMonth()+1),sx(i),H-4);}
+      if(i%step===0){const dt=new Date(e.date+'T00:00:00');ctx.fillStyle=CT.label;ctx.fillText(dt.getDate()+'.'+(dt.getMonth()+1),sx(i),H-4);}
     });
   });
 }
@@ -13319,7 +13332,7 @@ function gymRenderProgress(){
   // Build table first so it's in DOM
   let th=`<div class="card" style="padding:0;overflow:hidden"><table style="width:100%;border-collapse:collapse;font-size:11px">
     <thead><tr style="background:var(--card2)"><th style="padding:8px 10px;text-align:left;font-size:9px;font-weight:700;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--border)">Дата</th><th style="padding:8px 10px;text-align:center;font-size:9px;font-weight:700;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--border)">Макс вес</th><th style="padding:8px 10px;text-align:center;font-size:9px;font-weight:700;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--border)">Макс повт</th><th style="padding:8px 10px;text-align:center;font-size:9px;font-weight:700;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--border)">Объём кг</th></tr></thead><tbody>`;
-  [...data].reverse().forEach(r=>{const pr=r.maxW===prW;th+=`<tr style="border-bottom:1px solid rgba(255,255,255,.03)${pr?';background:rgba(245,158,11,.06)':''}"><td style="padding:7px 10px;color:var(--text2)">${gymFmtDate(r.date)}</td><td style="padding:7px 10px;text-align:center;font-family:var(--font-display);font-weight:800;color:${pr?'var(--gold)':'var(--text)'}">${r.maxW}кг${pr?' 🏆':''}</td><td style="padding:7px 10px;text-align:center;color:var(--cyan);font-weight:700">${r.maxR}</td><td style="padding:7px 10px;text-align:center;color:var(--muted)">${r.totalVol}</td></tr>`;});
+  [...data].reverse().forEach(r=>{const pr=r.maxW===prW;th+=`<tr style="border-bottom:1px solid var(--border)${pr?';background:rgba(245,158,11,.06)':''}"><td style="padding:7px 10px;color:var(--text2)">${gymFmtDate(r.date)}</td><td style="padding:7px 10px;text-align:center;font-family:var(--font-display);font-weight:800;color:${pr?'var(--gold)':'var(--text)'}">${r.maxW}кг${pr?' 🏆':''}</td><td style="padding:7px 10px;text-align:center;color:var(--cyan);font-weight:700">${r.maxR}</td><td style="padding:7px 10px;text-align:center;color:var(--muted)">${r.totalVol}</td></tr>`;});
   th+='</tbody></table></div>';document.getElementById('gym-progress-table').innerHTML=th;
   // Draw chart after layout (requestAnimationFrame fixes 0-width canvas bug)
   requestAnimationFrame(()=>{
@@ -13329,11 +13342,12 @@ function gymRenderProgress(){
     cv.width=W;cv.height=130;
     const ctx=cv.getContext('2d'),H=cv.height,p={t:10,r:16,b:26,l:36};
     ctx.clearRect(0,0,W,H);
-    if(data.length<2){ctx.fillStyle='rgba(90,99,130,.5)';ctx.font='12px Instrument Sans, sans-serif';ctx.textAlign='center';ctx.fillText('Нужно минимум 2 тренировки с этим упражнением',W/2,H/2);return;}
+    const CT=_CT();
+    if(data.length<2){ctx.fillStyle=CT.muted;ctx.font='12px Instrument Sans, sans-serif';ctx.textAlign='center';ctx.fillText('Нужно минимум 2 тренировки с этим упражнением',W/2,H/2);return;}
     const vals=data.map(x=>x.maxW);const maxV=Math.max(...vals,1);
     const cW=W-p.l-p.r,cH=H-p.t-p.b;
     const sx=i=>p.l+(i/(data.length-1))*cW;const sy=v=>p.t+cH*(1-v/maxV);
-    ctx.strokeStyle='rgba(255,255,255,.05)';ctx.lineWidth=1;
+    ctx.strokeStyle=CT.grid;ctx.lineWidth=1;
     for(let i=0;i<=4;i++){const y=p.t+(cH/4)*i;ctx.beginPath();ctx.moveTo(p.l,y);ctx.lineTo(W-p.r,y);ctx.stroke();}
     const g=ctx.createLinearGradient(0,p.t,0,H-p.b);g.addColorStop(0,'rgba(34,211,238,.25)');g.addColorStop(1,'rgba(34,211,238,.02)');
     ctx.beginPath();ctx.moveTo(sx(0),sy(vals[0]));
@@ -13343,10 +13357,10 @@ function gymRenderProgress(){
     for(let i=1;i<data.length;i++){const x0=sx(i-1),y0=sy(vals[i-1]),x1=sx(i),y1=sy(vals[i]),cp=(x1-x0)/2;ctx.bezierCurveTo(x0+cp,y0,x1-cp,y1,x1,y1);}
     ctx.strokeStyle='#22d3ee';ctx.lineWidth=2;ctx.stroke();
     data.forEach((d,i)=>{ctx.beginPath();ctx.arc(sx(i),sy(vals[i]),d.maxW===prW?6:4,0,Math.PI*2);ctx.fillStyle=d.maxW===prW?'#f59e0b':'#22d3ee';ctx.fill();});
-    ctx.fillStyle='rgba(255,255,255,.3)';ctx.font='9px Instrument Sans, sans-serif';ctx.textAlign='right';
+    ctx.fillStyle=CT.label;ctx.font='9px Instrument Sans, sans-serif';ctx.textAlign='right';
     for(let i=0;i<=4;i++)ctx.fillText(Math.round(maxV*(1-i/4)),p.l-4,p.t+(cH/4)*i+4);
     ctx.textAlign='center';const step=Math.max(1,Math.floor(data.length/6));
-    data.forEach((d,i)=>{if(i%step===0){const pt=d.date.split('-');ctx.fillStyle='rgba(255,255,255,.3)';ctx.fillText(pt[2]+'.'+pt[1],sx(i),H-4);}});
+    data.forEach((d,i)=>{if(i%step===0){const pt=d.date.split('-');ctx.fillStyle=CT.label;ctx.fillText(pt[2]+'.'+pt[1],sx(i),H-4);}});
   });
 }
 
@@ -14697,6 +14711,7 @@ function _anlDrawBarCanvas(days,maxMin,showDays){
   const W=cv.offsetWidth||800,H=140;
   cv.width=W*DPR;cv.height=H*DPR;cv.style.width=W+'px';cv.style.height=H+'px';
   const ctx=cv.getContext('2d');ctx.scale(DPR,DPR);ctx.clearRect(0,0,W,H);
+  const CT=_CT();
   const pad={t:20,r:8,b:30,l:40};
   const cW=W-pad.l-pad.r,cH=H-pad.t-pad.b;
   const n=days.length,bw=Math.max(2,cW/n-2),gap=(cW-(bw*n))/(n+1);
@@ -14704,12 +14719,12 @@ function _anlDrawBarCanvas(days,maxMin,showDays){
   // Gridlines
   [0,.25,.5,.75,1].forEach(f=>{
     const y=pad.t+cH*(1-f),val=Math.round(mx*f);
-    ctx.strokeStyle='rgba(255,255,255,.05)';ctx.lineWidth=1;ctx.setLineDash([3,3]);
+    ctx.strokeStyle=CT.grid;ctx.lineWidth=1;ctx.setLineDash([3,3]);
     ctx.beginPath();ctx.moveTo(pad.l,y);ctx.lineTo(W-pad.r,y);ctx.stroke();
     ctx.setLineDash([]);
     if(val>0){
       const label=val>=60?Math.floor(val/60)+'ч'+(val%60?val%60+'м':''):val+'м';
-      ctx.fillStyle='rgba(255,255,255,.35)';ctx.font='bold 8.5px sans-serif';ctx.textAlign='right';
+      ctx.fillStyle=CT.label;ctx.font='bold 8.5px sans-serif';ctx.textAlign='right';
       ctx.fillText(label,pad.l-4,y+3);
     }
   });
@@ -14732,14 +14747,14 @@ function _anlDrawBarCanvas(days,maxMin,showDays){
         ctx.fillText(lbl,x+bw/2,y-3);
       }
     }else if(d.count){
-      ctx.fillStyle='rgba(255,255,255,.08)';
+      ctx.fillStyle=CT.gridFaint;
       ctx.beginPath();ctx.roundRect(x,pad.t+cH-6,bw,6,[1,1,0,0]);ctx.fill();
     }
     // X date label
     const step=Math.max(1,Math.ceil(n/16));
     if(i%step===0||i===n-1){
       const lbl=n<=14?(d.d.getDate()+'.'+(d.d.getMonth()+1)):(d.d.getDate()+'');
-      ctx.fillStyle=d.isToday?'rgba(155,143,245,.9)':'rgba(255,255,255,.3)';
+      ctx.fillStyle=d.isToday?'rgba(155,143,245,.9)':CT.label;
       ctx.font=(d.isToday?'bold ':'')+'8px sans-serif';ctx.textAlign='center';
       ctx.fillText(lbl,x+bw/2,H-pad.b+12);
     }
@@ -14767,6 +14782,7 @@ function _anlDrawWdCanvas(data,colors,maxCount){
   const W=cv.offsetWidth||400,H=130;
   cv.width=W*DPR;cv.height=H*DPR;cv.style.width=W+'px';cv.style.height=H+'px';
   const ctx=cv.getContext('2d');ctx.scale(DPR,DPR);ctx.clearRect(0,0,W,H);
+  const CT=_CT();
   const pad={t:22,r:8,b:24,l:8};
   const cW=W-pad.l-pad.r,cH=H-pad.t-pad.b;
   const n=data.length,bw=Math.max(20,cW/n*0.55);
@@ -14789,16 +14805,16 @@ function _anlDrawWdCanvas(data,colors,maxCount){
       // Time below value
       if(d.min>0){
         const tm=d.min>=60?Math.floor(d.min/60)+'ч'+(d.min%60?d.min%60+'м':''):d.min+'м';
-        ctx.fillStyle='rgba(255,255,255,.45)';ctx.font='8px sans-serif';
+        ctx.fillStyle=CT.labelStrong;ctx.font='8px sans-serif';
         ctx.fillText(tm,cx,y-16);
       }
     }else{
-      ctx.fillStyle='rgba(255,255,255,.05)';
+      ctx.fillStyle=CT.gridFaint;
       ctx.beginPath();ctx.roundRect(cx-bw/2,pad.t+cH-5,bw,5,[2,2,0,0]);ctx.fill();
     }
     // Day label
     const isWe=i>=5;
-    ctx.fillStyle=isWe?'#f97316':'rgba(255,255,255,.55)';
+    ctx.fillStyle=isWe?'#f97316':CT.labelStrong;
     ctx.font=(isWe?'bold ':'')+'9.5px sans-serif';ctx.textAlign='center';
     ctx.fillText(d.name,cx,H-pad.b+12);
   });
@@ -14811,6 +14827,7 @@ function _anlDrawWkCanvas(weeks,maxWk,avg){
   const W=cv.offsetWidth||400,H=120;
   cv.width=W*DPR;cv.height=H*DPR;cv.style.width=W+'px';cv.style.height=H+'px';
   const ctx=cv.getContext('2d');ctx.scale(DPR,DPR);ctx.clearRect(0,0,W,H);
+  const CT=_CT();
   const pad={t:22,r:8,b:24,l:8};
   const cW=W-pad.l-pad.r,cH=H-pad.t-pad.b;
   const n=weeks.length,slotW=cW/n,bw=Math.max(12,slotW*0.55);
@@ -14829,10 +14846,10 @@ function _anlDrawWkCanvas(weeks,maxWk,avg){
       ctx.font='bold 10px sans-serif';ctx.textAlign='center';
       ctx.fillText(w.count,cx,y-5);
     }else{
-      ctx.fillStyle='rgba(255,255,255,.05)';
+      ctx.fillStyle=CT.gridFaint;
       ctx.beginPath();ctx.roundRect(cx-bw/2,pad.t+cH-4,bw,4,[2,2,0,0]);ctx.fill();
     }
-    ctx.fillStyle=w.isCurrent?'rgba(34,204,232,.85)':'rgba(255,255,255,.35)';
+    ctx.fillStyle=w.isCurrent?'rgba(34,204,232,.85)':CT.label;
     ctx.font=(w.isCurrent?'bold ':'')+'8.5px sans-serif';ctx.textAlign='center';
     ctx.fillText(w.label,cx,H-pad.b+12);
   });
@@ -15964,7 +15981,7 @@ function showKbHint(text) {
   if(!el) {
     el = document.createElement('div');
     el.id = 'kbHint';
-    el.style.cssText = 'position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(8px);z-index:2000;background:rgba(12,13,30,.95);backdrop-filter:blur(16px);border:1px solid var(--border2);border-radius:20px;padding:6px 16px;font-size:11px;font-weight:700;color:var(--text2);letter-spacing:.03em;opacity:0;transition:all .2s var(--ease);pointer-events:none;white-space:nowrap;box-shadow:var(--shadow2)';
+    el.style.cssText = 'position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(8px);z-index:2000;background:rgba(12,13,30,.95);backdrop-filter:blur(16px);border:1px solid var(--border2);border-radius:20px;padding:6px 16px;font-size:11px;font-weight:700;color:#BCC5E8;letter-spacing:.03em;opacity:0;transition:all .2s var(--ease);pointer-events:none;white-space:nowrap;box-shadow:var(--shadow2)';
     document.body.appendChild(el);
   }
   el.textContent = text;
@@ -17157,8 +17174,9 @@ function slpDrawMainChart(entries){
   const ctx=cv.getContext('2d');
   ctx.scale(DPR,DPR);
   ctx.clearRect(0,0,W,H);
+  const CT=_CT();
   if(recent.length<2){
-    ctx.fillStyle='rgba(90,99,130,.5)';ctx.font='12px Instrument Sans,sans-serif';ctx.textAlign='center';
+    ctx.fillStyle=CT.muted;ctx.font='12px Instrument Sans,sans-serif';ctx.textAlign='center';
     ctx.fillText('Добавь минимум 2 записи для графика',W/2,H/2);return;
   }
   const pad={t:12,r:14,b:30,l:48};
@@ -17199,9 +17217,9 @@ function slpDrawMainChart(entries){
   for(let i=0;i<=yTicks;i++){
     const v=minV+(range/yTicks)*i;
     const y=sy(v);
-    ctx.strokeStyle='rgba(255,255,255,.05)';ctx.lineWidth=1;
+    ctx.strokeStyle=CT.grid;ctx.lineWidth=1;
     ctx.beginPath();ctx.moveTo(pad.l,y);ctx.lineTo(W-pad.r,y);ctx.stroke();
-    ctx.fillStyle='rgba(255,255,255,.35)';
+    ctx.fillStyle=CT.label;
     ctx.fillText(hToLabel(v),pad.l-5,y+3.5);
   }
 
@@ -17253,7 +17271,7 @@ function slpDrawMainChart(entries){
 
   // X labels (dates)
   const step=Math.max(1,Math.floor(n/7));
-  ctx.fillStyle='rgba(255,255,255,.3)';ctx.font='8px Instrument Sans,sans-serif';ctx.textAlign='center';
+  ctx.fillStyle=CT.label;ctx.font='8px Instrument Sans,sans-serif';ctx.textAlign='center';
   recent.forEach((e,i)=>{
     if(i%step===0||i===n-1){
       const d=new Date(e.date+'T00:00:00');
@@ -17269,7 +17287,8 @@ function slpDrawDurChart(entries){
   cv.width=cv.offsetWidth||400;cv.height=110;
   const ctx=cv.getContext('2d'),W=cv.width,H=cv.height;
   ctx.clearRect(0,0,W,H);
-  if(!recent.length){ctx.fillStyle='rgba(90,99,130,.4)';ctx.font='11px sans-serif';ctx.textAlign='center';ctx.fillText('Нет данных',W/2,H/2);return;}
+  const CT=_CT();
+  if(!recent.length){ctx.fillStyle=CT.muted;ctx.font='11px sans-serif';ctx.textAlign='center';ctx.fillText('Нет данных',W/2,H/2);return;}
   const pad={t:8,r:8,b:20,l:30};
   const cW=W-pad.l-pad.r,cH=H-pad.t-pad.b;
   const maxDur=Math.max(...recent.map(e=>e.dur),9*60);
@@ -17278,9 +17297,9 @@ function slpDrawDurChart(entries){
   [6*60,7*60,8*60,9*60].forEach(val=>{
     if(val>maxDur)return;
     const y=pad.t+cH*(1-val/maxDur);
-    ctx.strokeStyle='rgba(255,255,255,.04)';ctx.lineWidth=1;
+    ctx.strokeStyle=CT.gridFaint;ctx.lineWidth=1;
     ctx.beginPath();ctx.moveTo(pad.l,y);ctx.lineTo(W-pad.r,y);ctx.stroke();
-    ctx.fillStyle='rgba(255,255,255,.2)';ctx.font='7px sans-serif';ctx.textAlign='right';
+    ctx.fillStyle=CT.label;ctx.font='7px sans-serif';ctx.textAlign='right';
     ctx.fillText(Math.floor(val/60)+'ч',pad.l-2,y+3);
   });
   // Recommended zone fill
@@ -17300,7 +17319,7 @@ function slpDrawDurChart(entries){
     ctx.beginPath();ctx.roundRect(x+1,pad.t+cH-bh,bw-2,bh,2);ctx.fill();
     if(i%Math.max(1,Math.floor(recent.length/6))===0){
       const d=new Date(e.date+'T00:00:00');
-      ctx.fillStyle='rgba(255,255,255,.22)';ctx.font='7.5px sans-serif';ctx.textAlign='center';
+      ctx.fillStyle=CT.label;ctx.font='7.5px sans-serif';ctx.textAlign='center';
       ctx.fillText(d.getDate()+'/'+(d.getMonth()+1),x+bw/2,H-4);
     }
   });
@@ -17316,8 +17335,9 @@ function slpDrawScoreChart(entries,canvasId){
   cv.style.width=W+'px';cv.style.height=H+'px';
   const ctx=cv.getContext('2d');ctx.scale(DPR,DPR);
   ctx.clearRect(0,0,W,H);
+  const CT=_CT();
   if(recent.length<2){
-    ctx.fillStyle='rgba(150,160,200,.4)';ctx.font='bold 12px sans-serif';ctx.textAlign='center';
+    ctx.fillStyle=CT.muted;ctx.font='bold 12px sans-serif';ctx.textAlign='center';
     ctx.fillText(recent.length<1?'Нет данных о сне':'Добавь больше записей',W/2,H/2);return;
   }
   const pad={t:14,r:18,b:38,l:36};
@@ -17328,11 +17348,11 @@ function slpDrawScoreChart(entries,canvasId){
   // Gridlines + Y labels
   [0,25,50,75,100].forEach(v=>{
     const y=sy(v);
-    ctx.strokeStyle=v===0?'rgba(255,255,255,.08)':'rgba(255,255,255,.05)';
+    ctx.strokeStyle=v===0?CT.grid:CT.gridFaint;
     ctx.lineWidth=1;ctx.setLineDash([4,4]);
     ctx.beginPath();ctx.moveTo(pad.l,y);ctx.lineTo(W-pad.r,y);ctx.stroke();
     ctx.setLineDash([]);
-    ctx.fillStyle='rgba(255,255,255,.35)';ctx.font=`bold 9px sans-serif`;ctx.textAlign='right';
+    ctx.fillStyle=CT.label;ctx.font=`bold 9px sans-serif`;ctx.textAlign='right';
     ctx.fillText(v,pad.l-5,y+3.5);
   });
   // Fill gradient
@@ -17351,7 +17371,7 @@ function slpDrawScoreChart(entries,canvasId){
     const x=sx(i),y=sy(e.score),col=sleepScoreColor(e.score);
     ctx.beginPath();ctx.arc(x,y,skipLabel?2.5:3.5,0,Math.PI*2);
     ctx.fillStyle=col;ctx.fill();
-    ctx.strokeStyle='rgba(0,0,0,.5)';ctx.lineWidth=1;ctx.stroke();
+    ctx.strokeStyle=CT.card;ctx.lineWidth=1;ctx.stroke();
     if(!skipLabel||(i%Math.ceil(n/10)===0)||(i===n-1)){
       ctx.fillStyle=col;ctx.font=`bold 9px sans-serif`;ctx.textAlign='center';
       ctx.fillText(e.score,x,y-7);
@@ -17359,21 +17379,21 @@ function slpDrawScoreChart(entries,canvasId){
   });
   // X date labels — smart density
   const step=Math.max(1,Math.floor(n/8));
-  ctx.fillStyle='rgba(255,255,255,.45)';ctx.font='bold 9px sans-serif';ctx.textAlign='center';
+  ctx.fillStyle=CT.labelStrong;ctx.font='bold 9px sans-serif';ctx.textAlign='center';
   recent.forEach((e,i)=>{
     if(i%step!==0&&i!==n-1)return;
     const d=new Date(e.date+'T00:00:00');
     const lbl=d.getDate()+'.'+(d.getMonth()+1<10?'0':'')+(d.getMonth()+1);
     const x=sx(i);
     // Tick
-    ctx.strokeStyle='rgba(255,255,255,.2)';ctx.lineWidth=1;
+    ctx.strokeStyle=CT.grid;ctx.lineWidth=1;
     ctx.beginPath();ctx.moveTo(x,H-pad.b+2);ctx.lineTo(x,H-pad.b+5);ctx.stroke();
     ctx.fillText(lbl,x,H-pad.b+15);
     // Day of week below
     const dow=['вс','пн','вт','ср','чт','пт','сб'][d.getDay()];
     ctx.fillStyle='rgba(155,143,245,.5)';ctx.font='8px sans-serif';
     ctx.fillText(dow,x,H-pad.b+25);
-    ctx.fillStyle='rgba(255,255,255,.45)';ctx.font='bold 9px sans-serif';
+    ctx.fillStyle=CT.labelStrong;ctx.font='bold 9px sans-serif';
   });
   // Avg line
   const avg=Math.round(recent.reduce((s,e)=>s+e.score,0)/n);
@@ -17980,7 +18000,7 @@ function buildSleepAnalyticsHTML(){
   position:fixed;bottom:100px;left:50%;transform:translateX(-50%) translateY(20px);
   background:rgba(12,13,30,.97);border:1px solid var(--border2);
   border-radius:24px;padding:10px 22px;font-size:13px;font-weight:700;
-  color:var(--text);box-shadow:var(--shadow2);z-index:500;
+  color:#F2F4FF;box-shadow:var(--shadow2);z-index:500;
   opacity:0;transition:all .3s var(--ease);pointer-events:none;
   white-space:nowrap;
 }
