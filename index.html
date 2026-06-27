@@ -10609,6 +10609,7 @@ function renderGoals(){
         <div style="display:flex;align-items:center;gap:6px;margin-bottom:8px;flex-wrap:wrap">
           <span class="goalHznBadge" style="background:${hz2.color}18;color:${hz2.color};border:1px solid ${hz2.color}30">${hz2.emoji} ${hz2.label}</span>
           ${dl?`<span style="font-size:10px;font-weight:700;color:${dl.color}">${dl.text}</span>`:''}
+          ${g.parentGoalId?(()=>{const parent=goalsD().find(x=>x.id===g.parentGoalId);return parent?`<span style="font-size:9px;font-weight:700;padding:1px 7px;border-radius:20px;background:rgba(155,143,245,.12);color:var(--p);border:1px solid rgba(155,143,245,.2)" onclick="event.stopPropagation()" title="Дочерняя цель">↑ ${esc(parent.title.slice(0,24))}${parent.title.length>24?'…':''}</span>`:'';})():''}
         </div>
         ${g.why?`<div class="goalWhy">"${esc(g.why)}"</div>`:''}
         <div class="goalProg"><div class="goalProgFill" style="width:${pct}%;${allDone?'background:linear-gradient(90deg,var(--green),var(--cyan));':''}"></div></div>
@@ -10648,6 +10649,36 @@ function renderGoals(){
               ${orderedDays.map(d=>`<span>${d}</span>`).join('')}
             </div>
           </div>`:''}
+
+          <!-- Child goals from milestones -->
+          ${(()=>{
+            const children=goalsD().filter(cg=>cg.parentGoalId===g.id);
+            if(!children.length)return'';
+            return`<div style="margin-bottom:12px">
+              <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);margin-bottom:6px">🎯 Подцели (из шагов)</div>
+              <div style="display:flex;flex-direction:column;gap:5px">
+                ${children.map(cg=>{
+                  const cms=cg.milestones||[];
+                  const cpct=cms.length?Math.round(cms.filter(m=>m.done).length/cms.length*100):0;
+                  const hz=GOAL_HORIZONS[cg.horizon||'monthly'];
+                  const overdue=cg.deadline&&cg.deadline<dk(new Date())&&!cg._done;
+                  const cdl=cg.deadline?Math.ceil((new Date(cg.deadline)-new Date())/(1000*60*60*24)):null;
+                  return`<div style="padding:8px 10px;background:rgba(255,255,255,.03);border:1px solid ${overdue?'rgba(240,80,80,.3)':'rgba(255,255,255,.07)'};border-radius:10px;cursor:pointer" onclick="navigateTo('goals')">
+                    <div style="display:flex;align-items:center;gap:8px;margin-bottom:5px">
+                      <span style="font-size:11px">${hz?.emoji||'📅'}</span>
+                      <span style="font-size:11px;font-weight:600;color:var(--text);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(cg.title)}</span>
+                      ${overdue?`<span style="font-size:9px;color:var(--red);font-weight:700">⚠️ просрочено</span>`
+                        :cdl!==null?`<span style="font-size:9px;color:${cdl<=7?'var(--orange)':cdl<=30?'var(--gold)':'var(--muted)'};font-family:var(--font-mono)">${cdl}д.</span>`:''}
+                      <span style="font-size:10px;font-weight:700;color:var(--p);font-family:var(--font-mono)">${cpct}%</span>
+                    </div>
+                    <div style="height:3px;background:rgba(255,255,255,.06);border-radius:3px;overflow:hidden">
+                      <div style="height:100%;width:${cpct}%;background:linear-gradient(90deg,var(--p),var(--cyan));border-radius:3px"></div>
+                    </div>
+                  </div>`;
+                }).join('')}
+              </div>
+            </div>`;
+          })()}
 
           <!-- Upcoming tasks -->
           ${linked.length?`<div style="margin-bottom:10px">
@@ -10899,27 +10930,53 @@ function _addMsRow(text='',deadline='',done=false){
 }
 
 /* ═══ Sync milestones with deadlines → auto-create tasks ═══ */
+/* ═══ Sync milestones with deadlines → child goals ═══ */
+function _msHorizonFromDeadline(deadline){
+  if(!deadline)return'monthly';
+  const diff=Math.ceil((new Date(deadline)-new Date())/(1000*60*60*24));
+  if(diff<=35)return'monthly';
+  if(diff<=100)return'quarterly';
+  if(diff<=365)return'annual';
+  return'longterm';
+}
+
 function _syncMilestonesToTasks(goalId){
   const g=goalsD().find(x=>x.id===goalId);if(!g)return;
   (g.milestones||[]).forEach(ms=>{
     if(!ms.deadline)return;
-    // Check if a task already exists for this milestone
-    const exists=tpD().find(t=>t.goalId===goalId&&t.text.trim()===ms.text.trim());
-    if(!exists){
-      tpD().push({
-        id:'t'+Date.now()+Math.random().toString(36).slice(2),
-        text:ms.text,deadline:ms.deadline,
-        done:ms.done||false,goalId,
-        labelId:'',labelIds:[],subtasks:[],notes:'',repeat:null,
+    const horizon=_msHorizonFromDeadline(ms.deadline);
+    // Check if child goal already exists for this milestone
+    const existingGoal=goalsD().find(cg=>cg.parentGoalId===goalId&&cg.title.trim()===ms.text.trim());
+    if(!existingGoal){
+      const childId=uid();
+      // Remember link on milestone
+      ms.childGoalId=childId;
+      goalsD().push({
+        id:childId,
+        parentGoalId:goalId,
+        title:ms.text,
+        why:`Шаг цели «${g.title}»`,
+        cat:g.cat||'🌟 Прочее',
+        deadline:ms.deadline,
+        horizon,
+        milestones:[],
+        photo:'',
         _fromMilestone:true
       });
     } else {
-      // Update deadline if changed
-      if(exists.deadline!==ms.deadline)exists.deadline=ms.deadline;
-      if(exists.done!==ms.done)exists.done=ms.done;
+      // Update if deadline/horizon changed
+      if(existingGoal.deadline!==ms.deadline){
+        existingGoal.deadline=ms.deadline;
+        existingGoal.horizon=_msHorizonFromDeadline(ms.deadline);
+      }
+      if(ms.done&&!(existingGoal.milestones||[]).length){
+        // Mark done by adding a done milestone
+        existingGoal._done=ms.done;
+      }
+      ms.childGoalId=existingGoal.id;
     }
   });
-  saveD();_refreshAllTaskViews();
+  saveD();renderGoals();
 }
 
 function _toggleGoalPanel(btn,panelId){
