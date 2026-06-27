@@ -10802,19 +10802,20 @@ function renderMatrix(){
 
   root.innerHTML=`
   <style>
-  .mxGrid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px;align-items:start;flex:1;min-width:0;width:100%}
+  .mxGrid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px;align-items:stretch;flex:1;min-width:0;width:100%}
   .mxAxisY{display:flex;flex-direction:column;align-items:center;justify-content:center;writing-mode:vertical-rl;font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:1.2px;color:var(--muted);padding:0 4px;flex-shrink:0;user-select:none}
   .mxAxisX{display:flex;justify-content:space-around;font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:var(--muted);padding:4px 0 0;margin-bottom:4px;margin-left:20px;user-select:none}
   .mxWrap{display:flex;gap:2px}
-  .mxQuad{border:1px solid var(--border);border-radius:16px;padding:12px 14px;transition:border-color .2s,box-shadow .2s}
+  .mxQuad{border:1px solid var(--border);border-radius:16px;padding:12px 14px;transition:border-color .2s,box-shadow .2s;display:flex;flex-direction:column}
   .mxQuad.drag-over{border-color:var(--p)!important;box-shadow:0 0 0 2px var(--pglow2)}
-  .mxQuadHead{display:flex;align-items:center;gap:8px;margin-bottom:8px;padding-bottom:8px;border-bottom:1px solid rgba(255,255,255,.05)}
+  .mxQuadHead{display:flex;align-items:center;gap:8px;margin-bottom:8px;padding-bottom:8px;border-bottom:1px solid rgba(255,255,255,.05);flex-shrink:0}
   .mxQuadIcon{font-size:16px;line-height:1}
   .mxQuadLabel{font-size:12px;font-weight:800;font-family:var(--font-display);letter-spacing:-.2px}
   .mxQuadSub{font-size:9px;color:var(--muted);margin-top:1px;font-weight:600;letter-spacing:.3px}
   .mxQuadCount{margin-left:auto;font-size:11px;font-weight:800;font-family:var(--font-mono);padding:2px 8px;border-radius:20px;background:rgba(255,255,255,.06);flex-shrink:0}
-  .mxCards{display:flex;flex-direction:column;gap:5px}
-  .mxCard{background:var(--card2);border:1px solid var(--border);border-radius:9px;padding:8px 10px;cursor:pointer;transition:border-color .15s,transform .1s,opacity .2s;user-select:none}
+  .mxCards{display:flex;flex-direction:column;gap:5px;flex:1}
+  .mxCards.mxCardsEmpty{align-items:center;justify-content:center}
+  .mxCard{background:var(--card2);border:1px solid var(--border);border-radius:9px;padding:8px 10px;cursor:pointer;transition:border-color .15s,transform .1s,opacity .2s;user-select:none;flex-shrink:0}
   .mxCard:hover{border-color:var(--border2);transform:translateY(-1px)}
   .mxCard[draggable]:active{opacity:.6;transform:scale(.97)}
   .mxDone{opacity:.4}
@@ -10824,8 +10825,8 @@ function renderMatrix(){
   .mxCardMeta{font-size:10px;color:var(--muted);margin-top:4px;padding-left:13px;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
   .mxOverdue{color:var(--red)!important;font-weight:700}
   .mxCheck{margin-top:0;flex-shrink:0}
-  .mxEmpty{text-align:center;padding:20px 0;font-size:11px;color:var(--muted);opacity:.5}
-  .mxTip{font-size:10px;color:var(--muted);margin-top:8px;padding:5px 8px;background:rgba(255,255,255,.025);border-radius:7px;line-height:1.5;font-style:italic}
+  .mxEmpty{text-align:center;font-size:11px;color:var(--muted);opacity:.5}
+  .mxTip{font-size:10px;color:var(--muted);margin-top:8px;padding:5px 8px;background:rgba(255,255,255,.025);border-radius:7px;line-height:1.5;font-style:italic;flex-shrink:0}
   .mxDivider{display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:var(--muted);padding:6px 0;opacity:.5;user-select:none}
   </style>
   <div class="mxAxisX"><span>◀ Не срочно</span><span>Срочно ▶</span></div>
@@ -10845,7 +10846,7 @@ function renderMatrix(){
           </div>
           <span class="mxQuadCount" style="color:${q.color}">${quads[q.key].length}</span>
         </div>
-        <div class="mxCards" id="mxCards-${q.key}">
+        <div class="mxCards${quads[q.key].length?'':' mxCardsEmpty'}" id="mxCards-${q.key}">
           ${quads[q.key].length
             ? quads[q.key].map(item=>renderCard(item,q.key)).join('')
             : `<div class="mxEmpty">—</div>`}
@@ -14559,31 +14560,39 @@ function _buildYearHeatmapHTML(){
   while(cur<=today){
     const k=dk(cur);const v=dayMap[k]||0;
     const pct=v/maxVal;
-    const col=v===0?'rgba(255,255,255,.04)'
-      :pct<.25?'rgba(155,143,245,.25)'
-      :pct<.5?'rgba(155,143,245,.5)'
-      :pct<.75?'rgba(155,143,245,.75)'
-      :'rgba(155,143,245,1)';
+    const level=v===0?0:pct<.25?1:pct<.5?2:pct<.75?3:4;
     const isToday=k===dk(today);
-    curWeek.push({k,v,col,isToday,d:new Date(cur)});
+    curWeek.push({k,v,level,isToday,d:new Date(cur)});
     if(curWeek.length===7){weeks.push(curWeek);curWeek=[];}
     cur.setDate(cur.getDate()+1);
   }
-  if(curWeek.length)weeks.push(curWeek);
+  if(curWeek.length){while(curWeek.length<7)curWeek.push(null);weeks.push(curWeek);}
   const totalDone=Object.values(dayMap).reduce((a,b)=>a+b,0);
   const activeDays=Object.values(dayMap).filter(v=>v>0).length;
   const MN=['Янв','Фев','Мар','Апр','Май','Июн','Июл','Авг','Сен','Окт','Ноя','Дек'];
-  // Month labels: find first week of each month
-  const monthLabels=[];
-  weeks.forEach((wk,wi)=>{
-    const m=wk[0]?.d?.getMonth();
-    if(m!==undefined&&!monthLabels.some(ml=>ml.m===m)){
-      monthLabels.push({wi,m,label:MN[m]});
-    }
+  const WEEKS=weeks.length;
+  // Month labels: mark the first week of each month
+  const monthLabels=weeks.map((wk,wi)=>{
+    const firstDay=wk.find(d=>d);
+    if(!firstDay)return'';
+    const m=firstDay.d.getMonth();
+    const prevDay=wi>0?weeks[wi-1].find(d=>d):null;
+    const isNew=wi===0||(prevDay&&prevDay.d.getMonth()!==m);
+    return isNew?MN[m]:'';
   });
-  const cellSize=13,gap=2;
-  const svgW=weeks.length*(cellSize+gap);
-  const svgH=7*(cellSize+gap)+20;
+  const colorFor=lvl=>lvl===0?'rgba(255,255,255,.04)':lvl===1?'rgba(155,143,245,.25)':lvl===2?'rgba(155,143,245,.5)':lvl===3?'rgba(155,143,245,.75)':'rgba(155,143,245,1)';
+
+  // Build cells day-major (row by row) so default grid-auto-flow:row fills correctly
+  let gridHtml='';
+  for(let di=0;di<7;di++){
+    for(let wi=0;wi<WEEKS;wi++){
+      const day=weeks[wi][di];
+      if(!day){gridHtml+='<div style="aspect-ratio:1"></div>';continue;}
+      const todayStyle=day.isToday?'box-shadow:0 0 0 1.5px rgba(155,143,245,.9),inset 0 0 0 1px rgba(155,143,245,.3);position:relative;z-index:1;':'';
+      gridHtml+=`<div style="aspect-ratio:1;border-radius:3px;background:${colorFor(day.level)};${todayStyle}" title="${day.k}: ${day.v} задач"></div>`;
+    }
+  }
+
   return`<div class="chartCard" style="margin-bottom:16px;overflow:hidden">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px">
       <div class="secLbl">📅 Активность за год</div>
@@ -14592,18 +14601,12 @@ function _buildYearHeatmapHTML(){
         <span><span style="color:var(--text2);font-weight:800">${activeDays}</span> активных дней</span>
       </div>
     </div>
-    <svg width="100%" height="${svgH}" viewBox="0 0 ${svgW} ${svgH}" preserveAspectRatio="xMinYMin meet" xmlns="http://www.w3.org/2000/svg" style="display:block">
-      ${monthLabels.map(ml=>`<text x="${ml.wi*(cellSize+gap)}" y="10" font-size="9" fill="rgba(255,255,255,.3)" font-family="sans-serif">${ml.label}</text>`).join('')}
-      ${weeks.map((wk,wi)=>wk.map((day,di)=>{
-        const x=wi*(cellSize+gap);const y=16+di*(cellSize+gap);
-        return`<rect x="${x}" y="${y}" width="${cellSize}" height="${cellSize}" rx="2"
-          fill="${day.col}"
-          ${day.isToday?`stroke="rgba(155,143,245,.9)" stroke-width="1.5"`:''}
-          opacity="${day.v?1:.55}">
-          <title>${day.k}: ${day.v} задач</title>
-        </rect>`;
-      }).join('')).join('')}
-    </svg>
+    <div style="display:grid;grid-template-columns:repeat(${WEEKS},1fr);gap:2px;margin-bottom:3px;width:100%">
+      ${monthLabels.map(l=>`<div style="font-size:8.5px;color:var(--muted);font-weight:700;white-space:nowrap;overflow:hidden">${l}</div>`).join('')}
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(${WEEKS},1fr);gap:2px;width:100%">
+      ${gridHtml}
+    </div>
     <div style="display:flex;align-items:center;gap:6px;margin-top:10px;font-size:10px;color:var(--muted)">
       <span>меньше</span>
       ${['rgba(255,255,255,.04)','rgba(155,143,245,.25)','rgba(155,143,245,.5)','rgba(155,143,245,.75)','rgba(155,143,245,1)'].map(c=>`<span style="width:11px;height:11px;border-radius:2px;background:${c};display:inline-block"></span>`).join('')}
