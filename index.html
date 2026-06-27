@@ -5560,8 +5560,11 @@ body.light-mode .skel{background:linear-gradient(90deg,var(--card2) 25%,#f0f2f7 
       <div class="fldGrp"><div class="fldLbl">Срок достижения</div><div id="goalDlInp-dp"></div></div>
     </div>
     <div class="fldGrp">
-      <div class="fldLbl">Шаги / Вехи (по одному на строку)</div>
-      <textarea class="kbTxtarea" id="goalMsInp" placeholder="Шаг 1&#10;Шаг 2&#10;Шаг 3..." style="min-height:80px"></textarea>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+        <div class="fldLbl" style="margin-bottom:0">Шаги / Вехи</div>
+        <button type="button" onclick="_addMsRow()" style="padding:3px 10px;background:rgba(155,143,245,.12);border:1px solid rgba(155,143,245,.25);border-radius:8px;color:var(--p);font-size:11px;font-weight:700;cursor:pointer">+ Добавить шаг</button>
+      </div>
+      <div id="goalMsRows" style="display:flex;flex-direction:column;gap:6px"></div>
     </div>
     <div style="display:flex;gap:8px">
       <button class="btn btnG" style="flex:1;justify-content:center" onclick="closeGoalModal()">Отмена</button>
@@ -7766,9 +7769,24 @@ function updTField(i,f,v){const t=tpD()[i];if(!t)return;t[f]=v;saveD();_refreshA
 // Keep old updT for backward compat
 function updT(i,f,v){updTField(i,f,v);}
 
+function _logTaskEvent(type,task,extra={}){
+  if(!G.taskEvents)G.taskEvents=[];
+  G.taskEvents.push({
+    type, // 'delete'|'reschedule'|'kanban_move'|'done'
+    taskId:task?.id||'',
+    taskText:task?.text||'',
+    goalId:task?.goalId||'',
+    date:dk(new Date()),
+    ts:Date.now(),
+    ...extra
+  });
+  // Keep last 500 events
+  if(G.taskEvents.length>500)G.taskEvents=G.taskEvents.slice(-500);
+}
+
 function delT(i){
   const t=tpD()[i];if(!t)return;
-  // Fix: filter instead of splice-during-forEach to avoid index skipping
+  _logTaskEvent('delete',t,{deadline:t.deadline});
   if(t.id)G.kanban=kbD().filter(c=>c.taskId!==t.id);
   G.tasks.splice(i,1);saveD();_refreshAllTaskViews();
 }
@@ -8209,6 +8227,10 @@ function taskModalSave(){
 
   if(currentIdx>=0){
     const existingTask=tpD()[currentIdx];
+    // Log reschedule if deadline changed
+    if(existingTask.deadline&&data.deadline&&existingTask.deadline!==data.deadline){
+      _logTaskEvent('reschedule',existingTask,{from:existingTask.deadline,to:data.deadline});
+    }
     // If editing a recurring task, ask scope first
     if(existingTask.repeat){
       closeTaskModal();
@@ -9420,6 +9442,7 @@ function _kbDropToCol(cardId,colId){
   cards[idx].colLocked=!newColDef.isDone;
   const task=cards[idx].taskId?tpD().find(x=>x.id===cards[idx].taskId):null;
   if(task){
+    _logTaskEvent('kanban_move',task,{fromCol:cards[idx]._prevCol||'',toCol:colId,colName:newColDef.name||colId});
     if(newColDef.isDone){task.done=true;cards[idx].done=true;cards[idx].doneAt=Date.now();}
     else{task.done=false;cards[idx].done=false;cards[idx].doneAt=null;}
     // Moving a card to a date-based column updates the underlying task's
@@ -10633,19 +10656,41 @@ function renderGoals(){
               ${linked.slice(0,5).map(t=>{
                 const isOverdue=!t.done&&t.deadline&&t.deadline<dk(new Date());
                 const idx=tpD().indexOf(t);
+                // Count how many times this task was rescheduled
+                const reschedCount=(G.taskEvents||[]).filter(e=>e.taskId===t.id&&e.type==='reschedule').length;
                 return`<div style="display:flex;align-items:center;gap:8px;padding:6px 8px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:8px;cursor:pointer" onclick="openTaskModal(${idx})">
                   <div style="width:12px;height:12px;border-radius:3px;flex-shrink:0;background:${t.done?'var(--green)':'rgba(255,255,255,.1)'};border:1px solid ${t.done?'var(--green)':isOverdue?'var(--red)':'rgba(255,255,255,.15)'};display:flex;align-items:center;justify-content:center">
                     ${t.done?'<svg width="8" height="8" viewBox="0 0 8 8"><path d="M1 4l2 2 4-4" stroke="#000" stroke-width="1.5" fill="none" stroke-linecap="round"/></svg>':''}
                   </div>
                   <span style="font-size:11px;font-weight:500;color:${t.done?'var(--muted)':'var(--text)'};flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;${t.done?'text-decoration:line-through;':''}">${esc(t.text)}</span>
+                  ${reschedCount>0?`<span style="font-size:9px;color:var(--gold);flex-shrink:0" title="Перенесено ${reschedCount} раз">↻${reschedCount}</span>`:''}
                   ${t.deadline?`<span style="font-size:9px;color:${isOverdue?'var(--red)':t.done?'var(--muted)':'var(--text2)'};font-family:var(--font-mono);flex-shrink:0">${t.deadline.slice(5)}</span>`:''}
                   ${t.actualDuration?`<span style="font-size:9px;color:var(--gold);flex-shrink:0">⏱${t.actualDuration}м</span>`:''}
                 </div>`;
               }).join('')}
               ${linked.length>5?`<div style="font-size:10px;color:var(--muted);text-align:center;padding:4px;cursor:pointer" onclick="navigateTo('tasks')">+${linked.length-5} ещё задач →</div>`:''}
-              ${linked.length===0?`<div style="font-size:11px;color:var(--muted);text-align:center;padding:12px 0">Нет задач — <span style="color:var(--p);cursor:pointer" onclick="openTaskModal(null)">добавить</span></div>`:''}
             </div>
           </div>
+
+          <!-- Task behaviour stats -->
+          ${(()=>{
+            const events=(G.taskEvents||[]).filter(e=>e.goalId===g.id);
+            const reschedTotal=events.filter(e=>e.type==='reschedule').length;
+            const deletedTotal=events.filter(e=>e.type==='delete').length;
+            const movedTotal=events.filter(e=>e.type==='kanban_move').length;
+            if(!reschedTotal&&!deletedTotal&&!movedTotal)return'';
+            return`<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:5px;margin-bottom:10px">
+              ${[
+                {v:reschedTotal,l:'Переносов',c:'var(--gold)',tip:'Сколько раз дедлайны задач менялись'},
+                {v:deletedTotal,l:'Удалено задач',c:'var(--red)',tip:'Задачи удалённые по этой цели'},
+                {v:movedTotal,l:'Перемещений',c:'var(--cyan)',tip:'Перемещений по Канбану'},
+              ].map(s=>`<div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.05);border-radius:9px;padding:8px 6px;text-align:center" title="${s.tip}">
+                <div style="font-family:var(--font-display);font-size:16px;font-weight:800;color:${s.c};line-height:1">${s.v}</div>
+                <div style="font-size:8px;color:var(--muted);margin-top:2px;font-weight:600;letter-spacing:.2px">${s.l}</div>
+              </div>`).join('')}
+            </div>`;
+          })()}
+
           <button onclick="openTaskModal(null);setTimeout(()=>{const s=document.getElementById('tm-goalLink');if(s){s.value='${g.id}';}},150)" style="width:100%;padding:5px 0;background:rgba(155,143,245,.08);border:1px solid rgba(155,143,245,.2);border-radius:8px;color:var(--p);font-size:10px;font-weight:700;cursor:pointer;margin-bottom:2px">+ Добавить задачу к цели</button>`:'<div style="font-size:11px;color:var(--muted);text-align:center;padding:12px 0">Нет связанных задач<br><span style="color:var(--p);cursor:pointer;font-weight:600" onclick="openTaskModal(null)">+ Добавить</span></div>'}
         </div>
 
@@ -10737,7 +10782,14 @@ function openGoalModal(id){
   document.getElementById('goalTitleInp').value=g?g.title:'';
   document.getElementById('goalWhyInp').value=g?g.why:'';
   dpSetValue('goalDlInp',g?g.deadline:'');
-  document.getElementById('goalMsInp').value=g?(g.milestones||[]).map(m=>m.text).join('\n'):'';
+  // Build milestone rows
+  const msRows=document.getElementById('goalMsRows');
+  if(msRows){
+    msRows.innerHTML='';
+    const msList=g?(g.milestones||[]):[];
+    if(msList.length){msList.forEach(m=>_addMsRow(m.text,m.deadline||'',m.done||false));}
+    else{_addMsRow();} // start with one empty row
+  }
   const sel=document.getElementById('goalCatInp');sel.innerHTML='';
   GOAL_CATS.forEach(c=>{const o=document.createElement('option');o.value=c;o.textContent=c;if(g&&g.cat===c)o.selected=true;sel.appendChild(o)});
   // Horizon
@@ -10804,15 +10856,70 @@ async function saveGoal(){
     photo=_goalPhotoData;
   }
 
-  const msLines=document.getElementById('goalMsInp').value.split('\n').map(s=>s.trim()).filter(Boolean);
-  const existingMs=existing?existing.milestones||[]:[];
-  const milestones=msLines.map((text,i)=>({text,done:existingMs[i]?existingMs[i].done:false}));
+  // Collect milestone rows
+  const msRows=document.getElementById('goalMsRows');
+  const milestones=[];
+  if(msRows){
+    msRows.querySelectorAll('.gMsRow').forEach(row=>{
+      const text=(row.querySelector('.gMsText')?.value||'').trim();
+      if(!text)return;
+      const deadline=row.querySelector('.gMsDl')?.value||'';
+      const done=row.querySelector('.gMsDone')?.checked||false;
+      milestones.push({text,deadline,done});
+    });
+  } else {
+    // fallback: old textarea
+    const msLines=(document.getElementById('goalMsInp')?.value||'').split('\n').map(s=>s.trim()).filter(Boolean);
+    const existingMs=existing?existing.milestones||[]:[];
+    msLines.forEach((text,i)=>milestones.push({text,done:existingMs[i]?existingMs[i].done:false}));
+  }
   const goalId=goalEditId||uid();
   console.log('[saveGoal] photo length:', photo?.length||0, 'KB:', Math.round((photo?.length||0)/1024));
   const data={title,why:document.getElementById('goalWhyInp').value,cat:document.getElementById('goalCatInp').value,deadline:document.getElementById('goalDlInp').value,horizon:document.getElementById('goalHorizonInp').value||'annual',milestones,photo};
   if(goalEditId){const idx=goalsD().findIndex(x=>x.id===goalEditId);if(idx>=0)goalsD()[idx]={...goalsD()[idx],...data};}
   else{goalsD().push({...data,id:goalId});}
   saveD(); closeGoalModal(); renderGoals();
+  // Sync milestones with deadlines → auto-create tasks
+  _syncMilestonesToTasks(goalId);
+  _syncGoalProgressFromTasks();
+}
+
+/* ═══ Milestone rows UI ═══ */
+function _addMsRow(text='',deadline='',done=false){
+  const cont=document.getElementById('goalMsRows');if(!cont)return;
+  const row=document.createElement('div');
+  row.className='gMsRow';
+  row.style.cssText='display:grid;grid-template-columns:auto 1fr auto auto;gap:6px;align-items:center;padding:6px 8px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:10px;transition:border-color .15s';
+  row.innerHTML=`
+    <input type="checkbox" class="gMsDone" ${done?'checked':''} style="accent-color:var(--p);width:14px;height:14px;cursor:pointer;flex-shrink:0" title="Отметить выполненным">
+    <input type="text" class="inp gMsText" value="${esc(text)}" placeholder="Название шага..." style="font-size:12px;padding:5px 8px;background:transparent;border-color:transparent;min-width:0" onfocus="this.parentElement.style.borderColor='rgba(155,143,245,.3)'" onblur="this.parentElement.style.borderColor='rgba(255,255,255,.07)'">
+    <input type="date" class="inp gMsDl" value="${deadline}" style="font-size:11px;font-family:var(--font-mono);padding:4px 8px;width:130px;flex-shrink:0;color-scheme:dark" title="Дедлайн шага">
+    <button type="button" onclick="this.closest('.gMsRow').remove()" style="padding:3px 6px;background:rgba(240,80,80,.1);border:1px solid rgba(240,80,80,.2);border-radius:7px;color:var(--red);font-size:12px;cursor:pointer;flex-shrink:0;line-height:1" title="Удалить шаг">✕</button>`;
+  cont.appendChild(row);
+}
+
+/* ═══ Sync milestones with deadlines → auto-create tasks ═══ */
+function _syncMilestonesToTasks(goalId){
+  const g=goalsD().find(x=>x.id===goalId);if(!g)return;
+  (g.milestones||[]).forEach(ms=>{
+    if(!ms.deadline)return;
+    // Check if a task already exists for this milestone
+    const exists=tpD().find(t=>t.goalId===goalId&&t.text.trim()===ms.text.trim());
+    if(!exists){
+      tpD().push({
+        id:'t'+Date.now()+Math.random().toString(36).slice(2),
+        text:ms.text,deadline:ms.deadline,
+        done:ms.done||false,goalId,
+        labelId:'',labelIds:[],subtasks:[],notes:'',repeat:null,
+        _fromMilestone:true
+      });
+    } else {
+      // Update deadline if changed
+      if(exists.deadline!==ms.deadline)exists.deadline=ms.deadline;
+      if(exists.done!==ms.done)exists.done=ms.done;
+    }
+  });
+  saveD();_refreshAllTaskViews();
 }
 
 function _toggleGoalPanel(btn,panelId){
@@ -10829,7 +10936,17 @@ function _toggleGoalPanel(btn,panelId){
 }
 
 async function delGoal(id){if(!await appConfirm('Удалить цель?'))return;const i=goalsD().findIndex(x=>x.id===id);if(i>=0){goalsD().splice(i,1);saveD();renderGoals()}}
-function toggleMs(gid,idx,c){const g=goalsD().find(x=>x.id===gid);if(g&&g.milestones&&g.milestones[idx])g.milestones[idx].done=c;saveD();renderGoals()}
+function toggleMs(gid,idx,c){
+  const g=goalsD().find(x=>x.id===gid);
+  if(g&&g.milestones&&g.milestones[idx]){
+    g.milestones[idx].done=c;
+    // Sync to linked task if exists
+    const ms=g.milestones[idx];
+    const linked=tpD().find(t=>t.goalId===gid&&t.text.trim()===ms.text.trim());
+    if(linked)linked.done=c;
+  }
+  saveD();renderGoals();_refreshAllTaskViews();
+}
 
 /* ═══════════════════════════════════════════════════
    MATRIX EISENHOWER
