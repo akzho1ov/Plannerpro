@@ -1108,6 +1108,7 @@ select.inp option{background:var(--card2);color:var(--text)}
 .tDateInp:hover,.tDateInp:focus{border-color:var(--p)}
 .dlNeg{color:var(--red);font-weight:700}.dlZero{color:var(--orange);font-weight:700}.dlSoon{color:var(--gold);font-weight:600}.dlOk{color:var(--green)}
 .tDelBtn{border:none;background:none;cursor:pointer;color:var(--border2);font-size:16px;padding:2px 4px;opacity:0;transition:.15s}
+.tEditBadge{font-size:9px;font-weight:800;padding:1px 6px;border-radius:20px;letter-spacing:.3px;cursor:default;font-family:var(--font-mono)}
 .tTbl tbody tr:hover .tDelBtn{opacity:1}.tTbl tbody tr:hover .tDelBtn:hover{color:var(--red)}
 .tAddInp{width:100%;border:2px dashed var(--border2);border-radius:9px;padding:10px 14px;font-family:var(--font-body);font-size:13px;font-weight:600;outline:none;background:transparent;color:var(--text2);transition:.15s}
 .tAddInp:focus{border-color:var(--p);background:var(--card2);color:var(--text)}
@@ -5178,26 +5179,43 @@ body.light-mode .skel{background:linear-gradient(90deg,var(--card2) 25%,#f0f2f7 
       </div>
     </div>
 
-    <!-- Actual time tracker (simple stopwatch) -->
+    <!-- Time planning: planned + actual -->
     <div style="background:var(--card2);border:1px solid var(--border);border-radius:12px;padding:12px 14px;margin-bottom:14px">
       <div style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:1.2px;color:var(--muted);margin-bottom:10px;display:flex;align-items:center;gap:6px">
         <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2" stroke-linecap="round"/></svg>
-        Фактическое время (мин)
+        Время
       </div>
-      <div style="display:flex;align-items:center;gap:10px">
-        <input type="number" class="inp" id="tm-actualDuration" min="0" max="1440" placeholder="напр. 45" style="font-family:var(--font-mono);font-size:13px;font-weight:700;max-width:100px;padding:7px 10px;border-color:rgba(15,221,170,.3)">
-        <div style="display:flex;gap:6px;flex-wrap:wrap">
-          <button onclick="_tmSetActual(15)" style="border:1px solid var(--border2);background:var(--card3);color:var(--text2);border-radius:8px;padding:4px 9px;font-size:10px;font-weight:700;cursor:pointer">15м</button>
-          <button onclick="_tmSetActual(30)" style="border:1px solid var(--border2);background:var(--card3);color:var(--text2);border-radius:8px;padding:4px 9px;font-size:10px;font-weight:700;cursor:pointer">30м</button>
-          <button onclick="_tmSetActual(45)" style="border:1px solid var(--border2);background:var(--card3);color:var(--text2);border-radius:8px;padding:4px 9px;font-size:10px;font-weight:700;cursor:pointer">45м</button>
-          <button onclick="_tmSetActual(60)" style="border:1px solid var(--border2);background:var(--card3);color:var(--text2);border-radius:8px;padding:4px 9px;font-size:10px;font-weight:700;cursor:pointer">1ч</button>
-          <button onclick="_tmSetActual(90)" style="border:1px solid var(--border2);background:var(--card3);color:var(--text2);border-radius:8px;padding:4px 9px;font-size:10px;font-weight:700;cursor:pointer">1.5ч</button>
-          <button onclick="_tmSetActual(120)" style="border:1px solid var(--border2);background:var(--card3);color:var(--text2);border-radius:8px;padding:4px 9px;font-size:10px;font-weight:700;cursor:pointer">2ч</button>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
+        <div>
+          <div style="font-size:9px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;margin-bottom:5px">📋 Планирую (мин)</div>
+          <div style="display:flex;align-items:center;gap:6px">
+            <input type="number" class="inp" id="tm-plannedDuration" min="0" max="1440" placeholder="напр. 60" style="font-family:var(--font-mono);font-size:13px;font-weight:700;padding:7px 10px;border-color:rgba(155,143,245,.3);width:100%">
+          </div>
+          <div style="display:flex;gap:4px;flex-wrap:wrap;margin-top:5px">
+            ${[15,30,60,90,120,180].map(m=>`<button onclick="document.getElementById('tm-plannedDuration').value=${m}" style="border:1px solid var(--border2);background:var(--card3);color:var(--text2);border-radius:7px;padding:3px 7px;font-size:9px;font-weight:700;cursor:pointer">${m<60?m+'м':m/60+'ч'}</button>`).join('')}
+          </div>
         </div>
+        <div>
+          <div style="font-size:9px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;margin-bottom:5px">⏱ Факт (мин)</div>
+          <div style="display:flex;align-items:center;gap:6px">
+            <input type="number" class="inp" id="tm-actualDuration" min="0" max="1440" placeholder="напр. 45" style="font-family:var(--font-mono);font-size:13px;font-weight:700;padding:7px 10px;border-color:rgba(15,221,170,.3);width:100%">
+          </div>
+          <div style="display:flex;gap:4px;flex-wrap:wrap;margin-top:5px">
+            ${[15,30,60,90,120,180].map(m=>`<button onclick="_tmSetActual(${m})" style="border:1px solid var(--border2);background:var(--card3);color:var(--text2);border-radius:7px;padding:3px 7px;font-size:9px;font-weight:700;cursor:pointer">${m<60?m+'м':m/60+'ч'}</button>`).join('')}
+          </div>
+        </div>
+      </div>
+      <!-- Efficiency bar (shown when both values present) -->
+      <div id="tm-effBar" style="display:none">
+        <div style="height:3px;background:rgba(255,255,255,.06);border-radius:2px;overflow:hidden;margin-bottom:3px"><div id="tm-effFill" style="height:100%;border-radius:2px;transition:.4s"></div></div>
+        <div id="tm-effLabel" style="font-size:10px;color:var(--muted);text-align:right"></div>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;margin-top:8px;padding-top:8px;border-top:1px solid rgba(255,255,255,.05)">
         <div id="tm-timerDisplay" style="font-family:var(--font-mono);font-size:12px;font-weight:700;color:var(--green);min-width:48px;display:none">00:00</div>
         <button id="tm-timerBtn" onclick="_tmToggleTimer()" style="display:flex;align-items:center;gap:5px;border:1px solid rgba(15,221,170,.3);background:rgba(15,221,170,.08);color:var(--green);border-radius:8px;padding:5px 10px;font-size:10px;font-weight:700;cursor:pointer;transition:all .15s">
-          <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><polygon points="5,3 19,12 5,21"/></svg> Старт
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><polygon points="5,3 19,12 5,21"/></svg> Старт таймера
         </button>
+        <span style="font-size:10px;color:var(--muted)">автоматически заполняет факт</span>
       </div>
     </div>
 
@@ -7631,12 +7649,20 @@ function renderTP(){
       const repeatBadge=t.repeat?`<span class="mTaskRepeatBadge" style="font-size:8px;margin-left:4px">↻</span>`:'';
       const stPill=stMiniHtml(t);
       const timeDisplay=t.time?`<span style="font-family:var(--font-mono);font-size:10.5px;color:var(--p);font-weight:600">${t.time}${t.endTime?' – '+t.endTime:''}</span>`:'<span style="color:var(--border3)">—</span>';
+
+      // ── Edit history indicator ──
+      const tevents=(G.taskEvents||[]).filter(e=>e.taskId===t.id);
+      const reschedCnt=tevents.filter(e=>e.type==='reschedule').length;
+      const editCnt=tevents.filter(e=>e.type==='edit').length;
+      const totalEdits=reschedCnt+editCnt;
+      const editBadge=totalEdits>0?`<span class="tEditBadge" style="background:${totalEdits>=3?'rgba(248,113,113,.15)':totalEdits>=2?'rgba(251,146,60,.15)':'rgba(155,143,245,.12)'};color:${totalEdits>=3?'var(--red)':totalEdits>=2?'var(--gold)':'var(--muted)'};border:1px solid ${totalEdits>=3?'rgba(248,113,113,.3)':totalEdits>=2?'rgba(251,146,60,.3)':'rgba(255,255,255,.1)'}" title="${reschedCnt>0?'Перенесено: '+reschedCnt+' раз\n':''} ${editCnt>0?'Изменено: '+editCnt+' раз':''}">↻${totalEdits}</span>`:'';
+
       tr.innerHTML=`
         <td style="color:var(--muted);font-size:10px;padding-left:10px">${rowNum}</td>
         <td><input type="checkbox" class="tCb" ${effDone?'checked':''} onchange="toggleTById('${t.id}',this.checked,this)"></td>
         <td style="cursor:pointer" onclick="openTaskModal('${t.id}')">
           <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
-            <span style="font-size:12px;font-weight:600;color:var(--text);${effDone?'text-decoration:line-through;opacity:.65':''}">${esc(t.text)||'<em style="color:var(--muted)">Нет названия</em>'}</span>${repeatBadge}
+            <span style="font-size:12px;font-weight:600;color:var(--text);${effDone?'text-decoration:line-through;opacity:.65':''}">${esc(t.text)||'<em style="color:var(--muted)">Нет названия</em>'}</span>${repeatBadge}${editBadge}
             ${stPill}
           </div>
         </td>
@@ -7998,7 +8024,31 @@ function _tmNormalizeTime(inp){
   inp.value=(h<10?'0'+h:h)+':'+(m<10?'0'+m:m);
 }
 function _tmSetActual(min){
-  const el=document.getElementById('tm-actualDuration');
+  const pdInp=document.getElementById('tm-plannedDuration');
+  if(pdInp)pdInp.value=t?.plannedDuration||'';
+  // Wire efficiency bar
+  const _updEff=()=>{
+    const p=parseInt(document.getElementById('tm-plannedDuration')?.value||0);
+    const a=parseInt(document.getElementById('tm-actualDuration')?.value||0);
+    const bar=document.getElementById('tm-effBar');
+    const fill=document.getElementById('tm-effFill');
+    const lbl=document.getElementById('tm-effLabel');
+    if(!bar||!fill||!lbl)return;
+    if(!p||!a){bar.style.display='none';return;}
+    bar.style.display='block';
+    const ratio=p/a; // >1 = faster than planned, <1 = slower
+    const pct=Math.min(100,Math.round(ratio*100));
+    fill.style.width=pct+'%';
+    fill.style.background=ratio>=1?'var(--green)':ratio>=.7?'var(--gold)':'var(--red)';
+    lbl.textContent=ratio>=1?`✅ На ${Math.round((ratio-1)*100)}% быстрее плана`
+      :`⚠️ На ${Math.round((1-ratio)*100)}% дольше плана`;
+    lbl.style.color=ratio>=1?'var(--green)':ratio>=.7?'var(--gold)':'var(--red)';
+  };
+  setTimeout(()=>{
+    document.getElementById('tm-plannedDuration')?.addEventListener('input',_updEff);
+    document.getElementById('tm-actualDuration')?.addEventListener('input',_updEff);
+    _updEff();
+  },50);
   if(el)el.value=min;
 }
 /* ── Stopwatch ── */
@@ -8201,6 +8251,7 @@ function taskModalSave(){
   const labelId=labelIds[0]||'';
   const timeVal=document.getElementById('tm-time').value||'';
   const endTimeVal=document.getElementById('tm-endTime').value||'';
+  const plannedDur=document.getElementById('tm-plannedDuration')?.value||'';
   const actualDur=document.getElementById('tm-actualDuration')?.value||'';
   const deadlineVal=document.getElementById('tm-deadline').value||'';
   const deadlineTimeVal=document.getElementById('tm-deadline-time').value||'';
@@ -8212,7 +8263,7 @@ function taskModalSave(){
     reminderMin:reminderMinVal?parseInt(reminderMinVal):null,
     time:timeVal,
     endTime:endTimeVal,
-    plannedDuration:null,
+    plannedDuration:plannedDur?parseInt(plannedDur):null,
     actualDuration:actualDur?parseInt(actualDur):null,
     notes:document.getElementById('tm-notes').value||'',
     done:document.getElementById('tm-done').checked,
@@ -8227,9 +8278,11 @@ function taskModalSave(){
 
   if(currentIdx>=0){
     const existingTask=tpD()[currentIdx];
-    // Log reschedule if deadline changed
     if(existingTask.deadline&&data.deadline&&existingTask.deadline!==data.deadline){
       _logTaskEvent('reschedule',existingTask,{from:existingTask.deadline,to:data.deadline});
+    }
+    if((existingTask.time||'')!==(data.time||'')){
+      _logTaskEvent('edit',existingTask,{field:'time',from:existingTask.time||'—',to:data.time||'—'});
     }
     // If editing a recurring task, ask scope first
     if(existingTask.repeat){
@@ -8246,6 +8299,7 @@ function taskModalSave(){
     // New task
     const id=uid();
     tpD().push({...data,id,priority:2});
+    _logTaskEvent('create',{...data,id},{plannedDuration:data.plannedDuration,originalDeadline:data.deadline});
     syncNewTaskToKanban(id);
     // If this task was added via "+ Добавить" inside a specific Kanban column,
     // place the resulting card there instead of the auto-computed smart column.
@@ -14932,11 +14986,17 @@ function renderAnalytics(){
     <!-- ── Sleep analytics ── -->
     ${buildSleepAnalyticsHTML()}
 
+    <!-- ── Plan vs Reality ── -->
+    ${_buildPlanVsRealHTML()}
+
     <!-- ── Year heatmap ── -->
     ${_buildYearHeatmapHTML()}
 
     <!-- ── Personal records ── -->
     ${_buildPersonalRecordsHTML()}
+
+    <!-- ── Task behaviour analytics ── -->
+    ${_buildTaskBehaviourHTML()}
 
     <!-- ── Empty state ── -->
     ${emptyHtml}
@@ -14961,7 +15021,256 @@ function renderAnalytics(){
   });
 }
 
-/* ═══ Year activity heatmap (GitHub-style) ═══ */
+/* ═══ Analytics: Plan vs Reality ═══ */
+function _buildPlanVsRealHTML(){
+  const events=G.taskEvents||[];
+  const tasks=tpD();
+
+  // ── Reschedule analysis ──
+  const reschedules=events.filter(e=>e.type==='reschedule');
+  const deletes=events.filter(e=>e.type==='delete');
+  const creates=events.filter(e=>e.type==='create');
+
+  // Tasks with both planned and actual duration
+  const timed=tasks.filter(t=>t.plannedDuration&&t.actualDuration);
+  const totalPlanned=timed.reduce((s,t)=>s+t.plannedDuration,0);
+  const totalActual=timed.reduce((s,t)=>s+t.actualDuration,0);
+  const avgRatio=timed.length?totalActual/totalPlanned:null;
+
+  // Most rescheduled tasks (top 5)
+  const reschedByTask={};
+  reschedules.forEach(e=>{
+    if(!reschedByTask[e.taskId])reschedByTask[e.taskId]={text:e.taskText,count:0,dates:[]};
+    reschedByTask[e.taskId].count++;
+    if(e.from&&e.to)reschedByTask[e.taskId].dates.push({from:e.from,to:e.to});
+  });
+  const topRescheduled=Object.values(reschedByTask).sort((a,b)=>b.count-a.count).slice(0,5);
+
+  // Reschedule trend by day of week
+  const dowNames=['Вс','Пн','Вт','Ср','Чт','Пт','Сб'];
+  const reschedByDow=Array(7).fill(0);
+  reschedules.forEach(e=>{if(e.date)reschedByDow[new Date(e.date+'T00:00:00').getDay()]++;});
+  const maxDow=Math.max(...reschedByDow,1);
+
+  // Delete reasons by time of day
+  const deletesByHour=Array(24).fill(0);
+  deletes.forEach(e=>{if(e.ts)deletesByHour[new Date(e.ts).getHours()]++;});
+
+  // Time estimation accuracy buckets
+  const buckets={fast:0,ontime:0,slow:0,very_slow:0}; // ratio bins
+  timed.forEach(t=>{
+    const r=t.actualDuration/t.plannedDuration;
+    if(r<0.8)buckets.fast++;
+    else if(r<=1.2)buckets.ontime++;
+    else if(r<=2)buckets.slow++;
+    else buckets.very_slow++;
+  });
+
+  // Completion rate (planned vs done)
+  const todK=dk(new Date());
+  const overdueCount=tasks.filter(t=>!t.done&&t.deadline&&t.deadline<todK).length;
+  const doneCount=tasks.filter(t=>t.done).length;
+  const totalWithDl=tasks.filter(t=>t.deadline).length;
+
+  if(!reschedules.length&&!deletes.length&&!timed.length){
+    return`<div class="chartCard" style="margin-bottom:16px;text-align:center;padding:32px">
+      <div style="font-size:32px;margin-bottom:10px">📋</div>
+      <div style="font-size:13px;font-weight:700;color:var(--text2);margin-bottom:6px">Данных пока нет</div>
+      <div style="font-size:11px;color:var(--muted);line-height:1.6">Добавляй планируемое время к задачам и переноси дедлайны — здесь появится аналитика «план vs реальность»</div>
+    </div>`;
+  }
+
+  const fmtMin=m=>m>=60?`${Math.floor(m/60)}ч${m%60>0?' '+m%60+'м':''}`:m+'м';
+
+  return`<div class="chartCard" style="margin-bottom:16px">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:8px">
+      <div class="secLbl">📋 План vs Реальность</div>
+      <div style="font-size:10px;color:var(--muted)">${reschedules.length+deletes.length} событий отслежено</div>
+    </div>
+
+    <!-- KPI row -->
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:8px;margin-bottom:18px">
+      ${[
+        {v:reschedules.length,l:'Переносов',c:reschedules.length>10?'var(--red)':reschedules.length>5?'var(--gold)':'var(--green)',e:'↻',tip:'Сколько раз дедлайны сдвигались'},
+        {v:deletes.length,l:'Удалений',c:deletes.length>10?'var(--red)':deletes.length>3?'var(--gold)':'var(--muted)',e:'✕',tip:'Сколько задач удалено'},
+        {v:overdueCount,l:'Просрочено',c:overdueCount>5?'var(--red)':overdueCount>0?'var(--gold)':'var(--green)',e:'⚠',tip:'Задач с прошедшим дедлайном'},
+        {v:avgRatio?Math.round(avgRatio*100)+'%':'—',l:'Точность оценки',c:avgRatio?avgRatio<=1.2?'var(--green)':avgRatio<=1.6?'var(--gold)':'var(--red)':'var(--muted)',e:'⏱',tip:'Факт / план времени'},
+      ].map(s=>`<div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:12px;padding:12px 10px;text-align:center" title="${s.tip}">
+        <div style="font-size:10px;margin-bottom:4px;opacity:.6">${s.e}</div>
+        <div style="font-family:var(--font-display);font-size:20px;font-weight:900;color:${s.c};letter-spacing:-.5px;line-height:1">${s.v}</div>
+        <div style="font-size:9px;color:var(--muted);margin-top:3px;font-weight:600">${s.l}</div>
+      </div>`).join('')}
+    </div>
+
+    <!-- Time accuracy buckets -->
+    ${timed.length>=3?`<div style="margin-bottom:18px">
+      <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);margin-bottom:10px">Точность оценки времени (${timed.length} задач)</div>
+      <div style="display:flex;height:28px;border-radius:8px;overflow:hidden;gap:2px">
+        ${[
+          {v:buckets.fast,l:'Быстрее',c:'var(--cyan)'},
+          {v:buckets.ontime,l:'В точку',c:'var(--green)'},
+          {v:buckets.slow,l:'Дольше',c:'var(--gold)'},
+          {v:buckets.very_slow,l:'Намного дольше',c:'var(--red)'},
+        ].filter(b=>b.v>0).map(b=>{const pct=Math.round(b.v/timed.length*100);return`<div style="flex:${b.v};background:${b.c};opacity:.8;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:800;color:#000;min-width:${pct>8?'auto':'0'}" title="${b.l}: ${b.v} задач">${pct>8?pct+'%':''}</div>`;}).join('')}
+      </div>
+      <div style="display:flex;justify-content:space-between;font-size:9px;color:var(--muted);margin-top:5px;flex-wrap:wrap;gap:4px">
+        ${[
+          {v:buckets.fast,l:'⚡ Быстрее плана',c:'var(--cyan)'},
+          {v:buckets.ontime,l:'✅ В точку (±20%)',c:'var(--green)'},
+          {v:buckets.slow,l:'🐢 Дольше',c:'var(--gold)'},
+          {v:buckets.very_slow,l:'🔴 Сильно дольше',c:'var(--red)'},
+        ].map(b=>`<span style="color:${b.c}">${b.l}: <b>${b.v}</b></span>`).join('')}
+      </div>
+      ${avgRatio?`<div style="margin-top:8px;padding:8px 12px;background:rgba(255,255,255,.03);border-radius:8px;font-size:11px;color:var(--text2)">
+        💡 В среднем ты тратишь <span style="font-weight:800;color:${avgRatio>1.2?'var(--gold)':'var(--green)'}">${Math.round(avgRatio*100)}%</span> от запланированного времени
+        ${avgRatio>1.5?' — склонность недооценивать задачи':avgRatio>1.2?' — чуть дольше плана':' — хорошая точность'}
+      </div>`:''}
+    </div>`:''}
+
+    <!-- Reschedule by day of week -->
+    ${reschedules.length>=3?`<div style="margin-bottom:18px">
+      <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);margin-bottom:8px">Переносы по дням недели</div>
+      <div style="display:flex;align-items:flex-end;gap:4px;height:44px">
+        ${reschedByDow.map((v,i)=>`<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:3px">
+          <div style="width:100%;border-radius:3px 3px 0 0;background:${v>0?'rgba(240,107,176,'+(0.25+v/maxDow*0.75)+')':'rgba(255,255,255,.05)'};height:${v>0?Math.max(20,Math.round(v/maxDow*36))+'px':'4px'};transition:.3s" title="${dowNames[i]}: ${v} переносов"></div>
+          <div style="font-size:8px;color:var(--muted);font-weight:${v===Math.max(...reschedByDow)?'800':'500'};color:${v===Math.max(...reschedByDow)?'var(--p)':'var(--muted)'}">${dowNames[i]}</div>
+        </div>`).join('')}
+      </div>
+      ${reschedByDow.indexOf(Math.max(...reschedByDow))>0?`<div style="font-size:10px;color:var(--muted);margin-top:6px;padding:6px 10px;background:rgba(240,107,176,.05);border-radius:8px">💡 Больше всего переносов в <span style="color:var(--p);font-weight:700">${dowNames[reschedByDow.indexOf(Math.max(...reschedByDow))]}</span></div>`:''}
+    </div>`:''}
+
+    <!-- Top rescheduled tasks -->
+    ${topRescheduled.length?`<div style="margin-bottom:4px">
+      <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);margin-bottom:8px">Задачи которые чаще всего переносились</div>
+      <div style="display:flex;flex-direction:column;gap:5px">
+        ${topRescheduled.map((t,i)=>`<div style="display:flex;align-items:center;gap:10px;padding:8px 10px;background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.05);border-radius:9px">
+          <div style="font-family:var(--font-mono);font-size:11px;font-weight:800;color:${i===0?'var(--red)':i===1?'var(--gold)':'var(--muted)'};flex-shrink:0;width:16px;text-align:center">${i+1}</div>
+          <div style="flex:1;font-size:11px;color:var(--text2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(t.text.slice(0,50))}</div>
+          <div style="flex-shrink:0;background:${i===0?'rgba(240,80,80,.15)':'rgba(255,255,255,.05)'};border:1px solid ${i===0?'rgba(240,80,80,.3)':'rgba(255,255,255,.08)'};border-radius:20px;padding:2px 10px;font-size:10px;font-weight:800;color:${i===0?'var(--red)':'var(--muted)'}">${t.count}×</div>
+        </div>`).join('')}
+      </div>
+    </div>`:''}
+  </div>`;
+}
+
+/* ═══ Analytics: Task behaviour (reschedules, edits, deletes) ═══ */
+function _buildTaskBehaviourHTML(){
+  const events=G.taskEvents||[];
+  if(!events.length)return'';
+  const reschedules=events.filter(e=>e.type==='reschedule');
+  const edits=events.filter(e=>e.type==='edit');
+  const deletes=events.filter(e=>e.type==='delete');
+  const moves=events.filter(e=>e.type==='kanban_move');
+
+  // Top rescheduled tasks
+  const byTask={};
+  [...reschedules,...edits].forEach(e=>{
+    if(!e.taskId)return;
+    if(!byTask[e.taskId])byTask[e.taskId]={id:e.taskId,text:e.taskText||'?',count:0,reschedules:0,edits:0};
+    byTask[e.taskId].count++;
+    if(e.type==='reschedule')byTask[e.taskId].reschedules++;
+    if(e.type==='edit')byTask[e.taskId].edits++;
+  });
+  const topTasks=Object.values(byTask).sort((a,b)=>b.count-a.count).slice(0,5);
+
+  // Reschedules by day-of-week (Mon first)
+  const dowCounts=Array(7).fill(0);
+  reschedules.forEach(e=>{if(e.date){const d=new Date(e.date+'T00:00:00');dowCounts[d.getDay()]++;}});
+  const dowMax=Math.max(...dowCounts,1);
+  const dowNames=['Вс','Пн','Вт','Ср','Чт','Пт','Сб'];
+  const dowOrder=[1,2,3,4,5,6,0];
+
+  // Forward/backward reschedules
+  let forward=0,backward=0;
+  reschedules.forEach(e=>{if(e.from&&e.to){e.to>e.from?forward++:backward++;}});
+
+  const recentDeletes=deletes.slice(-5).reverse();
+  const instability=reschedules.length+edits.length*0.5+deletes.length*0.7;
+  const scoreColor=instability>20?'var(--red)':instability>8?'var(--gold)':'var(--green)';
+  const scoreLabel=instability>20?'Высокая нестабильность':instability>8?'Средняя':'Хорошо';
+
+  return`<div class="chartCard" style="margin-bottom:16px">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:8px">
+      <div class="secLbl">🔄 Поведение задач</div>
+      <div style="font-size:11px;color:var(--muted)">Стабильность: <span style="font-weight:800;color:${scoreColor}">${scoreLabel}</span></div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:16px">
+      ${[
+        {v:reschedules.length,l:'Переносов дат',c:'var(--gold)',e:'📅'},
+        {v:edits.length,l:'Правок времени',c:'var(--p)',e:'⏰'},
+        {v:deletes.length,l:'Удалено задач',c:'var(--red)',e:'🗑️'},
+        {v:moves.length,l:'Перемещений',c:'var(--cyan)',e:'🗂'},
+      ].map(s=>`<div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:14px;padding:14px 10px;text-align:center">
+        <div style="font-size:20px;margin-bottom:5px">${s.e}</div>
+        <div style="font-family:var(--font-display);font-size:22px;font-weight:900;color:${s.c};letter-spacing:-.8px;line-height:1">${s.v}</div>
+        <div style="font-size:9px;color:var(--muted);margin-top:4px;font-weight:700;letter-spacing:.3px">${s.l}</div>
+      </div>`).join('')}
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px">
+      <div style="background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.06);border-radius:14px;padding:14px">
+        <div style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);margin-bottom:10px">Направление переносов</div>
+        ${reschedules.length?`<div style="display:flex;flex-direction:column;gap:8px">
+          ${[{label:'↷ Отложено',v:forward,c:'var(--red)'},{label:'↶ Раньше',v:backward,c:'var(--green)'}].map(row=>`<div>
+            <div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:4px"><span style="color:${row.c}">${row.label}</span><span style="font-weight:700;font-family:var(--font-mono);color:${row.c}">${row.v}</span></div>
+            <div style="height:6px;background:rgba(255,255,255,.06);border-radius:4px;overflow:hidden"><div style="height:100%;width:${Math.round(row.v/(forward+backward||1)*100)}%;background:${row.c};border-radius:4px"></div></div>
+          </div>`).join('')}
+          ${forward>backward*2?`<div style="margin-top:6px;font-size:10px;color:var(--red);background:rgba(248,113,113,.08);border:1px solid rgba(248,113,113,.2);border-radius:8px;padding:6px 8px">⚠️ Часто откладываешь — ставь меньше задач на день</div>`:''}
+        </div>`:`<div style="font-size:11px;color:var(--muted);text-align:center;padding:16px 0">Нет данных</div>`}
+      </div>
+
+      <div style="background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.06);border-radius:14px;padding:14px">
+        <div style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);margin-bottom:10px">Переносы по дням недели</div>
+        <div style="display:flex;flex-direction:column;gap:5px">
+          ${dowOrder.map(di=>{
+            const v=dowCounts[di];const pct=Math.round(v/dowMax*100);
+            const isWE=di===0||di===6;
+            return`<div style="display:flex;align-items:center;gap:8px">
+              <span style="font-size:9px;font-family:var(--font-mono);color:${isWE?'var(--muted)':'var(--text2)'};width:18px;flex-shrink:0;font-weight:700">${dowNames[di]}</span>
+              <div style="flex:1;height:7px;background:rgba(255,255,255,.05);border-radius:4px;overflow:hidden">
+                <div style="height:100%;width:${pct}%;background:${pct>70?'var(--red)':pct>40?'var(--gold)':'rgba(155,143,245,.55)'};border-radius:4px"></div>
+              </div>
+              <span style="font-size:9px;font-family:var(--font-mono);color:var(--muted);width:14px;text-align:right">${v||''}</span>
+            </div>`;
+          }).join('')}
+        </div>
+      </div>
+    </div>
+
+    ${topTasks.length?`<div style="margin-bottom:12px">
+      <div style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);margin-bottom:8px">Топ задач по изменениям</div>
+      <div style="display:flex;flex-direction:column;gap:4px">
+        ${topTasks.map((t,i)=>{
+          const obj=tpD().find(x=>x.id===t.id);
+          const badge=t.count>=3?'var(--red)':t.count>=2?'var(--gold)':'var(--muted)';
+          return`<div style="display:flex;align-items:center;gap:10px;padding:8px 10px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.05);border-radius:10px;cursor:${obj?'pointer':'default'}" ${obj?`onclick="openTaskModal(${tpD().indexOf(obj)})"`:''}">
+            <span style="font-family:var(--font-display);font-size:14px;font-weight:900;color:${badge};width:18px;flex-shrink:0">${i+1}</span>
+            <span style="flex:1;font-size:11px;font-weight:600;color:${obj?.done?'var(--muted)':'var(--text)'};overflow:hidden;text-overflow:ellipsis;white-space:nowrap;${obj?.done?'text-decoration:line-through':''}">${esc(t.text.slice(0,50))}</span>
+            <div style="display:flex;gap:4px;flex-shrink:0">
+              ${t.reschedules?`<span style="font-size:9px;font-weight:700;padding:1px 6px;border-radius:20px;background:rgba(251,146,60,.15);color:var(--gold)">↻${t.reschedules}</span>`:''}
+              ${t.edits?`<span style="font-size:9px;font-weight:700;padding:1px 6px;border-radius:20px;background:rgba(155,143,245,.12);color:var(--p)">✎${t.edits}</span>`:''}
+            </div>
+          </div>`;
+        }).join('')}
+      </div>
+    </div>`:''}
+
+    ${recentDeletes.length?`<div>
+      <div style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);margin-bottom:8px">Последние удалённые</div>
+      <div style="display:flex;flex-direction:column;gap:3px">
+        ${recentDeletes.map(e=>`<div style="display:flex;align-items:center;gap:8px;padding:6px 10px;background:rgba(248,113,113,.04);border:1px solid rgba(248,113,113,.1);border-radius:8px">
+          <span style="font-size:11px">🗑️</span>
+          <span style="flex:1;font-size:11px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-decoration:line-through">${esc((e.taskText||'?').slice(0,50))}</span>
+          <span style="font-size:9px;color:var(--muted);font-family:var(--font-mono);flex-shrink:0">${e.date||''}</span>
+          ${e.deadline?`<span style="font-size:9px;color:var(--red);flex-shrink:0">📅 ${e.deadline}</span>`:''}
+        </div>`).join('')}
+      </div>
+    </div>`:''}
+  </div>`;
+}
+
+/* ═══ Analytics: year activity heatmap (GitHub-style) ═══ */
 function _buildYearHeatmapHTML(){
   const today=new Date();
   const yearAgo=new Date(today);yearAgo.setFullYear(yearAgo.getFullYear()-1);yearAgo.setDate(yearAgo.getDate()+1);
