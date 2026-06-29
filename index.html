@@ -5180,48 +5180,47 @@ body.light-mode .skel{background:linear-gradient(90deg,var(--card2) 25%,#f0f2f7 
       </div>
     </div>
 
-    <!-- Time planning: planned + actual -->
+    <!-- Time planning: auto-planned + actual -->
     <div style="background:var(--card2);border:1px solid var(--border);border-radius:12px;padding:12px 14px;margin-bottom:14px">
-      <div style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:1.2px;color:var(--muted);margin-bottom:10px;display:flex;align-items:center;gap:6px">
+      <div style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:1.2px;color:var(--muted);margin-bottom:12px;display:flex;align-items:center;gap:6px">
         <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2" stroke-linecap="round"/></svg>
         Время
       </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
-        <div>
-          <div style="font-size:9px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;margin-bottom:5px">📋 Планирую (мин)</div>
-          <div style="display:flex;align-items:center;gap:6px">
-            <input type="number" class="inp" id="tm-plannedDuration" min="0" max="1440" placeholder="напр. 60" style="font-family:var(--font-mono);font-size:13px;font-weight:700;padding:7px 10px;border-color:rgba(155,143,245,.3);width:100%">
-          </div>
-          <div style="display:flex;gap:4px;flex-wrap:wrap;margin-top:5px">
-            <button onclick="document.getElementById('tm-plannedDuration').value=15" style="border:1px solid var(--border2);background:var(--card3);color:var(--text2);border-radius:7px;padding:3px 7px;font-size:9px;font-weight:700;cursor:pointer">15м</button>
-            <button onclick="document.getElementById('tm-plannedDuration').value=30" style="border:1px solid var(--border2);background:var(--card3);color:var(--text2);border-radius:7px;padding:3px 7px;font-size:9px;font-weight:700;cursor:pointer">30м</button>
-            <button onclick="document.getElementById('tm-plannedDuration').value=60" style="border:1px solid var(--border2);background:var(--card3);color:var(--text2);border-radius:7px;padding:3px 7px;font-size:9px;font-weight:700;cursor:pointer">1ч</button>
-            <button onclick="document.getElementById('tm-plannedDuration').value=90" style="border:1px solid var(--border2);background:var(--card3);color:var(--text2);border-radius:7px;padding:3px 7px;font-size:9px;font-weight:700;cursor:pointer">1.5ч</button>
-            <button onclick="document.getElementById('tm-plannedDuration').value=120" style="border:1px solid var(--border2);background:var(--card3);color:var(--text2);border-radius:7px;padding:3px 7px;font-size:9px;font-weight:700;cursor:pointer">2ч</button>
-            <button onclick="document.getElementById('tm-plannedDuration').value=180" style="border:1px solid var(--border2);background:var(--card3);color:var(--text2);border-radius:7px;padding:3px 7px;font-size:9px;font-weight:700;cursor:pointer">3ч</button>
-          </div>
-        </div>
-        <div>
-          <div style="font-size:9px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;margin-bottom:5px">⏱ Факт (мин)</div>
-          <div style="display:flex;align-items:center;gap:6px">
-            <input type="number" class="inp" id="tm-actualDuration" min="0" max="1440" placeholder="напр. 45" style="font-family:var(--font-mono);font-size:13px;font-weight:700;padding:7px 10px;border-color:rgba(15,221,170,.3);width:100%">
-          </div>
-          <div style="display:flex;gap:4px;flex-wrap:wrap;margin-top:5px">
-            <button onclick="_tmSetActual(15)" style="border:1px solid var(--border2);background:var(--card3);color:var(--text2);border-radius:7px;padding:3px 7px;font-size:9px;font-weight:700;cursor:pointer">15м</button>
-            <button onclick="_tmSetActual(30)" style="border:1px solid var(--border2);background:var(--card3);color:var(--text2);border-radius:7px;padding:3px 7px;font-size:9px;font-weight:700;cursor:pointer">30м</button>
-            <button onclick="_tmSetActual(60)" style="border:1px solid var(--border2);background:var(--card3);color:var(--text2);border-radius:7px;padding:3px 7px;font-size:9px;font-weight:700;cursor:pointer">1ч</button>
-            <button onclick="_tmSetActual(90)" style="border:1px solid var(--border2);background:var(--card3);color:var(--text2);border-radius:7px;padding:3px 7px;font-size:9px;font-weight:700;cursor:pointer">1.5ч</button>
-            <button onclick="_tmSetActual(120)" style="border:1px solid var(--border2);background:var(--card3);color:var(--text2);border-radius:7px;padding:3px 7px;font-size:9px;font-weight:700;cursor:pointer">2ч</button>
-            <button onclick="_tmSetActual(180)" style="border:1px solid var(--border2);background:var(--card3);color:var(--text2);border-radius:7px;padding:3px 7px;font-size:9px;font-weight:700;cursor:pointer">3ч</button>
-          </div>
+
+      <!-- Auto-planned pill (from start–end) -->
+      <div id="tm-plannedPill" style="display:none;margin-bottom:10px;padding:8px 12px;background:rgba(155,143,245,.07);border:1px solid rgba(155,143,245,.2);border-radius:10px;display:flex;align-items:center;gap:10px">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--p)" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2" stroke-linecap="round"/></svg>
+        <span style="font-size:11px;color:var(--text2)">Планирую:</span>
+        <span id="tm-plannedLabel" style="font-family:var(--font-mono);font-size:13px;font-weight:800;color:var(--p)">—</span>
+        <span style="font-size:10px;color:var(--muted);margin-left:auto">из начало–конец</span>
+      </div>
+      <input type="hidden" id="tm-plannedDuration">
+
+      <!-- Actual duration -->
+      <div>
+        <div style="font-size:9px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;margin-bottom:6px">⏱ Факт (мин)</div>
+        <input type="number" class="inp" id="tm-actualDuration" min="0" max="1440" placeholder="напр. 45" style="font-family:var(--font-mono);font-size:13px;font-weight:700;padding:7px 10px;border-color:rgba(15,221,170,.3);width:100%;margin-bottom:6px" oninput="_updEff()">
+        <div style="display:flex;gap:4px;flex-wrap:wrap">
+          <button onclick="_tmSetActual(15)" style="border:1px solid var(--border2);background:var(--card3);color:var(--text2);border-radius:7px;padding:3px 7px;font-size:9px;font-weight:700;cursor:pointer">15м</button>
+          <button onclick="_tmSetActual(30)" style="border:1px solid var(--border2);background:var(--card3);color:var(--text2);border-radius:7px;padding:3px 7px;font-size:9px;font-weight:700;cursor:pointer">30м</button>
+          <button onclick="_tmSetActual(60)" style="border:1px solid var(--border2);background:var(--card3);color:var(--text2);border-radius:7px;padding:3px 7px;font-size:9px;font-weight:700;cursor:pointer">1ч</button>
+          <button onclick="_tmSetActual(90)" style="border:1px solid var(--border2);background:var(--card3);color:var(--text2);border-radius:7px;padding:3px 7px;font-size:9px;font-weight:700;cursor:pointer">1.5ч</button>
+          <button onclick="_tmSetActual(120)" style="border:1px solid var(--border2);background:var(--card3);color:var(--text2);border-radius:7px;padding:3px 7px;font-size:9px;font-weight:700;cursor:pointer">2ч</button>
+          <button onclick="_tmSetActual(180)" style="border:1px solid var(--border2);background:var(--card3);color:var(--text2);border-radius:7px;padding:3px 7px;font-size:9px;font-weight:700;cursor:pointer">3ч</button>
         </div>
       </div>
-      <!-- Efficiency bar (shown when both values present) -->
-      <div id="tm-effBar" style="display:none">
-        <div style="height:3px;background:rgba(255,255,255,.06);border-radius:2px;overflow:hidden;margin-bottom:3px"><div id="tm-effFill" style="height:100%;border-radius:2px;transition:.4s"></div></div>
-        <div id="tm-effLabel" style="font-size:10px;color:var(--muted);text-align:right"></div>
+
+      <!-- Efficiency bar -->
+      <div id="tm-effBar" style="display:none;margin-top:10px">
+        <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--muted);margin-bottom:4px">
+          <span>Эффективность</span>
+          <span id="tm-effLabel" style="font-weight:700"></span>
+        </div>
+        <div style="height:4px;background:rgba(255,255,255,.06);border-radius:2px;overflow:hidden"><div id="tm-effFill" style="height:100%;border-radius:2px;transition:.4s"></div></div>
       </div>
-      <div style="display:flex;align-items:center;gap:8px;margin-top:8px;padding-top:8px;border-top:1px solid rgba(255,255,255,.05)">
+
+      <!-- Timer row -->
+      <div style="display:flex;align-items:center;gap:8px;margin-top:10px;padding-top:10px;border-top:1px solid rgba(255,255,255,.05)">
         <div id="tm-timerDisplay" style="font-family:var(--font-mono);font-size:12px;font-weight:700;color:var(--green);min-width:48px;display:none">00:00</div>
         <button id="tm-timerBtn" onclick="_tmToggleTimer()" style="display:flex;align-items:center;gap:5px;border:1px solid rgba(15,221,170,.3);background:rgba(15,221,170,.08);color:var(--green);border-radius:8px;padding:5px 10px;font-size:10px;font-weight:700;cursor:pointer;transition:all .15s">
           <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><polygon points="5,3 19,12 5,21"/></svg> Старт таймера
@@ -8084,7 +8083,6 @@ function _tmAutoFormatTime(inp){
 function _tmNormalizeTime(inp){
   let v=inp.value.trim();
   if(!v){return;}
-  // accept "9" -> "09:00", "930" -> "09:30", "9:3" -> "09:30"
   v=v.replace(/[^0-9:]/g,'');
   let h,m;
   if(v.includes(':')){[h,m]=v.split(':');}
@@ -8093,34 +8091,60 @@ function _tmNormalizeTime(inp){
   h=parseInt(h)||0; m=parseInt(m)||0;
   if(h>23)h=23; if(m>59)m=59;
   inp.value=(h<10?'0'+h:h)+':'+(m<10?'0'+m:m);
+  // Auto-update planned pill when time changes
+  _tmUpdatePlannedPill();
 }
-function _tmSetActual(min){
-  const pdInp=document.getElementById('tm-plannedDuration');
-  if(pdInp)pdInp.value=t?.plannedDuration||'';
-  // Wire efficiency bar
-  const _updEff=()=>{
-    const p=parseInt(document.getElementById('tm-plannedDuration')?.value||0);
-    const a=parseInt(document.getElementById('tm-actualDuration')?.value||0);
-    const bar=document.getElementById('tm-effBar');
-    const fill=document.getElementById('tm-effFill');
-    const lbl=document.getElementById('tm-effLabel');
-    if(!bar||!fill||!lbl)return;
-    if(!p||!a){bar.style.display='none';return;}
-    bar.style.display='block';
-    const ratio=p/a; // >1 = faster than planned, <1 = slower
-    const pct=Math.min(100,Math.round(ratio*100));
-    fill.style.width=pct+'%';
-    fill.style.background=ratio>=1?'var(--green)':ratio>=.7?'var(--gold)':'var(--red)';
-    lbl.textContent=ratio>=1?`✅ На ${Math.round((ratio-1)*100)}% быстрее плана`
-      :`⚠️ На ${Math.round((1-ratio)*100)}% дольше плана`;
-    lbl.style.color=ratio>=1?'var(--green)':ratio>=.7?'var(--gold)':'var(--red)';
-  };
-  setTimeout(()=>{
-    document.getElementById('tm-plannedDuration')?.addEventListener('input',_updEff);
-    document.getElementById('tm-actualDuration')?.addEventListener('input',_updEff);
+function _tmCalcPlanned(){
+  // Calculate planned minutes from start time and end time fields
+  const start=document.getElementById('tm-time')?.value||'';
+  const end=document.getElementById('tm-endTime')?.value||'';
+  if(!start||!end)return null;
+  const [sh,sm]=start.split(':').map(Number);
+  const [eh,em]=end.split(':').map(Number);
+  if(isNaN(sh)||isNaN(sm)||isNaN(eh)||isNaN(em))return null;
+  const mins=(eh*60+em)-(sh*60+sm);
+  return mins>0?mins:null;
+}
+
+function _tmUpdatePlannedPill(){
+  const pill=document.getElementById('tm-plannedPill');
+  const lbl=document.getElementById('tm-plannedLabel');
+  const hidden=document.getElementById('tm-plannedDuration');
+  const mins=_tmCalcPlanned();
+  if(!pill||!lbl)return;
+  if(mins){
+    const h=Math.floor(mins/60);const m=mins%60;
+    lbl.textContent=h>0?(m>0?`${h}ч ${m}м`:`${h}ч`):(`${m}м`);
+    pill.style.display='flex';
+    if(hidden)hidden.value=mins;
     _updEff();
-  },50);
-  if(el)el.value=min;
+  } else {
+    pill.style.display='none';
+    if(hidden)hidden.value='';
+    _updEff();
+  }
+}
+
+function _tmSetActual(min){
+  const el=document.getElementById('tm-actualDuration');
+  if(el){el.value=min;_updEff();}
+}
+
+function _updEff(){
+  const p=_tmCalcPlanned()||parseInt(document.getElementById('tm-plannedDuration')?.value||0);
+  const a=parseInt(document.getElementById('tm-actualDuration')?.value||0);
+  const bar=document.getElementById('tm-effBar');
+  const fill=document.getElementById('tm-effFill');
+  const lbl=document.getElementById('tm-effLabel');
+  if(!bar||!fill||!lbl)return;
+  if(!p||!a){bar.style.display='none';return;}
+  bar.style.display='block';
+  const ratio=p/a;
+  const pct=Math.min(100,Math.round(ratio*100));
+  fill.style.width=pct+'%';
+  fill.style.background=ratio>=1?'var(--green)':ratio>=.7?'var(--gold)':'var(--red)';
+  lbl.textContent=ratio>=1?`✅ На ${Math.round((ratio-1)*100)}% быстрее плана`:`⚠️ На ${Math.round((1-ratio)*100)}% дольше плана`;
+  lbl.style.color=ratio>=1?'var(--green)':ratio>=.7?'var(--gold)':'var(--red)';
 }
 /* ── Stopwatch ── */
 let _tmTimerInterval=null,_tmTimerStart=0,_tmTimerBase=0;
@@ -8227,6 +8251,8 @@ function openTaskModal(idx,prefillDate,dstr){
   }
   // ── History badge ──
   _renderTaskHistoryBadge(t?.id||null);
+  // ── Auto planned pill from time fields ──
+  setTimeout(_tmUpdatePlannedPill, 60);
   document.getElementById('taskModal').classList.add('open');
   setTimeout(()=>document.getElementById('tm-text').focus(),60);
 }
