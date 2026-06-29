@@ -3958,39 +3958,65 @@ body.light-mode .skel{background:linear-gradient(90deg,var(--card2) 25%,#f0f2f7 
       <nav class="paneBreadcrumb">
         <span onclick="navigateTo('dash')">PlannerPro</span>
         <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="m7 10 3 3 3-3"/><path d="m7 6 3 3 3-3"/></svg>
-        <span class="pbc-active">Здоровье</span>
-        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="m7 10 3 3 3-3"/><path d="m7 6 3 3 3-3"/></svg>
         <span class="pbc-active">Привычки</span>
       </nav>
       <div class="paneHeadRow">
-        <div class="paneHeadIcon" style="background:rgba(15,221,170,.1);border-color:rgba(15,221,170,.25)">🔥</div>
+        <div class="paneHeadIcon" style="background:rgba(244,114,182,.1);border-color:rgba(244,114,182,.25)">🔥</div>
         <div>
           <h1 class="paneTitle">Трекер привычек</h1>
-          <p class="paneSubtitle">Ежедневный контроль · Стрики · Прогресс</p>
+          <p class="paneSubtitle">Стрики · Аналитика · Прогресс</p>
         </div>
       </div>
     </div>
     <div class="paneHeadActions">
-      <button class="btn btnG" onclick="htNav(-1)">◀</button>
-      <div class="htMonthName" id="htMonthName" style="font-size:12px;font-weight:600;color:var(--text2)"></div>
-      <button class="btn btnG" onclick="htNav(1)">▶</button>
+      <div style="display:flex;align-items:center;gap:6px">
+        <button class="btn btnG" onclick="htNav(-1)" style="padding:6px 10px">◀</button>
+        <div class="htMonthName" id="htMonthName"></div>
+        <button class="btn btnG" onclick="htNav(1)" style="padding:6px 10px">▶</button>
+      </div>
+      <button class="btn btnG" id="htViewToggle" onclick="_htToggleView()" style="font-size:11px">📊 Аналитика</button>
       <button class="btn btnE" onclick="addHabit()">+ Привычка</button>
     </div>
   </header>
-  <!-- Stats strip -->
-  <div class="htSummary" style="margin-bottom:14px">
-    <div class="htStat"><div class="htStatL">Привычек</div><div class="htStatV" id="htCntV">0</div></div>
-    <div class="htStat"><div class="htStatL">Выполнено</div><div class="htStatV" id="htDoneV">0</div></div>
-    <div class="htProgWrap">
-      <div class="htStatL">Прогресс</div>
-      <div class="htProgBar"><div class="htProgFill" id="htProgFill" style="width:0%"></div></div>
-      <div style="display:flex;justify-content:flex-end"><span class="htProgPct" id="htProgPct">0%</span></div>
+
+  <!-- ── KPI strip ── -->
+  <div id="htKpiStrip" style="display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:16px"></div>
+
+  <!-- ── TODAY view (default) ── -->
+  <div id="htViewTracker">
+    <!-- Table -->
+    <div class="htTblWrap"><table class="htTbl" id="htTbl"></table></div>
+    <button class="htAddBtn" onclick="addHabit()" style="margin-top:8px">+ Добавить привычку</button>
+
+    <!-- Progress chart -->
+    <div class="chartCard" style="margin-top:14px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+        <div class="secLbl">📈 Выполнение по дням</div>
+        <div id="htChartLegend" style="display:flex;gap:12px;font-size:10px;color:var(--muted)"></div>
+      </div>
+      <canvas id="htChart" height="130" style="width:100%;display:block"></canvas>
     </div>
   </div>
-  <div class="htTblWrap"><table class="htTbl" id="htTbl"></table><button class="htAddBtn" onclick="addHabit()">+ Добавить привычку</button></div>
-  <div class="chartCard">
-    <div class="secLbl" style="margin-bottom:12px">📈 Прогресс по дням</div>
-    <canvas id="htChart" height="120" style="width:100%;display:block"></canvas>
+
+  <!-- ── ANALYTICS view ── -->
+  <div id="htViewAnalytics" style="display:none">
+    <!-- Streak cards per habit -->
+    <div id="htStreakCards" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;margin-bottom:16px"></div>
+    <!-- Heatmap (last 12 weeks) -->
+    <div class="chartCard" style="margin-bottom:14px">
+      <div class="secLbl" style="margin-bottom:12px">🗓 Активность за 12 недель</div>
+      <div id="htHeatmap"></div>
+    </div>
+    <!-- Weekday pattern -->
+    <div class="chartCard" style="margin-bottom:14px">
+      <div class="secLbl" style="margin-bottom:14px">📅 Лучшие дни недели</div>
+      <div id="htWeekdayChart"></div>
+    </div>
+    <!-- Per-habit bars -->
+    <div class="chartCard">
+      <div class="secLbl" style="margin-bottom:14px">🏆 Рейтинг привычек (за месяц)</div>
+      <div id="htHabitBars"></div>
+    </div>
   </div>
 </div>
 
@@ -7217,95 +7243,307 @@ function htD(){
 }
 function saveMeta(){const d=htD();const g=document.getElementById('htGoal');const s=document.getElementById('htStim');if(g)d.goal=g.value;if(s)d.stim=s.value;saveD()}
 
+let _htView='tracker'; // 'tracker' | 'analytics'
+function _htToggleView(){
+  _htView=_htView==='tracker'?'analytics':'tracker';
+  document.getElementById('htViewTracker').style.display=_htView==='tracker'?'':'none';
+  document.getElementById('htViewAnalytics').style.display=_htView==='analytics'?'':'none';
+  document.getElementById('htViewToggle').textContent=_htView==='tracker'?'📊 Аналитика':'📋 Трекер';
+  if(_htView==='analytics')_renderHtAnalytics();
+}
+
+function _htStreak(hi){
+  // Current + best streak for habit hi (checks across all months)
+  const checks=htD().checks;
+  const today=new Date();
+  let cur=0,best=0,tmp=0;
+  for(let i=365;i>=0;i--){
+    const d=new Date(today);d.setDate(d.getDate()-i);
+    const day=d.getDate(),mo=d.getMonth(),yr=d.getFullYear();
+    // key format: hi_day but we only store current month's data
+    // Use stored checks for current/recent months
+    const k=`${hi}_${yr}-${z(mo+1)}-${z(day)}`;
+    const k2=`${hi}_${day}`; // legacy format for current month
+    const done=checks[k]||((yr===htY&&mo===htM)&&checks[k2]);
+    if(done){tmp++;if(tmp>best)best=tmp;}
+    else tmp=0;
+  }
+  // Current streak (from today backwards)
+  tmp=0;
+  for(let i=0;i<=365;i++){
+    const d=new Date(today);d.setDate(d.getDate()-i);
+    const day=d.getDate(),mo=d.getMonth(),yr=d.getFullYear();
+    const k=`${hi}_${yr}-${z(mo+1)}-${z(day)}`;
+    const k2=`${hi}_${day}`;
+    const done=checks[k]||((yr===htY&&mo===htM)&&checks[k2]);
+    if(done)tmp++;else break;
+  }
+  cur=tmp;
+  return{cur,best};
+}
+
+function _htTodayDone(hi){
+  const todK=dk(t0());const today=new Date();
+  const k=`${hi}_${today.getFullYear()}-${z(today.getMonth()+1)}-${z(today.getDate())}`;
+  const k2=`${hi}_${today.getDate()}`;
+  return !!(htD().checks[k]||(today.getFullYear()===htY&&today.getMonth()===htM&&htD().checks[k2]));
+}
+
 function renderHT(){
   const d=htD();
   document.getElementById('htMonthName').textContent=`${MN[htM]} ${htY}`;
-  const _htGoal=document.getElementById('htGoal');if(_htGoal)_htGoal.value=d.goal||'';
-  const _htStim=document.getElementById('htStim');if(_htStim)_htStim.value=d.stim||'';
-  const days=dim(htY,htM),todK=dk(t0());
+  const days=dim(htY,htM),todK=dk(t0()),hn=d.habits.length;
 
-  // Build week groups - Monday-based ISO weeks (handles 4-6 weeks)
-  const wgs=[];
-  let gs=1;
-  for(let day=1;day<=days;day++){
-    const dow=new Date(htY,htM,day).getDay(); // 0=Sun..6=Sat
-    if(dow===1&&day>1){wgs.push({s:gs,e:day-1});gs=day}
+  // ── KPI strip ──
+  const todayDone=d.habits.filter((_,hi)=>_htTodayDone(hi)).length;
+  const todayPct=hn?Math.round(todayDone/hn*100):0;
+  const monthDone=Object.values(d.checks).filter(Boolean).length;
+  const monthMax=hn*days;
+  const monthPct=monthMax?Math.round(monthDone/monthMax*100):0;
+  const bestStreak=d.habits.reduce((best,_,hi)=>Math.max(best,_htStreak(hi).best),0);
+  const curStreaks=d.habits.map((_,hi)=>_htStreak(hi).cur);
+  const maxCurStreak=Math.max(...curStreaks,0);
+  const perfectDays=Array.from({length:days},(_,i)=>i+1).filter(day=>hn>0&&d.habits.every((_,hi)=>d.checks[`${hi}_${day}`])).length;
+
+  const kpiStrip=document.getElementById('htKpiStrip');
+  if(kpiStrip){
+    kpiStrip.innerHTML=[
+      {icon:'🔥',val:todayDone+'/'+hn,lbl:'Сегодня',sub:todayPct+'%',c:todayPct>=80?'var(--green)':todayPct>=50?'var(--gold)':'var(--red)'},
+      {icon:'📅',val:monthPct+'%',lbl:'За месяц',sub:monthDone+' из '+monthMax,c:monthPct>=70?'var(--green)':monthPct>=40?'var(--gold)':'var(--red)'},
+      {icon:'⚡',val:maxCurStreak,lbl:'Макс. стрик',sub:'сейчас',c:'var(--p)'},
+      {icon:'🏆',val:bestStreak,lbl:'Рекорд',sub:'за всё время',c:'var(--gold)'},
+      {icon:'⭐',val:perfectDays,lbl:'Идеальных дней',sub:'100% в этом месяце',c:'var(--cyan)'},
+    ].map(k=>`<div style="background:var(--card2);border:1px solid var(--border);border-radius:14px;padding:14px 12px;text-align:center;position:relative;overflow:hidden">
+      <div style="font-size:20px;margin-bottom:6px">${k.icon}</div>
+      <div style="font-family:var(--font-display);font-size:22px;font-weight:900;color:${k.c};letter-spacing:-.8px;line-height:1">${k.val}</div>
+      <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);margin-top:4px">${k.lbl}</div>
+      <div style="font-size:9px;color:var(--muted);opacity:.6;margin-top:2px">${k.sub}</div>
+    </div>`).join('');
   }
+
+  // ── TABLE ──
+  const wgs=[];let gs=1;
+  for(let day=1;day<=days;day++){const dow=new Date(htY,htM,day).getDay();if(dow===1&&day>1){wgs.push({s:gs,e:day-1});gs=day;}}
   wgs.push({s:gs,e:days});
 
-  const tbl=document.getElementById('htTbl');
-  tbl.innerHTML='';
-
-  // ── THEAD ──
-  let r1=`<tr><th class="htNameCell" rowspan="2" style="font-family:var(--font-display)">Привычки</th>`;
-  wgs.forEach((w,i)=>{r1+=`<th class="wkHd" colspan="${w.e-w.s+1}">Нед.${i+1}</th>`});
-  r1+=`<th class="anaHd" rowspan="2">Цель<br><small style="font-size:8px;font-weight:500;opacity:.7">/ Итог</small></th></tr>`;
+  const tbl=document.getElementById('htTbl');tbl.innerHTML='';
+  let r1=`<tr><th class="htNameCell" rowspan="2">Привычка</th><th class="htNameCell" rowspan="2" style="font-size:9px;color:var(--muted);width:60px">Стрик</th>`;
+  wgs.forEach((w,i)=>{r1+=`<th class="wkHd" colspan="${w.e-w.s+1}">Нед.${i+1}</th>`;});
+  r1+=`<th class="anaHd" rowspan="2">%</th></tr>`;
   let r2='<tr>';
   for(let day=1;day<=days;day++){
-    const dow=new Date(htY,htM,day).getDay();
-    const n=DS[dow],isWe=(dow===0||dow===6);
+    const dow=new Date(htY,htM,day).getDay();const n=DS[dow];const isWe=dow===0||dow===6;
     const dstr=`${htY}-${z(htM+1)}-${z(day)}`;
     r2+=`<th class="dayHd${isWe?' dayHdWe':''}${dstr===todK?' todayCellHd':''}">${n}<br>${day}</th>`;
   }
   r2+='</tr>';
-  const thead=document.createElement('thead');
-  thead.innerHTML=r1+r2;
-  tbl.appendChild(thead);
+  const thead=document.createElement('thead');thead.innerHTML=r1+r2;tbl.appendChild(thead);
 
-  // ── TBODY ──
   const tbody=document.createElement('tbody');
   d.habits.forEach((h,hi)=>{
+    const{cur,best}=_htStreak(hi);
+    const streak=cur;
+    const streakColor=streak>=21?'var(--gold)':streak>=7?'var(--green)':streak>=3?'var(--p)':'var(--muted)';
+    const todayDoneH=_htTodayDone(hi);
     const tr=document.createElement('tr');
-    let cells=`<td class="htNameCell">
-      <input class="htNameInp" value="${esc(h.name)}" oninput="updHN(${hi},this.value)" placeholder="Привычка...">
-      <button class="htDelBtn" onclick="delH(${hi})" title="Удалить">×</button>
+    if(todayDoneH)tr.style.background='rgba(15,221,170,.03)';
+    let cells=`<td class="htNameCell" style="border-left:3px solid ${streakColor}">
+      <div style="display:flex;align-items:center;gap:6px">
+        <input class="htNameInp" value="${esc(h.name)}" oninput="updHN(${hi},this.value)" placeholder="Привычка...">
+        <button class="htDelBtn" onclick="delH(${hi})" title="Удалить">×</button>
+      </div>
+    </td>
+    <td style="text-align:center;padding:4px 6px">
+      <div style="font-family:var(--font-display);font-size:14px;font-weight:800;color:${streakColor};line-height:1">${streak>0?'🔥'+streak:'—'}</div>
+      <div style="font-size:8px;color:var(--muted);margin-top:1px">рекорд ${best}</div>
     </td>`;
+    let doneCnt=0;
     for(let day=1;day<=days;day++){
       const ck=`${hi}_${day}`;
       const dstr=`${htY}-${z(htM+1)}-${z(day)}`;
       const isFut=new Date(htY,htM,day)>t0();
+      const isToday=dstr===todK;
       const wgI=wgs.findIndex(w=>day>=w.s&&day<=w.e);
-      const bg=wgI%2===1?'background:rgba(155,124,244,.05);':'';
-      const tb=dstr===todK?'background:rgba(245,158,11,.07);':'';
-      cells+=`<td style="${bg}${tb}padding:3px 2px">
-        <input type="checkbox" class="htCb" ${d.checks[ck]?'checked':''} ${isFut?'disabled':''}
-          onchange="toggleH(${hi},${day},this.checked)">
+      const checked=d.checks[ck];
+      if(checked)doneCnt++;
+      cells+=`<td style="${wgI%2===1?'background:rgba(155,124,244,.04);':''}${isToday?'background:rgba(245,158,11,.07);':''}padding:3px 2px">
+        <input type="checkbox" class="htCb" ${checked?'checked':''} ${isFut?'disabled':''}
+          onchange="toggleH(${hi},${day},this.checked)" style="${isToday?'outline:2px solid rgba(245,158,11,.4);outline-offset:1px;border-radius:3px':''}">
       </td>`;
     }
-    const tot=Object.keys(d.checks).filter(k=>k.startsWith(`${hi}_`)&&d.checks[k]).length;
-    cells+=`<td class="anaHd">
-      <input class="anaGoalInp" value="${esc(h.goal||0)}" oninput="updHG(${hi},this.value)" title="Цель">
-      <br><small style="font-size:10px;color:var(--text2)">${tot}</small>
+    const pct=days?Math.round(doneCnt/days*100):0;
+    const pctColor=pct>=80?'var(--green)':pct>=50?'var(--gold)':'var(--red)';
+    cells+=`<td class="anaHd" style="padding:4px 6px">
+      <div style="font-size:11px;font-weight:800;color:${pctColor}">${pct}%</div>
+      <div style="font-size:8px;color:var(--muted)">${doneCnt}д</div>
     </td>`;
     tr.innerHTML=cells;tbody.appendChild(tr);
   });
   tbl.appendChild(tbody);
 
-  // ── TFOOT stats ──
-  let rp=`<tr class="statRow"><td class="statRowLbl htNameCell">Прогресс%</td>`;
-  let rf=`<tr class="statRow"><td class="statRowLbl htNameCell">Выполнено</td>`;
-  let ru=`<tr class="statRow"><td class="statRowLbl htNameCell">Пропущено</td>`;
+  // tfoot
+  let rp=`<tr class="statRow"><td class="htNameCell" colspan="2" style="font-size:9px;font-weight:700;color:var(--muted);text-align:left;padding-left:10px">Выполнение</td>`;
   for(let day=1;day<=days;day++){
     const fil=d.habits.filter((_,hi)=>d.checks[`${hi}_${day}`]).length;
-    const hn=d.habits.length,pct=hn?Math.round(fil/hn*100):0,unf=hn-fil;
-    const wgI=wgs.findIndex(w=>day>=w.s&&day<=w.e);
-    const bg=wgI%2===1?'background:rgba(155,124,244,.04);':'';
-    const pcls=hn?(pct>=70?'pcH':pct>=40?'pcM':'pcL'):'';
-    rp+=`<td style="${bg}" class="${pcls}">${hn?pct+'%':''}</td>`;
-    rf+=`<td style="${bg}">${fil}</td>`;
-    ru+=`<td style="${bg}">${unf}</td>`;
+    const pct=hn?Math.round(fil/hn*100):0;
+    const dstr=`${htY}-${z(htM+1)}-${z(day)}`;
+    const isToday=dstr===todK;
+    const bg=isToday?'background:rgba(245,158,11,.08);':'';
+    const col=pct>=80?'var(--green)':pct>=50?'var(--gold)':pct>0?'var(--red)':'var(--border2)';
+    rp+=`<td style="${bg}padding:3px 2px"><div style="width:100%;height:20px;background:rgba(255,255,255,.04);border-radius:3px;overflow:hidden;position:relative"><div style="position:absolute;bottom:0;left:0;right:0;height:${pct}%;background:${col};transition:.3s"></div></div></td>`;
   }
-  rp+=`<td class="anaHd"></td></tr>`;rf+=`<td class="anaHd"></td></tr>`;ru+=`<td class="anaHd"></td></tr>`;
-  const tfoot=document.createElement('tfoot');tfoot.innerHTML=rp+rf+ru;tbl.appendChild(tfoot);
+  rp+=`<td class="anaHd"></td></tr>`;
+  const tfoot=document.createElement('tfoot');tfoot.innerHTML=rp;tbl.appendChild(tfoot);
 
-  // ── Summary stats ──
-  const hn=d.habits.length,done=Object.values(d.checks).filter(Boolean).length,max=hn*days;
-  const mp=max?+(done/max*100).toFixed(1):0;
-  document.getElementById('htCntV').textContent=hn;
-  document.getElementById('htDoneV').textContent=done;
-  document.getElementById('htProgPct').textContent=mp.toFixed(1)+'%';
-  document.getElementById('htProgFill').style.width=mp+'%';
+  // Draw chart
   drawHChart(d,days);
+
+  // Analytics if open
+  if(_htView==='analytics')_renderHtAnalytics();
+}
+
+function _renderHtAnalytics(){
+  const d=htD();const hn=d.habits.length;if(!hn){
+    document.getElementById('htStreakCards').innerHTML='<div style="font-size:12px;color:var(--muted);padding:20px">Добавь привычки для аналитики</div>';return;
+  }
+
+  // ── Streak cards ──
+  const cards=document.getElementById('htStreakCards');
+  if(cards){
+    cards.innerHTML=d.habits.map((h,hi)=>{
+      const{cur,best}=_htStreak(hi);
+      const pct=dim(htY,htM)?Math.round(d.habits.filter((_,i)=>i===hi).reduce((_,__)=>0,0)/dim(htY,htM)*100):0;
+      const monthDone=Object.keys(d.checks).filter(k=>k.startsWith(`${hi}_`)&&d.checks[k]).length;
+      const mPct=dim(htY,htM)?Math.round(monthDone/dim(htY,htM)*100):0;
+      const sc=cur>=21?'var(--gold)':cur>=7?'var(--green)':cur>=3?'var(--p)':'var(--muted)';
+      return`<div style="background:var(--card2);border:1px solid var(--border);border-left:3px solid ${sc};border-radius:14px;padding:14px">
+        <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:10px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(h.name)||'Без названия'}</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">
+          <div style="text-align:center"><div style="font-family:var(--font-display);font-size:22px;font-weight:900;color:${sc}">${cur>0?'🔥'+cur:'—'}</div><div style="font-size:9px;color:var(--muted);margin-top:2px">текущий</div></div>
+          <div style="text-align:center"><div style="font-family:var(--font-display);font-size:22px;font-weight:900;color:var(--gold)">${best>0?best:'—'}</div><div style="font-size:9px;color:var(--muted);margin-top:2px">рекорд дней</div></div>
+        </div>
+        <div style="height:4px;background:rgba(255,255,255,.06);border-radius:4px;overflow:hidden;margin-bottom:4px">
+          <div style="height:100%;width:${mPct}%;background:linear-gradient(90deg,${sc},var(--p));border-radius:4px;transition:.5s"></div>
+        </div>
+        <div style="font-size:9px;color:var(--muted);text-align:right">${mPct}% за месяц · ${monthDone} дней</div>
+      </div>`;
+    }).join('');
+  }
+
+  // ── 12-week heatmap ──
+  const hm=document.getElementById('htHeatmap');
+  if(hm){
+    const today=new Date();const weeks=12;
+    const startMon=getMon(new Date(today));startMon.setDate(startMon.getDate()-(weeks-1)*7);
+    const cells=[];const colLabels=[];
+    for(let w=0;w<weeks;w++){
+      const mo=new Date(startMon);mo.setDate(mo.getDate()+w*7);
+      colLabels.push(MN[mo.getMonth()].slice(0,3));
+      for(let di=0;di<7;di++){
+        const d2=new Date(mo);d2.setDate(d2.getDate()+di);
+        if(d2>today){cells.push(null);continue;}
+        const day=d2.getDate(),mo2=d2.getMonth(),yr=d2.getFullYear();
+        const doneN=d.habits.filter((_,hi)=>{
+          const k=`${hi}_${yr}-${z(mo2+1)}-${z(day)}`;
+          const k2=`${hi}_${day}`;
+          return d.checks[k]||((yr===htY&&mo2===htM)&&d.checks[k2]);
+        }).length;
+        const pct=hn?doneN/hn:0;
+        cells.push({pct,doneN,date:dk(d2)});
+      }
+    }
+    const DAYS=['Пн','Вт','Ср','Чт','Пт','Сб','Вс'];
+    hm.innerHTML=`<div style="display:flex;gap:8px">
+      <div style="display:flex;flex-direction:column;gap:2px;padding-top:18px">
+        ${DAYS.map(d2=>`<div style="font-size:8px;color:var(--muted);height:14px;display:flex;align-items:center;font-family:var(--font-mono)">${d2}</div>`).join('')}
+      </div>
+      <div style="flex:1;overflow:hidden">
+        <div style="display:grid;grid-template-columns:repeat(${weeks},1fr);gap:2px;margin-bottom:4px">
+          ${colLabels.map(l=>`<div style="font-size:8px;color:var(--muted);text-align:center;font-weight:600">${l}</div>`).join('')}
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(${weeks},1fr);grid-template-rows:repeat(7,14px);gap:2px">
+          ${Array.from({length:weeks*7},(_,i)=>{
+            const w=i%weeks,di=Math.floor(i/weeks);
+            const idx=w*7+di;
+            const c=cells[idx];
+            if(!c)return`<div style="height:14px;border-radius:2px;background:rgba(255,255,255,.03)"></div>`;
+            const col=c.pct>=1?'rgba(15,221,170,1)':c.pct>=.75?'rgba(15,221,170,.75)':c.pct>=.5?'rgba(155,143,245,.7)':c.pct>=.25?'rgba(155,143,245,.4)':'rgba(255,255,255,.06)';
+            return`<div style="height:14px;border-radius:2px;background:${col};cursor:default" title="${c.date}: ${c.doneN}/${hn} привычек (${Math.round(c.pct*100)}%)"></div>`;
+          }).join('')}
+        </div>
+      </div>
+    </div>
+    <div style="display:flex;align-items:center;gap:6px;margin-top:8px;font-size:9px;color:var(--muted)">
+      <span>0%</span>
+      ${['rgba(255,255,255,.06)','rgba(155,143,245,.4)','rgba(155,143,245,.7)','rgba(15,221,170,.75)','rgba(15,221,170,1)'].map(c=>`<span style="width:12px;height:12px;border-radius:2px;background:${c};display:inline-block"></span>`).join('')}
+      <span>100%</span>
+    </div>`;
+  }
+
+  // ── Weekday pattern ──
+  const wdc=document.getElementById('htWeekdayChart');
+  if(wdc){
+    const DAYS_WD=['Пн','Вт','Ср','Чт','Пт','Сб','Вс'];
+    const dow_order=[1,2,3,4,5,6,0];
+    const dowTotals=Array(7).fill(0),dowCounts=Array(7).fill(0);
+    for(let day=1;day<=dim(htY,htM);day++){
+      const dow=new Date(htY,htM,day).getDay();
+      const fil=d.habits.filter((_,hi)=>d.checks[`${hi}_${day}`]).length;
+      dowTotals[dow]+=hn?fil/hn:0;dowCounts[dow]++;
+    }
+    const avgs=dow_order.map(di=>dowCounts[di]?Math.round(dowTotals[di]/dowCounts[di]*100):0);
+    const maxAvg=Math.max(...avgs,1);
+    wdc.innerHTML=`<div style="display:flex;flex-direction:column;gap:8px">
+      ${DAYS_WD.map((day,i)=>{
+        const pct=avgs[i];const isWE=i>=5;
+        const col=pct>=80?'var(--green)':pct>=60?'var(--p)':pct>=40?'var(--gold)':'var(--red)';
+        return`<div style="display:flex;align-items:center;gap:10px">
+          <span style="font-size:10px;font-weight:700;color:${isWE?'var(--muted)':'var(--text2)'};width:24px;flex-shrink:0;font-family:var(--font-mono)">${day}</span>
+          <div style="flex:1;height:20px;background:rgba(255,255,255,.04);border-radius:6px;overflow:hidden;position:relative">
+            <div style="position:absolute;inset:0;width:${pct}%;background:linear-gradient(90deg,${col},${col}88);border-radius:6px;transition:.5s"></div>
+            <div style="position:absolute;inset:0;display:flex;align-items:center;padding-left:8px">
+              ${pct>=20?`<span style="font-size:9px;font-weight:800;color:${pct>=50?'rgba(255,255,255,.9)':'rgba(255,255,255,.5)'}">${pct}%</span>`:''}
+            </div>
+          </div>
+          <span style="font-size:9px;color:var(--muted);font-family:var(--font-mono);width:28px;text-align:right">${pct}%</span>
+        </div>`;
+      }).join('')}
+    </div>
+    <div style="margin-top:10px;font-size:10px;color:var(--muted);padding:8px;background:rgba(255,255,255,.02);border-radius:8px">
+      💡 Лучший день: <span style="color:var(--p);font-weight:700">${DAYS_WD[avgs.indexOf(Math.max(...avgs))]}</span>
+      · Худший: <span style="color:var(--red);font-weight:700">${DAYS_WD[avgs.indexOf(Math.min(...avgs))]}</span>
+    </div>`;
+  }
+
+  // ── Per-habit bars ──
+  const hb=document.getElementById('htHabitBars');
+  if(hb){
+    const sortedHabits=d.habits.map((h,hi)=>{
+      const done=Object.keys(d.checks).filter(k=>k.startsWith(`${hi}_`)&&d.checks[k]).length;
+      const pct=dim(htY,htM)?Math.round(done/dim(htY,htM)*100):0;
+      const{cur,best}=_htStreak(hi);
+      return{name:h.name||'Без названия',done,pct,cur,best};
+    }).sort((a,b)=>b.pct-a.pct);
+    hb.innerHTML=sortedHabits.map((h,i)=>{
+      const col=h.pct>=80?'var(--green)':h.pct>=60?'var(--p)':h.pct>=40?'var(--gold)':'var(--red)';
+      return`<div style="margin-bottom:12px">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
+          <div style="display:flex;align-items:center;gap:8px">
+            <span style="font-family:var(--font-display);font-size:12px;font-weight:800;color:var(--muted);width:16px">${i+1}</span>
+            <span style="font-size:12px;font-weight:600;color:var(--text)">${esc(h.name)}</span>
+            ${h.cur>=3?`<span style="font-size:10px">🔥${h.cur}</span>`:''}
+          </div>
+          <div style="display:flex;align-items:center;gap:8px">
+            <span style="font-size:10px;color:var(--muted)">${h.done} дней</span>
+            <span style="font-size:12px;font-weight:800;color:${col}">${h.pct}%</span>
+          </div>
+        </div>
+        <div style="height:6px;background:rgba(255,255,255,.06);border-radius:4px;overflow:hidden">
+          <div style="height:100%;width:${h.pct}%;background:linear-gradient(90deg,${col},${col}aa);border-radius:4px;transition:.6s ${i*0.05}s"></div>
+        </div>
+      </div>`;
+    }).join('');
+  }
 }
 
 function drawHChart(d,days){
@@ -15085,9 +15323,6 @@ function renderAnalytics(){
     <!-- ── Sleep analytics ── -->
     ${buildSleepAnalyticsHTML()}
 
-    <!-- ── Plan vs Reality ── -->
-    ${_buildPlanVsRealHTML()}
-
     <!-- ── Year heatmap ── -->
     ${_buildYearHeatmapHTML()}
 
@@ -15118,138 +15353,6 @@ function renderAnalytics(){
     // Draw weekly trend canvas
     _anlDrawWkCanvas(weeklyTrend,maxWk,wkAvg);
   });
-}
-
-/* ═══ Analytics: Plan vs Reality ═══ */
-function _buildPlanVsRealHTML(){
-  const events=G.taskEvents||[];
-  const tasks=tpD();
-
-  // ── Reschedule analysis ──
-  const reschedules=events.filter(e=>e.type==='reschedule');
-  const deletes=events.filter(e=>e.type==='delete');
-  const creates=events.filter(e=>e.type==='create');
-
-  // Tasks with both planned and actual duration
-  const timed=tasks.filter(t=>t.plannedDuration&&t.actualDuration);
-  const totalPlanned=timed.reduce((s,t)=>s+t.plannedDuration,0);
-  const totalActual=timed.reduce((s,t)=>s+t.actualDuration,0);
-  const avgRatio=timed.length?totalActual/totalPlanned:null;
-
-  // Most rescheduled tasks (top 5)
-  const reschedByTask={};
-  reschedules.forEach(e=>{
-    if(!reschedByTask[e.taskId])reschedByTask[e.taskId]={text:e.taskText,count:0,dates:[]};
-    reschedByTask[e.taskId].count++;
-    if(e.from&&e.to)reschedByTask[e.taskId].dates.push({from:e.from,to:e.to});
-  });
-  const topRescheduled=Object.values(reschedByTask).sort((a,b)=>b.count-a.count).slice(0,5);
-
-  // Reschedule trend by day of week
-  const dowNames=['Вс','Пн','Вт','Ср','Чт','Пт','Сб'];
-  const reschedByDow=Array(7).fill(0);
-  reschedules.forEach(e=>{if(e.date)reschedByDow[new Date(e.date+'T00:00:00').getDay()]++;});
-  const maxDow=Math.max(...reschedByDow,1);
-
-  // Delete reasons by time of day
-  const deletesByHour=Array(24).fill(0);
-  deletes.forEach(e=>{if(e.ts)deletesByHour[new Date(e.ts).getHours()]++;});
-
-  // Time estimation accuracy buckets
-  const buckets={fast:0,ontime:0,slow:0,very_slow:0}; // ratio bins
-  timed.forEach(t=>{
-    const r=t.actualDuration/t.plannedDuration;
-    if(r<0.8)buckets.fast++;
-    else if(r<=1.2)buckets.ontime++;
-    else if(r<=2)buckets.slow++;
-    else buckets.very_slow++;
-  });
-
-  // Completion rate (planned vs done)
-  const todK=dk(new Date());
-  const overdueCount=tasks.filter(t=>!t.done&&t.deadline&&t.deadline<todK).length;
-  const doneCount=tasks.filter(t=>t.done).length;
-  const totalWithDl=tasks.filter(t=>t.deadline).length;
-
-  if(!reschedules.length&&!deletes.length&&!timed.length){
-    return`<div class="chartCard" style="margin-bottom:16px;text-align:center;padding:32px">
-      <div style="font-size:32px;margin-bottom:10px">📋</div>
-      <div style="font-size:13px;font-weight:700;color:var(--text2);margin-bottom:6px">Данных пока нет</div>
-      <div style="font-size:11px;color:var(--muted);line-height:1.6">Добавляй планируемое время к задачам и переноси дедлайны — здесь появится аналитика «план vs реальность»</div>
-    </div>`;
-  }
-
-  const fmtMin=m=>m>=60?`${Math.floor(m/60)}ч${m%60>0?' '+m%60+'м':''}`:m+'м';
-
-  return`<div class="chartCard" style="margin-bottom:16px">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:8px">
-      <div class="secLbl">📋 План vs Реальность</div>
-      <div style="font-size:10px;color:var(--muted)">${reschedules.length+deletes.length} событий отслежено</div>
-    </div>
-
-    <!-- KPI row -->
-    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:8px;margin-bottom:18px">
-      ${[
-        {v:reschedules.length,l:'Переносов',c:reschedules.length>10?'var(--red)':reschedules.length>5?'var(--gold)':'var(--green)',e:'↻',tip:'Сколько раз дедлайны сдвигались'},
-        {v:deletes.length,l:'Удалений',c:deletes.length>10?'var(--red)':deletes.length>3?'var(--gold)':'var(--muted)',e:'✕',tip:'Сколько задач удалено'},
-        {v:overdueCount,l:'Просрочено',c:overdueCount>5?'var(--red)':overdueCount>0?'var(--gold)':'var(--green)',e:'⚠',tip:'Задач с прошедшим дедлайном'},
-        {v:avgRatio?Math.round(avgRatio*100)+'%':'—',l:'Точность оценки',c:avgRatio?avgRatio<=1.2?'var(--green)':avgRatio<=1.6?'var(--gold)':'var(--red)':'var(--muted)',e:'⏱',tip:'Факт / план времени'},
-      ].map(s=>`<div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:12px;padding:12px 10px;text-align:center" title="${s.tip}">
-        <div style="font-size:10px;margin-bottom:4px;opacity:.6">${s.e}</div>
-        <div style="font-family:var(--font-display);font-size:20px;font-weight:900;color:${s.c};letter-spacing:-.5px;line-height:1">${s.v}</div>
-        <div style="font-size:9px;color:var(--muted);margin-top:3px;font-weight:600">${s.l}</div>
-      </div>`).join('')}
-    </div>
-
-    <!-- Time accuracy buckets -->
-    ${timed.length>=3?`<div style="margin-bottom:18px">
-      <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);margin-bottom:10px">Точность оценки времени (${timed.length} задач)</div>
-      <div style="display:flex;height:28px;border-radius:8px;overflow:hidden;gap:2px">
-        ${[
-          {v:buckets.fast,l:'Быстрее',c:'var(--cyan)'},
-          {v:buckets.ontime,l:'В точку',c:'var(--green)'},
-          {v:buckets.slow,l:'Дольше',c:'var(--gold)'},
-          {v:buckets.very_slow,l:'Намного дольше',c:'var(--red)'},
-        ].filter(b=>b.v>0).map(b=>{const pct=Math.round(b.v/timed.length*100);return`<div style="flex:${b.v};background:${b.c};opacity:.8;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:800;color:#000;min-width:${pct>8?'auto':'0'}" title="${b.l}: ${b.v} задач">${pct>8?pct+'%':''}</div>`;}).join('')}
-      </div>
-      <div style="display:flex;justify-content:space-between;font-size:9px;color:var(--muted);margin-top:5px;flex-wrap:wrap;gap:4px">
-        ${[
-          {v:buckets.fast,l:'⚡ Быстрее плана',c:'var(--cyan)'},
-          {v:buckets.ontime,l:'✅ В точку (±20%)',c:'var(--green)'},
-          {v:buckets.slow,l:'🐢 Дольше',c:'var(--gold)'},
-          {v:buckets.very_slow,l:'🔴 Сильно дольше',c:'var(--red)'},
-        ].map(b=>`<span style="color:${b.c}">${b.l}: <b>${b.v}</b></span>`).join('')}
-      </div>
-      ${avgRatio?`<div style="margin-top:8px;padding:8px 12px;background:rgba(255,255,255,.03);border-radius:8px;font-size:11px;color:var(--text2)">
-        💡 В среднем ты тратишь <span style="font-weight:800;color:${avgRatio>1.2?'var(--gold)':'var(--green)'}">${Math.round(avgRatio*100)}%</span> от запланированного времени
-        ${avgRatio>1.5?' — склонность недооценивать задачи':avgRatio>1.2?' — чуть дольше плана':' — хорошая точность'}
-      </div>`:''}
-    </div>`:''}
-
-    <!-- Reschedule by day of week -->
-    ${reschedules.length>=3?`<div style="margin-bottom:18px">
-      <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);margin-bottom:8px">Переносы по дням недели</div>
-      <div style="display:flex;align-items:flex-end;gap:4px;height:44px">
-        ${reschedByDow.map((v,i)=>`<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:3px">
-          <div style="width:100%;border-radius:3px 3px 0 0;background:${v>0?'rgba(240,107,176,'+(0.25+v/maxDow*0.75)+')':'rgba(255,255,255,.05)'};height:${v>0?Math.max(20,Math.round(v/maxDow*36))+'px':'4px'};transition:.3s" title="${dowNames[i]}: ${v} переносов"></div>
-          <div style="font-size:8px;color:var(--muted);font-weight:${v===Math.max(...reschedByDow)?'800':'500'};color:${v===Math.max(...reschedByDow)?'var(--p)':'var(--muted)'}">${dowNames[i]}</div>
-        </div>`).join('')}
-      </div>
-      ${reschedByDow.indexOf(Math.max(...reschedByDow))>0?`<div style="font-size:10px;color:var(--muted);margin-top:6px;padding:6px 10px;background:rgba(240,107,176,.05);border-radius:8px">💡 Больше всего переносов в <span style="color:var(--p);font-weight:700">${dowNames[reschedByDow.indexOf(Math.max(...reschedByDow))]}</span></div>`:''}
-    </div>`:''}
-
-    <!-- Top rescheduled tasks -->
-    ${topRescheduled.length?`<div style="margin-bottom:4px">
-      <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);margin-bottom:8px">Задачи которые чаще всего переносились</div>
-      <div style="display:flex;flex-direction:column;gap:5px">
-        ${topRescheduled.map((t,i)=>`<div style="display:flex;align-items:center;gap:10px;padding:8px 10px;background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.05);border-radius:9px">
-          <div style="font-family:var(--font-mono);font-size:11px;font-weight:800;color:${i===0?'var(--red)':i===1?'var(--gold)':'var(--muted)'};flex-shrink:0;width:16px;text-align:center">${i+1}</div>
-          <div style="flex:1;font-size:11px;color:var(--text2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(t.text.slice(0,50))}</div>
-          <div style="flex-shrink:0;background:${i===0?'rgba(240,80,80,.15)':'rgba(255,255,255,.05)'};border:1px solid ${i===0?'rgba(240,80,80,.3)':'rgba(255,255,255,.08)'};border-radius:20px;padding:2px 10px;font-size:10px;font-weight:800;color:${i===0?'var(--red)':'var(--muted)'}">${t.count}×</div>
-        </div>`).join('')}
-      </div>
-    </div>`:''}
-  </div>`;
 }
 
 /* ═══ Analytics: Task behaviour (reschedules, edits, deletes) ═══ */
