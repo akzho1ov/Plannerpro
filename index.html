@@ -5928,11 +5928,20 @@ function showSaveStatus(state,msg){
   clearTimeout(el._t);
   el._t=setTimeout(()=>{el.className=''},2500);
 }
+let _syncWd=null;
 function setSyncDot(state){
   const d=document.getElementById('syncDot');if(!d)return;
+  clearTimeout(_syncWd);
   d.className='syncDot'+(state==='syncing'?' syncing':state==='error'?' error':'');
-  d.title=state==='syncing'?'Сохранение...':state==='error'?'Офлайн — изменения сохранены локально':'Синхронизировано';
+  const offline=!navigator.onLine;
+  d.title=state==='error'?'Ошибка доступа к облаку':offline?'Нет сети — сохранено локально, отправится при подключении':state==='syncing'?'Сохранение...':'Синхронизировано';
+  // Firestore keeps data locally, so a slow ack must not leave the dot yellow forever
+  if(state==='syncing'&&!offline){
+    _syncWd=setTimeout(()=>{if(navigator.onLine)setSyncDot('ok');},3500);
+  }
 }
+window.addEventListener('offline',()=>setSyncDot('syncing'));
+window.addEventListener('online',()=>{setSyncDot('syncing');try{saveD();}catch(e){}});
 
 // ── Re-render whichever tab is currently visible (called after cloud sync) ──
 function reRenderCurrentTab(){
@@ -7246,8 +7255,36 @@ function _htTodayDone(hi){
   return !!(htD().checks[k]||(today.getFullYear()===htY&&today.getMonth()===htM&&htD().checks[k2]));
 }
 
+function _htStartDay(h){
+  if(!h||!h.created)return 1;
+  const p=h.created.split('-').map(Number);
+  if(p[0]<htY||(p[0]===htY&&p[1]-1<htM))return 1;
+  if(p[0]===htY&&p[1]-1===htM)return p[2];
+  return 99;
+}
+function _htLastDay(days){
+  const n=t0();
+  if(htY===n.getFullYear()&&htM===n.getMonth())return n.getDate();
+  return new Date(htY,htM,1)>n?0:days;
+}
+function _htEnsureCreated(d){
+  let changed=false;const n=t0();
+  d.habits.forEach((h,hi)=>{
+    if(h.created)return;
+    let first=null;
+    Object.keys(d.checks).forEach(k=>{
+      if(!d.checks[k])return;
+      const [i,day]=k.split('_').map(Number);
+      if(i===hi&&(first===null||day<first))first=day;
+    });
+    if(first!==null){h.created=`${htY}-${z(htM+1)}-${z(first)}`;changed=true;}
+    else if(htY===n.getFullYear()&&htM===n.getMonth()){h.created=dk(n);changed=true;}
+  });
+  if(changed)saveD();
+}
 function renderHT(){
   const d=htD();
+  _htEnsureCreated(d);
   document.getElementById('htMonthName').textContent=`${MN[htM]} ${htY}`;
   const days=dim(htY,htM),todK=dk(t0()),hn=d.habits.length;
 
@@ -7255,12 +7292,12 @@ function renderHT(){
   const todayDone=d.habits.filter((_,hi)=>_htTodayDone(hi)).length;
   const todayPct=hn?Math.round(todayDone/hn*100):0;
   const monthDone=Object.values(d.checks).filter(Boolean).length;
-  const monthMax=hn*days;
+  const monthMax=d.habits.reduce((sm,h)=>sm+Math.max(0,_htLastDay(days)-_htStartDay(h)+1),0);
   const monthPct=monthMax?Math.round(monthDone/monthMax*100):0;
   const bestStreak=d.habits.reduce((best,_,hi)=>Math.max(best,_htStreak(hi).best),0);
   const curStreaks=d.habits.map((_,hi)=>_htStreak(hi).cur);
   const maxCurStreak=Math.max(...curStreaks,0);
-  const perfectDays=Array.from({length:days},(_,i)=>i+1).filter(day=>hn>0&&d.habits.every((_,hi)=>d.checks[`${hi}_${day}`])).length;
+  const perfectDays=Array.from({length:days},(_,i)=>i+1).filter(day=>{const act=d.habits.map((h,hi)=>[h,hi]).filter(([h])=>_htStartDay(h)<=day);return act.length>0&&act.every(([,hi])=>d.checks[`${hi}_${day}`]);}).length;
 
   const kpiStrip=document.getElementById('htKpiStrip');
   if(kpiStrip){
@@ -7319,16 +7356,17 @@ function renderHT(){
       const ck=`${hi}_${day}`;
       const dstr=`${htY}-${z(htM+1)}-${z(day)}`;
       const isFut=new Date(htY,htM,day)>t0();
+      const isPre=day<_htStartDay(h);
       const isToday=dstr===todK;
       const wgI=wgs.findIndex(w=>day>=w.s&&day<=w.e);
       const checked=d.checks[ck];
       if(checked)doneCnt++;
       cells+=`<td style="${wgI%2===1?'background:rgba(155,124,244,.04);':''}${isToday?'background:rgba(245,158,11,.07);':''}padding:3px 2px">
-        <input type="checkbox" class="htCb" ${checked?'checked':''} ${isFut?'disabled':''}
+        <input type="checkbox" class="htCb" ${checked?'checked':''} ${(isFut||isPre)?'disabled':''}
           onchange="toggleH(${hi},${day},this.checked)" style="${isToday?'outline:2px solid rgba(245,158,11,.4);outline-offset:1px;border-radius:3px':''}">
       </td>`;
     }
-    const pct=days?Math.round(doneCnt/days*100):0;
+    const trk=Math.max(0,_htLastDay(days)-_htStartDay(h)+1);const pct=trk?Math.round(doneCnt/trk*100):0;
     const pctColor=pct>=80?'var(--green)':pct>=50?'var(--gold)':'var(--red)';
     cells+=`<td class="anaHd" style="padding:4px 6px">
       <div style="font-size:11px;font-weight:800;color:${pctColor}">${pct}%</div>
@@ -7341,8 +7379,9 @@ function renderHT(){
   // tfoot
   let rp=`<tr class="statRow"><td class="htNameCell" colspan="2" style="font-size:9px;font-weight:700;color:var(--muted);text-align:left;padding-left:10px">Выполнение</td>`;
   for(let day=1;day<=days;day++){
-    const fil=d.habits.filter((_,hi)=>d.checks[`${hi}_${day}`]).length;
-    const pct=hn?Math.round(fil/hn*100):0;
+    const actH=d.habits.map((h,hi)=>[h,hi]).filter(([h])=>_htStartDay(h)<=day);
+    const fil=actH.filter(([,hi])=>d.checks[`${hi}_${day}`]).length;
+    const pct=actH.length?Math.round(fil/actH.length*100):0;
     const dstr=`${htY}-${z(htM+1)}-${z(day)}`;
     const isToday=dstr===todK;
     const bg=isToday?'background:rgba(245,158,11,.08);':'';
@@ -7572,7 +7611,12 @@ function toggleH(hi,day,c){
   }
   saveD();renderHT();
 }
-function addHabit(){htD().habits.push({name:'',goal:0});saveD();renderHT()}
+function addHabit(){
+  const n=t0();
+  const cur=htY===n.getFullYear()&&htM===n.getMonth();
+  htD().habits.push({name:'',goal:0,created:cur?dk(n):`${htY}-${z(htM+1)}-01`});
+  saveD();renderHT();
+}
 function delH(hi){
   const d=htD();d.habits.splice(hi,1);
   const nc={};Object.keys(d.checks).forEach(k=>{const[h,dy]=k.split('_').map(Number);if(h<hi)nc[k]=d.checks[k];else if(h>hi)nc[`${h-1}_${dy}`]=d.checks[k]});
@@ -12288,9 +12332,15 @@ function renderDash(){
 function _renderFocusNow(){
   const el=document.getElementById('dashFocusNow');if(!el)return;
   const todK=dk(t0());
-  const urgent=tpD().filter(t=>!t.done&&t.deadline&&t.deadline<=todK)
-    .sort((a,b)=>a.deadline<b.deadline?-1:1)
-    .slice(0,3);
+  const urgent=tpD().filter(t=>{
+    if(t.repeat)return taskAppearsOnDate(t,todK)&&!(t.doneDates||[]).includes(todK);
+    return !t.done&&t.deadline&&t.deadline<=todK;
+  }).sort((a,b)=>{
+    const ao=!a.repeat&&a.deadline<todK,bo=!b.repeat&&b.deadline<todK;
+    if(ao!==bo)return ao?-1:1;
+    if(ao&&bo)return a.deadline<b.deadline?-1:1;
+    return (a.time||'99:99').localeCompare(b.time||'99:99');
+  }).slice(0,3);
   if(!urgent.length){el.innerHTML='';return;}
   const allLbls=(G.labelGroups||[]).flatMap(g=>g.labels||[]);
   const colors=['var(--red)','var(--gold)','var(--p)'];
@@ -12303,7 +12353,7 @@ function _renderFocusNow(){
     <div style="display:grid;grid-template-columns:repeat(${urgent.length},1fr);gap:10px">
     ${urgent.map((t,i)=>{
       const idx=tpD().indexOf(t);
-      const overdue=t.deadline<todK;
+      const overdue=!t.repeat&&t.deadline<todK;
       const lbl=allLbls.find(l=>(t.labelIds||[]).includes(l.id));
       const goal=t.goalId?goalsD().find(g=>g.id===t.goalId):null;
       const accent=colors[i];
@@ -12312,12 +12362,12 @@ function _renderFocusNow(){
         <div style="display:flex;align-items:center;gap:5px;flex-wrap:wrap;margin-top:auto">
           ${overdue
             ?`<span style="font-size:10px;color:var(--red);font-weight:700;background:rgba(240,80,80,.1);padding:1px 7px;border-radius:20px">⚠️ ${t.deadline}</span>`
-            :`<span style="font-size:10px;color:var(--gold);font-weight:600;background:rgba(240,180,60,.1);padding:1px 7px;border-radius:20px">📅 Сегодня</span>`}
+            :`<span style="font-size:10px;color:var(--gold);font-weight:600;background:rgba(240,180,60,.1);padding:1px 7px;border-radius:20px">📅 Сегодня${t.time?' · '+t.time:''}</span>`}
           ${lbl?`<span style="font-size:9px;font-weight:700;padding:1px 6px;border-radius:20px;background:${lbl.color}22;color:${lbl.color}">${esc(lbl.name)}</span>`:''}
         </div>
         ${goal?`<div style="font-size:10px;color:var(--p);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">🎯 ${esc(goal.title)}</div>`:''}
         <button style="margin-top:4px;width:100%;padding:5px 0;background:var(--pdim);border:1px solid rgba(155,143,245,.25);border-radius:8px;color:var(--p);font-size:10px;font-weight:700;cursor:pointer"
-          onclick="event.stopPropagation();navigateTo('pomodoro')">▶ Старт помодоро</button>
+          onclick="event.stopPropagation();POM.taskId='${t.id}';navigateTo('pomodoro')">▶ Старт помодоро</button>
       </div>`;
     }).join('')}
     </div>
