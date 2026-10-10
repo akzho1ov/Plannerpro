@@ -3921,7 +3921,7 @@ body.light-mode .skel{background:linear-gradient(90deg,var(--card2) 25%,#f0f2f7 
         <button class="tvSwitchBtn" data-tab="tasks" onclick="navigateTo('tasks')"><span class="tvIco">✅</span>Список</button>
         <button class="tvSwitchBtn" data-tab="weekly" onclick="navigateTo('weekly')"><span class="tvIco">📅</span>Неделя</button>
         <button class="tvSwitchBtn" data-tab="calendar" onclick="navigateTo('calendar')"><span class="tvIco">📆</span>Календарь</button>
-        <button class="tvSwitchBtn" data-tab="kanban" onclick="navigateTo('kanban')"><span class="tvIco">🗂</span>Канбан</button><button class="tvSwitchBtn" data-tab="matrix" onclick="navigateTo('matrix')"><span class="tvIco">⚡</span>Матрица</button>
+        <button class="tvSwitchBtn" data-tab="kanban" onclick="navigateTo('kanban')"><span class="tvIco">🗂</span>Канбан</button>
       </div>
     </div>
     <div class="paneHeadActions">
@@ -3935,7 +3935,7 @@ body.light-mode .skel{background:linear-gradient(90deg,var(--card2) 25%,#f0f2f7 
         <button class="tvSwitchBtn" data-tab="tasks" onclick="navigateTo('tasks')"><span class="tvIco">✅</span>Список</button>
         <button class="tvSwitchBtn" data-tab="weekly" onclick="navigateTo('weekly')"><span class="tvIco">📅</span>Неделя</button>
         <button class="tvSwitchBtn" data-tab="calendar" onclick="navigateTo('calendar')"><span class="tvIco">📆</span>Календарь</button>
-        <button class="tvSwitchBtn" data-tab="kanban" onclick="navigateTo('kanban')"><span class="tvIco">🗂</span>Канбан</button><button class="tvSwitchBtn" data-tab="matrix" onclick="navigateTo('matrix')"><span class="tvIco">⚡</span>Матрица</button>
+        <button class="tvSwitchBtn" data-tab="kanban" onclick="navigateTo('kanban')"><span class="tvIco">🗂</span>Канбан</button>
       </div></div>
   <!-- Weekly focus banner -->
   <div id="weekFocusBanner" style="margin-bottom:16px;border-radius:16px;background:linear-gradient(135deg,rgba(155,143,245,.08),rgba(91,149,255,.06));border:1px solid rgba(155,143,245,.18);padding:12px 16px;display:flex;align-items:center;gap:12px">
@@ -4063,27 +4063,27 @@ body.light-mode .skel{background:linear-gradient(90deg,var(--card2) 25%,#f0f2f7 
         <button class="tvSwitchBtn" data-tab="tasks" onclick="navigateTo('tasks')"><span class="tvIco">✅</span>Список</button>
         <button class="tvSwitchBtn" data-tab="weekly" onclick="navigateTo('weekly')"><span class="tvIco">📅</span>Неделя</button>
         <button class="tvSwitchBtn" data-tab="calendar" onclick="navigateTo('calendar')"><span class="tvIco">📆</span>Календарь</button>
-        <button class="tvSwitchBtn" data-tab="kanban" onclick="navigateTo('kanban')"><span class="tvIco">🗂</span>Канбан</button><button class="tvSwitchBtn" data-tab="matrix" onclick="navigateTo('matrix')"><span class="tvIco">⚡</span>Матрица</button>
+        <button class="tvSwitchBtn" data-tab="kanban" onclick="navigateTo('kanban')"><span class="tvIco">🗂</span>Канбан</button>
       </div>
     </div>
     <div class="paneHeadActions">
       <button class="btn btnG" style="font-size:10px;padding:5px 10px" onclick="openLabelsModal()">⚙ Метки</button>
-      <button id="tpToggleDone" class="btn btnG" style="font-size:10px;padding:5px 10px" onclick="tpToggleDone()">🙈 Готовые</button>
+      <button class="btn btnG tpToggleDoneBtn" style="font-size:10px;padding:5px 10px" onclick="tpToggleDone()">🙈 Готовые</button>
     </div>
   </header>
   <div class="tvStickyBar"><div class="tvSwitch" role="tablist">
         <button class="tvSwitchBtn" data-tab="tasks" onclick="navigateTo('tasks')"><span class="tvIco">✅</span>Список</button>
         <button class="tvSwitchBtn" data-tab="weekly" onclick="navigateTo('weekly')"><span class="tvIco">📅</span>Неделя</button>
         <button class="tvSwitchBtn" data-tab="calendar" onclick="navigateTo('calendar')"><span class="tvIco">📆</span>Календарь</button>
-        <button class="tvSwitchBtn" data-tab="kanban" onclick="navigateTo('kanban')"><span class="tvIco">🗂</span>Канбан</button><button class="tvSwitchBtn" data-tab="matrix" onclick="navigateTo('matrix')"><span class="tvIco">⚡</span>Матрица</button>
+        <button class="tvSwitchBtn" data-tab="kanban" onclick="navigateTo('kanban')"><span class="tvIco">🗂</span>Канбан</button>
       </div></div>
   <div class="card" style="padding:12px 14px;margin-bottom:12px">
     <!-- Stats strip -->
     <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:10px">
-      <div class="tpSideStat"><div class="fldLbl">Всего</div><div class="tpStatV stot" id="stot">0</div></div>
-      <div class="tpSideStat"><div class="fldLbl">Просроч.</div><div class="tpStatV sover" id="sover">0</div></div>
+      <div class="tpSideStat"><div class="fldLbl">Всего</div><div class="tpStatV stot" id="tpStot">0</div></div>
+      <div class="tpSideStat"><div class="fldLbl">Просроч.</div><div class="tpStatV sover" id="tpSover">0</div></div>
       <div class="tpSideStat"><div class="fldLbl">В работе</div><div class="tpStatV sinp" id="sinp">0</div></div>
-      <div class="tpSideStat"><div class="fldLbl">Готово</div><div class="tpStatV sdone" id="sdone">0</div></div>
+      <div class="tpSideStat"><div class="fldLbl">Готово</div><div class="tpStatV sdone" id="tpSdone">0</div></div>
     </div>
     <!-- Progress bar -->
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
@@ -4096,7 +4096,7 @@ body.light-mode .skel{background:linear-gradient(90deg,var(--card2) 25%,#f0f2f7 
       <button id="tpSortDate" class="btn tpSortBtn tpSortOn" style="font-size:10px;padding:3px 9px;flex-shrink:0" onclick="tpSetSort('date')">📅 По дате</button>
       <div style="flex:1"></div>
       <button class="btn btnG" style="font-size:10px;padding:3px 9px;flex-shrink:0" onclick="openLabelsModal()">⚙ Метки</button>
-      <button id="tpToggleDone" class="btn btnG" style="font-size:10px;padding:3px 9px;flex-shrink:0" onclick="tpToggleDone()">🙈 Показать готовые</button>
+      <button class="btn btnG tpToggleDoneBtn" style="font-size:10px;padding:3px 9px;flex-shrink:0" onclick="tpToggleDone()">🙈 Показать готовые</button>
     </div>
   </div>
   <!-- Labels filter bar — dropdown style -->
@@ -4171,7 +4171,7 @@ body.light-mode .skel{background:linear-gradient(90deg,var(--card2) 25%,#f0f2f7 
         <button class="tvSwitchBtn" data-tab="tasks" onclick="navigateTo('tasks')"><span class="tvIco">✅</span>Список</button>
         <button class="tvSwitchBtn" data-tab="weekly" onclick="navigateTo('weekly')"><span class="tvIco">📅</span>Неделя</button>
         <button class="tvSwitchBtn" data-tab="calendar" onclick="navigateTo('calendar')"><span class="tvIco">📆</span>Календарь</button>
-        <button class="tvSwitchBtn" data-tab="kanban" onclick="navigateTo('kanban')"><span class="tvIco">🗂</span>Канбан</button><button class="tvSwitchBtn" data-tab="matrix" onclick="navigateTo('matrix')"><span class="tvIco">⚡</span>Матрица</button>
+        <button class="tvSwitchBtn" data-tab="kanban" onclick="navigateTo('kanban')"><span class="tvIco">🗂</span>Канбан</button>
       </div>
     </div>
   </header>
@@ -4180,7 +4180,7 @@ body.light-mode .skel{background:linear-gradient(90deg,var(--card2) 25%,#f0f2f7 
         <button class="tvSwitchBtn" data-tab="tasks" onclick="navigateTo('tasks')"><span class="tvIco">✅</span>Список</button>
         <button class="tvSwitchBtn" data-tab="weekly" onclick="navigateTo('weekly')"><span class="tvIco">📅</span>Неделя</button>
         <button class="tvSwitchBtn" data-tab="calendar" onclick="navigateTo('calendar')"><span class="tvIco">📆</span>Календарь</button>
-        <button class="tvSwitchBtn" data-tab="kanban" onclick="navigateTo('kanban')"><span class="tvIco">🗂</span>Канбан</button><button class="tvSwitchBtn" data-tab="matrix" onclick="navigateTo('matrix')"><span class="tvIco">⚡</span>Матрица</button>
+        <button class="tvSwitchBtn" data-tab="kanban" onclick="navigateTo('kanban')"><span class="tvIco">🗂</span>Канбан</button>
       </div></div>
   <!-- Toolbar -->
   <div class="plCal-toolbar">
@@ -4233,7 +4233,7 @@ body.light-mode .skel{background:linear-gradient(90deg,var(--card2) 25%,#f0f2f7 
         <button class="tvSwitchBtn" data-tab="tasks" onclick="navigateTo('tasks')"><span class="tvIco">✅</span>Список</button>
         <button class="tvSwitchBtn" data-tab="weekly" onclick="navigateTo('weekly')"><span class="tvIco">📅</span>Неделя</button>
         <button class="tvSwitchBtn" data-tab="calendar" onclick="navigateTo('calendar')"><span class="tvIco">📆</span>Календарь</button>
-        <button class="tvSwitchBtn" data-tab="kanban" onclick="navigateTo('kanban')"><span class="tvIco">🗂</span>Канбан</button><button class="tvSwitchBtn" data-tab="matrix" onclick="navigateTo('matrix')"><span class="tvIco">⚡</span>Матрица</button>
+        <button class="tvSwitchBtn" data-tab="kanban" onclick="navigateTo('kanban')"><span class="tvIco">🗂</span>Канбан</button>
       </div>
     </div>
     <div class="paneHeadActions" id="kbBoardBarWrap"></div>
@@ -4242,7 +4242,7 @@ body.light-mode .skel{background:linear-gradient(90deg,var(--card2) 25%,#f0f2f7 
         <button class="tvSwitchBtn" data-tab="tasks" onclick="navigateTo('tasks')"><span class="tvIco">✅</span>Список</button>
         <button class="tvSwitchBtn" data-tab="weekly" onclick="navigateTo('weekly')"><span class="tvIco">📅</span>Неделя</button>
         <button class="tvSwitchBtn" data-tab="calendar" onclick="navigateTo('calendar')"><span class="tvIco">📆</span>Календарь</button>
-        <button class="tvSwitchBtn" data-tab="kanban" onclick="navigateTo('kanban')"><span class="tvIco">🗂</span>Канбан</button><button class="tvSwitchBtn" data-tab="matrix" onclick="navigateTo('matrix')"><span class="tvIco">⚡</span>Матрица</button>
+        <button class="tvSwitchBtn" data-tab="kanban" onclick="navigateTo('kanban')"><span class="tvIco">🗂</span>Канбан</button>
       </div></div>
   <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;flex-wrap:wrap;gap:8px">
     <div class="kbBoardBar" id="kbBoardBar">
@@ -4253,48 +4253,6 @@ body.light-mode .skel{background:linear-gradient(90deg,var(--card2) 25%,#f0f2f7 
     </div>
   </div>
   <div class="kbWrap"><div class="kbLayout" id="kbLayout"></div></div>
-</div>
-
-<!-- ═══ MATRIX (Eisenhower) ═══ -->
-<div id="tab-matrix" class="pane hInner">
-  <header class="paneHead">
-    <div class="paneHeadLeft">
-      <nav class="paneBreadcrumb">
-        <span onclick="navigateTo('dash')">PlannerPro</span>
-        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="m7 10 3 3 3-3"/><path d="m7 6 3 3 3-3"/></svg>
-        <span onclick="navigateTo('tasks')" class="pbc-active">Задачи</span>
-        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="m7 10 3 3 3-3"/><path d="m7 6 3 3 3-3"/></svg>
-        <span class="pbc-active">Матрица</span>
-      </nav>
-      <div class="paneHeadRow">
-        <div class="paneHeadIcon" style="background:rgba(240,107,176,.1);border-color:rgba(240,107,176,.25)">⚡</div>
-        <div>
-          <h1 class="paneTitle">Матрица Эйзенхауэра</h1>
-          <p class="paneSubtitle">Приоритизация по важности и срочности</p>
-        </div>
-      </div>
-    </div>
-    <div class="paneHeadCenter">
-      <div class="tvSwitch tvSwitch--inline" role="tablist">
-        <button class="tvSwitchBtn" data-tab="tasks" onclick="navigateTo('tasks')"><span class="tvIco">✅</span>Список</button>
-        <button class="tvSwitchBtn" data-tab="weekly" onclick="navigateTo('weekly')"><span class="tvIco">📅</span>Неделя</button>
-        <button class="tvSwitchBtn" data-tab="calendar" onclick="navigateTo('calendar')"><span class="tvIco">📆</span>Календарь</button>
-        <button class="tvSwitchBtn" data-tab="kanban" onclick="navigateTo('kanban')"><span class="tvIco">🗂</span>Канбан</button>
-        <button class="tvSwitchBtn" data-tab="matrix" onclick="navigateTo('matrix')"><span class="tvIco">⚡</span>Матрица</button>
-      </div>
-    </div>
-    <div class="paneHeadActions">
-      <button class="btn btnG" style="font-size:11px" onclick="_matrixShowDone=!_matrixShowDone;renderMatrix()" id="matrixDoneToggle">👁 Скрыть выполненные</button>
-    </div>
-  </header>
-  <div class="tvStickyBar"><div class="tvSwitch" role="tablist">
-    <button class="tvSwitchBtn" data-tab="tasks" onclick="navigateTo('tasks')"><span class="tvIco">✅</span>Список</button>
-    <button class="tvSwitchBtn" data-tab="weekly" onclick="navigateTo('weekly')"><span class="tvIco">📅</span>Неделя</button>
-    <button class="tvSwitchBtn" data-tab="calendar" onclick="navigateTo('calendar')"><span class="tvIco">📆</span>Календарь</button>
-    <button class="tvSwitchBtn" data-tab="kanban" onclick="navigateTo('kanban')"><span class="tvIco">🗂</span>Канбан</button>
-    <button class="tvSwitchBtn" data-tab="matrix" onclick="navigateTo('matrix')"><span class="tvIco">⚡</span>Матрица</button>
-  </div></div>
-  <div id="matrixRoot"></div>
 </div>
 
 <!-- ═══ 6. FINANCE ═══ -->
@@ -5978,7 +5936,7 @@ function setSyncDot(state){
 
 // ── Re-render whichever tab is currently visible (called after cloud sync) ──
 function reRenderCurrentTab(){
-  const renders={dash:renderDash,weekly:renderWP,habits:renderHT,tasks:renderTP,routine:renderRoutine,calendar:renderCal,kanban:renderKanban,matrix:renderMatrix,finance:renderFin,goals:renderGrowth,rewards:rwRender,gym:gymRender,analytics:renderAnalytics,pomodoro:renderPomodoro,challenges:renderCh,sleep:renderSleepTracker};
+  const renders={dash:renderDash,weekly:renderWP,habits:renderHT,tasks:renderTP,routine:renderRoutine,calendar:renderCal,kanban:renderKanban,finance:renderFin,goals:renderGrowth,rewards:rwRender,gym:gymRender,analytics:renderAnalytics,pomodoro:renderPomodoro,challenges:renderCh,sleep:renderSleepTracker};
   for(const[name,fn] of Object.entries(renders)){
     if(document.getElementById('tab-'+name)?.classList.contains('on')){
       try{fn();}catch(e){console.warn('rerender err',e);}
@@ -6756,7 +6714,7 @@ function updateThemeBtn(){
 // Map every tab-id to its nav group
 const TAB_GROUP={
   dash:'dash',
-  tasks:'planning',weekly:'planning',calendar:'planning',kanban:'planning',matrix:'planning',
+  tasks:'planning',weekly:'planning',calendar:'planning',kanban:'planning',
   habits:'health',gym:'health',sleep:'health',
   finance:'finance',
   goals:'progress',rewards:'progress',analytics:'progress',challenges:'progress',pomodoro:'progress'
@@ -6771,7 +6729,6 @@ const MOB_GROUPS={
       {tab:'weekly',  icon:'📅', label:'Неделя',    sub:'Еженедельный план'},
       {tab:'calendar',icon:'📆', label:'Календарь', sub:'Ежемесячный вид'},
       {tab:'kanban',  icon:'🗂', label:'Канбан',    sub:'Доски и колонки'},
-      {tab:'matrix',  icon:'⚡', label:'Матрица',   sub:'Важность и срочность'},
     ]
   },
   health:{
@@ -6867,7 +6824,7 @@ function navigateTo(tabName){
 
   // ── Run render ──
   const renders={dash:renderDash,weekly:renderWP,habits:renderHT,tasks:renderTP,
-    routine:renderRoutine,calendar:renderCal,kanban:renderKanban,matrix:renderMatrix,finance:renderFin,
+    routine:renderRoutine,calendar:renderCal,kanban:renderKanban,finance:renderFin,
     goals:renderGrowth,rewards:rwRender,gym:gymRender,analytics:renderAnalytics,pomodoro:renderPomodoro,challenges:renderCh,
     sleep:renderSleepTracker};
   if(renders[tabName])renders[tabName]();
@@ -7586,7 +7543,35 @@ function drawHChart(d,days){
   for(let day=1;day<=days;day+=step)ctx.fillText(day,sx(day-1),H-4);
 }
 
-function toggleH(hi,day,c){htD().checks[`${hi}_${day}`]=c;saveD();renderHT()}
+let _habitAudioCtx=null;
+function playHabitDoneSound(allDone){
+  try{
+    const AC=window.AudioContext||window.webkitAudioContext;if(!AC)return;
+    if(!_habitAudioCtx)_habitAudioCtx=new AC();
+    const ctx=_habitAudioCtx;if(ctx.state==='suspended')ctx.resume();
+    const t=ctx.currentTime;
+    const notes=[[659.25,0],[880,0.09],[1108.73,0.18]];
+    if(allDone)notes.push([1318.5,0.28],[1760,0.38]);
+    notes.forEach(([f,d])=>{
+      const o=ctx.createOscillator(),g=ctx.createGain();
+      o.type='sine';o.frequency.value=f;
+      g.gain.setValueAtTime(0.0001,t+d);
+      g.gain.exponentialRampToValueAtTime(0.18,t+d+0.015);
+      g.gain.exponentialRampToValueAtTime(0.0001,t+d+0.45);
+      o.connect(g);g.connect(ctx.destination);
+      o.start(t+d);o.stop(t+d+0.5);
+    });
+  }catch(e){}
+}
+function toggleH(hi,day,c){
+  const d=htD();
+  d.checks[`${hi}_${day}`]=c;
+  if(c){
+    const all=d.habits.length>0&&d.habits.every((_,i)=>d.checks[`${i}_${day}`]);
+    playHabitDoneSound(all);
+  }
+  saveD();renderHT();
+}
 function addHabit(){htD().habits.push({name:'',goal:0});saveD();renderHT()}
 function delH(hi){
   const d=htD();d.habits.splice(hi,1);
@@ -7652,13 +7637,15 @@ function tpSetSort(v){
   renderTP();
 }
 
-function tpToggleDone(){
-  _tpHideDone=!_tpHideDone;
-  const btn=document.getElementById('tpToggleDone');
-  if(btn){
+function _tpSyncDoneBtns(){
+  document.querySelectorAll('.tpToggleDoneBtn').forEach(btn=>{
     btn.textContent=_tpHideDone?'👁 Показать готовые':'🙈 Скрыть готовые';
     btn.style.color=_tpHideDone?'var(--muted)':'var(--green)';
-  }
+  });
+}
+function tpToggleDone(){
+  _tpHideDone=!_tpHideDone;
+  _tpSyncDoneBtns();
   renderTP();
 }
 
@@ -7667,17 +7654,18 @@ function tpSortTasks(tasks, td){
   function effDate(t){const i=getTaskListDueInfo(t,td);return i?i.dstr:t.deadline||'';}
   const active=tasks.filter(t=>{const i=getTaskListDueInfo(t,td);return !(i&&i.done)&&!t.done;});
   const done=tasks.filter(t=>{const i=getTaskListDueInfo(t,td);return (i&&i.done)||t.done;});
+  const _ord=new Map(tasks.map((t,i)=>[t,i]));
   function byDate(a,b){
     const da=effDate(a),db=effDate(b);
-    if(!da&&!db)return 0;
-    if(!da)return 1;
-    if(!db)return -1;
+    if(!da&&!db)return _ord.get(b)-_ord.get(a); // newest undated first
+    if(!da)return -1;
+    if(!db)return 1;
     return da.localeCompare(db);
   }
   function byStatus(a,b){
     function score(t){
       const i=getTaskListDueInfo(t,td);
-      if(!i||!i.dstr)return 3;
+      if(!i||!i.dstr)return -1;
       if(i.diff<0)return 0;
       if(i.diff===0)return 1;
       if(i.diff<=3)return 2;
@@ -7772,7 +7760,7 @@ function getTaskListDueInfo(t, today){
     if(!isValidHit(cur))continue;
     const ds=_dsOf(cur);
     const done=(t.doneDates||[]).includes(ds);
-    if(!done)return{dstr:ds,diff:i,done:false};
+    return{dstr:ds,diff:i,done};
   }
   return null; // No upcoming occurrence — recurring series ended or fully deleted
 }
@@ -7791,10 +7779,10 @@ function renderTP(){
     if(info.done){done++;return;}
     info.diff<0?over++:inp++;
   });
-  document.getElementById('stot').textContent=tot;
-  document.getElementById('sover').textContent=over;
+  document.getElementById('tpStot').textContent=tot;
+  document.getElementById('tpSover').textContent=over;
   document.getElementById('sinp').textContent=inp;
-  document.getElementById('sdone').textContent=done;
+  document.getElementById('tpSdone').textContent=done;
   const pct=tot?Math.round(done/tot*100):0;
   document.getElementById('tpPct').textContent=pct+'%';
   document.getElementById('tpFill').style.width=pct+'%';
@@ -7807,8 +7795,7 @@ function renderTP(){
   const byLabel=activeLabel?byGroup.filter(t=>(t.labelIds&&t.labelIds.includes(activeLabel))||(t.labelId===activeLabel)):byGroup;
   const filtered=tpSortTasks(byLabel,td);
   // Sync toggle button text on re-render
-  const toggleBtn=document.getElementById('tpToggleDone');
-  if(toggleBtn){toggleBtn.textContent=_tpHideDone?'👁 Показать готовые':'🙈 Скрыть готовые';}
+  _tpSyncDoneBtns();
   // Sync sort buttons
   document.querySelectorAll('.tpSortBtn').forEach(b=>b.classList.remove('tpSortOn','btnG'));
   const activeSortBtn=document.getElementById('tpSort'+_tpSortBy.charAt(0).toUpperCase()+_tpSortBy.slice(1));
@@ -7905,6 +7892,9 @@ function renderTP(){
       const totalEdits=reschedCnt+editCnt;
       const editBadge=totalEdits>0?`<span class="tEditBadge" style="background:${totalEdits>=3?'rgba(248,113,113,.15)':totalEdits>=2?'rgba(251,146,60,.15)':'rgba(155,143,245,.12)'};color:${totalEdits>=3?'var(--red)':totalEdits>=2?'var(--gold)':'var(--muted)'};border:1px solid ${totalEdits>=3?'rgba(248,113,113,.3)':totalEdits>=2?'rgba(251,146,60,.3)':'rgba(255,255,255,.1)'}" title="${reschedCnt>0?'Перенесено: '+reschedCnt+' раз\n':''} ${editCnt>0?'Изменено: '+editCnt+' раз':''}">↻${totalEdits}</span>`:'';
 
+      const dlCellHtml=t.repeat
+        ? `<span title="Ближайшее повторение" style="display:inline-flex;align-items:center;padding:3px 8px;background:var(--card2);border:1px solid var(--border2);border-radius:7px;font-family:var(--font-mono);font-size:11px;font-weight:600;color:var(--text)">${effDstr?effDstr.split('-').reverse().join('.'):'—'}</span>`
+        : mdpBtn('tDl_'+t.id, t.deadline||'', 'updTFieldById(\''+t.id+'\',\'deadline\',document.getElementById(\'tDl_'+t.id+'\').dataset.iso||\'\')');
       tr.innerHTML=`
         <td style="color:var(--muted);font-size:10px;padding-left:10px">${rowNum}</td>
         <td><input type="checkbox" class="tCb" ${effDone?'checked':''} onchange="toggleTById('${t.id}',this.checked,this)"></td>
@@ -7915,7 +7905,7 @@ function renderTP(){
           </div>
         </td>
         <td>${labelHtml}</td>
-        <td>${mdpBtn('tDl_'+t.id, t.deadline||'', 'updTFieldById(\''+t.id+'\',\'deadline\',document.getElementById(\'tDl_'+t.id+'\').dataset.iso||\'\')')}</td>
+        <td>${dlCellHtml}</td>
         <td>${timeDisplay}</td>
         <td style="text-align:center;font-weight:700;font-size:11px">${dlHtml}</td>
         <td><button class="tDelBtn" onclick="delRecurringTask('${t.id}','${effDstr}')">×</button></td>`;
@@ -11398,162 +11388,6 @@ function toggleMs(gid,idx,c){
     if(linked)linked.done=c;
   }
   saveD();renderGoals();_refreshAllTaskViews();
-}
-
-/* ═══════════════════════════════════════════════════
-   MATRIX EISENHOWER
-═══════════════════════════════════════════════════ */
-let _matrixShowDone=false;
-
-function _matrixQuadrant(t){
-  // ── URGENCY — pure time-pressure signal (overdue, today, tomorrow) ──
-  // Date-only comparison: a deadline of "today" must read as "due today", not "overdue".
-  let urgent=false,daysLeft=null;
-  if(t.deadline){
-    const dl=new Date(t.deadline+'T00:00:00');
-    daysLeft=Math.round((dl-t0())/86400000);
-    urgent=daysLeft<=1; // overdue, due today, or due tomorrow
-  }
-  // ── IMPORTANCE — strategic weight, independent of timing ──
-  // A deadline alone says nothing about importance — that was the bug collapsing
-  // almost every task into "Сделай сам". Importance now comes only from explicit signals:
-  // a goal link, a high-priority flag, or a label explicitly marked as important.
-  let important=false;
-  const lbls=t.labelIds||[];
-  const allLbls=(G.labelGroups||[]).flatMap(g=>g.labels||[]);
-  if(lbls.some(id=>{const l=allLbls.find(x=>x.id===id);return l&&/(важн|priorit|high|crit)/i.test(l.name);}))important=true;
-  if(t.goalId)important=true;
-  if(t.priority===1)important=true; // числовой приоритет: 1=высокий,2=средний(по умолч.),3=низкий
-  return{urgent,important};
-}
-
-function _matrixSetQ(taskIdx,urgent,important){
-  const t=tpD()[taskIdx];if(!t)return;
-  t._matrixUrgent=urgent;t._matrixImportant=important;
-  // set deadline hint if moving to urgent
-  saveD();renderMatrix();
-}
-
-function renderMatrix(){
-  const root=document.getElementById('matrixRoot');if(!root)return;
-  const btn=document.getElementById('matrixDoneToggle');
-  if(btn)btn.textContent=_matrixShowDone?'👁 Скрыть выполненные':'👁 Показать выполненные';
-
-  let tasks=tpD().filter(t=>_matrixShowDone||!t.done);
-
-  // Classify
-  const quads={ui:[],uni:[],nui:[],nuni:[]};
-  tasks.forEach((t,i)=>{
-    let urgent,important;
-    if(t._matrixUrgent!==undefined){urgent=t._matrixUrgent;important=t._matrixImportant;}
-    else{const q=_matrixQuadrant(t);urgent=q.urgent;important=q.important;}
-    const key=(important?'':'n')+'i'+(urgent?'u':'nu');
-    // ui=important+urgent, uni=important+not urgent, nui=not important+urgent, nuni=not important+not urgent
-    const bucket=important?(urgent?'ui':'uni'):(urgent?'nui':'nuni');
-    quads[bucket].push({t,i});
-  });
-
-  const quadDefs=[
-    {key:'ui',label:'Сделай сам',sub:'Важно · Срочно',color:'var(--red)',bg:'rgba(240,80,80,.07)',icon:'🔥',tip:'Кризисы, дедлайны, важные задачи на сегодня'},
-    {key:'uni',label:'Запланируй',sub:'Важно · Не срочно',color:'var(--green)',bg:'rgba(80,220,140,.07)',icon:'🎯',tip:'Стратегия, цели, рост — сюда уходит больше времени'},
-    {key:'nui',label:'Делегируй',sub:'Не важно · Срочно',color:'var(--gold)',bg:'rgba(240,180,60,.07)',icon:'⚡',tip:'Чужие приоритеты, прерывания — делегируй если можно'},
-    {key:'nuni',label:'Исключи',sub:'Не важно · Не срочно',color:'var(--muted)',bg:'rgba(255,255,255,.03)',icon:'🗑️',tip:'Рутина, отвлечения — минимизируй'},
-  ];
-
-  const renderCard=(item,fromKey)=>{
-    const {t,i}=item;
-    let dlMeta='';
-    if(t.deadline){
-      const daysLeft=Math.round((new Date(t.deadline+'T00:00:00')-t0())/86400000);
-      const overdue=daysLeft<0&&!t.done;
-      const label=overdue?`Просрочено на ${Math.abs(daysLeft)} дн.`
-        :daysLeft===0?'Сегодня'
-        :daysLeft===1?'Завтра'
-        :daysLeft<=6?`Через ${daysLeft} дн.`
-        :t.deadline;
-      dlMeta=`<div class="mxCardMeta ${overdue?'mxOverdue':daysLeft===0?'mxDueToday':''}">${overdue?'⚠️ ':daysLeft===0?'📌 ':''}${label}</div>`;
-    }
-    const lblColor=(t.labelIds||[]).length?(()=>{const l=(G.labelGroups||[]).flatMap(g=>g.labels||[]).find(x=>x.id===t.labelIds[0]);return l?.color||'var(--muted)';})():'transparent';
-    return`<div class="mxCard ${t.done?'mxDone':''}" draggable="true"
-      ondragstart="event.dataTransfer.setData('text/plain','${i}|${fromKey}')"
-      onclick="openTaskModal(${i})">
-      <div class="mxCardTop">
-        <div class="mxCardDot" style="background:${lblColor}"></div>
-        <div class="mxCardText">${esc(t.text)}</div>
-        <input type="checkbox" class="mxCheck" ${t.done?'checked':''} onclick="event.stopPropagation();tpD()[${i}].done=this.checked;saveD();renderMatrix()" style="accent-color:var(--p);width:14px;height:14px;flex-shrink:0;cursor:pointer">
-      </div>
-      ${dlMeta}
-      ${t.goalId?`<div class="mxCardMeta" style="color:var(--p)">🎯 ${esc((goalsD().find(g=>g.id===t.goalId)||{}).title||'').slice(0,28)}</div>`:''}
-    </div>`;
-  };
-
-  root.innerHTML=`
-  <style>
-  .mxGrid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px;align-items:stretch;flex:1;min-width:0;width:100%}
-  .mxAxisY{display:flex;flex-direction:column;align-items:center;justify-content:center;writing-mode:vertical-rl;font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:1.2px;color:var(--muted);padding:0 4px;flex-shrink:0;user-select:none}
-  .mxAxisX{display:flex;justify-content:space-around;font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:var(--muted);padding:4px 0 0;margin-bottom:4px;margin-left:20px;user-select:none}
-  .mxWrap{display:flex;gap:2px}
-  .mxQuad{border:1px solid var(--border);border-radius:16px;padding:12px 14px;transition:border-color .2s,box-shadow .2s;display:flex;flex-direction:column}
-  .mxQuad.drag-over{border-color:var(--p)!important;box-shadow:0 0 0 2px var(--pglow2)}
-  .mxQuadHead{display:flex;align-items:center;gap:8px;margin-bottom:8px;padding-bottom:8px;border-bottom:1px solid rgba(255,255,255,.05);flex-shrink:0}
-  .mxQuadIcon{font-size:16px;line-height:1}
-  .mxQuadLabel{font-size:12px;font-weight:800;font-family:var(--font-display);letter-spacing:-.2px}
-  .mxQuadSub{font-size:9px;color:var(--muted);margin-top:1px;font-weight:600;letter-spacing:.3px}
-  .mxQuadCount{margin-left:auto;font-size:11px;font-weight:800;font-family:var(--font-mono);padding:2px 8px;border-radius:20px;background:rgba(255,255,255,.06);flex-shrink:0}
-  .mxCards{display:flex;flex-direction:column;gap:5px;flex:1}
-  .mxCards.mxCardsEmpty{align-items:center;justify-content:center}
-  .mxCard{background:var(--card2);border:1px solid var(--border);border-radius:9px;padding:8px 10px;cursor:pointer;transition:border-color .15s,transform .1s,opacity .2s;user-select:none;flex-shrink:0}
-  .mxCard:hover{border-color:var(--border2);transform:translateY(-1px)}
-  .mxCard[draggable]:active{opacity:.6;transform:scale(.97)}
-  .mxDone{opacity:.4}
-  .mxCardTop{display:flex;align-items:flex-start;gap:7px}
-  .mxCardDot{width:6px;height:6px;border-radius:50%;flex-shrink:0;margin-top:4px}
-  .mxCardText{font-size:12px;font-weight:500;color:var(--text);flex:1;line-height:1.4;word-break:break-word}
-  .mxCardMeta{font-size:10px;color:var(--muted);margin-top:4px;padding-left:13px;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
-  .mxOverdue{color:var(--red)!important;font-weight:700}
-  .mxDueToday{color:var(--gold)!important;font-weight:700}
-  .mxCheck{margin-top:0;flex-shrink:0}
-  .mxEmpty{text-align:center;font-size:11px;color:var(--muted);opacity:.5}
-  .mxTip{font-size:10px;color:var(--muted);margin-top:8px;padding:5px 8px;background:rgba(255,255,255,.025);border-radius:7px;line-height:1.5;font-style:italic;flex-shrink:0}
-  .mxDivider{display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:var(--muted);padding:6px 0;opacity:.5;user-select:none}
-  </style>
-  <div class="mxAxisX"><span>◀ Не срочно</span><span>Срочно ▶</span></div>
-  <div class="mxWrap">
-    <div class="mxAxisY"><span style="transform:rotate(180deg)">▼ Не важно</span><span>▲ Важно</span></div>
-    <div class="mxGrid">
-      ${quadDefs.map(q=>`
-      <div class="mxQuad" id="mxQ-${q.key}" style="background:${q.bg};border-color:rgba(255,255,255,.06)"
-        ondragover="event.preventDefault();document.getElementById('mxQ-${q.key}').classList.add('drag-over')"
-        ondragleave="document.getElementById('mxQ-${q.key}').classList.remove('drag-over')"
-        ondrop="event.preventDefault();document.getElementById('mxQ-${q.key}').classList.remove('drag-over');_mxDrop('${q.key}',event)">
-        <div class="mxQuadHead">
-          <span class="mxQuadIcon">${q.icon}</span>
-          <div>
-            <div class="mxQuadLabel" style="color:${q.color}">${q.label}</div>
-            <div class="mxQuadSub">${q.sub}</div>
-          </div>
-          <span class="mxQuadCount" style="color:${q.color}">${quads[q.key].length}</span>
-        </div>
-        <div class="mxCards${quads[q.key].length?'':' mxCardsEmpty'}" id="mxCards-${q.key}">
-          ${quads[q.key].length
-            ? quads[q.key].map(item=>renderCard(item,q.key)).join('')
-            : `<div class="mxEmpty">—</div>`}
-        </div>
-        ${quads[q.key].length===0?`<div class="mxTip">${q.tip}</div>`:''}
-      </div>`).join('')}
-    </div>
-  </div>`;
-}
-
-function _mxDrop(toKey,event){
-  const raw=event.dataTransfer.getData('text/plain');
-  const [idxStr]=raw.split('|');
-  const idx=parseInt(idxStr);
-  const t=tpD()[idx];if(!t)return;
-  const urgent=toKey==='ui'||toKey==='nui';
-  const important=toKey==='ui'||toKey==='uni';
-  t._matrixUrgent=urgent;t._matrixImportant=important;
-  saveD();renderMatrix();
 }
 
 /* ═══════════════════════════════════════════════════
@@ -16167,7 +16001,6 @@ const CMD_ITEMS=[
   {icon:'💸',label:'Добавить транзакцию',action:()=>{navigateTo('finance');setTimeout(()=>openFinModal(),200)}},
   {icon:'🎯',label:'Новая цель',action:()=>{navigateTo('goals');setTimeout(()=>openGoalModal(null),200)}},
   {icon:'🌙',label:'Записать сон',shortcut:'S',action:()=>sleepQuickAdd()},
-  {icon:'⚡',label:'Матрица Эйзенхауэра',action:()=>navigateTo('matrix')},
   {icon:'📋',label:'Еженедельный обзор',action:()=>openWeeklyReview()},
   {icon:'💾',label:'Экспорт данных JSON',action:()=>_exportAllData()},
   {icon:'📂',label:'Импорт данных JSON',action:()=>_importAllData()},
