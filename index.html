@@ -7201,50 +7201,58 @@ function wtkd(e,k,i){}
 let htY=t0().getFullYear(),htM=t0().getMonth();
 function htNav(d){htM+=d;if(htM>11){htM=0;htY++}if(htM<0){htM=11;htY--}renderHT()}
 function htKey(){return`ht_${htY}_${htM}`}
+const HT_DEFAULT_NAMES=['🏃 Спорт','📚 Чтение','🧘 Медитация','✏️ Учёба'];
+function _htIsAutoDefault(m){
+  if(!m||!m.habits||m.habits.length!==HT_DEFAULT_NAMES.length)return false;
+  if(Object.values(m.checks||{}).some(Boolean))return false;
+  return m.habits.every((h,i)=>h.name===HT_DEFAULT_NAMES[i]);
+}
+/* Habits of the nearest earlier month that has real (user-made) habits */
+function _htPrevHabits(){
+  let y=htY,m=htM;
+  for(let i=0;i<36;i++){
+    m--;if(m<0){m=11;y--;}
+    const d=G[`ht_${y}_${m}`];
+    if(d&&d.habits&&d.habits.length&&!_htIsAutoDefault(d)){
+      return d.habits.map(h=>({name:h.name,goal:h.goal||0,created:h.created||`${y}-${z(m+1)}-01`}));
+    }
+  }
+  return null;
+}
 function htD(){
-  if(!G[htKey()])G[htKey()]={
-    habits:[{name:'🏃 Спорт',goal:20},{name:'📚 Чтение',goal:25},{name:'🧘 Медитация',goal:28},{name:'✏️ Учёба',goal:20}],
-    checks:{},goal:'',stim:''};
-  return G[htKey()]
+  const key=htKey();
+  if(!G[key]){
+    const prev=_htPrevHabits();
+    G[key]={
+      habits:prev||HT_DEFAULT_NAMES.map((n,i)=>({name:n,goal:[20,25,28,20][i]})),
+      checks:{},goal:'',stim:''};
+    if(prev)saveD();
+  } else if(_htIsAutoDefault(G[key])){
+    // month was auto-filled with defaults earlier → restore the user's own habits
+    const prev=_htPrevHabits();
+    if(prev){G[key].habits=prev;saveD();}
+  }
+  return G[key];
 }
-function saveMeta(){const d=htD();const g=document.getElementById('htGoal');const s=document.getElementById('htStim');if(g)d.goal=g.value;if(s)d.stim=s.value;saveD()}
-
-let _htView='tracker'; // 'tracker' | 'analytics'
-function _htToggleView(){
-  _htView=_htView==='tracker'?'analytics':'tracker';
-  document.getElementById('htViewTracker').style.display=_htView==='tracker'?'':'none';
-  document.getElementById('htViewAnalytics').style.display=_htView==='analytics'?'':'none';
-  document.getElementById('htViewToggle').textContent=_htView==='tracker'?'📊 Аналитика':'📋 Трекер';
-  if(_htView==='analytics')_renderHtAnalytics();
-}
-
 function _htStreak(hi){
-  // Current + best streak for habit hi (checks across all months)
-  const checks=htD().checks;
-  const today=new Date();
-  let cur=0,best=0,tmp=0;
-  for(let i=365;i>=0;i--){
+  // Current + best streak for habit hi across all months
+  const today=t0();
+  const isDone=d=>{
+    const m=G[`ht_${d.getFullYear()}_${d.getMonth()}`];
+    return !!(m&&m.checks&&m.checks[`${hi}_${d.getDate()}`]);
+  };
+  let best=0,tmp=0;
+  for(let i=400;i>=0;i--){
     const d=new Date(today);d.setDate(d.getDate()-i);
-    const day=d.getDate(),mo=d.getMonth(),yr=d.getFullYear();
-    // key format: hi_day but we only store current month's data
-    // Use stored checks for current/recent months
-    const k=`${hi}_${yr}-${z(mo+1)}-${z(day)}`;
-    const k2=`${hi}_${day}`; // legacy format for current month
-    const done=checks[k]||((yr===htY&&mo===htM)&&checks[k2]);
-    if(done){tmp++;if(tmp>best)best=tmp;}
-    else tmp=0;
+    if(isDone(d)){tmp++;if(tmp>best)best=tmp;}else tmp=0;
   }
-  // Current streak (from today backwards)
-  tmp=0;
-  for(let i=0;i<=365;i++){
+  let cur=0;
+  for(let i=0;i<=400;i++){
     const d=new Date(today);d.setDate(d.getDate()-i);
-    const day=d.getDate(),mo=d.getMonth(),yr=d.getFullYear();
-    const k=`${hi}_${yr}-${z(mo+1)}-${z(day)}`;
-    const k2=`${hi}_${day}`;
-    const done=checks[k]||((yr===htY&&mo===htM)&&checks[k2]);
-    if(done)tmp++;else break;
+    if(isDone(d))cur++;
+    else if(i===0)continue;   // today not done yet doesn't break the streak
+    else break;
   }
-  cur=tmp;
   return{cur,best};
 }
 
@@ -10359,7 +10367,8 @@ function renderFinTxList(){
   }
 
   // Group by date
-  const sorted=[...txs].sort((a,b)=>b.date.localeCompare(a.date));
+  // newest date first; within a day the most recently added goes on top
+  const sorted=txs.map((t,i)=>[t,i]).sort((a,b)=>b[0].date.localeCompare(a[0].date)||b[1]-a[1]).map(x=>x[0]);
   const groups={};
   sorted.forEach(tx=>{
     if(!groups[tx.date])groups[tx.date]=[];
