@@ -3267,6 +3267,16 @@ body.light-mode .skel{background:linear-gradient(90deg,var(--card2) 25%,#f0f2f7 
     margin:-8px auto 16px;
   }
 }
+.fa-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
+@media(max-width:900px){.fa-grid{grid-template-columns:1fr}}
+.faCard{padding:14px 16px;min-width:0;overflow:hidden}
+.faKpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;margin-bottom:12px}
+.faKpi{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:12px 14px;min-width:0}
+.faKpiV{font-family:var(--font-display);font-size:19px;font-weight:800;letter-spacing:-.4px;line-height:1.1}
+.faKpiL{font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);margin-top:4px}
+.faKpiS{font-size:10px;color:var(--text2);margin-top:3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.faLegend{display:flex;flex-direction:column;gap:7px}
+.faRow{display:flex;align-items:center;gap:8px;font-size:11px}
 </style>
 </head>
 <body>
@@ -4364,6 +4374,8 @@ body.light-mode .skel{background:linear-gradient(90deg,var(--card2) 25%,#f0f2f7 
       <div id="finPieLegend" style="flex:1;min-width:140px;display:flex;flex-direction:column;gap:6px"></div>
     </div>
   </div>
+
+  <div id="finAnalytics"></div>
 
   <!-- Transactions -->
   <div>
@@ -10333,6 +10345,7 @@ function renderFin(){
   };
   const incDeltaEl=document.getElementById('finIncDelta');if(incDeltaEl)incDeltaEl.innerHTML=mkDeltaHtml(inc,prevInc,true);
   const expDeltaEl=document.getElementById('finExpDelta');if(expDeltaEl)expDeltaEl.innerHTML=mkDeltaHtml(exp,prevExp,false);
+  try{renderFinAnalytics();}catch(e){console.warn('finAnalytics',e);}
 }
 function finToggleCatBreakdown(catId){
   window._finCatBreakdownOpen=window._finCatBreakdownOpen||{};
@@ -10444,6 +10457,346 @@ function renderCatBudgetBars(totalExp, txs){
     </div>`;
   });
   el.innerHTML=html||'<div style="font-size:11px;color:var(--muted);padding:8px 0">Установи лимиты по категориям</div>';
+}
+
+/* ═══════════════════════════════════════════════════
+   FINANCE ANALYTICS — bars, donuts, trends, tooltips
+═══════════════════════════════════════════════════ */
+let _finAnlRange=6;
+function setFinAnlRange(n){_finAnlRange=n;renderFinAnalytics();}
+const FA_GREEN='#0FDDAA',FA_RED='#FF4F72',FA_PURPLE='#9B8FF5',FA_GOLD='#F0AB30',FA_CYAN='#22CCE8';
+function _faShort(n){
+  const a=Math.abs(n),sg=n<0?'−':'';
+  if(a>=1e6)return sg+(a/1e6).toFixed(a>=1e7?0:1).replace('.0','')+'M';
+  if(a>=1e3)return sg+(a/1e3).toFixed(a>=1e4?0:1).replace('.0','')+'k';
+  return sg+Math.round(a);
+}
+function _faNiceMax(v){
+  if(v<=0)return 1;
+  const p=Math.pow(10,Math.floor(Math.log10(v)));const f=v/p;
+  return (f<=1?1:f<=2?2:f<=2.5?2.5:f<=5?5:10)*p;
+}
+function _faRoot(catId){
+  const cats=finCatsD();let c=cats.find(x=>x.id===catId);
+  if(!c)return{id:'_none',name:'Без категории',icon:'📦',color:'#9ca3af'};
+  let g=0;while(c.parentId&&g++<5){const p=cats.find(x=>x.id===c.parentId);if(!p)break;c=p;}
+  return c;
+}
+function _faMonths(n){
+  const out=[];
+  for(let i=n-1;i>=0;i--){
+    let y=finY,m=finM-i;while(m<0){m+=12;y--;}
+    out.push({y,m,key:`${y}-${z(m+1)}`,lbl:MN[m].slice(0,3)});
+  }
+  return out;
+}
+function _faAgg(key){
+  const txs=finTxD().filter(t=>t.date&&t.date.slice(0,7)===key&&!t.isTransfer);
+  const r={inc:0,exp:0,byInc:{},byExp:{},txs};
+  txs.forEach(t=>{
+    const a=Number(t.amount)||0,root=_faRoot(t.category).id;
+    if(t.type==='in'){r.inc+=a;r.byInc[root]=(r.byInc[root]||0)+a;}
+    else{r.exp+=a;r.byExp[root]=(r.byExp[root]||0)+a;}
+  });
+  return r;
+}
+function _faBalanceAt(endStr){
+  const accts=finAccountsD(),ids=new Set(accts.map(a=>a.id));
+  let b=accts.reduce((s,a)=>s+(Number(a.initialBalance)||0),0);
+  finTxD().forEach(t=>{if(t.date<=endStr&&ids.has(t.acctId))b+=(t.type==='in'?1:-1)*Number(t.amount);});
+  return b;
+}
+/* canvas + tooltip helpers */
+function _faCanvas(id,h){
+  const cv=document.getElementById(id);if(!cv)return null;
+  const dpr=window.devicePixelRatio||1;
+  cv.style.display='block';cv.style.width='100%';cv.style.height=h+'px';
+  const W=Math.max(120,cv.clientWidth);
+  cv.width=W*dpr;cv.height=h*dpr;
+  const ctx=cv.getContext('2d');ctx.setTransform(dpr,0,0,dpr,0,0);ctx.clearRect(0,0,W,h);
+  return{cv,ctx,W,H:h};
+}
+function _faTipShow(html,x,y){
+  let t=document.getElementById('faTip');
+  if(!t){t=document.createElement('div');t.id='faTip';
+    t.style.cssText='position:fixed;z-index:9999;pointer-events:none;background:var(--card2);border:1px solid var(--border2);border-radius:10px;padding:8px 11px;font-size:11px;color:var(--text);box-shadow:var(--shadow2);max-width:250px;line-height:1.55;opacity:0;transition:opacity .1s';
+    document.body.appendChild(t);}
+  t.innerHTML=html;t.style.opacity='1';
+  const w=t.offsetWidth,h=t.offsetHeight;
+  let L=x+14,T=y-h-10;
+  if(L+w>window.innerWidth-8)L=x-w-14;if(L<8)L=8;if(T<8)T=y+16;
+  t.style.left=L+'px';t.style.top=T+'px';
+}
+function _faTipHide(){const t=document.getElementById('faTip');if(t)t.style.opacity='0';}
+function _faBind(cv,hits){
+  const go=e=>{
+    const p=e.touches?e.touches[0]:e,r=cv.getBoundingClientRect();
+    const x=p.clientX-r.left,y=p.clientY-r.top;
+    const h=hits.find(k=>x>=k.x&&x<=k.x+k.w&&y>=k.y&&y<=k.y+k.h);
+    if(h)_faTipShow(h.html,p.clientX,p.clientY);else _faTipHide();
+  };
+  cv.onmousemove=go;cv.ontouchstart=go;cv.ontouchmove=go;cv.onmouseleave=_faTipHide;
+}
+function _faDelta(cur,prev,goodUp){
+  if(!prev)return cur?`<span style="color:var(--muted);font-size:10px">новый</span>`:'';
+  const d=Math.round((cur-prev)/prev*100);
+  if(!d)return `<span style="color:var(--muted);font-size:10px">0%</span>`;
+  const good=(d>0)===goodUp;
+  return `<span style="color:${good?'var(--green)':'var(--red)'};font-size:10px;font-weight:700">${d>0?'▲':'▼'} ${Math.abs(d)}%</span>`;
+}
+function _faEmpty(msg){return `<div style="padding:30px 10px;text-align:center;color:var(--muted);font-size:11.5px">${msg}</div>`;}
+
+function renderFinAnalytics(){
+  const el=document.getElementById('finAnalytics');if(!el)return;
+  const n=_finAnlRange,months=_faMonths(n);
+  const data=months.map(m=>({...m,..._faAgg(m.key)}));
+  const cur=data[data.length-1],prev=_faAgg(_faMonths(n+1)[0].key);
+  const hasAny=finTxD().some(t=>!t.isTransfer);
+  const now=t0();
+  const isCurMonth=finY===now.getFullYear()&&finM===now.getMonth();
+  const daysInM=dim(finY,finM),elapsed=isCurMonth?now.getDate():daysInM;
+  const net=cur.inc-cur.exp;
+  const sav=cur.inc>0?Math.round(net/cur.inc*100):null;
+  const avgDaily=elapsed?cur.exp/elapsed:0;
+  const big=cur.txs.filter(t=>t.type==='out').sort((a,b)=>b.amount-a.amount)[0];
+  const srcCount=Object.keys(cur.byInc).length;
+  const avgInc=data.reduce((s,d)=>s+d.inc,0)/n,avgExp=data.reduce((s,d)=>s+d.exp,0)/n;
+  const kpi=(v,l,s,c)=>`<div class="faKpi"><div class="faKpiV" style="color:${c}">${v}</div><div class="faKpiL">${l}</div><div class="faKpiS">${s}</div></div>`;
+  const rangeBtns=[3,6,12].map(k=>`<button class="finPeriodBtn${k===n?' active':''}" onclick="setFinAnlRange(${k})">${k} мес.</button>`).join('');
+  const card=(title,body,extra)=>`<div class="card faCard"${extra||''}><div class="secLbl" style="margin-bottom:12px">${title}</div>${body}</div>`;
+
+  let html=`<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin:6px 0 12px">
+    <div style="font-family:var(--font-display);font-size:17px;font-weight:800;color:var(--gold);letter-spacing:-.3px">📊 Аналитика финансов</div>
+    <div style="display:flex;gap:4px;align-items:center"><span style="font-size:10px;color:var(--muted);margin-right:4px">Тренды за</span>${rangeBtns}</div></div>`;
+  if(!hasAny){
+    el.innerHTML=html+card('Нет данных',_faEmpty('Добавь первые транзакции — здесь появятся графики доходов, расходов и балансa'));
+    return;
+  }
+  html+=`<div class="faKpis">
+    ${kpi(sav===null?'—':sav+'%','Норма сбережений',sav===null?'нет доходов':(net>=0?'откладываешь ':'перерасход ')+fmtMoney(Math.abs(net)),sav===null?'var(--muted)':sav>=20?'var(--green)':sav>=0?'var(--gold)':'var(--red)')}
+    ${kpi(fmtMoney(Math.round(avgDaily)),'Расход в день','за '+elapsed+' дн. месяца','var(--red)')}
+    ${kpi(big?fmtMoney(big.amount):'—','Крупнейшая трата',big?esc((big.note||_faRoot(big.category).name).slice(0,22)):'нет расходов','var(--orange)')}
+    ${kpi(srcCount,'Источников дохода','в этом месяце','var(--green)')}
+    ${kpi(fmtMoney(Math.round(avgInc)),'Средний доход','в месяц · '+n+' мес.','var(--cyan)')}
+    ${kpi(fmtMoney(Math.round(avgExp)),'Средний расход','в месяц · '+n+' мес.','var(--p)')}
+  </div>`;
+
+  html+=card('📊 Доходы и расходы по месяцам',`<div style="display:flex;gap:14px;font-size:10px;font-weight:700;margin-bottom:8px;flex-wrap:wrap">
+      <span><span style="display:inline-block;width:10px;height:10px;border-radius:3px;background:${FA_GREEN};margin-right:5px"></span>Доходы</span>
+      <span><span style="display:inline-block;width:10px;height:10px;border-radius:3px;background:${FA_RED};margin-right:5px"></span>Расходы</span>
+      <span><span style="display:inline-block;width:14px;height:3px;border-radius:2px;background:${FA_GOLD};margin-right:5px;vertical-align:middle"></span>Чистый поток</span></div>
+    <canvas id="faBars"></canvas>`,' style="margin-bottom:12px"');
+
+  // income sources
+  const incRoots=Object.entries(cur.byInc).sort((a,b)=>b[1]-a[1]);
+  const incTotal=cur.inc;
+  const rootInfo=id=>id==='_none'?{name:'Без категории',icon:'📦',color:'#9ca3af'}:(finCatsD().find(c=>c.id===id)||{name:'?',icon:'•',color:'#9ca3af'});
+  const legend=incRoots.length?`<div class="faLegend">${incRoots.map(([id,a])=>{const c=rootInfo(id),p=Math.round(a/incTotal*100);
+    return `<div class="faRow"><span style="width:9px;height:9px;border-radius:50%;background:${c.color};flex-shrink:0"></span><span style="flex:1;color:var(--text2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(c.icon||'')} ${esc(c.name)}</span><b style="font-family:var(--font-mono);color:var(--text)">${p}%</b><span style="font-family:var(--font-mono);color:var(--muted);min-width:56px;text-align:right">${fmtMoney(a)}</span></div>`;}).join('')}</div>`:'';
+  const donutBody=incRoots.length
+    ?`<div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap"><canvas id="faIncDonut" style="width:170px!important;flex-shrink:0;margin:0 auto"></canvas><div style="flex:1;min-width:170px">${legend}</div></div>`
+    :_faEmpty('В этом месяце доходов нет');
+  html+=`<div class="fa-grid">${card('💰 Откуда приходят доходы · '+MN[finM]+' '+finY,donutBody)}${card('📈 Источники дохода по месяцам',`<div id="faStackLegend" style="display:flex;flex-wrap:wrap;gap:4px 12px;font-size:10px;margin-bottom:8px"></div><canvas id="faIncStack"></canvas>`)}</div>`;
+
+  html+=card('🗓 Расходы по дням · '+MN[finM],`<div style="display:flex;gap:14px;font-size:10px;font-weight:700;margin-bottom:8px;flex-wrap:wrap">
+      <span><span style="display:inline-block;width:10px;height:10px;border-radius:3px;background:${FA_RED};margin-right:5px"></span>Расход за день</span>
+      <span><span style="display:inline-block;width:14px;height:3px;border-radius:2px;background:${FA_PURPLE};margin-right:5px;vertical-align:middle"></span>Накопительно</span>
+      <span><span style="display:inline-block;width:14px;border-top:2px dashed ${FA_GOLD};margin-right:5px;vertical-align:middle"></span>Среднее</span>
+      <span><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${FA_GREEN};margin-right:5px"></span>День с доходом</span></div>
+    <canvas id="faDaily"></canvas>`,' style="margin-bottom:12px"');
+
+  // categories vs prev month
+  const expRoots=Object.entries(cur.byExp).sort((a,b)=>b[1]-a[1]).slice(0,8);
+  const prevByExp=prev.byExp;
+  const maxCat=Math.max(...expRoots.map(([id,a])=>Math.max(a,prevByExp[id]||0)),1);
+  const catBody=expRoots.length?`<div style="display:flex;flex-direction:column;gap:10px">${expRoots.map(([id,a])=>{
+      const c=rootInfo(id),pv=prevByExp[id]||0;
+      return `<div><div style="display:flex;justify-content:space-between;align-items:center;font-size:11px;margin-bottom:4px;gap:8px">
+        <span style="color:var(--text2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(c.icon||'')} ${esc(c.name)}</span>
+        <span style="display:flex;gap:8px;align-items:center;flex-shrink:0">${_faDelta(a,pv,false)}<b style="font-family:var(--font-mono);color:var(--text)">${fmtMoney(a)}</b></span></div>
+        <div style="position:relative;height:8px;background:var(--border2);border-radius:5px;overflow:visible">
+          <div style="height:100%;width:${a/maxCat*100}%;background:${c.color};border-radius:5px"></div>
+          ${pv?`<div title="Прошлый месяц: ${fmtMoney(pv)}" style="position:absolute;top:-3px;left:calc(${pv/maxCat*100}% - 1px);width:2px;height:14px;background:var(--text);opacity:.55;border-radius:1px"></div>`:''}</div></div>`;}).join('')}
+      <div style="font-size:9.5px;color:var(--muted)">▎ — прошлый месяц</div></div>`:_faEmpty('В этом месяце расходов нет');
+  html+=`<div class="fa-grid">${card('🏷 Расходы по категориям vs прошлый месяц',catBody)}${card('📅 Траты по дням недели (90 дней)',`<canvas id="faWeekday"></canvas><div id="faWdNote" style="font-size:10.5px;color:var(--text2);margin-top:8px"></div>`)}</div>`;
+
+  // balance + accounts
+  const accts=finAccountsD();
+  const bals=accts.map(a=>{
+    const inc=finTxD().filter(t=>t.type==='in'&&t.acctId===a.id).reduce((s,t)=>s+Number(t.amount),0);
+    const exp=finTxD().filter(t=>t.type==='out'&&t.acctId===a.id).reduce((s,t)=>s+Number(t.amount),0);
+    return{a,b:(Number(a.initialBalance)||0)+inc-exp};
+  });
+  const posTotal=bals.reduce((s,x)=>s+Math.max(0,x.b),0);
+  const accBody=bals.length&&posTotal>0?`<div style="display:flex;height:16px;border-radius:8px;overflow:hidden;margin-bottom:12px;background:var(--border2)">${bals.filter(x=>x.b>0).map(x=>`<div title="${esc(x.a.name)}: ${fmtMoney(x.b)}" style="width:${x.b/posTotal*100}%;background:${x.a.color||FA_PURPLE}"></div>`).join('')}</div>
+    <div class="faLegend">${bals.map(x=>`<div class="faRow"><span style="width:9px;height:9px;border-radius:50%;background:${x.a.color||FA_PURPLE};flex-shrink:0"></span><span style="flex:1;color:var(--text2)">${esc(x.a.icon||'')} ${esc(x.a.name)}</span><b style="font-family:var(--font-mono);color:${x.b>=0?'var(--text)':'var(--red)'}">${fmtMoney(x.b)}</b><span style="font-family:var(--font-mono);color:var(--muted);min-width:34px;text-align:right">${x.b>0?Math.round(x.b/posTotal*100)+'%':''}</span></div>`).join('')}</div>`:_faEmpty('Добавь счета с балансом');
+  html+=`<div class="fa-grid">${card('💼 Динамика общего баланса',`<canvas id="faBalance"></canvas>`)}${card('🏦 Деньги по счетам',accBody)}</div>`;
+
+  // top lists
+  const topList=(arr,color)=>arr.length?`<div style="display:flex;flex-direction:column;gap:6px">${arr.map((t,i)=>{const c=_faRoot(t.category);
+    return `<div style="display:flex;align-items:center;gap:9px;padding:7px 9px;background:var(--card2);border:1px solid var(--border);border-radius:10px">
+      <span style="font-size:11px;font-weight:800;color:var(--muted);width:14px">${i+1}</span>
+      <span style="width:28px;height:28px;border-radius:8px;background:${c.color}22;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0">${esc(c.icon||'')}</span>
+      <div style="flex:1;min-width:0"><div style="font-size:11.5px;font-weight:600;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(t.note||c.name)}</div><div style="font-size:9.5px;color:var(--muted)">${t.date.split('-').reverse().join('.')} · ${esc(c.name)}</div></div>
+      <b style="font-family:var(--font-mono);font-size:12px;color:${color}">${fmtMoney(t.amount)}</b></div>`;}).join('')}</div>`:_faEmpty('Нет данных');
+  const topExp=cur.txs.filter(t=>t.type==='out').sort((a,b)=>b.amount-a.amount).slice(0,5);
+  const topInc=cur.txs.filter(t=>t.type==='in').sort((a,b)=>b.amount-a.amount).slice(0,5);
+  html+=`<div class="fa-grid">${card('🔻 Крупнейшие расходы',topList(topExp,'var(--red)'))}${card('🔺 Крупнейшие доходы',topList(topInc,'var(--green)'))}</div>`;
+  html+=`<div style="font-size:10px;color:var(--muted);margin-bottom:14px">Переводы между счетами в аналитике не учитываются. Графики показывают все счета.</div>`;
+  el.innerHTML=html;
+
+  requestAnimationFrame(()=>{
+    try{_faDrawBars(data);}catch(e){console.warn(e);}
+    try{_faDrawDonut(incRoots,incTotal,rootInfo);}catch(e){console.warn(e);}
+    try{_faDrawStack(data,rootInfo);}catch(e){console.warn(e);}
+    try{_faDrawDaily(cur,daysInM,isCurMonth,now);}catch(e){console.warn(e);}
+    try{_faDrawWeekday();}catch(e){console.warn(e);}
+    try{_faDrawBalance(months);}catch(e){console.warn(e);}
+  });
+}
+
+function _faGrid(ctx,p,cW,cH,yMin,yMax,W,left){
+  const CT=_CT();ctx.font='9px Instrument Sans,sans-serif';ctx.textAlign='right';
+  for(let i=0;i<=4;i++){
+    const v=yMin+(yMax-yMin)*i/4,y=p.t+cH*(1-i/4);
+    ctx.strokeStyle=CT.grid;ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(p.l,y);ctx.lineTo(W-p.r,y);ctx.stroke();
+    ctx.fillStyle=CT.label;ctx.fillText(_faShort(v),p.l-6,y+3);
+  }
+}
+function _faDrawBars(data){
+  const c=_faCanvas('faBars',230);if(!c)return;const{cv,ctx,W,H}=c,CT=_CT();
+  const p={t:14,r:12,b:26,l:44},cW=W-p.l-p.r,cH=H-p.t-p.b,n=data.length;
+  const nets=data.map(d=>d.inc-d.exp);
+  const yMax=_faNiceMax(Math.max(...data.map(d=>Math.max(d.inc,d.exp)),...nets,1));
+  const minNet=Math.min(0,...nets);
+  const yMin=minNet<0?-_faNiceMax(-minNet):0;
+  const y=v=>p.t+cH*(1-(v-yMin)/(yMax-yMin));
+  _faGrid(ctx,p,cW,cH,yMin,yMax,W);
+  const gw=cW/n,bw=Math.max(6,Math.min(26,gw*.3)),hits=[];
+  data.forEach((d,i)=>{
+    const cx=p.l+gw*i+gw/2,y0=y(0);
+    const bar=(x,v,c1,c2)=>{if(v<=0)return;const yt=y(v);const g=ctx.createLinearGradient(0,yt,0,y0);g.addColorStop(0,c1);g.addColorStop(1,c2);ctx.fillStyle=g;ctx.beginPath();ctx.roundRect(x,yt,bw,Math.max(2,y0-yt),[4,4,0,0]);ctx.fill();};
+    bar(cx-bw-1,d.inc,FA_GREEN,'rgba(15,221,170,.25)');bar(cx+1,d.exp,FA_RED,'rgba(255,79,114,.25)');
+    ctx.fillStyle=(d.y===finY&&d.m===finM)?CT.p:CT.label;ctx.font=((d.y===finY&&d.m===finM)?'bold ':'')+'9.5px Instrument Sans,sans-serif';ctx.textAlign='center';
+    ctx.fillText(d.lbl,cx,H-8);
+    const nt=d.inc-d.exp;
+    hits.push({x:cx-gw/2,y:0,w:gw,h:H,html:`<b>${MN[d.m]} ${d.y}</b><br><span style="color:${FA_GREEN}">● Доходы:</span> ${fmtMoney(d.inc)}<br><span style="color:${FA_RED}">● Расходы:</span> ${fmtMoney(d.exp)}<br><span style="color:${FA_GOLD}">● Итог:</span> <b style="color:${nt>=0?FA_GREEN:FA_RED}">${nt>=0?'+':''}${fmtMoney(nt)}</b>`});
+  });
+  if(yMin<0){ctx.strokeStyle=CT.labelStrong;ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(p.l,y(0));ctx.lineTo(W-p.r,y(0));ctx.stroke();}
+  // net line
+  ctx.beginPath();nets.forEach((v,i)=>{const x=p.l+gw*i+gw/2;i?ctx.lineTo(x,y(v)):ctx.moveTo(x,y(v));});
+  ctx.strokeStyle=FA_GOLD;ctx.lineWidth=2;ctx.lineJoin='round';ctx.stroke();
+  nets.forEach((v,i)=>{const x=p.l+gw*i+gw/2;ctx.beginPath();ctx.arc(x,y(v),3.5,0,7);ctx.fillStyle=v>=0?FA_GOLD:FA_RED;ctx.fill();ctx.strokeStyle=CT.card;ctx.lineWidth=1.5;ctx.stroke();});
+  _faBind(cv,hits);
+}
+function _faDrawDonut(roots,total,rootInfo){
+  const cv0=document.getElementById('faIncDonut');if(!cv0||!roots.length)return;
+  const S=170,dpr=window.devicePixelRatio||1;cv0.width=S*dpr;cv0.height=S*dpr;cv0.style.height=S+'px';
+  const ctx=cv0.getContext('2d');ctx.setTransform(dpr,0,0,dpr,0,0);const CT=_CT();
+  const cx=S/2,cy=S/2,R=S/2-6,r=R*.62;let a0=-Math.PI/2;
+  roots.forEach(([id,a])=>{const sw=a/total*Math.PI*2,c=rootInfo(id);
+    ctx.beginPath();ctx.arc(cx,cy,R,a0,a0+sw);ctx.arc(cx,cy,r,a0+sw,a0,true);ctx.closePath();
+    ctx.fillStyle=c.color;ctx.fill();ctx.strokeStyle=CT.card;ctx.lineWidth=2;ctx.stroke();a0+=sw;});
+  ctx.textAlign='center';ctx.textBaseline='middle';
+  ctx.fillStyle=CT.text;ctx.font='bold 17px Bricolage Grotesque,sans-serif';ctx.fillText(_faShort(total),cx,cy-5);
+  ctx.fillStyle=CT.muted;ctx.font='9px Instrument Sans,sans-serif';ctx.fillText('доход',cx,cy+11);
+}
+function _faDrawStack(data,rootInfo){
+  const totals={};data.forEach(d=>Object.entries(d.byInc).forEach(([id,a])=>totals[id]=(totals[id]||0)+a));
+  const ids=Object.entries(totals).sort((a,b)=>b[1]-a[1]).map(x=>x[0]);
+  const top=ids.slice(0,6),rest=ids.slice(6);
+  const lg=document.getElementById('faStackLegend');
+  if(lg)lg.innerHTML=top.map(id=>{const c=rootInfo(id);return `<span style="color:var(--text2)"><span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:${c.color};margin-right:4px"></span>${esc(c.name)}</span>`;}).join('')+(rest.length?`<span style="color:var(--text2)"><span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:#9ca3af;margin-right:4px"></span>Другое</span>`:'');
+  const c=_faCanvas('faIncStack',210);if(!c)return;const{cv,ctx,W,H}=c,CT=_CT();
+  if(!ids.length){ctx.fillStyle=CT.muted;ctx.font='11px Instrument Sans,sans-serif';ctx.textAlign='center';ctx.fillText('Нет доходов за период',W/2,H/2);return;}
+  const p={t:12,r:10,b:26,l:44},cW=W-p.l-p.r,cH=H-p.t-p.b,n=data.length;
+  const yMax=_faNiceMax(Math.max(...data.map(d=>d.inc),1));
+  const y=v=>p.t+cH*(1-v/yMax);_faGrid(ctx,p,cW,cH,0,yMax,W);
+  const gw=cW/n,bw=Math.max(8,Math.min(34,gw*.55)),hits=[];
+  data.forEach((d,i)=>{
+    const x=p.l+gw*i+(gw-bw)/2;let acc=0;
+    const segs=top.map(id=>({id,a:d.byInc[id]||0,col:rootInfo(id).color}));
+    const other=rest.reduce((s,id)=>s+(d.byInc[id]||0),0);if(other)segs.push({id:'_o',a:other,col:'#9ca3af'});
+    segs.forEach(sg=>{if(!sg.a)return;const y1=y(acc+sg.a),y0=y(acc);ctx.fillStyle=sg.col;ctx.fillRect(x,y1,bw,Math.max(1,y0-y1-1));acc+=sg.a;});
+    ctx.fillStyle=CT.label;ctx.font='9.5px Instrument Sans,sans-serif';ctx.textAlign='center';ctx.fillText(d.lbl,x+bw/2,H-8);
+    if(d.inc){ctx.fillStyle=CT.labelStrong;ctx.font='bold 8.5px Instrument Sans,sans-serif';ctx.fillText(_faShort(d.inc),x+bw/2,y(d.inc)-4);}
+    hits.push({x:p.l+gw*i,y:0,w:gw,h:H,html:`<b>${MN[d.m]} ${d.y}</b> · ${fmtMoney(d.inc)}<br>`+(segs.filter(s=>s.a).map(s=>`<span style="color:${s.col}">●</span> ${s.id==='_o'?'Другое':esc(rootInfo(s.id).name)}: ${fmtMoney(s.a)}`).join('<br>')||'нет доходов')});
+  });
+  _faBind(cv,hits);
+}
+function _faDrawDaily(cur,daysInM,isCurMonth,now){
+  const c=_faCanvas('faDaily',230);if(!c)return;const{cv,ctx,W,H}=c,CT=_CT();
+  const key=cur.key||`${finY}-${z(finM+1)}`;
+  const exp=Array(daysInM).fill(0),inc=Array(daysInM).fill(0);
+  cur.txs.forEach(t=>{const d=parseInt(t.date.slice(8,10),10)-1;if(d>=0&&d<daysInM){if(t.type==='out')exp[d]+=Number(t.amount);else inc[d]+=Number(t.amount);}});
+  const last=isCurMonth?now.getDate():daysInM;
+  const cum=[];let s=0;exp.forEach((v,i)=>{s+=v;cum.push(s);});
+  const total=cum[last-1]||0,avg=last?total/last:0;
+  const p={t:14,r:48,b:26,l:44},cW=W-p.l-p.r,cH=H-p.t-p.b;
+  const yMax=_faNiceMax(Math.max(...exp,avg*1.2,1)),cMax=_faNiceMax(Math.max(total,1));
+  const y=v=>p.t+cH*(1-v/yMax),y2=v=>p.t+cH*(1-v/cMax);
+  _faGrid(ctx,p,cW,cH,0,yMax,W);
+  ctx.textAlign='left';ctx.fillStyle=FA_PURPLE;ctx.font='9px Instrument Sans,sans-serif';
+  for(let i=0;i<=4;i++)ctx.fillText(_faShort(cMax*i/4),W-p.r+6,p.t+cH*(1-i/4)+3);
+  const gw=cW/daysInM,bw=Math.max(3,gw*.62),hits=[];
+  exp.forEach((v,i)=>{
+    const x=p.l+gw*i+(gw-bw)/2;
+    if(v>0){const yt=y(v),g=ctx.createLinearGradient(0,yt,0,y(0));g.addColorStop(0,FA_RED);g.addColorStop(1,'rgba(255,79,114,.2)');ctx.fillStyle=g;ctx.beginPath();ctx.roundRect(x,yt,bw,Math.max(2,y(0)-yt),[3,3,0,0]);ctx.fill();}
+    if(inc[i]>0){ctx.beginPath();ctx.arc(x+bw/2,y(0)+9,3,0,7);ctx.fillStyle=FA_GREEN;ctx.fill();}
+    if(i%Math.max(1,Math.ceil(daysInM/16))===0||i===daysInM-1){ctx.fillStyle=(isCurMonth&&i+1===now.getDate())?CT.p:CT.label;ctx.font='9px Instrument Sans,sans-serif';ctx.textAlign='center';ctx.fillText(i+1,x+bw/2,H-8);}
+    if(v||inc[i])hits.push({x:p.l+gw*i,y:0,w:gw,h:H,html:`<b>${i+1} ${MG[finM]}</b>${v?`<br><span style="color:${FA_RED}">●</span> Расход: ${fmtMoney(v)}`:''}${inc[i]?`<br><span style="color:${FA_GREEN}">●</span> Доход: ${fmtMoney(inc[i])}`:''}<br>Накоплено расходов: ${fmtMoney(cum[i])}`});
+  });
+  if(avg>0){ctx.setLineDash([5,4]);ctx.strokeStyle=FA_GOLD;ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(p.l,y(avg));ctx.lineTo(W-p.r,y(avg));ctx.stroke();ctx.setLineDash([]);
+    ctx.fillStyle=FA_GOLD;ctx.font='bold 9px Instrument Sans,sans-serif';ctx.textAlign='left';ctx.fillText('ср '+_faShort(avg),p.l+4,y(avg)-4);}
+  ctx.beginPath();for(let i=0;i<last;i++){const x=p.l+gw*i+gw/2;i?ctx.lineTo(x,y2(cum[i])):ctx.moveTo(x,y2(cum[i]));}
+  ctx.strokeStyle=FA_PURPLE;ctx.lineWidth=2;ctx.lineJoin='round';ctx.stroke();
+  if(last>0){const x=p.l+gw*(last-1)+gw/2;ctx.beginPath();ctx.arc(x,y2(cum[last-1]),4,0,7);ctx.fillStyle=FA_PURPLE;ctx.fill();}
+  _faBind(cv,hits);
+}
+function _faDrawWeekday(){
+  const c=_faCanvas('faWeekday',190);if(!c)return;const{cv,ctx,W,H}=c,CT=_CT();
+  const names=['Пн','Вт','Ср','Чт','Пт','Сб','Вс'],sum=Array(7).fill(0),cnt=Array(7).fill(0);
+  const today=t0(),bySum={};
+  finTxD().forEach(t=>{if(t.type==='out'&&!t.isTransfer)bySum[t.date]=(bySum[t.date]||0)+Number(t.amount);});
+  for(let i=0;i<90;i++){const d=new Date(today);d.setDate(d.getDate()-i);const wd=(d.getDay()+6)%7;cnt[wd]++;sum[wd]+=bySum[dk(d)]||0;}
+  const avg=sum.map((s,i)=>cnt[i]?s/cnt[i]:0),max=Math.max(...avg,1);
+  const p={t:20,r:10,b:24,l:10},cW=W-p.l-p.r,cH=H-p.t-p.b,gw=cW/7,bw=Math.min(34,gw*.62),hits=[];
+  const top=avg.indexOf(Math.max(...avg));
+  avg.forEach((v,i)=>{
+    const h=v/max*cH,x=p.l+gw*i+(gw-bw)/2,yt=p.t+cH-h;
+    const col=i===top&&v>0?FA_RED:i>=5?FA_PURPLE:FA_CYAN;
+    const g=ctx.createLinearGradient(0,yt,0,p.t+cH);g.addColorStop(0,col);g.addColorStop(1,col+'33');
+    ctx.fillStyle=v>0?g:CT.gridFaint;ctx.beginPath();ctx.roundRect(x,v>0?yt:p.t+cH-3,bw,v>0?Math.max(2,h):3,[4,4,0,0]);ctx.fill();
+    ctx.textAlign='center';ctx.fillStyle=i===top&&v>0?FA_RED:CT.labelStrong;ctx.font=(i===top?'bold ':'')+'9.5px Instrument Sans,sans-serif';ctx.fillText(names[i],x+bw/2,H-8);
+    if(v>0){ctx.fillStyle=CT.labelStrong;ctx.font='bold 8.5px Instrument Sans,sans-serif';ctx.fillText(_faShort(v),x+bw/2,yt-4);}
+    hits.push({x:p.l+gw*i,y:0,w:gw,h:H,html:`<b>${names[i]}</b><br>В среднем: ${fmtMoney(Math.round(v))}<br>Всего за 90 дн.: ${fmtMoney(sum[i])}`});
+  });
+  const note=document.getElementById('faWdNote');
+  if(note){const tot=sum.reduce((a,b)=>a+b,0);note.innerHTML=tot?`Больше всего тратишь в <b style="color:var(--red)">${['понедельник','вторник','среду','четверг','пятницу','субботу','воскресенье'][top]}</b> — в среднем ${fmtMoney(Math.round(avg[top]))}.`:'Пока нет расходов за последние 90 дней.';}
+  _faBind(cv,hits);
+}
+function _faDrawBalance(months){
+  const c=_faCanvas('faBalance',210);if(!c)return;const{cv,ctx,W,H}=c,CT=_CT();
+  const pts=months.map(m=>({lbl:m.lbl,v:_faBalanceAt(m.key+'-31'),m}));
+  const vals=pts.map(x=>x.v);let mn=Math.min(...vals),mx=Math.max(...vals);
+  if(mn===mx){mn-=1;mx+=1;}const pad=(mx-mn)*.12;mn-=pad;mx+=pad;
+  const p={t:16,r:14,b:26,l:48},cW=W-p.l-p.r,cH=H-p.t-p.b,n=pts.length;
+  const x=i=>p.l+(n>1?i/(n-1)*cW:cW/2),y=v=>p.t+cH*(1-(v-mn)/(mx-mn));
+  _faGrid(ctx,p,cW,cH,mn,mx,W);
+  const g=ctx.createLinearGradient(0,p.t,0,H-p.b);g.addColorStop(0,'rgba(155,143,245,.35)');g.addColorStop(1,'rgba(155,143,245,.02)');
+  ctx.beginPath();pts.forEach((q,i)=>i?ctx.lineTo(x(i),y(q.v)):ctx.moveTo(x(i),y(q.v)));
+  ctx.lineTo(x(n-1),H-p.b);ctx.lineTo(x(0),H-p.b);ctx.closePath();ctx.fillStyle=g;ctx.fill();
+  ctx.beginPath();pts.forEach((q,i)=>i?ctx.lineTo(x(i),y(q.v)):ctx.moveTo(x(i),y(q.v)));
+  ctx.strokeStyle=FA_PURPLE;ctx.lineWidth=2.5;ctx.lineJoin='round';ctx.stroke();
+  const hits=[];
+  pts.forEach((q,i)=>{
+    ctx.beginPath();ctx.arc(x(i),y(q.v),4,0,7);ctx.fillStyle=q.v>=0?FA_PURPLE:FA_RED;ctx.fill();ctx.strokeStyle=CT.card;ctx.lineWidth=1.5;ctx.stroke();
+    ctx.fillStyle=CT.label;ctx.font='9.5px Instrument Sans,sans-serif';ctx.textAlign='center';ctx.fillText(q.lbl,x(i),H-8);
+    if(n<=7||i===n-1){ctx.fillStyle=CT.labelStrong;ctx.font='bold 9px Instrument Sans,sans-serif';ctx.fillText(_faShort(q.v),x(i),y(q.v)-9);}
+    const prevV=i?pts[i-1].v:null;
+    hits.push({x:x(i)-cW/n/2,y:0,w:cW/n,h:H,html:`<b>Конец ${MN[q.m.m].toLowerCase()}</b><br>Баланс: <b>${fmtMoney(Math.round(q.v))}</b>${prevV!==null?`<br>За месяц: <b style="color:${q.v-prevV>=0?FA_GREEN:FA_RED}">${q.v-prevV>=0?'+':''}${fmtMoney(Math.round(q.v-prevV))}</b>`:''}`});
+  });
+  _faBind(cv,hits);
 }
 
 function setFinChartPeriod(p,btn){
@@ -16823,6 +17176,7 @@ function showKbHint(text) {
 })();
 window.addEventListener('resize',()=>{
   initMobileNav();
+  if(document.getElementById('tab-finance')?.classList.contains('on')){clearTimeout(window._faRz);window._faRz=setTimeout(()=>{try{renderFinAnalytics();}catch(e){}},150);}
   if(document.getElementById('tab-habits')?.classList.contains('on')){const d=htD();drawHChart(d,dim(htY,htM))}
   if(document.getElementById('tab-dash')?.classList.contains('on'))renderDash();
   if(document.getElementById('tab-tasks')?.classList.contains('on'))renderTP();
