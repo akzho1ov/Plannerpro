@@ -4375,6 +4375,7 @@ body.light-mode .skel{background:linear-gradient(90deg,var(--card2) 25%,#f0f2f7 
     </div>
   </div>
 
+  <div id="finGoalsInv"></div>
   <div id="finAnalytics"></div>
 
   <!-- Transactions -->
@@ -10345,6 +10346,7 @@ function renderFin(){
   };
   const incDeltaEl=document.getElementById('finIncDelta');if(incDeltaEl)incDeltaEl.innerHTML=mkDeltaHtml(inc,prevInc,true);
   const expDeltaEl=document.getElementById('finExpDelta');if(expDeltaEl)expDeltaEl.innerHTML=mkDeltaHtml(exp,prevExp,false);
+  try{renderFinGoalsInv();}catch(e){console.warn('finGoalsInv',e);}
   try{renderFinAnalytics();}catch(e){console.warn('finAnalytics',e);}
 }
 function finToggleCatBreakdown(catId){
@@ -10462,6 +10464,195 @@ function renderCatBudgetBars(totalExp, txs){
 /* ═══════════════════════════════════════════════════
    FINANCE ANALYTICS — bars, donuts, trends, tooltips
 ═══════════════════════════════════════════════════ */
+/* ═══════════════════════════════════════════════════
+   FINANCIAL GOALS + INVESTMENTS
+═══════════════════════════════════════════════════ */
+function finGoalsD(){if(!Array.isArray(G.finGoals))G.finGoals=[];return G.finGoals;}
+function invD(){if(!Array.isArray(G.investments))G.investments=[];return G.investments;}
+const FG_COLORS=['#9B8FF5','#0FDDAA','#F0AB30','#5B95FF','#F06BB0','#FF8030','#22CCE8'];
+const INV_TYPES={
+  stocks:{n:'Акции / фонды',i:'📈',c:'#5B95FF'},crypto:{n:'Крипто',i:'₿',c:'#F0AB30'},
+  deposit:{n:'Депозит / облигации',i:'🏦',c:'#0FDDAA'},realty:{n:'Недвижимость',i:'🏠',c:'#9B8FF5'},
+  business:{n:'Бизнес',i:'💼',c:'#F06BB0'},gold:{n:'Золото / металлы',i:'🪙',c:'#FF8030'},other:{n:'Другое',i:'📦',c:'#9ca3af'}};
+
+/* generic small form modal */
+function _finForm(title,fields,onSave,onDelete){
+  const old=document.getElementById('finFormOv');if(old)old.remove();
+  const ov=document.createElement('div');ov.id='finFormOv';ov.className='overlay';ov.style.display='flex';
+  const body=fields.map(f=>{
+    let inp;
+    if(f.type==='select')inp=`<select class="inp" id="ff-${f.id}">${f.options.map(o=>`<option value="${esc(o[0])}"${o[0]===f.value?' selected':''}>${esc(o[1])}</option>`).join('')}</select>`;
+    else if(f.type==='date')inp=`<div>${mdpBtn('ff-'+f.id+'-btn',f.value||'',`document.getElementById('ff-${f.id}').value=v;`)}</div><input type="hidden" id="ff-${f.id}" value="${f.value||''}">`;
+    else inp=`<input class="inp" id="ff-${f.id}" type="${f.type==='number'?'number':'text'}" value="${esc(f.value!==undefined&&f.value!==null?f.value:'')}" placeholder="${esc(f.ph||'')}"${f.type==='number'?' step="any" inputmode="decimal"':''}>`;
+    return `<div class="fldGrp"><div class="fldLbl">${f.label}</div>${inp}</div>`;
+  }).join('');
+  ov.innerHTML=`<div class="modalBox" style="max-width:440px"><div class="modalHead"><span class="modalTitle">${title}</span><button class="modalClose" id="ff-x">✕</button></div>${body}
+    <div style="display:flex;gap:8px">${onDelete?'<button class="btn btnR" id="ff-del">🗑</button>':''}<button class="btn btnG" style="flex:1;justify-content:center" id="ff-cancel">Отмена</button><button class="btn btnO" style="flex:1;justify-content:center" id="ff-save">Сохранить</button></div></div>`;
+  document.body.appendChild(ov);
+  const close=()=>ov.remove();
+  ov.querySelector('#ff-x').onclick=close;ov.querySelector('#ff-cancel').onclick=close;
+  ov.addEventListener('mousedown',e=>{if(e.target===ov)close();});
+  if(onDelete)ov.querySelector('#ff-del').onclick=async()=>{if(await appConfirm('Удалить?')){onDelete();close();}};
+  ov.querySelector('#ff-save').onclick=()=>{
+    const v={};fields.forEach(f=>{const el=document.getElementById('ff-'+f.id);v[f.id]=f.type==='number'?parseFloat(el.value):el.value;});
+    if(onSave(v)!==false)close();
+  };
+  setTimeout(()=>{const i=ov.querySelector('input,select');if(i)i.focus();},50);
+}
+
+/* ── goals ── */
+function finGoalEdit(id,preset){
+  const g=id?finGoalsD().find(x=>x.id===id):null;
+  _finForm(g?'Изменить цель':'Новая финансовая цель',[
+    {id:'name',label:'Название',value:g?g.name:(preset?preset.name:''),ph:'Подушка безопасности, ноутбук, поездка…'},
+    {id:'icon',label:'Иконка (emoji)',value:g?g.icon:(preset?preset.icon:'🎯')},
+    {id:'target',label:'Целевая сумма',type:'number',value:g?g.target:''},
+    {id:'saved',label:'Уже накоплено',type:'number',value:g?g.saved:0},
+    {id:'deadline',label:'Срок (необязательно)',type:'date',value:g?g.deadline||'':''},
+  ],v=>{
+    if(!v.name.trim()||!(v.target>0)){appAlert('Укажи название и целевую сумму');return false;}
+    const saved=Math.max(0,v.saved||0);
+    if(g){Object.assign(g,{name:v.name.trim(),icon:v.icon||'🎯',target:v.target,saved,deadline:v.deadline||''});}
+    else finGoalsD().push({id:uid(),name:v.name.trim(),icon:v.icon||'🎯',target:v.target,saved,deadline:v.deadline||'',
+      color:FG_COLORS[finGoalsD().length%FG_COLORS.length],created:dk(t0()),history:saved?[{date:dk(t0()),amount:saved}]:[]});
+    saveD();renderFinGoalsInv();
+  },g?()=>{G.finGoals=finGoalsD().filter(x=>x.id!==id);saveD();renderFinGoalsInv();}:null);
+}
+function finGoalDeposit(id){
+  const g=finGoalsD().find(x=>x.id===id);if(!g)return;
+  _finForm(`${esc(g.icon)} ${esc(g.name)} — пополнение`,[
+    {id:'amount',label:'Сумма (минус — снять)',type:'number',value:'',ph:'Например 5000'},
+    {id:'date',label:'Дата',type:'date',value:dk(t0())},
+  ],v=>{
+    if(!v.amount||isNaN(v.amount)){appAlert('Введи сумму');return false;}
+    const was=g.saved>=g.target;
+    g.saved=Math.max(0,g.saved+v.amount);
+    (g.history=g.history||[]).push({date:v.date||dk(t0()),amount:v.amount});
+    saveD();renderFinGoalsInv();
+    if(!was&&g.saved>=g.target){try{_launchConfetti();}catch(e){}showSaveStatus('saved','🎉 Цель «'+g.name+'» достигнута!');}
+  });
+}
+function _fgCard(g){
+  const pct=g.target?Math.min(100,g.saved/g.target*100):0,left=Math.max(0,g.target-g.saved);
+  let meta='';
+  if(left<=0)meta='<span style="color:var(--green);font-weight:700">✅ Цель достигнута</span>';
+  else if(g.deadline){
+    const days=Math.ceil((new Date(g.deadline+'T00:00:00')-t0())/86400000);
+    if(days<0)meta=`<span style="color:var(--red);font-weight:700">⚠️ срок прошёл ${-days} дн. назад</span> · осталось ${fmtMoney(left)}`;
+    else if(days<=31)meta=`осталось ${fmtMoney(left)} · <b style="color:var(--gold)">≈ ${fmtMoney(Math.ceil(left/Math.max(days,1)))}/день</b> · ${days} дн.`;
+    else{const mo=days/30.4;meta=`осталось ${fmtMoney(left)} · <b style="color:var(--gold)">≈ ${fmtMoney(Math.ceil(left/mo))}/мес</b> · ${Math.round(mo)} мес.`;}
+  } else meta=`осталось ${fmtMoney(left)}`;
+  const C=2*Math.PI*22;
+  return `<div style="background:var(--card2);border:1px solid var(--border);border-left:3px solid ${g.color};border-radius:14px;padding:12px 14px">
+    <div style="display:flex;gap:12px;align-items:center">
+      <div style="position:relative;width:52px;height:52px;flex-shrink:0"><svg width="52" height="52" viewBox="0 0 52 52" style="transform:rotate(-90deg)"><circle cx="26" cy="26" r="22" fill="none" stroke="var(--border2)" stroke-width="5"/><circle cx="26" cy="26" r="22" fill="none" stroke="${g.color}" stroke-width="5" stroke-linecap="round" stroke-dasharray="${C.toFixed(1)}" stroke-dashoffset="${(C*(1-pct/100)).toFixed(1)}"/></svg>
+        <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;color:${g.color};font-family:var(--font-display)">${Math.round(pct)}%</div></div>
+      <div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:700;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(g.icon)} ${esc(g.name)}</div>
+        <div style="font-size:11px;color:var(--text2);font-family:var(--font-mono);margin-top:2px"><b style="color:var(--text)">${fmtMoney(g.saved)}</b> из ${fmtMoney(g.target)}</div></div></div>
+    <div style="font-size:10.5px;color:var(--muted);margin:9px 0 10px;line-height:1.5">${meta}</div>
+    <div style="display:flex;gap:6px"><button class="btn btnE" style="flex:1;justify-content:center;font-size:11px;padding:6px" onclick="finGoalDeposit('${g.id}')">＋ Пополнить</button><button class="btn btnG" style="font-size:11px;padding:6px 10px" onclick="finGoalEdit('${g.id}')">✏️</button></div></div>`;
+}
+
+/* ── investments ── */
+function invEdit(id){
+  const it=id?invD().find(x=>x.id===id):null;
+  _finForm(it?'Изменить актив':'Новый инвестиционный актив',[
+    {id:'name',label:'Название',value:it?it.name:'',ph:'Apple, Bitcoin, депозит в банке…'},
+    {id:'type',label:'Тип',type:'select',value:it?it.type:'stocks',options:Object.entries(INV_TYPES).map(([k,v])=>[k,v.i+' '+v.n])},
+    {id:'invested',label:'Вложено (всего)',type:'number',value:it?it.invested:''},
+    {id:'current',label:'Текущая стоимость',type:'number',value:it?it.current:''},
+    {id:'date',label:'Дата вложения',type:'date',value:it?it.date||'':dk(t0())},
+  ],v=>{
+    if(!v.name.trim()||!(v.invested>=0)||isNaN(v.invested)){appAlert('Укажи название и сумму вложений');return false;}
+    const cur=isNaN(v.current)?v.invested:v.current;
+    if(it){
+      if(cur!==it.current)(it.history=it.history||[]).push({date:dk(t0()),value:cur});
+      Object.assign(it,{name:v.name.trim(),type:v.type,invested:v.invested,current:cur,date:v.date||''});
+    } else invD().push({id:uid(),name:v.name.trim(),type:v.type,invested:v.invested,current:cur,date:v.date||dk(t0()),
+      history:[{date:v.date||dk(t0()),value:v.invested},...(cur!==v.invested?[{date:dk(t0()),value:cur}]:[])]});
+    saveD();renderFinGoalsInv();
+  },it?()=>{G.investments=invD().filter(x=>x.id!==id);saveD();renderFinGoalsInv();}:null);
+}
+function invUpdate(id){
+  const it=invD().find(x=>x.id===id);if(!it)return;
+  _finForm(`💹 ${esc(it.name)} — обновить стоимость`,[
+    {id:'current',label:'Текущая стоимость',type:'number',value:it.current},
+    {id:'add',label:'Докупили на сумму (необязательно)',type:'number',value:'',ph:'0'},
+    {id:'date',label:'Дата',type:'date',value:dk(t0())},
+  ],v=>{
+    if(isNaN(v.current)){appAlert('Введи текущую стоимость');return false;}
+    if(v.add>0){it.invested+=v.add;}
+    it.current=v.current;(it.history=it.history||[]).push({date:v.date||dk(t0()),value:v.current});
+    saveD();renderFinGoalsInv();
+  });
+}
+function _invSpark(h,col){
+  if(!h||h.length<2)return '';
+  const v=h.map(x=>x.value),mn=Math.min(...v),mx=Math.max(...v),w=64,ht=22;
+  const pts=v.map((y,i)=>`${(i/(v.length-1)*w).toFixed(1)},${(ht-2-(mx===mn?.5:(y-mn)/(mx-mn))*(ht-4)).toFixed(1)}`).join(' ');
+  return `<svg width="${w}" height="${ht}" style="flex-shrink:0"><polyline points="${pts}" fill="none" stroke="${col}" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/></svg>`;
+}
+function _fgDonut(id,segs,top,bottom){
+  const cv=document.getElementById(id);if(!cv)return;
+  const S=150,dpr=window.devicePixelRatio||1;cv.width=S*dpr;cv.height=S*dpr;cv.style.width=S+'px';cv.style.height=S+'px';
+  const ctx=cv.getContext('2d');ctx.setTransform(dpr,0,0,dpr,0,0);const CT=_CT();
+  const tot=segs.reduce((s,x)=>s+x.v,0);if(!tot)return;
+  const cx=S/2,R=S/2-5,r=R*.62;let a=-Math.PI/2;
+  segs.forEach(sg=>{const sw=sg.v/tot*Math.PI*2;ctx.beginPath();ctx.arc(cx,cx,R,a,a+sw);ctx.arc(cx,cx,r,a+sw,a,true);ctx.closePath();ctx.fillStyle=sg.c;ctx.fill();ctx.strokeStyle=CT.card;ctx.lineWidth=2;ctx.stroke();a+=sw;});
+  ctx.textAlign='center';ctx.textBaseline='middle';
+  ctx.fillStyle=CT.text;ctx.font='bold 15px Bricolage Grotesque,sans-serif';ctx.fillText(top,cx,cx-5);
+  ctx.fillStyle=CT.muted;ctx.font='9px Instrument Sans,sans-serif';ctx.fillText(bottom,cx,cx+11);
+}
+
+function renderFinGoalsInv(){
+  const el=document.getElementById('finGoalsInv');if(!el)return;
+  const goals=finGoalsD(),invs=invD();
+  const accTotal=finAccountsD().reduce((s,a)=>{
+    const inc=finTxD().filter(t=>t.type==='in'&&t.acctId===a.id).reduce((x,t)=>x+Number(t.amount),0);
+    const exp=finTxD().filter(t=>t.type==='out'&&t.acctId===a.id).reduce((x,t)=>x+Number(t.amount),0);
+    return s+(Number(a.initialBalance)||0)+inc-exp;},0);
+  const invCur=invs.reduce((s,i)=>s+(+i.current||0),0),invIn=invs.reduce((s,i)=>s+(+i.invested||0),0);
+  const pl=invCur-invIn,plPct=invIn?pl/invIn*100:0,plC=pl>=0?'var(--green)':'var(--red)';
+  const kpi=(v,l,s,c)=>`<div class="faKpi"><div class="faKpiV" style="color:${c}">${v}</div><div class="faKpiL">${l}</div><div class="faKpiS">${s}</div></div>`;
+  const card=(t,btn,b)=>`<div class="card faCard" style="margin-bottom:12px"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;gap:8px"><div class="secLbl" style="margin:0;flex:1">${t}</div>${btn}</div>${b}</div>`;
+  let h=`<div class="faKpis" style="margin-top:6px">
+    ${kpi(fmtMoney(Math.round(accTotal+invCur)),'Чистый капитал','счета + инвестиции','var(--gold)')}
+    ${kpi(fmtMoney(Math.round(accTotal)),'На счетах','свободные деньги','var(--cyan)')}
+    ${kpi(fmtMoney(Math.round(invCur)),'В инвестициях','вложено '+fmtMoney(Math.round(invIn)),'var(--p)')}
+    ${kpi((pl>=0?'+':'')+fmtMoney(Math.round(pl)),'Прибыль инвестиций',invIn?(pl>=0?'+':'')+plPct.toFixed(1)+'%':'—',invs.length?plC:'var(--muted)')}</div>`;
+  const presets=[['🛟','Подушка безопасности'],['✈️','Путешествие'],['💻','Техника'],['🏠','Жильё'],['🚗','Авто']];
+  const gBody=goals.length?`<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:10px">${goals.map(_fgCard).join('')}</div>`
+    :`<div style="text-align:center;padding:14px 6px"><div style="font-size:12px;color:var(--muted);margin-bottom:12px">Поставь цель — и видно, сколько откладывать каждый месяц</div><div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:center">${presets.map(p=>`<button class="finFilterPill" onclick="finGoalEdit(null,{icon:'${p[0]}',name:'${p[1]}'})">${p[0]} ${p[1]}</button>`).join('')}</div></div>`;
+  h+=card('🎯 Финансовые цели',`<button class="btn btnO" style="font-size:11px;padding:6px 12px" onclick="finGoalEdit(null)">＋ Цель</button>`,gBody);
+
+  // investments
+  let iBody;
+  if(!invs.length)iBody=`<div style="text-align:center;padding:16px 6px;font-size:12px;color:var(--muted)">Добавь активы — акции, крипто, депозиты, недвижимость — и следи за доходностью портфеля</div>`;
+  else{
+    const byType={};invs.forEach(i=>{byType[i.type]=(byType[i.type]||0)+(+i.current||0);});
+    const segs=Object.entries(byType).filter(x=>x[1]>0).sort((a,b)=>b[1]-a[1]).map(([k,v])=>({k,v,c:(INV_TYPES[k]||INV_TYPES.other).c}));
+    const tot=segs.reduce((s,x)=>s+x.v,0);
+    const legend=segs.map(sg=>{const t=INV_TYPES[sg.k]||INV_TYPES.other;return `<div class="faRow"><span style="width:9px;height:9px;border-radius:50%;background:${t.c};flex-shrink:0"></span><span style="flex:1;color:var(--text2)">${t.i} ${t.n}</span><b style="font-family:var(--font-mono)">${Math.round(sg.v/tot*100)}%</b><span style="font-family:var(--font-mono);color:var(--muted);min-width:60px;text-align:right">${fmtMoney(Math.round(sg.v))}</span></div>`;}).join('');
+    const rows=[...invs].sort((a,b)=>b.current-a.current).map(i=>{
+      const t=INV_TYPES[i.type]||INV_TYPES.other,p=i.current-i.invested,pp=i.invested?p/i.invested*100:null,c=p>=0?'var(--green)':'var(--red)';
+      let ann='';
+      if(i.date&&i.invested>0&&i.current>0){const d=(t0()-new Date(i.date+'T00:00:00'))/86400000;if(d>=60){const y=(Math.pow(i.current/i.invested,365/d)-1)*100;if(isFinite(y))ann=` · ${y>=0?'+':''}${y.toFixed(1)}% годовых`;}}
+      return `<div style="display:flex;align-items:center;gap:10px;padding:9px 11px;background:var(--card2);border:1px solid var(--border);border-radius:12px;flex-wrap:wrap">
+        <span style="width:32px;height:32px;border-radius:9px;background:${t.c}22;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0">${t.i}</span>
+        <div style="flex:1;min-width:120px"><div style="font-size:12.5px;font-weight:700;color:var(--text)">${esc(i.name)}</div><div style="font-size:10px;color:var(--muted)">${t.n} · вложено ${fmtMoney(i.invested)}${ann}</div></div>
+        ${_invSpark(i.history,p>=0?'#0FDDAA':'#FF4F72')}
+        <div style="text-align:right;min-width:92px"><div style="font-family:var(--font-mono);font-size:13px;font-weight:800;color:var(--text)">${fmtMoney(i.current)}</div><div style="font-size:10.5px;font-weight:700;color:${c}">${p>=0?'+':''}${fmtMoney(Math.round(p))}${pp===null?'':` (${pp>=0?'+':''}${pp.toFixed(1)}%)`}</div></div>
+        <div style="display:flex;gap:5px"><button class="btn btnG" style="font-size:10.5px;padding:5px 9px" onclick="invUpdate('${i.id}')">💹</button><button class="btn btnG" style="font-size:10.5px;padding:5px 9px" onclick="invEdit('${i.id}')">✏️</button></div></div>`;}).join('');
+    iBody=`<div style="display:flex;align-items:center;gap:18px;flex-wrap:wrap;margin-bottom:14px"><canvas id="invDonut" style="flex-shrink:0;margin:0 auto"></canvas><div class="faLegend" style="flex:1;min-width:200px">${legend}</div></div><div style="display:flex;flex-direction:column;gap:7px">${rows}</div>`;
+  }
+  h+=card('📈 Инвестиции',`<button class="btn btnB" style="font-size:11px;padding:6px 12px" onclick="invEdit(null)">＋ Актив</button>`,iBody);
+  el.innerHTML=h;
+  if(invs.length){
+    const byType={};invs.forEach(i=>{byType[i.type]=(byType[i.type]||0)+(+i.current||0);});
+    _fgDonut('invDonut',Object.entries(byType).filter(x=>x[1]>0).map(([k,v])=>({v,c:(INV_TYPES[k]||INV_TYPES.other).c})),_faShort(invCur),'портфель');
+  }
+}
+
 let _finAnlRange=6;
 function setFinAnlRange(n){_finAnlRange=n;renderFinAnalytics();}
 const FA_GREEN='#0FDDAA',FA_RED='#FF4F72',FA_PURPLE='#9B8FF5',FA_GOLD='#F0AB30',FA_CYAN='#22CCE8';
@@ -17176,7 +17367,7 @@ function showKbHint(text) {
 })();
 window.addEventListener('resize',()=>{
   initMobileNav();
-  if(document.getElementById('tab-finance')?.classList.contains('on')){clearTimeout(window._faRz);window._faRz=setTimeout(()=>{try{renderFinAnalytics();}catch(e){}},150);}
+  if(document.getElementById('tab-finance')?.classList.contains('on')){clearTimeout(window._faRz);window._faRz=setTimeout(()=>{try{renderFinGoalsInv();renderFinAnalytics();}catch(e){}},150);}
   if(document.getElementById('tab-habits')?.classList.contains('on')){const d=htD();drawHChart(d,dim(htY,htM))}
   if(document.getElementById('tab-dash')?.classList.contains('on'))renderDash();
   if(document.getElementById('tab-tasks')?.classList.contains('on'))renderTP();
