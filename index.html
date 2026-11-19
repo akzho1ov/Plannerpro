@@ -628,6 +628,31 @@ body::before{
 ═══════════════════════════════════ */
 .pane{display:none;padding:20px 20px 64px;max-width:1600px;margin:0 auto}
 .pane.on{display:block;animation:paneIn .25s var(--ease) both}
+/* Notes */
+.ntWrap{display:grid;grid-template-columns:300px 1fr;gap:16px;align-items:start}
+.ntSide{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:12px;position:sticky;top:80px}
+.ntList{max-height:60vh;overflow:auto;margin-top:10px;display:flex;flex-direction:column;gap:4px}
+.ntItem{padding:9px 10px;border-radius:10px;cursor:pointer;border:1px solid transparent}
+.ntItem:hover{background:var(--card2)}.ntItem.on{background:var(--pdim);border-color:var(--border-glow)}
+.ntItem b{display:block;font-size:13px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ntItem small{display:block;font-size:11px;color:var(--muted);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ntEd{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:16px;min-height:60vh}
+.ntTitle{width:100%;background:none;border:none;outline:none;color:var(--text);font:700 22px var(--font-display);margin-bottom:8px}
+.ntBar{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-bottom:12px}
+.ntArea{width:100%;min-height:46vh;resize:vertical;background:var(--card2);border:1px solid var(--border);border-radius:12px;padding:12px;color:var(--text);font:13px/1.6 var(--font-mono);outline:none}
+.ntPrev{font-size:14px;line-height:1.65;color:var(--text);min-height:40vh}
+.ntPrev h1,.ntPrev h2,.ntPrev h3{font-family:var(--font-display);margin:14px 0 6px}
+.ntPrev code,.ntPrev pre{background:var(--card2);border-radius:6px;padding:1px 5px;font-family:var(--font-mono);font-size:12px}
+.ntPrev pre{padding:10px;overflow:auto;white-space:pre-wrap}
+.ntPrev blockquote{border-left:3px solid var(--p);padding-left:10px;color:var(--text2)}
+.ntPrev ul{padding-left:20px}.ntGap{height:8px}
+.ntChk{display:flex;gap:8px;align-items:center;cursor:pointer}.ntChk.on span{text-decoration:line-through;color:var(--muted)}
+.ntLink{color:var(--p);cursor:pointer;border-bottom:1px dashed var(--p)}.ntMiss{opacity:.6;border-bottom-style:dotted}
+.ntTag{color:var(--cyan);cursor:pointer;font-size:.92em}
+.ntChip{display:inline-flex;align-items:center;gap:5px;padding:3px 9px;margin:2px 4px 2px 0;border-radius:20px;background:var(--pdim);border:1px solid var(--border-glow);color:var(--p);font-size:11px;font-weight:600;cursor:pointer}
+.ntTags{display:flex;gap:5px;flex-wrap:wrap;margin-top:8px}
+.ntArch{display:flex;align-items:center;gap:10px;padding:12px 14px;margin-bottom:8px;background:var(--card);border:1px solid var(--border);border-radius:14px;flex-wrap:wrap}
+@media(max-width:800px){.ntWrap{grid-template-columns:1fr}.ntSide{position:static}.ntList{max-height:240px}}
 @keyframes paneIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
 @keyframes cardIn{from{opacity:0;transform:translateY(12px) scale(.98)}to{opacity:1;transform:translateY(0) scale(1)}}
 @media(max-width:700px){.pane{padding:12px 12px 90px}}
@@ -3419,6 +3444,13 @@ body.light-mode .skel{background:linear-gradient(90deg,var(--card2) 25%,#f0f2f7 
             </button>
           </div>
 
+          <div class="navGroup" data-group="notes">
+            <button class="navGroupBtn" data-tab="notes" role="tab" aria-selected="false" aria-controls="tab-notes" title="Заметки">
+              <svg class="navGroupIcon" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 2h8l3 3v13H5z" stroke-linejoin="round"/><path d="M8 9h5M8 13h5" stroke-linecap="round"/></svg>
+              Заметки
+            </button>
+          </div>
+
           <!-- 5. Прогресс -->
           <div class="navGroup" data-group="progress">
             <button class="navGroupBtn" role="tab" aria-haspopup="true" aria-expanded="false" aria-controls="navDrop-progress" title="Прогресс">
@@ -4464,6 +4496,7 @@ body.light-mode .skel{background:linear-gradient(90deg,var(--card2) 25%,#f0f2f7 
         <button class="goalFltBtn"    data-hzn="quarterly" onclick="setGoalFilter('quarterly',this)">📆 Квартал</button>
         <button class="goalFltBtn"    data-hzn="annual"    onclick="setGoalFilter('annual',this)">🗓️ Год</button>
         <button class="goalFltBtn"    data-hzn="longterm"  onclick="setGoalFilter('longterm',this)">🚀 Долгосрочные</button>
+        <button class="goalFltBtn"    data-hzn="archive"   onclick="setGoalFilter('archive',this)">📦 Архив <span id="goalArchCnt"></span></button>
       </div>
       <button class="btn btnE" onclick="openGoalModal(null)">+ Новая цель</button>
     </div>
@@ -4530,6 +4563,24 @@ body.light-mode .skel{background:linear-gradient(90deg,var(--card2) 25%,#f0f2f7 
     <div id="journalList"></div>
   </div>
 
+</div>
+
+<div id="tab-notes" class="pane hInner">
+  <header class="paneHead">
+    <div class="paneHeadLeft"><div class="paneHeadRow">
+      <div class="paneHeadIcon" style="background:rgba(155,143,245,.1);border-color:rgba(155,143,245,.25)">📝</div>
+      <div><h1 class="paneTitle">Заметки</h1><p class="paneSubtitle">Markdown · [[связи]] · #теги · привязка к задачам и целям</p></div>
+    </div></div>
+    <div class="paneHeadActions"><button class="btn btnE" onclick="ntNew()">+ Заметка</button></div>
+  </header>
+  <div class="ntWrap">
+    <aside class="ntSide">
+      <input class="inp" id="ntSearch" placeholder="🔍 Поиск..." oninput="_ntQ=this.value;ntRenderList()">
+      <div class="ntTags" id="ntTagBar"></div>
+      <div class="ntList" id="ntList"></div>
+    </aside>
+    <section class="ntEd" id="ntEditor"></section>
+  </div>
 </div>
 
 <!-- ═══ 7.5 CHALLENGES ═══ -->
@@ -5261,6 +5312,7 @@ body.light-mode .skel{background:linear-gradient(90deg,var(--card2) 25%,#f0f2f7 
         <option value="">— Без цели —</option>
       </select>
     </div>
+    <div class="tmField" id="tm-notesField" style="display:none"><label class="tmLabel">📝 Заметки</label><div id="tm-notesList"></div></div>
 
     <!-- Done toggle -->
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">
@@ -5958,7 +6010,7 @@ window.addEventListener('online',()=>{setSyncDot('syncing');try{saveD();}catch(e
 
 // ── Re-render whichever tab is currently visible (called after cloud sync) ──
 function reRenderCurrentTab(){
-  const renders={dash:renderDash,weekly:renderWP,habits:renderHT,tasks:renderTP,routine:renderRoutine,calendar:renderCal,kanban:renderKanban,finance:renderFin,goals:renderGrowth,rewards:rwRender,gym:gymRender,analytics:renderAnalytics,pomodoro:renderPomodoro,challenges:renderCh,sleep:renderSleepTracker};
+  const renders={dash:renderDash,weekly:renderWP,habits:renderHT,tasks:renderTP,routine:renderRoutine,calendar:renderCal,kanban:renderKanban,finance:renderFin,goals:renderGrowth,rewards:rwRender,gym:gymRender,analytics:renderAnalytics,pomodoro:renderPomodoro,challenges:renderCh,sleep:renderSleepTracker,notes:renderNotes};
   for(const[name,fn] of Object.entries(renders)){
     if(document.getElementById('tab-'+name)?.classList.contains('on')){
       try{fn();}catch(e){console.warn('rerender err',e);}
@@ -6735,7 +6787,7 @@ function updateThemeBtn(){
 
 // Map every tab-id to its nav group
 const TAB_GROUP={
-  dash:'dash',
+  dash:'dash',notes:'notes',
   tasks:'planning',weekly:'planning',calendar:'planning',kanban:'planning',
   habits:'health',gym:'health',sleep:'health',
   finance:'finance',
@@ -6765,6 +6817,7 @@ const MOB_GROUPS={
     title:'Прогресс',
     items:[
       {tab:'goals',    icon:'🌱', label:'Цели',      sub:'Рост и миссия'},
+      {tab:'notes',    icon:'📝', label:'Заметки',   sub:'Идеи, связи, markdown'},
       {tab:'challenges',icon:'🏁', label:'Челленджи', sub:'Дни, стрики, дисциплина'},
       {tab:'rewards',  icon:'🏆', label:'Награды',   sub:'Очки и достижения'},
       {tab:'analytics',icon:'📊', label:'Аналитика', sub:'Отчёты и графики'},
@@ -6848,7 +6901,7 @@ function navigateTo(tabName){
   const renders={dash:renderDash,weekly:renderWP,habits:renderHT,tasks:renderTP,
     routine:renderRoutine,calendar:renderCal,kanban:renderKanban,finance:renderFin,
     goals:renderGrowth,rewards:rwRender,gym:gymRender,analytics:renderAnalytics,pomodoro:renderPomodoro,challenges:renderCh,
-    sleep:renderSleepTracker};
+    sleep:renderSleepTracker,notes:renderNotes};
   if(renders[tabName])renders[tabName]();
 
   window.scrollTo({top:0,behavior:'instant'});
@@ -11458,7 +11511,7 @@ function renderGoals(){
   // ── Stats strip ──
   const strip=document.getElementById('goalStatsStrip');
   if(strip){
-    const all=goalsD();
+    const all=goalsD().filter(g=>!g.archived);
     const totalMs=all.reduce((s,g)=>(s+(g.milestones||[]).length),0);
     const doneMs=all.reduce((s,g)=>(s+(g.milestones||[]).filter(m=>m.done).length),0);
     const pctAll=totalMs?Math.round(doneMs/totalMs*100):0;
@@ -11475,7 +11528,10 @@ function renderGoals(){
   }
 
   const list=document.getElementById('goalsList');list.innerHTML='';
-  let goals=goalsD();
+  const _ae=document.getElementById('goalArchCnt');
+  if(_ae){const _ac=goalsD().filter(g=>g.archived).length;_ae.textContent=_ac?'('+_ac+')':''}
+  if(_goalHznFilter==='archive'){renderGoalArchive(list);return;}
+  let goals=goalsD().filter(g=>!g.archived);
 
   // Apply horizon filter
   if(_goalHznFilter!=='all'){
@@ -11703,9 +11759,11 @@ function renderGoals(){
           <button onclick="openTaskModal(null);setTimeout(()=>{const s=document.getElementById('tm-goalLink');if(s){s.value='${g.id}';}},150)" style="width:100%;padding:5px 0;background:rgba(155,143,245,.08);border:1px solid rgba(155,143,245,.2);border-radius:8px;color:var(--p);font-size:10px;font-weight:700;cursor:pointer;margin-bottom:2px">+ Добавить задачу к цели</button>`:'<div style="font-size:11px;color:var(--muted);text-align:center;padding:12px 0">Нет связанных задач<br><span style="color:var(--p);cursor:pointer;font-weight:600" onclick="openTaskModal(null)">+ Добавить</span></div>'}
         </div>
 
+        ${ntChips('goal',g.id)?`<div style="margin:6px 0 2px">${ntChips('goal',g.id)}</div>`:''}
         <div class="goalCardFoot">
           <div style="display:flex;gap:6px">
             <button class="btn btnG" style="padding:4px 10px;font-size:10px" onclick="openGoalModal('${g.id}')">✏️ Изменить</button>
+            <button class="btn btnG" style="padding:4px 10px;font-size:10px" title="В архив" onclick="archiveGoal('${g.id}')">📦</button>
             <button class="goalDelBtn" onclick="delGoal('${g.id}')">🗑️</button>
           </div>
           <div style="display:flex;align-items:center;gap:6px">
@@ -12002,6 +12060,7 @@ async function _goalAchieve(id){
   // Mark all linked tasks done
   tpD().filter(t=>t.goalId===id).forEach(t=>t.done=true);
   g._achievedAt=dk(new Date());
+  g.archived=true;g._archivedAt=dk(new Date()); // уходит в архив, не удаляется
   saveD();
   renderGoals();
   _showGoalCelebration(g,true);
@@ -16588,6 +16647,8 @@ function anlToggleFilter(id){if(!id)anlSetLabels([]);else anlToggleLbl(id);}
 ═══════════════════════════════════ */
 const CMD_ITEMS=[
   {icon:'🏠',label:'Дашборд',shortcut:'',action:()=>navigateTo('dash')},
+  {icon:'📝',label:'Заметки',action:()=>navigateTo('notes')},
+  {icon:'➕',label:'Новая заметка',action:()=>{navigateTo('notes');ntNew()}},
   {icon:'📅',label:'Недельный планировщик',action:()=>navigateTo('weekly')},
   {icon:'✅',label:'Трекер привычек',action:()=>navigateTo('habits')},
   {icon:'📋',label:'Список задач',shortcut:'',action:()=>navigateTo('tasks')},
@@ -21096,6 +21157,121 @@ function _saveNotifPrefs(){
   },300);
 })();
 
+
+/* ═══ GOALS ARCHIVE ═══ */
+function archiveGoal(id){const g=goalsD().find(x=>x.id===id);if(!g)return;g.archived=true;g._archivedAt=dk(new Date());saveD();renderGoals();showSaveStatus('saved','📦 Цель в архиве')}
+function unarchiveGoal(id){const g=goalsD().find(x=>x.id===id);if(!g)return;g.archived=false;delete g._archivedAt;saveD();renderGoals()}
+function renderGoalArchive(list){
+  const a=goalsD().filter(g=>g.archived).sort((x,y)=>(y._archivedAt||'')>(x._archivedAt||'')?1:-1);
+  if(!a.length){list.innerHTML='<div style="padding:40px;text-align:center;color:var(--muted);background:var(--card);border-radius:20px;border:2px dashed var(--border)"><div style="font-size:40px">📦</div><div style="margin-top:8px">Архив пуст. Достигнутые цели попадают сюда сами.</div></div>';return}
+  list.innerHTML=a.map(g=>{const ms=g.milestones||[],d=ms.filter(m=>m.done).length;
+    return `<div class="ntArch"><span style="font-size:20px">${g._achievedAt?'🏆':'📦'}</span>
+    <div style="flex:1;min-width:140px"><div style="font-weight:700;color:var(--text)">${esc(g.title)}</div>
+    <div style="font-size:11px;color:var(--muted)">${g._achievedAt?'Достигнута '+g._achievedAt:'В архиве с '+(g._archivedAt||'')} · шагов ${d}/${ms.length}</div></div>
+    <button class="btn btnG" style="font-size:11px" onclick="unarchiveGoal('${g.id}')">↩ Вернуть</button>
+    <button class="goalDelBtn" onclick="delGoal('${g.id}')">🗑️</button></div>`}).join('');
+}
+
+/* ═══ NOTES ═══ */
+function notesD(){if(!G.notes)G.notes=[];return G.notes}
+let _ntId=null,_ntMode='edit',_ntQ='',_ntTag='',_ntT=null;
+const ntCur=()=>notesD().find(n=>n.id===_ntId);
+const ntFind=t=>notesD().find(n=>(n.title||'').trim().toLowerCase()===String(t).trim().toLowerCase());
+const ntTags=b=>[...new Set([...(b||'').matchAll(/(^|\s)#([\p{L}\d_\/-]+)/gu)].map(m=>m[2]))];
+function ntSaveSoon(){clearTimeout(_ntT);_ntT=setTimeout(()=>{saveD();ntRenderList()},500)}
+function ntNew(links,title){
+  const n={id:uid(),title:title||'Новая заметка',body:'',pinned:false,links:links||[],created:Date.now(),updated:Date.now()};
+  notesD().unshift(n);_ntId=n.id;_ntMode='edit';saveD();renderNotes();
+  setTimeout(()=>{const i=document.querySelector('.ntTitle');if(i){i.focus();i.select()}},50);
+}
+function ntNewFor(type,id){if(typeof closeTaskModal==='function')try{closeTaskModal()}catch(e){};navigateTo('notes');ntNew([{t:type,id}])}
+function ntOpen(id){if(typeof closeTaskModal==='function')try{closeTaskModal()}catch(e){};_ntId=id;navigateTo('notes')}
+function ntGo(title){const n=ntFind(title);if(n){_ntId=n.id}else{ntNew([],title);return}renderNotes()}
+function ntChips(type,id){return notesD().filter(n=>(n.links||[]).some(l=>l.t===type&&l.id===id)).map(n=>`<span class="ntChip" onclick="ntOpen('${n.id}')">📝 ${esc(n.title||'Без названия')}</span>`).join('')}
+function ntInl(t){
+  return t.replace(/`([^`]+)`/g,'<code>$1</code>').replace(/\*\*([^*]+)\*\*/g,'<b>$1</b>')
+   .replace(/(^|[\s(])\*([^*\s][^*]*)\*/g,'$1<i>$2</i>')
+   .replace(/\[\[([^\]]+)\]\]/g,(m,x)=>`<a class="ntLink${ntFind(x.replace(/&amp;/g,'&'))?'':' ntMiss'}" data-t="${x}">${x}</a>`)
+   .replace(/(^|[\s>])#([\p{L}\d_\/-]+)/gu,'$1<span class="ntTag" data-tag="$2">#$2</span>');
+}
+function ntMd(src){
+  let out='',inC=false,list=false;const close=()=>{if(list){out+='</ul>';list=false}};
+  String(src||'').split('\n').forEach((raw,i)=>{
+    if(/^```/.test(raw)){close();out+=inC?'</pre>':'<pre>';inC=!inC;return}
+    if(inC){out+=esc(raw)+'\n';return}
+    const l=esc(raw);let m;
+    if(m=l.match(/^(#{1,3}) (.*)/)){close();out+=`<h${m[1].length}>${ntInl(m[2])}</h${m[1].length}>`}
+    else if(m=l.match(/^\s*[-*] \[([ xX])\] (.*)/)){close();const on=m[1]!==' ';out+=`<label class="ntChk${on?' on':''}"><input type="checkbox" ${on?'checked':''} onchange="ntToggleLn(${i},this.checked)"><span>${ntInl(m[2])}</span></label>`}
+    else if(m=l.match(/^\s*[-*] (.*)/)){if(!list){out+='<ul>';list=true}out+=`<li>${ntInl(m[1])}</li>`}
+    else if(m=l.match(/^&gt; ?(.*)/)){close();out+=`<blockquote>${ntInl(m[1])}</blockquote>`}
+    else if(/^---+$/.test(l)){close();out+='<hr>'}
+    else if(!l.trim()){close();out+='<div class="ntGap"></div>'}
+    else{close();out+=`<p>${ntInl(l)}</p>`}
+  });
+  close();if(inC)out+='</pre>';return out;
+}
+function ntToggleLn(i,c){const n=ntCur();if(!n)return;const ls=n.body.split('\n');ls[i]=ls[i].replace(/^(\s*[-*] \[)[ xX](\])/,'$1'+(c?'x':' ')+'$2');n.body=ls.join('\n');n.updated=Date.now();saveD();renderNotes()}
+function ntPin(){const n=ntCur();if(!n)return;n.pinned=!n.pinned;saveD();renderNotes()}
+function ntMode(m){_ntMode=m;ntRenderEditor()}
+async function ntDel(){const n=ntCur();if(!n||!await appConfirm('Удалить заметку «'+(n.title||'Без названия')+'»?'))return;notesD().splice(notesD().indexOf(n),1);_ntId=null;saveD();renderNotes()}
+function ntUnlink(i){const n=ntCur();if(!n)return;n.links.splice(i,1);saveD();ntRenderEditor()}
+function ntAttach(){
+  const n=ntCur();if(!n)return;
+  const ov=document.createElement('div');
+  ov.style.cssText='position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;background:rgba(5,6,16,.7);padding:20px';
+  ov.innerHTML=`<div style="background:var(--card);border:1px solid var(--border2);border-radius:16px;padding:18px;max-width:380px;width:100%">
+    <div style="font-weight:700;margin-bottom:10px;color:var(--text)">Привязать заметку</div>
+    <select id="ntAttSel" class="inp sel" style="margin-bottom:12px">
+      <optgroup label="Цели">${goalsD().filter(g=>!g.archived).map(g=>`<option value="goal:${g.id}">🎯 ${esc(g.title)}</option>`).join('')}</optgroup>
+      <optgroup label="Задачи">${tpD().filter(t=>!t.done).slice(0,200).map(t=>`<option value="task:${t.id}">✅ ${esc(t.text)}</option>`).join('')}</optgroup>
+    </select>
+    <div style="display:flex;gap:8px;justify-content:flex-end"><button class="btn btnG" id="ntAttNo">Отмена</button><button class="btn btnE" id="ntAttOk">Привязать</button></div></div>`;
+  document.body.appendChild(ov);
+  ov.querySelector('#ntAttNo').onclick=()=>ov.remove();
+  ov.querySelector('#ntAttOk').onclick=()=>{const v=ov.querySelector('#ntAttSel').value;if(v){const i=v.indexOf(':'),t=v.slice(0,i),id=v.slice(i+1);n.links=n.links||[];if(!n.links.some(l=>l.t===t&&l.id===id))n.links.push({t,id});saveD();ntRenderEditor()}ov.remove()};
+}
+function ntRenderList(){
+  const q=_ntQ.trim().toLowerCase();let ns=notesD().slice();
+  const all=new Set();ns.forEach(n=>ntTags(n.body).forEach(t=>all.add(t)));
+  const bar=document.getElementById('ntTagBar'),el=document.getElementById('ntList');if(!el)return;
+  bar.innerHTML=[...all].sort().map(t=>`<span class="ntChip" style="${t===_ntTag?'background:var(--p);color:#000':''}" onclick="_ntTag=_ntTag==='${t}'?'':'${t}';ntRenderList()">#${esc(t)}</span>`).join('');
+  if(_ntTag)ns=ns.filter(n=>ntTags(n.body).includes(_ntTag));
+  if(q)ns=ns.filter(n=>((n.title||'')+' '+(n.body||'')).toLowerCase().includes(q));
+  ns.sort((a,b)=>(b.pinned?1:0)-(a.pinned?1:0)||b.updated-a.updated);
+  el.innerHTML=ns.length?ns.map(n=>`<div class="ntItem${n.id===_ntId?' on':''}" onclick="_ntId='${n.id}';renderNotes()">
+    <b>${n.pinned?'📌 ':''}${esc(n.title||'Без названия')}</b>
+    <small>${new Date(n.updated).toLocaleDateString('ru-RU',{day:'numeric',month:'short'})} · ${esc((n.body||'').replace(/\s+/g,' ').slice(0,50))}${(n.links||[]).length?' · 🔗'+n.links.length:''}</small></div>`).join('')
+    :'<div style="padding:14px;color:var(--muted);font-size:12px;text-align:center">Заметок нет</div>';
+}
+function ntRenderEditor(){
+  const ed=document.getElementById('ntEditor');if(!ed)return;const n=ntCur();
+  if(!n){ed.innerHTML='<div style="text-align:center;padding:60px 10px;color:var(--muted)"><div style="font-size:42px">📝</div><div style="margin:8px 0 14px">Выбери заметку или создай новую</div><button class="btn btnE" onclick="ntNew()">+ Заметка</button></div>';return}
+  const names={goal:id=>(goalsD().find(g=>g.id===id)||{}).title,task:id=>(tpD().find(t=>t.id===id)||{}).text};
+  const links=(n.links||[]).map((l,i)=>{const nm=names[l.t]&&names[l.t](l.id);return nm?`<span class="ntChip">${l.t==='goal'?'🎯':'✅'} ${esc(nm)} <span onclick="ntUnlink(${i})" style="opacity:.7">✕</span></span>`:''}).join('');
+  const back=notesD().filter(x=>x.id!==n.id&&n.title&&(x.body||'').toLowerCase().includes('[['+n.title.trim().toLowerCase()+']]'));
+  ed.innerHTML=`<input class="ntTitle" value="${esc(n.title)}" placeholder="Название" oninput="const n=ntCur();n.title=this.value;n.updated=Date.now();ntSaveSoon()">
+    <div class="ntBar">
+      <button class="btn ${_ntMode==='edit'?'btnE':'btnG'}" style="font-size:11px" onclick="ntMode('edit')">✏️ Правка</button>
+      <button class="btn ${_ntMode==='view'?'btnE':'btnG'}" style="font-size:11px" onclick="ntMode('view')">👁 Просмотр</button>
+      <button class="btn btnG" style="font-size:11px" onclick="ntPin()">${n.pinned?'📌 Закреплена':'📍 Закрепить'}</button>
+      <button class="btn btnG" style="font-size:11px" onclick="ntAttach()">🔗 К задаче / цели</button>
+      <button class="goalDelBtn" onclick="ntDel()">🗑️</button>
+    </div>
+    ${links?`<div style="margin-bottom:10px">${links}</div>`:''}
+    ${_ntMode==='edit'?`<textarea class="ntArea" placeholder="Пиши в markdown: # заголовок, - список, - [ ] чекбокс, [[ссылка на заметку]], #тег" oninput="const n=ntCur();n.body=this.value;n.updated=Date.now();ntSaveSoon()">${esc(n.body)}</textarea>`
+      :`<div class="ntPrev" id="ntPrev">${ntMd(n.body)||'<span style="color:var(--muted)">Пусто</span>'}</div>`}
+    ${back.length?`<div style="margin-top:16px;font-size:11px;color:var(--muted);font-weight:700">↩ ССЫЛАЮТСЯ СЮДА</div><div>${back.map(b=>`<span class="ntChip" onclick="_ntId='${b.id}';renderNotes()">${esc(b.title||'Без названия')}</span>`).join('')}</div>`:''}`;
+  const pv=document.getElementById('ntPrev');
+  if(pv)pv.onclick=e=>{const a=e.target.closest('[data-t]');if(a)return ntGo(a.dataset.t);const g=e.target.closest('[data-tag]');if(g){_ntTag=g.dataset.tag;ntRenderList()}};
+}
+function renderNotes(){if(!_ntId&&notesD().length)_ntId=notesD().slice().sort((a,b)=>(b.pinned?1:0)-(a.pinned?1:0)||b.updated-a.updated)[0].id;ntRenderList();ntRenderEditor()}
+
+// В окне задачи показываем привязанные заметки
+(function(){const o=window.openTaskModal;if(!o)return;window.openTaskModal=function(idx){
+  const r=o.apply(this,arguments);
+  try{const t=idx!=null?tpD()[idx]:null,f=document.getElementById('tm-notesField');
+    if(f){f.style.display=t?'block':'none';if(t)document.getElementById('tm-notesList').innerHTML=ntChips('task',t.id)+`<button class="btn btnG" style="font-size:10px;padding:3px 9px" onclick="ntNewFor('task','${t.id}')">＋ Заметка</button>`}}catch(e){}
+  return r}})();
 </script>
 
 </div><!-- /appWrap -->
