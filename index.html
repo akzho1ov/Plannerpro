@@ -653,6 +653,29 @@ body::before{
 .ntTags{display:flex;gap:5px;flex-wrap:wrap;margin-top:8px}
 .ntArch{display:flex;align-items:center;gap:10px;padding:12px 14px;margin-bottom:8px;background:var(--card);border:1px solid var(--border);border-radius:14px;flex-wrap:wrap}
 @media(max-width:800px){.ntWrap{grid-template-columns:1fr}.ntSide{position:static}.ntList{max-height:240px}}
+.ntBack{display:none}
+.ntSec{font-size:11px;font-weight:700;color:var(--muted);padding:10px 8px 4px;text-transform:uppercase;letter-spacing:.4px}
+.ntItem{border-bottom:1px solid var(--border);border-radius:0}.ntItem.on{border-radius:10px}
+.ntTb{display:flex;gap:4px;flex-wrap:wrap;padding:6px;margin-bottom:10px;background:var(--card2);border:1px solid var(--border);border-radius:12px;position:sticky;top:64px;z-index:5}
+.ntTb button{min-width:32px;height:30px;border:none;border-radius:8px;background:none;color:var(--text2);font-size:13px;font-weight:700;cursor:pointer}
+.ntTb button:hover{background:var(--pdim);color:var(--p)}
+.ntRich{outline:none;min-height:50vh;font-size:15px;line-height:1.7;color:var(--text);padding-bottom:40px}
+.ntRich:empty::before{content:attr(data-ph);color:var(--muted)}
+.ntRich h1{font:800 26px var(--font-display);margin:14px 0 6px}.ntRich h2{font:700 20px var(--font-display);margin:12px 0 4px}
+.ntRich blockquote{border-left:3px solid var(--gold);padding-left:12px;color:var(--text2);margin:6px 0}
+.ntRich pre{background:var(--card2);padding:10px;border-radius:10px;font:12px var(--font-mono);white-space:pre-wrap}
+.ntRich hr{border:none;border-top:1px solid var(--border2);margin:12px 0}
+.ntRich ul,.ntRich ol{padding-left:24px}
+.ntRich ul.ntTodo{list-style:none;padding-left:0}
+.ntRich ul.ntTodo li{position:relative;padding-left:32px;min-height:26px}
+.ntRich ul.ntTodo li::before{content:'';position:absolute;left:4px;top:.45em;width:16px;height:16px;border:2px solid var(--muted);border-radius:50%;cursor:pointer}
+.ntRich ul.ntTodo li[data-d]::before{background:var(--gold);border-color:var(--gold)}
+.ntRich ul.ntTodo li[data-d]{color:var(--muted);text-decoration:line-through}
+#ntSlash{position:fixed;z-index:9998;width:230px;background:var(--card3);border:1px solid var(--border2);border-radius:12px;box-shadow:var(--shadow2);padding:4px;max-height:280px;overflow:auto}
+#ntSlash div{display:flex;gap:10px;align-items:center;padding:7px 9px;border-radius:8px;font-size:13px;color:var(--text);cursor:pointer}
+#ntSlash div span{width:24px;text-align:center;color:var(--p);font-weight:700}
+#ntSlash div.on,#ntSlash div:hover{background:var(--pdim)}
+@media(max-width:800px){.ntBack{display:inline-flex}.ntList{max-height:none}.ntWrap:not(.ntOpen) .ntEd{display:none}.ntWrap.ntOpen .ntSide{display:none}.ntTb{top:56px}}
 @keyframes paneIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
 @keyframes cardIn{from{opacity:0;transform:translateY(12px) scale(.98)}to{opacity:1;transform:translateY(0) scale(1)}}
 @media(max-width:700px){.pane{padding:12px 12px 90px}}
@@ -21272,6 +21295,150 @@ function renderNotes(){if(!_ntId&&notesD().length)_ntId=notesD().slice().sort((a
   try{const t=idx!=null?tpD()[idx]:null,f=document.getElementById('tm-notesField');
     if(f){f.style.display=t?'block':'none';if(t)document.getElementById('tm-notesList').innerHTML=ntChips('task',t.id)+`<button class="btn btnG" style="font-size:10px;padding:3px 9px" onclick="ntNewFor('task','${t.id}')">＋ Заметка</button>`}}catch(e){}
   return r}})();
+
+/* ═══ NOTES v2 — WYSIWYG как Apple Notes / Notion ═══ */
+let _ntMob=false,_ntFolder='',_ntSl=null,_ntRange=null;
+const ntClean=h=>typeof DOMPurify!=='undefined'?DOMPurify.sanitize(h,{ADD_ATTR:['data-t','data-d','data-tag']}):h;
+const NT_CMDS=[['Текст','p','¶'],['Заголовок 1','h1','H1'],['Заголовок 2','h2','H2'],['Список','ul','•'],['Нумерованный список','ol','1.'],['Список задач','todo','○'],['Цитата','blockquote','❝'],['Код','pre','</>'],['Разделитель','hr','—'],['Ссылка на заметку','link','🔗']];
+function ntFolders(){return [...new Set([...(G.noteFolders||[]),...notesD().map(n=>n.folder).filter(Boolean)])]}
+function ntMd(src){ // markdown → HTML редактора (для старых заметок)
+  let out='',st=null,inC=false;const close=()=>{if(st){out+='</ul>';st=null}};
+  const open=t=>{if(st!==t){close();out+=t==='todo'?'<ul class="ntTodo">':'<ul>';st=t}};
+  String(src||'').split('\n').forEach(raw=>{
+    if(/^```/.test(raw)){close();out+=inC?'</pre>':'<pre>';inC=!inC;return}
+    if(inC){out+=esc(raw)+'\n';return}
+    const l=esc(raw);let m;
+    if(m=l.match(/^(#{1,3}) (.*)/)){close();const k=Math.min(m[1].length,2);out+=`<h${k}>${ntInl(m[2])}</h${k}>`}
+    else if(m=l.match(/^\s*[-*] \[([ xX])\] (.*)/)){open('todo');out+=`<li${m[1]!==' '?' data-d':''}>${ntInl(m[2])}</li>`}
+    else if(m=l.match(/^\s*[-*] (.*)/)){open('ul');out+=`<li>${ntInl(m[1])}</li>`}
+    else if(m=l.match(/^&gt; ?(.*)/)){close();out+=`<blockquote>${ntInl(m[1])}</blockquote>`}
+    else if(/^---+$/.test(l)){close();out+='<hr>'}
+    else if(l.trim()){close();out+=`<p>${ntInl(l)}</p>`}
+  });
+  close();if(inC)out+='</pre>';return out;
+}
+function ntEnsure(n){if(n.html==null)n.html=ntMd(n.body||'');return n.html}
+function ntNew(links,title){
+  const n={id:uid(),title:title||'Новая заметка',body:'',html:'',folder:_ntFolder||'',pinned:false,links:links||[],created:Date.now(),updated:Date.now()};
+  notesD().unshift(n);_ntId=n.id;_ntMob=true;saveD();renderNotes();
+  setTimeout(()=>{const i=document.querySelector('.ntTitle');if(i){i.focus();i.select()}},50);
+}
+function ntOpen(id){if(typeof closeTaskModal==='function')try{closeTaskModal()}catch(e){};_ntId=id;_ntMob=true;navigateTo('notes')}
+function ntGo(t){const n=ntFind(t);if(n){_ntId=n.id;_ntMob=true;renderNotes()}else ntNew([],t)}
+function ntApplyMob(){const w=document.querySelector('.ntWrap');if(w)w.classList.toggle('ntOpen',!!_ntMob)}
+function ntSetFolder(v){const n=ntCur();if(!n)return;
+  if(v==='__new'){const f=(prompt('Название папки')||'').trim();if(f){G.noteFolders=G.noteFolders||[];if(!G.noteFolders.includes(f))G.noteFolders.push(f);n.folder=f}}else n.folder=v;
+  saveD();renderNotes()}
+function ntRenderList(){
+  const q=_ntQ.trim().toLowerCase();let ns=notesD().slice();const el=document.getElementById('ntList');if(!el)return;
+  const tags=new Set();ns.forEach(n=>ntTags(n.body).forEach(t=>tags.add(t)));
+  document.getElementById('ntTagBar').innerHTML=
+    `<span class="ntChip" style="${!_ntFolder?'background:var(--p);color:#000':''}" onclick="_ntFolder='';ntRenderList()">📁 Все</span>`+
+    ntFolders().map(f=>`<span class="ntChip" style="${f===_ntFolder?'background:var(--p);color:#000':''}" onclick="_ntFolder=_ntFolder===this.dataset.f?'':this.dataset.f;ntRenderList()" data-f="${esc(f)}">📁 ${esc(f)}</span>`).join('')+
+    `<span class="ntChip" onclick="const f=(prompt('Название папки')||'').trim();if(f){G.noteFolders=G.noteFolders||[];G.noteFolders.push(f);_ntFolder=f;saveD();ntRenderList()}">＋</span>`+
+    [...tags].sort().map(t=>`<span class="ntChip" style="${t===_ntTag?'background:var(--p);color:#000':''}" onclick="_ntTag=_ntTag==='${t}'?'':'${t}';ntRenderList()">#${esc(t)}</span>`).join('');
+  if(_ntFolder)ns=ns.filter(n=>n.folder===_ntFolder);
+  if(_ntTag)ns=ns.filter(n=>ntTags(n.body).includes(_ntTag));
+  if(q)ns=ns.filter(n=>((n.title||'')+' '+(n.body||'')).toLowerCase().includes(q));
+  ns.sort((a,b)=>(b.pinned?1:0)-(a.pinned?1:0)||b.updated-a.updated);
+  const sod=new Date().setHours(0,0,0,0),day=864e5;
+  const grp=n=>n.pinned?'📌 Закреплённые':n.updated>=sod?'Сегодня':n.updated>=sod-6*day?'Последние 7 дней':'Ранее';
+  let last='';
+  el.innerHTML=ns.length?ns.map(n=>{const g=grp(n),h=g!==last?`<div class="ntSec">${g}</div>`:'';last=g;
+    const d=new Date(n.updated),when=n.updated>=sod?d.toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'}):d.toLocaleDateString('ru-RU',{day:'numeric',month:'short'});
+    return h+`<div class="ntItem${n.id===_ntId?' on':''}" onclick="_ntId='${n.id}';_ntMob=true;renderNotes()"><b>${esc(n.title||'Без названия')}</b>
+    <small>${when} ${esc((n.body||'').replace(/\s+/g,' ').slice(0,60))||'Нет текста'}${(n.links||[]).length?' · 🔗':''}</small></div>`}).join('')
+    :'<div style="padding:14px;color:var(--muted);font-size:12px;text-align:center">Заметок нет</div>';
+}
+function ntRenderEditor(){
+  const ed=document.getElementById('ntEditor');if(!ed)return;const n=ntCur();
+  if(!n){ed.innerHTML='<button class="btn btnG ntBack" onclick="_ntMob=false;ntApplyMob()">‹ Заметки</button><div style="text-align:center;padding:60px 10px;color:var(--muted)"><div style="font-size:42px">📝</div><div style="margin:8px 0 14px">Выбери заметку или создай новую</div><button class="btn btnE" onclick="ntNew()">+ Заметка</button></div>';return}
+  const nm={goal:id=>(goalsD().find(g=>g.id===id)||{}).title,task:id=>(tpD().find(t=>t.id===id)||{}).text};
+  const links=(n.links||[]).map((l,i)=>{const x=nm[l.t]&&nm[l.t](l.id);return x?`<span class="ntChip">${l.t==='goal'?'🎯':'✅'} ${esc(x)} <span onclick="ntUnlink(${i})" style="opacity:.7">✕</span></span>`:''}).join('');
+  const key='data-t="'+esc((n.title||'').trim()).toLowerCase()+'"';
+  const back=notesD().filter(x=>x.id!==n.id&&n.title&&ntEnsure(x).toLowerCase().includes(key));
+  const tb=(c,l,t)=>`<button title="${t}" onmousedown="event.preventDefault();ntCmd('${c}')">${l}</button>`;
+  ed.innerHTML=`<div class="ntBar"><button class="btn btnG ntBack" onclick="_ntMob=false;ntApplyMob()">‹ Заметки</button>
+      <select class="inp sel" style="width:auto;font-size:11px" onchange="ntSetFolder(this.value)"><option value="">📁 Без папки</option>${ntFolders().map(f=>`<option ${f===n.folder?'selected':''}>${esc(f)}</option>`).join('')}<option value="__new">＋ Новая папка…</option></select>
+      <button class="btn btnG" style="font-size:11px" onclick="ntPin()">${n.pinned?'📌 Закреплена':'📍 Закрепить'}</button>
+      <button class="btn btnG" style="font-size:11px" onclick="ntAttach()">🔗 К задаче / цели</button>
+      <button class="goalDelBtn" onclick="ntDel()">🗑️</button></div>
+    <input class="ntTitle" value="${esc(n.title)}" placeholder="Название" onkeydown="if(event.key==='Enter'){event.preventDefault();document.getElementById('ntRich').focus()}" oninput="const n=ntCur();n.title=this.value;n.updated=Date.now();ntSaveSoon()">
+    ${links?`<div style="margin-bottom:8px">${links}</div>`:''}
+    <div class="ntTb">${tb('bold','<b>B</b>','Жирный')}${tb('italic','<i>I</i>','Курсив')}${tb('h1','H1','Заголовок')}${tb('h2','H2','Подзаголовок')}${tb('ul','•','Список')}${tb('todo','○','Чекбоксы')}${tb('blockquote','❝','Цитата')}${tb('link','🔗','Ссылка на заметку')}</div>
+    <div class="ntRich" id="ntRich" contenteditable="true" data-ph="Начни писать… «/» — меню блоков"></div>
+    ${back.length?`<div style="margin-top:16px;font-size:11px;color:var(--muted);font-weight:700">↩ ССЫЛАЮТСЯ СЮДА</div><div>${back.map(b=>`<span class="ntChip" onclick="_ntId='${b.id}';renderNotes()">${esc(b.title||'Без названия')}</span>`).join('')}</div>`:''}`;
+  const r=document.getElementById('ntRich');r.innerHTML=ntClean(ntEnsure(n));
+  r.oninput=ntInput;r.onkeydown=ntKey;r.onblur=()=>setTimeout(ntSlashHide,150);
+  r.onclick=e=>{const a=e.target.closest('a[data-t]');if(a){ntGo(a.dataset.t);return}
+    const li=e.target.closest('li');if(li&&e.target===li&&li.parentElement.classList.contains('ntTodo')&&e.offsetX<28){li.toggleAttribute('data-d');ntInput()}};
+}
+function renderNotes(){
+  if(!_ntId&&notesD().length&&innerWidth>800)_ntId=notesD().slice().sort((a,b)=>(b.pinned?1:0)-(a.pinned?1:0)||b.updated-a.updated)[0].id;
+  ntRenderList();ntRenderEditor();ntApplyMob();
+}
+function ntInput(){
+  const n=ntCur(),r=document.getElementById('ntRich');if(!n||!r)return;
+  ntMdShortcut();n.html=r.innerHTML;n.body=r.innerText;n.updated=Date.now();ntSaveSoon();ntSlash();
+}
+function ntSelEl(){const s=getSelection();const x=s.anchorNode;return x?(x.nodeType===3?x.parentElement:x):null}
+function ntCmd(c){
+  const r=document.getElementById('ntRich');if(!r)return;r.focus();const ex=(a,b)=>document.execCommand(a,false,b);
+  if(c==='bold'||c==='italic')ex(c);
+  else if(['h1','h2','blockquote','pre','p'].includes(c)){const cur=String(document.queryCommandValue('formatBlock')).toLowerCase();ex('formatBlock',cur===c?'p':c)}
+  else if(c==='ul'||c==='ol')ex(c==='ul'?'insertUnorderedList':'insertOrderedList');
+  else if(c==='todo'){const ul=ntSelEl()&&ntSelEl().closest('ul');if(ul)ul.classList.toggle('ntTodo');else{ex('insertUnorderedList');const u=ntSelEl()&&ntSelEl().closest('ul');if(u)u.classList.add('ntTodo')}}
+  else if(c==='hr')ex('insertHorizontalRule');
+  else if(c==='link'){ntLinkPick();return}
+  ntInput();
+}
+function ntMdShortcut(){
+  const s=getSelection();if(!s.rangeCount||!s.isCollapsed)return;const nd=s.anchorNode;if(!nd||nd.nodeType!==3||nd.textContent.length!==s.anchorOffset)return;
+  const c={'# ':'h1','## ':'h2','- ':'ul','* ':'ul','[] ':'todo','1. ':'ol','> ':'blockquote'}[nd.textContent.replace(/\u00a0/g,' ')];
+  if(c){nd.textContent='';ntCmd(c)}
+}
+function ntSlash(){
+  const s=getSelection();if(!s.rangeCount||!s.isCollapsed)return ntSlashHide();const nd=s.anchorNode;if(!nd||nd.nodeType!==3)return ntSlashHide();
+  const m=nd.textContent.slice(0,s.anchorOffset).match(/(?:^|\s)\/([^\s\/]*)$/);if(!m)return ntSlashHide();
+  const q=m[1].toLowerCase(),items=NT_CMDS.filter(c=>c[0].toLowerCase().includes(q));if(!items.length)return ntSlashHide();
+  let rc=s.getRangeAt(0).getBoundingClientRect();if(!rc.height)rc=nd.parentElement.getBoundingClientRect();
+  _ntSl={nd,off:s.anchorOffset,len:q.length+1,q,items,i:_ntSl&&_ntSl.q===q?_ntSl.i:0,x:rc.left,y:rc.bottom};ntSlashDraw();
+}
+function ntSlashDraw(){
+  let m=document.getElementById('ntSlash');if(!m){m=document.createElement('div');m.id='ntSlash';document.body.appendChild(m)}
+  m.style.left=Math.min(_ntSl.x,innerWidth-240)+'px';m.style.top=Math.min(_ntSl.y+4,innerHeight-290)+'px';
+  m.innerHTML=_ntSl.items.map((c,k)=>`<div class="${k===_ntSl.i?'on':''}" onmousedown="event.preventDefault();ntSlashPick(${k})"><span>${c[2]}</span>${c[0]}</div>`).join('');
+}
+function ntSlashHide(){_ntSl=null;const m=document.getElementById('ntSlash');if(m)m.remove()}
+function ntSlashPick(k){
+  const sl=_ntSl;if(!sl)return;const c=sl.items[k];const r=document.createRange();
+  r.setStart(sl.nd,sl.off-sl.len);r.setEnd(sl.nd,sl.off);r.deleteContents();
+  const s=getSelection();s.removeAllRanges();r.collapse(true);s.addRange(r);ntSlashHide();ntCmd(c[1]);
+}
+function ntKey(e){
+  if(_ntSl){
+    if(e.key==='ArrowDown'||e.key==='ArrowUp'){e.preventDefault();_ntSl.i=(_ntSl.i+(e.key==='ArrowDown'?1:-1)+_ntSl.items.length)%_ntSl.items.length;ntSlashDraw();return}
+    if(e.key==='Enter'||e.key==='Tab'){e.preventDefault();ntSlashPick(_ntSl.i);return}
+    if(e.key==='Escape'){ntSlashHide();return}
+  }
+  if(e.key==='Enter')setTimeout(()=>{const li=ntSelEl()&&ntSelEl().closest('li');if(li&&li.parentElement.classList.contains('ntTodo')&&li.hasAttribute('data-d')&&!li.textContent.trim())li.removeAttribute('data-d')},0);
+}
+function ntLinkPick(){
+  const s=getSelection();_ntRange=s.rangeCount?s.getRangeAt(0).cloneRange():null;const cur=ntCur();
+  const ov=document.createElement('div');ov.style.cssText='position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;background:rgba(5,6,16,.7);padding:20px';
+  ov.innerHTML=`<div style="background:var(--card);border:1px solid var(--border2);border-radius:16px;padding:18px;max-width:380px;width:100%">
+    <div style="font-weight:700;margin-bottom:10px;color:var(--text)">Ссылка на заметку</div>
+    <select id="ntLkSel" class="inp sel" style="margin-bottom:8px"><option value="">— выбрать —</option>${notesD().filter(x=>x.id!==cur.id).map(x=>`<option>${esc(x.title)}</option>`).join('')}</select>
+    <input id="ntLkNew" class="inp" placeholder="…или название новой заметки" style="margin-bottom:12px">
+    <div style="display:flex;gap:8px;justify-content:flex-end"><button class="btn btnG" id="ntLkNo">Отмена</button><button class="btn btnE" id="ntLkOk">Вставить</button></div></div>`;
+  document.body.appendChild(ov);ov.querySelector('#ntLkNo').onclick=()=>ov.remove();
+  ov.querySelector('#ntLkOk').onclick=()=>{
+    const t=(ov.querySelector('#ntLkNew').value.trim()||ov.querySelector('#ntLkSel').value);ov.remove();if(!t)return;
+    if(!ntFind(t))notesD().unshift({id:uid(),title:t,body:'',html:'',folder:cur.folder||'',pinned:false,links:[],created:Date.now(),updated:Date.now()});
+    const r=document.getElementById('ntRich');r.focus();if(_ntRange){const s=getSelection();s.removeAllRanges();s.addRange(_ntRange)}
+    document.execCommand('insertHTML',false,`<a class="ntLink" data-t="${esc(t)}">${esc(t)}</a>&nbsp;`);ntInput();ntRenderList();
+  };
+}
 </script>
 
 </div><!-- /appWrap -->
