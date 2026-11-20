@@ -723,6 +723,8 @@ body::before{
 .ntRich ul.ntTodo ul.ntTodo{padding-left:0}
 .ntRich ul.ntTodo li[style*="list-style-type: none"]::before,.ntRich ul.ntTodo li:has(>ul:only-child)::before{display:none}
 .ntRich ul.ntTodo li[style*="list-style-type: none"]{padding-left:0}
+.ntRich [data-lv="1"]{margin-left:26px}.ntRich [data-lv="2"]{margin-left:52px}.ntRich [data-lv="3"]{margin-left:78px}.ntRich [data-lv="4"]{margin-left:104px}.ntRich [data-lv="5"]{margin-left:130px}
+.ntRich li[data-lv]{transition:margin .12s}
 @media(max-width:800px){
   #tab-notes{max-width:100%;overflow-x:hidden}
   .ntWrap{grid-template-columns:minmax(0,1fr);width:100%}
@@ -21653,6 +21655,22 @@ ntFixTaps();
 {const _d=ntSlashDraw;ntSlashDraw=function(){_d();document.querySelectorAll('#ntSlash div').forEach(d=>{
   const m=(d.getAttribute('onmousedown')||'').match(/ntSlashPick\((\d+)\)/);
   if(m){d.setAttribute('onmousedown','event.preventDefault()');d.setAttribute('onclick',`ntSlashPick(${m[1]})`)}})}}
+
+/* ═══ NOTES v7 — собственные отступы (работают одинаково на iOS/Android/ПК) ═══ */
+function ntIndent(out){
+  const r=document.getElementById('ntRich');if(!r)return;r.focus();
+  const s=getSelection();if(!s.rangeCount)return;const rg=s.getRangeAt(0),el=ntSelEl();if(!el||!r.contains(el))return;
+  let bl=[...r.querySelectorAll('li')].filter(li=>rg.intersectsNode(li)&&!li.querySelector('li'));
+  if(!bl.length){const b=el.closest('p,div:not(.ntCallout),h1,h2,blockquote');if(b&&b!==r)bl=[b]}
+  if(!bl.length)return;
+  bl.forEach(b=>{const lv=Math.max(0,Math.min(5,(+b.dataset.lv||0)+(out?-1:1)));lv?b.dataset.lv=lv:b.removeAttribute('data-lv')});
+  ntInput();
+}
+// Backspace в пустом вложенном пункте — сначала убирает отступ
+{const _k=ntKey;ntKey=function(e){
+  if(e.key==='Backspace'){const li=ntSelEl()&&ntSelEl().closest('li');
+    if(li&&li.dataset.lv&&!li.textContent.trim()){e.preventDefault();ntIndent(true);return}}
+  return _k(e)}}
 </script>
 
 </div><!-- /appWrap -->
