@@ -719,6 +719,12 @@ body::before{
   .ntWrap.ntEditing .ntTb{display:flex}
   #ntSlash{width:min(260px,86vw)}
 }
+@media(max-width:800px){
+  #tab-notes{max-width:100%;overflow-x:hidden}
+  .ntWrap{grid-template-columns:minmax(0,1fr);width:100%}
+  .ntSide,.ntEd,.ntList,.ntItem{min-width:0;max-width:100%;box-sizing:border-box}
+  .ntItem b,.ntItem small{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+}
 @keyframes paneIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
 @keyframes cardIn{from{opacity:0;transform:translateY(12px) scale(.98)}to{opacity:1;transform:translateY(0) scale(1)}}
 @media(max-width:700px){.pane{padding:12px 12px 90px}}
@@ -21335,7 +21341,7 @@ function renderNotes(){if(!_ntId&&notesD().length)_ntId=notesD().slice().sort((a
 // В окне задачи показываем привязанные заметки
 (function(){const o=window.openTaskModal;if(!o)return;window.openTaskModal=function(idx){
   const r=o.apply(this,arguments);
-  try{const t=idx!=null?tpD()[idx]:null,f=document.getElementById('tm-notesField');
+  try{const t=(typeof idx==='string'&&idx&&idx!=='-1')?tpD().find(x=>x.id===idx):(typeof idx==='number'&&idx>=0?tpD()[idx]:null),f=document.getElementById('tm-notesField');
     if(f){f.style.display=t?'block':'none';if(t)document.getElementById('tm-notesList').innerHTML=ntChips('task',t.id)+`<button class="btn btnG" style="font-size:10px;padding:3px 9px" onclick="ntNewFor('task','${t.id}')">＋ Заметка</button>`}}catch(e){}
   return r}})();
 
@@ -21397,7 +21403,7 @@ function ntRenderEditor(){
   const ed=document.getElementById('ntEditor');if(!ed)return;const n=ntCur();
   if(!n){ed.innerHTML='<button class="btn btnG ntBack" onclick="_ntMob=false;ntApplyMob()">‹ Заметки</button><div style="text-align:center;padding:60px 10px;color:var(--muted)"><div style="font-size:42px">📝</div><div style="margin:8px 0 14px">Выбери заметку или создай новую</div><button class="btn btnE" onclick="ntNew()">+ Заметка</button></div>';return}
   const nm={goal:id=>(goalsD().find(g=>g.id===id)||{}).title,task:id=>(tpD().find(t=>t.id===id)||{}).text};
-  const links=(n.links||[]).map((l,i)=>{const x=nm[l.t]&&nm[l.t](l.id);return x?`<span class="ntChip">${l.t==='goal'?'🎯':'✅'} ${esc(x)} <span onclick="ntUnlink(${i})" style="opacity:.7">✕</span></span>`:''}).join('');
+  const links=(n.links||[]).map((l,i)=>{const x=nm[l.t]&&nm[l.t](l.id);return x?`<span class="ntChip" style="padding:6px 6px 6px 12px;font-size:12px" onclick="ntOpenLink('${l.t}','${l.id}')">${l.t==='goal'?'🎯':'✅'} ${esc(x)} <span onclick="event.stopPropagation();ntUnlink(${i})" style="padding:0 8px;opacity:.7">✕</span></span>`:''}).join('');
   const key='data-t="'+esc((n.title||'').trim()).toLowerCase()+'"';
   const back=notesD().filter(x=>x.id!==n.id&&n.title&&ntEnsure(x).toLowerCase().includes(key));
   const tb=(c,l,t)=>`<button title="${t}" onmousedown="event.preventDefault();ntCmd('${c}')">${l}</button>`;
@@ -21613,6 +21619,8 @@ function ntGraph(){
 {const _d=ntSlashDraw;ntSlashDraw=function(){_d();const m=document.getElementById('ntSlash');if(!m||!_ntSl)return;
   const v=window.visualViewport,vh=v?v.height+v.offsetTop:innerHeight,h=m.offsetHeight;
   if(_ntSl.y+h+12>vh)m.style.top=Math.max(8,_ntSl.y-h-28)+'px'}}
+
+function ntOpenLink(t,id){if(t==='task'&&typeof openTaskModal==='function')openTaskModal(id);else navigateTo('goals')}
 </script>
 
 </div><!-- /appWrap -->
