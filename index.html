@@ -719,6 +719,10 @@ body::before{
   .ntWrap.ntEditing .ntTb{display:flex}
   #ntSlash{width:min(260px,86vw)}
 }
+.ntRich ul ul,.ntRich ol ol,.ntRich ul ol,.ntRich ol ul{padding-left:22px;margin:2px 0}
+.ntRich ul.ntTodo ul.ntTodo{padding-left:0}
+.ntRich ul.ntTodo li[style*="list-style-type: none"]::before,.ntRich ul.ntTodo li:has(>ul:only-child)::before{display:none}
+.ntRich ul.ntTodo li[style*="list-style-type: none"]{padding-left:0}
 @media(max-width:800px){
   #tab-notes{max-width:100%;overflow-x:hidden}
   .ntWrap{grid-template-columns:minmax(0,1fr);width:100%}
@@ -21621,6 +21625,34 @@ function ntGraph(){
   if(_ntSl.y+h+12>vh)m.style.top=Math.max(8,_ntSl.y-h-28)+'px'}}
 
 function ntOpenLink(t,id){if(t==='task'&&typeof openTaskModal==='function')openTaskModal(id);else navigateTo('goals')}
+
+/* ═══ NOTES v6 — вложенность (Tab / отступ) + надёжные тапы ═══ */
+function ntIndent(out){
+  const r=document.getElementById('ntRich');if(!r)return;r.focus();
+  const el=ntSelEl(),li=el&&el.closest('li');
+  if(li){document.execCommand(out?'outdent':'indent');
+    r.querySelectorAll('ul.ntTodo ul:not(.ntTodo)').forEach(u=>u.classList.add('ntTodo'))}
+  else if(!out)document.execCommand('insertText',false,'\u00a0\u00a0\u00a0\u00a0');
+  ntInput();
+}
+{const _c=ntCmd;ntCmd=function(c){if(c==='indent'||c==='outdent'){ntIndent(c==='outdent');return}return _c(c)}}
+{const _k=ntKey;ntKey=function(e){
+  if(e.key==='Tab'&&!_ntSl){e.preventDefault();ntIndent(e.shiftKey);return}
+  return _k(e)}}
+// кнопки отступа + тап вместо mousedown (на iOS mousedown на кнопках ненадёжен)
+function ntFixTaps(){
+  const tb=document.querySelector('.ntTb');
+  if(tb&&!tb.querySelector('[data-ind]'))tb.insertAdjacentHTML('beforeend',
+    `<button data-ind title="Убрать вложенность" onmousedown="event.preventDefault()" onclick="ntCmd('outdent')">⇤</button><button data-ind title="Сделать вложенным (Tab)" onmousedown="event.preventDefault()" onclick="ntCmd('indent')">⇥</button>`);
+  document.querySelectorAll('.ntTb button:not([data-ind]),#ntBub button').forEach(b=>{
+    const m=(b.getAttribute('onmousedown')||'').match(/ntCmd\('(\w+)'\)/);
+    if(m){b.setAttribute('onmousedown','event.preventDefault()');b.setAttribute('onclick',`ntCmd('${m[1]}')`)}});
+}
+{const _r=ntRenderEditor;ntRenderEditor=function(){_r();ntFixTaps()}}
+ntFixTaps();
+{const _d=ntSlashDraw;ntSlashDraw=function(){_d();document.querySelectorAll('#ntSlash div').forEach(d=>{
+  const m=(d.getAttribute('onmousedown')||'').match(/ntSlashPick\((\d+)\)/);
+  if(m){d.setAttribute('onmousedown','event.preventDefault()');d.setAttribute('onclick',`ntSlashPick(${m[1]})`)}})}}
 </script>
 
 </div><!-- /appWrap -->
