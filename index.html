@@ -694,6 +694,31 @@ body::before{
 #ntBub{position:fixed;z-index:9997;display:none;gap:2px;padding:4px;background:var(--card3);border:1px solid var(--border2);border-radius:12px;box-shadow:var(--shadow2)}
 #ntBub button{min-width:30px;height:28px;border:none;border-radius:8px;background:none;color:var(--text);font-size:12px;font-weight:700;cursor:pointer}
 #ntBub button:hover{background:var(--pdim);color:var(--p)}
+.ntFab{display:none}
+@media(hover:none){#ntBub{display:none!important}}
+@media(max-width:800px){
+  #tab-notes{animation:none!important;transform:none!important}
+  #tab-notes .paneSubtitle{display:none}
+  .ntSide{padding:10px;border:none;background:none}
+  .ntSide input{font-size:16px!important}
+  .ntTags{flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:4px;scrollbar-width:none}
+  .ntTags .ntChip{white-space:nowrap;flex-shrink:0;padding:6px 12px;font-size:12px}
+  .ntItem{padding:13px 8px}.ntItem b{font-size:15px}.ntItem small{font-size:12px}
+  .ntFab{display:flex;position:fixed;right:18px;bottom:calc(88px + env(safe-area-inset-bottom));width:56px;height:56px;border-radius:50%;border:none;align-items:center;justify-content:center;font-size:28px;background:var(--p);color:#000;box-shadow:0 8px 24px rgba(0,0,0,.4);z-index:40}
+  .ntEd{padding:12px;min-height:calc(100vh - 150px);border-radius:16px}
+  .ntCover{margin:-12px -12px 8px}.ntCover.has{height:100px}
+  .ntIcon{font-size:40px}.ntIcon.up{margin-top:-26px}
+  .ntTitle{font-size:24px!important}
+  .ntBar{flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;position:sticky;top:0;z-index:6;background:var(--card);padding:6px 0;margin-bottom:6px}
+  .ntBar>*{flex-shrink:0}.ntBar select{font-size:16px!important;max-width:150px}
+  .ntBar button[onclick="ntFocus()"]{display:none}
+  .ntRich{font-size:16px;padding-bottom:calc(90px + env(safe-area-inset-bottom))}
+  .ntRich ul.ntTodo li{padding-left:36px;min-height:32px}.ntRich ul.ntTodo li::before{width:20px;height:20px;left:4px;top:.3em}
+  .ntTb{display:none;position:fixed;left:0;right:0;bottom:var(--ntKb,0px);top:auto;margin:0;border-radius:14px 14px 0 0;border-width:1px 0 0;flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;z-index:60;padding:6px 8px calc(6px + env(safe-area-inset-bottom));background:var(--card3)}
+  .ntTb button{min-width:42px;height:38px;flex-shrink:0;font-size:15px}
+  .ntWrap.ntEditing .ntTb{display:flex}
+  #ntSlash{width:min(260px,86vw)}
+}
 @keyframes paneIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
 @keyframes cardIn{from{opacity:0;transform:translateY(12px) scale(.98)}to{opacity:1;transform:translateY(0) scale(1)}}
 @media(max-width:700px){.pane{padding:12px 12px 90px}}
@@ -21569,6 +21594,25 @@ function ntGraph(){
     if(o.k==='n')ntOpen(o.id);else navigateTo('goals');
   };
 }
+
+/* ═══ NOTES v5 — мобильная адаптация ═══ */
+(function(){
+  const vv=window.visualViewport;
+  if(vv){const f=()=>document.documentElement.style.setProperty('--ntKb',Math.max(0,innerHeight-vv.height-vv.offsetTop)+'px');vv.addEventListener('resize',f);vv.addEventListener('scroll',f);f()}
+  document.addEventListener('focusin',e=>{if(e.target.id==='ntRich'){const w=document.querySelector('.ntWrap');if(w)w.classList.add('ntEditing')}});
+  document.addEventListener('focusout',e=>{if(e.target.id==='ntRich')setTimeout(()=>{const a=document.activeElement;if(!a||a.id!=='ntRich'){const w=document.querySelector('.ntWrap');if(w)w.classList.remove('ntEditing')}},250)});
+  // свайп от левого края — назад к списку (как в iOS)
+  let sx=0,sy=0;
+  document.addEventListener('touchstart',e=>{sx=e.touches[0].clientX;sy=e.touches[0].clientY},{passive:true});
+  document.addEventListener('touchend',e=>{const t=e.changedTouches[0],p=document.getElementById('tab-notes');
+    if(_ntMob&&innerWidth<=800&&sx<28&&t.clientX-sx>90&&Math.abs(t.clientY-sy)<60&&p&&p.classList.contains('on')){_ntMob=false;ntApplyMob()}},{passive:true});
+})();
+{let last=false;const _a=ntApplyMob;ntApplyMob=function(){_a();if(_ntMob!==last){last=_ntMob;window.scrollTo(0,0)}}}
+{const _r=ntRenderEditor;ntRenderEditor=function(){_r();const s=document.querySelector('.ntSide');if(s&&!s.querySelector('.ntFab'))s.insertAdjacentHTML('beforeend','<button class="ntFab" onclick="ntNew()" aria-label="Новая заметка">＋</button>')}}
+// меню «/» не должно прятаться под клавиатурой
+{const _d=ntSlashDraw;ntSlashDraw=function(){_d();const m=document.getElementById('ntSlash');if(!m||!_ntSl)return;
+  const v=window.visualViewport,vh=v?v.height+v.offsetTop:innerHeight,h=m.offsetHeight;
+  if(_ntSl.y+h+12>vh)m.style.top=Math.max(8,_ntSl.y-h-28)+'px'}}
 </script>
 
 </div><!-- /appWrap -->
