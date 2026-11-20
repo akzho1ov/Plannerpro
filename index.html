@@ -676,6 +676,24 @@ body::before{
 #ntSlash div span{width:24px;text-align:center;color:var(--p);font-weight:700}
 #ntSlash div.on,#ntSlash div:hover{background:var(--pdim)}
 @media(max-width:800px){.ntBack{display:inline-flex}.ntList{max-height:none}.ntWrap:not(.ntOpen) .ntEd{display:none}.ntWrap.ntOpen .ntSide{display:none}.ntTb{top:56px}}
+.ntEd{position:relative;overflow:hidden;box-shadow:var(--shadow);background:linear-gradient(180deg,var(--card),var(--card2))}
+.ntTitle{font-size:32px!important;letter-spacing:-.5px}
+.ntCover{margin:-16px -16px 10px;height:34px;position:relative}
+.ntCover.has{height:150px;box-shadow:inset 0 -40px 40px -20px rgba(0,0,0,.35)}
+.ntCovBtns{position:absolute;right:12px;bottom:6px;display:flex;gap:6px;opacity:0;transition:.2s}
+.ntCover:hover .ntCovBtns{opacity:1}@media(hover:none){.ntCovBtns{opacity:1}}
+.ntCovBtns button{border:1px solid var(--border2);background:rgba(10,12,22,.7);backdrop-filter:blur(8px);color:var(--text);border-radius:8px;padding:4px 10px;font-size:11px;cursor:pointer}
+.ntIcon{font-size:52px;line-height:1;cursor:pointer;display:inline-block;margin-bottom:4px;transition:transform .15s}.ntIcon:hover{transform:scale(1.1) rotate(-4deg)}
+.ntIcon.up{margin-top:-34px;position:relative;filter:drop-shadow(0 4px 10px rgba(0,0,0,.4))}
+.ntStat{font-size:11px;color:var(--muted);font-family:var(--font-mono);border-top:1px solid var(--border);padding-top:8px}
+.ntTpl{display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-bottom:10px;font-size:12px;color:var(--muted)}
+.ntCallout{background:var(--pdim);border:1px solid var(--border-glow);border-radius:12px;padding:10px 14px 10px 42px;position:relative;margin:8px 0}
+.ntCallout::before{content:'💡';position:absolute;left:14px;top:9px}
+.ntRich mark,.ntRich span[style*="background"]{border-radius:4px;padding:0 2px}
+.ntWrap.ntFocus{grid-template-columns:1fr}.ntWrap.ntFocus .ntSide{display:none}.ntWrap.ntFocus .ntEd{max-width:780px;margin:0 auto;width:100%}
+#ntBub{position:fixed;z-index:9997;display:none;gap:2px;padding:4px;background:var(--card3);border:1px solid var(--border2);border-radius:12px;box-shadow:var(--shadow2)}
+#ntBub button{min-width:30px;height:28px;border:none;border-radius:8px;background:none;color:var(--text);font-size:12px;font-weight:700;cursor:pointer}
+#ntBub button:hover{background:var(--pdim);color:var(--p)}
 @keyframes paneIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
 @keyframes cardIn{from{opacity:0;transform:translateY(12px) scale(.98)}to{opacity:1;transform:translateY(0) scale(1)}}
 @media(max-width:700px){.pane{padding:12px 12px 90px}}
@@ -21437,6 +21455,118 @@ function ntLinkPick(){
     if(!ntFind(t))notesD().unshift({id:uid(),title:t,body:'',html:'',folder:cur.folder||'',pinned:false,links:[],created:Date.now(),updated:Date.now()});
     const r=document.getElementById('ntRich');r.focus();if(_ntRange){const s=getSelection();s.removeAllRanges();s.addRange(_ntRange)}
     document.execCommand('insertHTML',false,`<a class="ntLink" data-t="${esc(t)}">${esc(t)}</a>&nbsp;`);ntInput();ntRenderList();
+  };
+}
+
+/* ═══ NOTES v3 — WOW ═══ */
+const NT_COV=['linear-gradient(135deg,#7c3aed,#ec4899)','linear-gradient(135deg,#0ea5e9,#22d3ee)','linear-gradient(135deg,#f59e0b,#ef4444)','linear-gradient(135deg,#10b981,#06b6d4)','linear-gradient(135deg,#6366f1,#8b5cf6,#d946ef)','linear-gradient(135deg,#1e293b,#475569)','linear-gradient(135deg,#f472b6,#fb923c)','linear-gradient(135deg,#14b8a6,#a3e635)'];
+const NT_EMO=['📝','💡','🎯','🚀','📚','🧠','💼','💰','🏋️','🌱','❤️','🎨','🔥','⭐','📅','✅','🛠️','🧩','🌍','🎧'];
+const NT_TPL=[
+ ['📅 День','<h2>🎯 Фокус дня</h2><ul class="ntTodo"><li><br></li><li><br></li><li><br></li></ul><h2>📝 Заметки</h2><p><br></p><h2>🌙 Итоги</h2><div class="ntCallout">Что получилось? Что улучшить завтра?</div>','День'],
+ ['🤝 Встреча','<h2>Повестка</h2><ul><li><br></li></ul><h2>Решения</h2><div class="ntCallout">Главное решение встречи</div><h2>Задачи</h2><ul class="ntTodo"><li><br></li></ul>','Встреча'],
+ ['💡 Идея','<div class="ntCallout">Суть идеи в одном предложении</div><h2>Зачем</h2><p><br></p><h2>Следующие шаги</h2><ul class="ntTodo"><li><br></li></ul>','Идея'],
+ ['✅ План','<h2>Цель</h2><p><br></p><h2>Шаги</h2><ul class="ntTodo"><li><br></li></ul><h2>Риски</h2><ul><li><br></li></ul>','План']];
+NT_CMDS.push(['Выноска','callout','💡'],['Сегодняшняя дата','date','📅']);
+
+function ntDecorate(){
+  const ed=document.getElementById('ntEditor'),n=ntCur();if(!ed||!n)return;
+  const ti=ed.querySelector('.ntTitle'),bar=ed.querySelector('.ntBar'),r=document.getElementById('ntRich');if(!ti||!r)return;
+  const cv=n.cover;
+  ed.insertAdjacentHTML('afterbegin',`<div class="ntCover${cv!=null?' has':''}" style="${cv!=null?'background:'+NT_COV[cv%NT_COV.length]:''}"><span class="ntCovBtns"><button onclick="ntCover(1)">${cv!=null?'🎨 Сменить':'🖼 Обложка'}</button>${cv!=null?'<button onclick="ntCover(-1)">✕</button>':''}</span></div>`);
+  ti.insertAdjacentHTML('beforebegin',`<div class="ntIcon${cv!=null?' up':''}" onclick="ntIconPick()">${n.icon||'📝'}</div>`);
+  bar.insertAdjacentHTML('beforeend','<button class="btn btnG" style="font-size:11px" onclick="ntFocus()">⛶ Фокус</button><button class="btn btnG" style="font-size:11px" onclick="ntExport()">⬇ .md</button>');
+  if(!(n.body||'').trim())r.insertAdjacentHTML('beforebegin',`<div class="ntTpl"><span>Шаблон:</span>${NT_TPL.map((t,i)=>`<span class="ntChip" onclick="ntTpl(${i})">${t[0]}</span>`).join('')}</div>`);
+  r.insertAdjacentHTML('afterend','<div class="ntStat" id="ntStat"></div>');ntStat();
+}
+function ntStat(){
+  const n=ntCur(),el=document.getElementById('ntStat');if(!n||!el)return;
+  const w=(n.body||'').trim().split(/\s+/).filter(Boolean).length;
+  el.textContent=`${w} слов · ~${Math.max(1,Math.round(w/200))} мин чтения · изменено ${new Date(n.updated).toLocaleString('ru-RU',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})}`;
+}
+function ntCover(d){const n=ntCur();if(!n)return;n.cover=d<0?null:((n.cover==null?-1:n.cover)+1)%NT_COV.length;saveD();ntRenderEditor()}
+function ntIconPick(){
+  const n=ntCur();if(!n)return;
+  const ov=document.createElement('div');ov.style.cssText='position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;background:rgba(5,6,16,.7);padding:20px';
+  ov.innerHTML=`<div style="background:var(--card);border:1px solid var(--border2);border-radius:16px;padding:14px;display:grid;grid-template-columns:repeat(5,1fr);gap:6px">${NT_EMO.map(e=>`<button style="font-size:28px;background:none;border:none;cursor:pointer;padding:6px;border-radius:10px">${e}</button>`).join('')}</div>`;
+  document.body.appendChild(ov);ov.onclick=e=>{if(e.target===ov)ov.remove();else if(e.target.tagName==='BUTTON'){n.icon=e.target.textContent;saveD();ov.remove();renderNotes()}};
+}
+function ntTpl(i){
+  const n=ntCur(),t=NT_TPL[i];if(!n)return;n.html=t[1];n.body=t[1].replace(/<[^>]+>/g,' ');
+  if(n.title==='Новая заметка')n.title=t[2]+' · '+new Date().toLocaleDateString('ru-RU',{day:'numeric',month:'long'});
+  n.updated=Date.now();saveD();renderNotes();
+}
+function ntFocus(){const w=document.querySelector('.ntWrap');if(w)w.classList.toggle('ntFocus')}
+function ntExport(){
+  const n=ntCur(),r=document.getElementById('ntRich');if(!n||!r)return;
+  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob(['# '+n.title+'\n\n'+r.innerText],{type:'text/markdown'}));
+  a.download=(n.title||'note').replace(/[\\\/:*?"<>|]/g,'_')+'.md';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+}
+{const _r=ntRenderEditor;ntRenderEditor=function(){_r();ntDecorate()}}
+{const _i=ntInput;ntInput=function(){_i();ntStat()}}
+{const _l=ntRenderList;ntRenderList=function(){_l();document.querySelectorAll('#ntList .ntItem').forEach(el=>{
+  const id=((el.getAttribute('onclick')||'').match(/_ntId='([^']+)'/)||[])[1],n=notesD().find(x=>x.id===id);
+  if(n&&n.icon)el.querySelector('b').insertAdjacentText('afterbegin',n.icon+' ')})}}
+{const _c=ntCmd;ntCmd=function(c){
+  const r=document.getElementById('ntRich');if(!r)return;const ex=(a,b)=>document.execCommand(a,false,b);
+  if(c==='hl'){r.focus();ex('hiliteColor','rgba(245,180,40,.4)')}
+  else if(c==='strike'||c==='underline'){r.focus();ex(c==='strike'?'strikeThrough':'underline')}
+  else if(c==='callout'){r.focus();ex('insertHTML','<div class="ntCallout">Текст выноски</div><p><br></p>')}
+  else if(c==='date'){r.focus();ex('insertText',new Date().toLocaleDateString('ru-RU',{weekday:'long',day:'numeric',month:'long'}))}
+  else return _c(c);
+  ntInput();
+}}
+// Плавающая панель при выделении текста
+(function(){
+  const b=document.createElement('div');b.id='ntBub';
+  b.innerHTML=[['bold','<b>B</b>'],['italic','<i>I</i>'],['underline','<u>U</u>'],['strike','<s>S</s>'],['hl','🖍'],['h1','H1'],['h2','H2'],['ul','•'],['todo','○'],['link','🔗']].map(x=>`<button onmousedown="event.preventDefault();ntCmd('${x[0]}')">${x[1]}</button>`).join('');
+  document.body.appendChild(b);
+  document.addEventListener('selectionchange',()=>{
+    const r=document.getElementById('ntRich'),s=getSelection();
+    if(!r||!s.rangeCount||s.isCollapsed||!r.contains(s.anchorNode)){b.style.display='none';return}
+    const rc=s.getRangeAt(0).getBoundingClientRect();if(!rc.width){b.style.display='none';return}
+    b.style.display='flex';b.style.top=Math.max(8,rc.top-46)+'px';b.style.left=Math.max(8,Math.min(innerWidth-b.offsetWidth-8,rc.left+rc.width/2-b.offsetWidth/2))+'px';
+  });
+})();
+
+/* ═══ NOTES v4 — карта связей ═══ */
+function ntAddBtn(){const h=document.querySelector('#tab-notes .paneHeadActions');if(h&&!h.querySelector('.ntGB'))h.insertAdjacentHTML('afterbegin','<button class="btn btnG ntGB" onclick="ntGraph()">🕸 Карта</button> ')}
+{const _r=ntRenderEditor;ntRenderEditor=function(){_r();ntAddBtn()}}
+function ntGraph(){
+  const ns=notesD(),nodes=[],idx={},edges=[],W=800,H=520;
+  ns.forEach(n=>{idx['n'+n.id]=nodes.length;nodes.push({id:n.id,k:'n',t:(n.icon?n.icon+' ':'')+(n.title||'Без названия'),d:0,vx:0,vy:0})});
+  ns.forEach(a=>{
+    const h=ntEnsure(a).toLowerCase();
+    ns.forEach(b=>{if(a!==b&&b.title&&h.includes('data-t="'+esc(b.title.trim()).toLowerCase()+'"'))edges.push([idx['n'+a.id],idx['n'+b.id]])});
+    (a.links||[]).forEach(l=>{const g=l.t==='goal'&&goalsD().find(x=>x.id===l.id);if(!g)return;
+      const k='g'+l.id;if(!(k in idx)){idx[k]=nodes.length;nodes.push({id:l.id,k:'g',t:'🎯 '+g.title,d:0,vx:0,vy:0})}edges.push([idx['n'+a.id],idx[k]])});
+  });
+  const ov=document.createElement('div');
+  ov.style.cssText='position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;background:rgba(5,6,16,.82);padding:16px;backdrop-filter:blur(6px)';
+  if(!nodes.length){ov.innerHTML='<div style="background:var(--card);padding:30px;border-radius:16px;color:var(--muted)">Пока нет заметок для карты</div>';ov.onclick=()=>ov.remove();document.body.appendChild(ov);return}
+  nodes.forEach((o,i)=>{const a=i/nodes.length*6.283;o.x=W/2+Math.cos(a)*220;o.y=H/2+Math.sin(a)*170});
+  edges.forEach(([a,b])=>{nodes[a].d++;nodes[b].d++});
+  for(let it=0;it<260;it++){
+    nodes.forEach(o=>{o.fx=(W/2-o.x)*.012;o.fy=(H/2-o.y)*.012});
+    for(let i=0;i<nodes.length;i++)for(let j=i+1;j<nodes.length;j++){
+      const a=nodes[i],b=nodes[j];let dx=a.x-b.x,dy=a.y-b.y;const d2=Math.max(dx*dx+dy*dy,30),f=9000/d2,d=Math.sqrt(d2);
+      dx/=d;dy/=d;a.fx+=dx*f;a.fy+=dy*f;b.fx-=dx*f;b.fy-=dy*f}
+    edges.forEach(([i,j])=>{const a=nodes[i],b=nodes[j],dx=b.x-a.x,dy=b.y-a.y,d=Math.sqrt(dx*dx+dy*dy)||1,f=(d-110)*.035;
+      a.fx+=dx/d*f;a.fy+=dy/d*f;b.fx-=dx/d*f;b.fy-=dy/d*f});
+    nodes.forEach(o=>{o.vx=(o.vx+o.fx)*.85;o.vy=(o.vy+o.fy)*.85;o.x=Math.max(40,Math.min(W-40,o.x+o.vx));o.y=Math.max(30,Math.min(H-30,o.y+o.vy))});
+  }
+  const svg=`<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:100%;max-height:70vh">
+    ${edges.map(([a,b])=>`<line x1="${nodes[a].x}" y1="${nodes[a].y}" x2="${nodes[b].x}" y2="${nodes[b].y}" stroke="var(--border2)" stroke-width="1.5"/>`).join('')}
+    ${nodes.map((o,i)=>`<g style="cursor:pointer" data-i="${i}"><circle cx="${o.x}" cy="${o.y}" r="${Math.min(7+o.d*2.5,18)}" fill="${o.k==='g'?'var(--gold)':'var(--p)'}" opacity=".9"/>
+      <text x="${o.x}" y="${o.y+Math.min(7+o.d*2.5,18)+13}" text-anchor="middle" font-size="11" fill="var(--text)">${esc(o.t.length>22?o.t.slice(0,21)+'…':o.t)}</text></g>`).join('')}</svg>`;
+  ov.innerHTML=`<div style="background:var(--card);border:1px solid var(--border2);border-radius:20px;padding:16px;width:100%;max-width:920px;box-shadow:var(--shadow2)">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px"><b style="font-size:16px;color:var(--text);flex:1">🕸 Карта связей</b>
+    <span style="font-size:11px;color:var(--muted)"><span style="color:var(--p)">●</span> заметки &nbsp;<span style="color:var(--gold)">●</span> цели &nbsp;· ${edges.length} связей</span>
+    <button class="btn btnG" id="ntGx">✕</button></div>${svg}</div>`;
+  document.body.appendChild(ov);
+  ov.onclick=e=>{
+    if(e.target===ov||e.target.id==='ntGx'){ov.remove();return}
+    const g=e.target.closest('g[data-i]');if(!g)return;const o=nodes[+g.dataset.i];ov.remove();
+    if(o.k==='n')ntOpen(o.id);else navigateTo('goals');
   };
 }
 </script>
