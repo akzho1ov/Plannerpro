@@ -6105,7 +6105,10 @@ window.addEventListener('error',ev=>{if(isFsAssertion(ev.error||ev.message)){fsS
       the revision we loaded. Stale copy -> write is BLOCKED, user is asked.
    2) Rolling local backups in IndexedDB (daily / weekly / before-risky-events).
 ──────────────────────────────────────────────────── */
-const APP_VER='2026-11-21c';
+const APP_VER='2026-11-21d';
+let _lastSyncErr=null;      // {at,code,msg} — shown in diagnostics and on the red dot
+let _retryTimer=null;
+function _simpleWrite(){try{return localStorage.getItem('pp_simple_write')==='1';}catch{return false;}}
 let _lastServerJson=null;   // content of the cloud doc as last seen (order-insensitive)
 function _sj(o){
   const f=v=>Array.isArray(v)?v.map(f):(v&&typeof v==='object'?Object.keys(v).sort().reduce((r,k)=>{r[k]=f(v[k]);return r;},{}):v);
@@ -6232,7 +6235,7 @@ function setSyncDot(state){
   clearTimeout(_syncWd);
   d.className='syncDot'+(state==='syncing'?' syncing':state==='error'?' error':'');
   const offline=!navigator.onLine;
-  d.title=state==='error'?'Ошибка синхронизации — повторю автоматически':offline?'Нет сети — сохранено локально, отправится при подключении':state==='syncing'?'Сохранение...':'Синхронизировано';
+  d.title=state==='error'?('Ошибка синхронизации'+(_lastSyncErr?': '+_lastSyncErr.code+' '+String(_lastSyncErr.msg).slice(0,80):'')+' — нажми 🛟 для диагностики'):offline?'Нет сети — сохранено локально, отправится при подключении':state==='syncing'?'Сохранение...':'Синхронизировано';
   // Firestore keeps data locally, so a slow ack must not leave the dot yellow forever
   if(state==='syncing'&&!offline){
     _syncWd=setTimeout(()=>{if(navigator.onLine)setSyncDot('ok');},3500);
@@ -6459,6 +6462,7 @@ function subscribeCloud(){
   }, err=>{
     clearTimeout(_connectTimeout);
     console.warn('Snapshot error',err.code,err.message);
+    _lastSyncErr={at:Date.now(),code:err.code||'error',msg:'listener: '+(err.message||'')};
     if(isFsAssertion(err)){fsSelfHeal();return;}
     // Only show red dot for auth/permission errors; network errors show yellow
     if(err.code==='permission-denied'||err.code==='unauthenticated'){
@@ -6539,7 +6543,8 @@ function saveD(){
       const ref=db.collection('users').doc(currentUser.uid);
       const force=_forceNextSave;
       let newRev=0;
-      await db.runTransaction(async tx=>{
+      if(_simpleWrite()){newRev=Math.max(_baseRev,0)+1;payload._rev=newRev;payload._wVer=APP_VER;payload._wDev=_DEV;payload._wAt=Date.now();await ref.set(payload);}
+      else await db.runTransaction(async tx=>{
         const sn=await tx.get(ref);
         const sd=sn.exists?sn.data():null;
         const sr=sd?(sd._rev||0):0;
@@ -6568,6 +6573,7 @@ function saveD(){
       showSaveStatus('saved','✓ Сохранено');
     }catch(e){
       console.warn('[saveD] Firestore error:',e.code||'',e.message||e);
+      _lastSyncErr={at:Date.now(),code:e.code||'error',msg:e.message||String(e)};
       if(isFsAssertion(e)){
         setSyncDot('syncing');
         fsSelfHeal();
@@ -6579,6 +6585,7 @@ function saveD(){
       } else if(e.code==='unavailable'||e.code==='deadline-exceeded'||!navigator.onLine){
         setSyncDot('syncing');
         showSaveStatus('error','⚡ Нет сети — сохранено локально');
+        clearTimeout(_retryTimer);_retryTimer=setTimeout(()=>{try{saveD();}catch{}},15000);   // keep trying until the cloud accepts
       } else if(e.code==='permission-denied'||e.code==='unauthenticated'){
         setSyncDot('error');
         showSaveStatus('error','⛔ Нет доступа — проверь Firebase Rules');
@@ -21923,7 +21930,10 @@ async function bkOpen(){
      UID: <b>${currentUser?esc(currentUser.uid):'—'}</b><br>
      Версия данных: <b>${_baseRev}</b> · связь с облаком: <b>${_serverConfirmed?'подтверждена':'нет'}</b><br>
      Последняя запись в облако: ${G&&G._wAt?new Date(G._wAt).toLocaleString('ru-RU')+' · версия '+esc(String(G._wVer||'?'))+' · устр. '+esc(String(G._wDev||'?')):'нет данных (писала старая версия файла)'}
-     <div style="margin-top:8px"><button class="btn btnE" id="bkPull">☁️ Подтянуть данные из облака сейчас</button></div></div>
+     Последняя ошибка: <b>${_lastSyncErr?esc(_lastSyncErr.code+' · '+String(_lastSyncErr.msg).slice(0,140)+' · '+new Date(_lastSyncErr.at).toLocaleTimeString('ru-RU')):'нет'}</b><br>
+     Состояние: онлайн=${navigator.onLine} · конфликт=${_conflictOpen} · идёт запись=${_isSaving} · режим простой записи=${_simpleWrite()?'ВКЛ':'выкл'}
+     <div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap"><button class="btn btnE" id="bkTest">🔬 Тест синхронизации</button><button class="btn btnE" id="bkPull">☁️ Подтянуть из облака</button><button class="btn btnG" id="bkSimple">${_simpleWrite()?'Выключить':'Включить'} простую запись</button></div>
+     <pre id="bkTestOut" style="white-space:pre-wrap;margin:8px 0 0;font-size:11px;color:var(--text2,#ccc)"></pre></div>
    <div style="display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap"><button class="btn btnE" id="bkNow">💾 Копия сейчас</button><button class="btn btnG" id="bkFile">⬇ Скачать файл (текущие данные)</button></div>
    ${src.map((s,i)=>`<div style="border:1px solid var(--border,#333);border-radius:12px;padding:10px;margin-bottom:8px"><b>${esc(s[0])}</b>
      <div style="color:var(--muted,#999);margin:4px 0 8px;word-break:break-word">${esc(bkSum(s[1]))}</div>
@@ -21932,6 +21942,33 @@ async function bkOpen(){
   document.body.appendChild(ov);
   ov.onclick=async e=>{
     if(e.target===ov||e.target.id==='bkX'){ov.remove();return}
+    if(e.target.id==='bkSimple'){
+      const on=_simpleWrite();
+      if(!on&&!confirm('Простая запись отключает проверку версий: устройство со старой копией сможет затереть облако. Включай только если обычная запись не работает. Включить?'))return;
+      try{localStorage.setItem('pp_simple_write',on?'0':'1');}catch(x){}
+      e.target.textContent=on?'Выключено — открой 🛟 заново':'Включено — открой 🛟 заново';return;
+    }
+    if(e.target.id==='bkTest'){
+      const out=ov.querySelector('#bkTestOut');const L=[];const P=()=>{out.textContent=L.join('\n')};
+      L.push('Запускаю…');P();
+      try{
+        if(!currentUser){L.push('✗ Нет входа в аккаунт');P();return;}
+        L.push('Онлайн: '+navigator.onLine+' · слушатель облака: '+(_cloudListener?'есть':'НЕТ')+' · данные загружены: '+_appReady);
+        let t=Date.now();
+        const sn=await db.collection('users').doc(currentUser.uid).get({source:'server'});
+        L.push('✓ Чтение с сервера: '+(Date.now()-t)+' мс');
+        if(sn.exists){const d=sn.data();
+          L.push('  облако: версия '+(d._rev||0)+' · '+Math.round(JSON.stringify(d).length/1024)+' КБ · писал: '+(d._wVer||'старая версия')+' / '+(d._wDev||'?')+' / '+(d._wAt?new Date(d._wAt).toLocaleString('ru-RU'):'?'));
+          L.push('  моя версия данных: '+_baseRev+' · '+(_baseRev===(d._rev||0)?'совпадает':'НЕ совпадает → запись будет заблокирована (конфликт)'));
+          L.push('  содержимое такое же как в облаке: '+(_sj(G)===_sj(d)?'да':'нет'));
+        }else L.push('  документа в облаке нет');
+        t=Date.now();
+        await db.collection('users').doc(currentUser.uid).set({_ping:Date.now()},{merge:true});
+        L.push('✓ Простая запись (права/сеть): '+(Date.now()-t)+' мс');
+        L.push(_conflictOpen?'⚠ Сохранения на паузе из-за конфликта: нажми красную точку и выбери вариант':'Итог: сеть и права в порядке');
+      }catch(x){L.push('✗ ОШИБКА: '+(x.code||'')+' '+(x.message||x));}
+      P();return;
+    }
     if(e.target.id==='bkPull'){
       try{await bkAuto('event','перед ручной загрузкой из облака',G);
         const sn=await db.collection('users').doc(currentUser.uid).get({source:'server'});
