@@ -6105,6 +6105,13 @@ window.addEventListener('error',ev=>{if(isFsAssertion(ev.error||ev.message)){fsS
       the revision we loaded. Stale copy -> write is BLOCKED, user is asked.
    2) Rolling local backups in IndexedDB (daily / weekly / before-risky-events).
 ──────────────────────────────────────────────────── */
+const APP_VER='2026-11-21c';
+let _lastServerJson=null;   // content of the cloud doc as last seen (order-insensitive)
+function _sj(o){
+  const f=v=>Array.isArray(v)?v.map(f):(v&&typeof v==='object'?Object.keys(v).sort().reduce((r,k)=>{r[k]=f(v[k]);return r;},{}):v);
+  try{return JSON.stringify(f(o));}catch{return '';}
+}
+let _DEV='';try{_DEV=localStorage.getItem('pp_dev')||'';if(!_DEV){_DEV=Math.random().toString(36).slice(2,8);localStorage.setItem('pp_dev',_DEV);}}catch{}
 let _baseRev=0;            // cloud revision our G is based on
 let _lastWrittenRev=0;
 let _serverConfirmed=false;
@@ -6116,6 +6123,7 @@ let _lastConflictInfo=null;
 function _adopt(data){
   G=data||{};
   _baseRev=(G&&G._rev)||0;
+  _lastServerJson=_sj(G);
   try{restorePhotosFromLocal();}catch{}
   try{localStorage.setItem(SKEY+'_cache',JSON.stringify(G));}catch{}
 }
@@ -6430,17 +6438,22 @@ function subscribeCloud(){
       _adopt(incoming);_appReady=true;hideLoader();initApp();
       setSyncDot('ok');bkSchedule();return;
     }
-    if(_isSaving||inRev===_lastWrittenRev){setSyncDot('ok');return;}   // echo of our own write
+    if(_isSaving){setSyncDot('ok');return;}
+    const sj=_sj(incoming);
+    if(_lastServerJson===null&&inRev===_lastWrittenRev){_lastServerJson=sj;setSyncDot('ok');return;}   // echo of our own write
 
+    // Someone else changed the cloud doc (also catches OLD app versions that don't bump the revision)
+    const changed=_lastServerJson!==null&&sj!==_lastServerJson;
     // Legacy doc (no revision yet): local copy may be stale -> trust the server, keep local in backup
-    const legacyDiffers=firstSrv&&inRev===0&&_baseRev===0&&JSON.stringify(G)!==JSON.stringify(incoming);
-    if(inRev>_baseRev||legacyDiffers){
+    const legacyDiffers=firstSrv&&inRev===0&&_baseRev===0&&_sj(G)!==sj;
+    if(inRev>_baseRev||legacyDiffers||changed){
       bkAuto('event',legacyDiffers?'локальная копия до загрузки из облака':'перед получением новых данных из облака',G);
       _adopt(incoming);
       try{invalidateTabCache();}catch{}
       reRenderCurrentTab();
       showSaveStatus('saved','↓ Синхронизировано');
     }
+    if(_lastServerJson===null)_lastServerJson=sj;
     setSyncDot('ok');
     bkSchedule();
   }, err=>{
@@ -6543,10 +6556,12 @@ function saveD(){
         }
         newRev=Math.max(sr,_baseRev)+1;
         payload._rev=newRev;
+        payload._wVer=APP_VER;payload._wDev=_DEV;payload._wAt=Date.now();
         tx.set(ref,payload);
       });
       _forceNextSave=false;
-      _baseRev=newRev;_lastWrittenRev=newRev;G._rev=newRev;
+      _baseRev=newRev;_lastWrittenRev=newRev;G._rev=newRev;_lastServerJson=null;
+      G._wVer=APP_VER;G._wDev=_DEV;G._wAt=payload._wAt;
       try{localStorage.setItem(SKEY+'_cache',JSON.stringify(G));}catch{}
       _saveRetry=0;
       setSyncDot('ok');
@@ -6672,6 +6687,7 @@ auth.onAuthStateChanged(async(user)=>{
       if(cached){
         G=JSON.parse(cached)||{};
         _baseRev=(G&&G._rev)||0;
+        _lastServerJson=_sj(G);
         loaderStep('Загрузка...',70);
         _appReady=true;
         hideLoader();
@@ -21900,6 +21916,14 @@ async function bkOpen(){
   ov.innerHTML=`<div style="background:var(--card,#14162b);border:1px solid var(--border2,#333);border-radius:18px;padding:16px;max-width:560px;width:100%;color:var(--text,#fff);font-size:13px">
    <div style="display:flex;align-items:center;margin-bottom:6px"><b style="font-size:17px;flex:1">🛟 Резервные копии</b><button class="btn btnG" id="bkX">✕</button></div>
    <div style="color:var(--muted,#999);margin-bottom:10px">Копии делаются сами: раз в сутки, раз в неделю и перед рискованными событиями (конфликт, загрузка новых данных, починка кэша). Сначала скачай копию с нужными данными, потом восстанавливай. Аккаунт: ${currentUser?esc(currentUser.email||currentUser.uid):'не выполнен вход'}</div>
+   <div style="border:1px solid var(--border2,#444);border-radius:12px;padding:10px;margin-bottom:10px;font-size:12px;line-height:1.6;word-break:break-all">
+     <b>Диагностика синхронизации</b><br>
+     Версия файла: <b>${APP_VER}</b> · устройство: <b>${_DEV}</b><br>
+     Аккаунт: <b>${currentUser?esc(currentUser.email||'без email'):'—'}</b> · вход: ${currentUser&&currentUser.providerData&&currentUser.providerData[0]?esc(currentUser.providerData[0].providerId):'—'}<br>
+     UID: <b>${currentUser?esc(currentUser.uid):'—'}</b><br>
+     Версия данных: <b>${_baseRev}</b> · связь с облаком: <b>${_serverConfirmed?'подтверждена':'нет'}</b><br>
+     Последняя запись в облако: ${G&&G._wAt?new Date(G._wAt).toLocaleString('ru-RU')+' · версия '+esc(String(G._wVer||'?'))+' · устр. '+esc(String(G._wDev||'?')):'нет данных (писала старая версия файла)'}
+     <div style="margin-top:8px"><button class="btn btnE" id="bkPull">☁️ Подтянуть данные из облака сейчас</button></div></div>
    <div style="display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap"><button class="btn btnE" id="bkNow">💾 Копия сейчас</button><button class="btn btnG" id="bkFile">⬇ Скачать файл (текущие данные)</button></div>
    ${src.map((s,i)=>`<div style="border:1px solid var(--border,#333);border-radius:12px;padding:10px;margin-bottom:8px"><b>${esc(s[0])}</b>
      <div style="color:var(--muted,#999);margin:4px 0 8px;word-break:break-word">${esc(bkSum(s[1]))}</div>
@@ -21908,6 +21932,14 @@ async function bkOpen(){
   document.body.appendChild(ov);
   ov.onclick=async e=>{
     if(e.target===ov||e.target.id==='bkX'){ov.remove();return}
+    if(e.target.id==='bkPull'){
+      try{await bkAuto('event','перед ручной загрузкой из облака',G);
+        const sn=await db.collection('users').doc(currentUser.uid).get({source:'server'});
+        if(sn.exists){_adopt(sn.data());_serverConfirmed=true;try{invalidateTabCache();}catch(x){}reRenderCurrentTab();setSyncDot('ok');e.target.textContent='✓ Загружено (версия '+_baseRev+')';}
+        else e.target.textContent='В облаке пусто';
+      }catch(x){e.target.textContent='Ошибка: '+(x.code||x.message);}
+      return;
+    }
     if(e.target.id==='bkNow'){const ok=await bkAuto('event','вручную',G);e.target.textContent=ok?'✓ Сохранено':'Уже есть такая копия';return}
     if(e.target.id==='bkFile'){bkSave(G,'plannerpro-backup-'+dk(new Date())+'.json');try{localStorage.setItem('pp_last_export',String(Date.now()))}catch(x){}return}
     const d=e.target.dataset;if(d.dl!=null)bkSave(src[d.dl][1],'planner-'+src[d.dl][2]+'.json');
