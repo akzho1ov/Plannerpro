@@ -21,10 +21,10 @@
 <!-- DOMPurify — sanitizes innerHTML -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.1.5/purify.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 <!-- Firebase -->
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-storage-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-storage-compat.js"></script>
 <script>
 // ⬇️ ТВОЙ Firebase config (замени на свой из Firebase Console → Project Settings)
 const firebaseConfig = {
@@ -39,12 +39,13 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
+try{ db.settings({ignoreUndefinedProperties:true, experimentalAutoDetectLongPolling:true, merge:true}); }catch(e){ console.warn('Firestore settings',e); }
 const storage = firebase.storage();
 window._fbStorage = storage; // expose for use in functions
 let currentUser = null;
 
 // ── Offline persistence — data available without internet ──
-db.enablePersistence({synchronizeTabs:true}).catch(e=>{
+db.enablePersistence().catch(e=>{
   if(e.code==='failed-precondition'){
     // Multiple tabs open — only one can use persistence at a time, acceptable
     console.warn('Firestore persistence: multiple tabs open');
@@ -6071,13 +6072,40 @@ function showSaveStatus(state,msg){
   clearTimeout(el._t);
   el._t=setTimeout(()=>{el.className=''},2500);
 }
+/* ── Firestore self-heal ─────────────────────────────
+   "INTERNAL ASSERTION FAILED" = broken IndexedDB cache in the SDK.
+   Fix: terminate client → clear local cache → reload (once per 10 min).
+   Unsaved data is kept in localStorage cache and restored after reload.
+──────────────────────────────────────────────────── */
+function isFsAssertion(e){
+  const m=String((e&&(e.message||e.reason&&e.reason.message))||e||'');
+  return m.includes('INTERNAL ASSERTION FAILED');
+}
+let _healing=false;
+async function fsSelfHeal(){
+  if(_healing)return;
+  let last=0;try{last=+sessionStorage.getItem('pp_heal_ts')||0;}catch{}
+  if(Date.now()-last<600000){console.warn('[heal] already tried recently');return;}
+  _healing=true;
+  try{sessionStorage.setItem('pp_heal_ts',String(Date.now()));}catch{}
+  try{localStorage.setItem('pp_heal_restore','1');}catch{}
+  try{showSaveStatus('error','♻️ Чиню кэш базы, перезагрузка...');}catch{}
+  try{if(_cloudListener){_cloudListener();_cloudListener=null;}}catch{}
+  try{await db.terminate();}catch(e){console.warn('[heal] terminate',e);}
+  try{await db.clearPersistence();}catch(e){console.warn('[heal] clearPersistence',e);}
+  setTimeout(()=>location.reload(),400);
+}
+window.addEventListener('unhandledrejection',ev=>{if(isFsAssertion(ev.reason)){ev.preventDefault();fsSelfHeal();}});
+window.addEventListener('error',ev=>{if(isFsAssertion(ev.error||ev.message)){fsSelfHeal();}});
+
+let _saveRetry=0;
 let _syncWd=null;
 function setSyncDot(state){
   const d=document.getElementById('syncDot');if(!d)return;
   clearTimeout(_syncWd);
   d.className='syncDot'+(state==='syncing'?' syncing':state==='error'?' error':'');
   const offline=!navigator.onLine;
-  d.title=state==='error'?'Ошибка доступа к облаку':offline?'Нет сети — сохранено локально, отправится при подключении':state==='syncing'?'Сохранение...':'Синхронизировано';
+  d.title=state==='error'?'Ошибка синхронизации — повторю автоматически':offline?'Нет сети — сохранено локально, отправится при подключении':state==='syncing'?'Сохранение...':'Синхронизировано';
   // Firestore keeps data locally, so a slow ack must not leave the dot yellow forever
   if(state==='syncing'&&!offline){
     _syncWd=setTimeout(()=>{if(navigator.onLine)setSyncDot('ok');},3500);
@@ -6265,11 +6293,20 @@ function subscribeCloud(){
       try{const _old=localStorage.getItem(SKEY+'_cache');
         if(_old&&_old.length>JSON.stringify(incoming).length*1.3+2000)localStorage.setItem(SKEY+'_prev',_old);}catch{}
       G=incoming;
+      let _healRestored=false;
+      try{
+        if(localStorage.getItem('pp_heal_restore')){
+          localStorage.removeItem('pp_heal_restore');
+          const c=localStorage.getItem(SKEY+'_cache');
+          if(c){G=JSON.parse(c);_healRestored=true;}
+        }
+      }catch{}
       restorePhotosFromLocal();
       try{localStorage.setItem(SKEY+'_cache',JSON.stringify(G));}catch{}
       _appReady=true;
       hideLoader();
       initApp();
+      if(_healRestored)setTimeout(()=>{try{saveD();}catch{}},800);
       if(fromServer) setSyncDot('ok');
       // Photos stored in Firestore — no migration needed
     } else if(fromServer){
@@ -6308,9 +6345,12 @@ function subscribeCloud(){
 }
 
 // Re-subscribe when tab becomes visible again (phone coming back from background)
+let _hiddenAt=0;
 document.addEventListener('visibilitychange',()=>{
+  if(document.visibilityState==='hidden'){_hiddenAt=Date.now();return;}
   if(document.visibilityState==='visible'&&currentUser&&_appReady){
-    subscribeCloud();
+    // Firestore reconnects by itself; only resubscribe after a long absence
+    if(!_cloudListener||(_hiddenAt&&Date.now()-_hiddenAt>5*60*1000))subscribeCloud();
   }
 });
 
@@ -6365,11 +6405,15 @@ function saveD(){
       console.log('[saveD] payload size:',Math.round(payloadSize/1024),'KB, goals with photos:',
         (payload.goals||[]).filter(g=>g.photo).map(g=>({title:g.title,photoLen:g.photo?.length||0})));
       await db.collection('users').doc(currentUser.uid).set(payload);
+      _saveRetry=0;
       setSyncDot('ok');
       showSaveStatus('saved','✓ Сохранено');
     }catch(e){
       console.warn('[saveD] Firestore error:',e.code||'',e.message||e);
-      if(e.code==='unavailable'||e.code==='deadline-exceeded'||!navigator.onLine){
+      if(isFsAssertion(e)){
+        setSyncDot('syncing');
+        fsSelfHeal();
+      } else if(e.code==='unavailable'||e.code==='deadline-exceeded'||!navigator.onLine){
         setSyncDot('syncing');
         showSaveStatus('error','⚡ Нет сети — сохранено локально');
       } else if(e.code==='permission-denied'||e.code==='unauthenticated'){
@@ -6395,6 +6439,8 @@ function saveD(){
       } else {
         setSyncDot('error');
         showSaveStatus('error','✗ Ошибка: '+(e.code||e.message||'unknown'));
+        // Auto-retry up to 3 times so the red dot heals itself
+        if(_saveRetry<3){_saveRetry++;setTimeout(()=>{try{saveD();}catch{}},5000*_saveRetry);}
       }
     }finally{
       _saveTimer=null;
