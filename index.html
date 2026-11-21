@@ -21,10 +21,10 @@
 <!-- DOMPurify — sanitizes innerHTML -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.1.5/purify.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 <!-- Firebase -->
-<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-storage-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-storage-compat.js"></script>
 <script>
 // ⬇️ ТВОЙ Firebase config (замени на свой из Firebase Console → Project Settings)
 const firebaseConfig = {
@@ -39,13 +39,12 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
-try{ db.settings({ignoreUndefinedProperties:true, experimentalAutoDetectLongPolling:true, merge:true}); }catch(e){ console.warn('Firestore settings',e); }
 const storage = firebase.storage();
 window._fbStorage = storage; // expose for use in functions
 let currentUser = null;
 
 // ── Offline persistence — data available without internet ──
-db.enablePersistence().catch(e=>{
+db.enablePersistence({synchronizeTabs:true}).catch(e=>{
   if(e.code==='failed-precondition'){
     // Multiple tabs open — only one can use persistence at a time, acceptable
     console.warn('Firestore persistence: multiple tabs open');
@@ -6072,40 +6071,13 @@ function showSaveStatus(state,msg){
   clearTimeout(el._t);
   el._t=setTimeout(()=>{el.className=''},2500);
 }
-/* ── Firestore self-heal ─────────────────────────────
-   "INTERNAL ASSERTION FAILED" = broken IndexedDB cache in the SDK.
-   Fix: terminate client → clear local cache → reload (once per 10 min).
-   Unsaved data is kept in localStorage cache and restored after reload.
-──────────────────────────────────────────────────── */
-function isFsAssertion(e){
-  const m=String((e&&(e.message||e.reason&&e.reason.message))||e||'');
-  return m.includes('INTERNAL ASSERTION FAILED');
-}
-let _healing=false;
-async function fsSelfHeal(){
-  if(_healing)return;
-  let last=0;try{last=+sessionStorage.getItem('pp_heal_ts')||0;}catch{}
-  if(Date.now()-last<600000){console.warn('[heal] already tried recently');return;}
-  _healing=true;
-  try{sessionStorage.setItem('pp_heal_ts',String(Date.now()));}catch{}
-  try{localStorage.setItem('pp_heal_restore','1');}catch{}
-  try{showSaveStatus('error','♻️ Чиню кэш базы, перезагрузка...');}catch{}
-  try{if(_cloudListener){_cloudListener();_cloudListener=null;}}catch{}
-  try{await db.terminate();}catch(e){console.warn('[heal] terminate',e);}
-  try{await db.clearPersistence();}catch(e){console.warn('[heal] clearPersistence',e);}
-  setTimeout(()=>location.reload(),400);
-}
-window.addEventListener('unhandledrejection',ev=>{if(isFsAssertion(ev.reason)){ev.preventDefault();fsSelfHeal();}});
-window.addEventListener('error',ev=>{if(isFsAssertion(ev.error||ev.message)){fsSelfHeal();}});
-
-let _saveRetry=0;
 let _syncWd=null;
 function setSyncDot(state){
   const d=document.getElementById('syncDot');if(!d)return;
   clearTimeout(_syncWd);
   d.className='syncDot'+(state==='syncing'?' syncing':state==='error'?' error':'');
   const offline=!navigator.onLine;
-  d.title=state==='error'?'Ошибка синхронизации — повторю автоматически':offline?'Нет сети — сохранено локально, отправится при подключении':state==='syncing'?'Сохранение...':'Синхронизировано';
+  d.title=state==='error'?'Ошибка доступа к облаку':offline?'Нет сети — сохранено локально, отправится при подключении':state==='syncing'?'Сохранение...':'Синхронизировано';
   // Firestore keeps data locally, so a slow ack must not leave the dot yellow forever
   if(state==='syncing'&&!offline){
     _syncWd=setTimeout(()=>{if(navigator.onLine)setSyncDot('ok');},3500);
@@ -6290,23 +6262,12 @@ function subscribeCloud(){
 
     if(!_appReady){
       // First boot — always use incoming data regardless of source
-      try{const _old=localStorage.getItem(SKEY+'_cache');
-        if(_old&&_old.length>JSON.stringify(incoming).length*1.3+2000)localStorage.setItem(SKEY+'_prev',_old);}catch{}
       G=incoming;
-      let _healRestored=false;
-      try{
-        if(localStorage.getItem('pp_heal_restore')){
-          localStorage.removeItem('pp_heal_restore');
-          const c=localStorage.getItem(SKEY+'_cache');
-          if(c){G=JSON.parse(c);_healRestored=true;}
-        }
-      }catch{}
       restorePhotosFromLocal();
       try{localStorage.setItem(SKEY+'_cache',JSON.stringify(G));}catch{}
       _appReady=true;
       hideLoader();
       initApp();
-      if(_healRestored)setTimeout(()=>{try{saveD();}catch{}},800);
       if(fromServer) setSyncDot('ok');
       // Photos stored in Firestore — no migration needed
     } else if(fromServer){
@@ -6345,12 +6306,9 @@ function subscribeCloud(){
 }
 
 // Re-subscribe when tab becomes visible again (phone coming back from background)
-let _hiddenAt=0;
 document.addEventListener('visibilitychange',()=>{
-  if(document.visibilityState==='hidden'){_hiddenAt=Date.now();return;}
   if(document.visibilityState==='visible'&&currentUser&&_appReady){
-    // Firestore reconnects by itself; only resubscribe after a long absence
-    if(!_cloudListener||(_hiddenAt&&Date.now()-_hiddenAt>5*60*1000))subscribeCloud();
+    subscribeCloud();
   }
 });
 
@@ -6405,15 +6363,11 @@ function saveD(){
       console.log('[saveD] payload size:',Math.round(payloadSize/1024),'KB, goals with photos:',
         (payload.goals||[]).filter(g=>g.photo).map(g=>({title:g.title,photoLen:g.photo?.length||0})));
       await db.collection('users').doc(currentUser.uid).set(payload);
-      _saveRetry=0;
       setSyncDot('ok');
       showSaveStatus('saved','✓ Сохранено');
     }catch(e){
       console.warn('[saveD] Firestore error:',e.code||'',e.message||e);
-      if(isFsAssertion(e)){
-        setSyncDot('syncing');
-        fsSelfHeal();
-      } else if(e.code==='unavailable'||e.code==='deadline-exceeded'||!navigator.onLine){
+      if(e.code==='unavailable'||e.code==='deadline-exceeded'||!navigator.onLine){
         setSyncDot('syncing');
         showSaveStatus('error','⚡ Нет сети — сохранено локально');
       } else if(e.code==='permission-denied'||e.code==='unauthenticated'){
@@ -6439,8 +6393,6 @@ function saveD(){
       } else {
         setSyncDot('error');
         showSaveStatus('error','✗ Ошибка: '+(e.code||e.message||'unknown'));
-        // Auto-retry up to 3 times so the red dot heals itself
-        if(_saveRetry<3){_saveRetry++;setTimeout(()=>{try{saveD();}catch{}},5000*_saveRetry);}
       }
     }finally{
       _saveTimer=null;
@@ -16774,7 +16726,6 @@ function anlToggleFilter(id){if(!id)anlSetLabels([]);else anlToggleLbl(id);}
 const CMD_ITEMS=[
   {icon:'🏠',label:'Дашборд',shortcut:'',action:()=>navigateTo('dash')},
   {icon:'📝',label:'Заметки',action:()=>navigateTo('notes')},
-  {icon:'🛟',label:'Резервные копии / восстановление',action:()=>bkOpen()},
   {icon:'➕',label:'Новая заметка',action:()=>{navigateTo('notes');ntNew()}},
   {icon:'📅',label:'Недельный планировщик',action:()=>navigateTo('weekly')},
   {icon:'✅',label:'Трекер привычек',action:()=>navigateTo('habits')},
@@ -21720,41 +21671,6 @@ function ntIndent(out){
   if(e.key==='Backspace'){const li=ntSelEl()&&ntSelEl().closest('li');
     if(li&&li.dataset.lv&&!li.textContent.trim()){e.preventDefault();ntIndent(true);return}}
   return _k(e)}}
-
-/* ═══ BACKUP / RESTORE (открывается по адресу  …/#backup  или через ⌘K) ═══ */
-function bkSum(o){if(!o||typeof o!=='object'||Array.isArray(o))return 'нет данных';const p=[];
-  for(const k in o){const v=o[k];if(k==='_ping')continue;const n=Array.isArray(v)?v.length:(v&&typeof v==='object'?Object.keys(v).length:0);if(n)p.push(k+': '+n)}
-  return p.slice(0,16).join(' · ')||'пусто'}
-function bkRead(k){try{return JSON.parse(localStorage.getItem(SKEY+k)||'null')}catch(e){return null}}
-function bkSave(obj,name){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(obj)],{type:'application/json'}));a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),3000)}
-function bkApply(obj){
-  if(!currentUser){alert('Сначала войди в свой аккаунт, потом восстанавливай.');return}
-  if(!obj||typeof obj!=='object'||Array.isArray(obj)){alert('Это не копия планера');return}
-  if(!confirm('Заменить текущие данные аккаунта этой копией?\nТекущее состояние я сначала скачаю файлом.'))return;
-  try{bkSave(G,'planner-before-restore.json')}catch(e){}
-  G=obj;try{localStorage.setItem(SKEY+'_cache',JSON.stringify(G))}catch(e){}
-  saveD();alert('Готово, данные отправлены в облако. Обнови страницу через пару секунд.');
-}
-function bkOpen(){
-  const src=[['Сейчас в приложении',typeof G!=='undefined'?G:null,'now'],['Локальная копия (кэш)',bkRead('_cache'),'cache'],['Прежняя копия до последней синхронизации',bkRead('_prev'),'prev']];
-  const ov=document.createElement('div');ov.style.cssText='position:fixed;inset:0;z-index:2147483000;background:rgba(5,6,16,.9);overflow:auto;padding:16px;display:flex;justify-content:center;align-items:flex-start';
-  ov.innerHTML=`<div style="background:var(--card,#14162b);border:1px solid var(--border2,#333);border-radius:18px;padding:16px;max-width:520px;width:100%;color:var(--text,#fff);font-size:13px">
-   <div style="display:flex;align-items:center;margin-bottom:6px"><b style="font-size:17px;flex:1">🛟 Резервные копии</b><button class="btn btnG" id="bkX">✕</button></div>
-   <div style="color:var(--muted,#999);margin-bottom:12px">Сначала скачай копию с нужными данными, потом восстанови. Аккаунт: ${currentUser?esc(currentUser.email||currentUser.uid):'не выполнен вход'}</div>
-   ${src.map((s,i)=>`<div style="border:1px solid var(--border,#333);border-radius:12px;padding:10px;margin-bottom:8px"><b>${s[0]}</b>
-     <div style="color:var(--muted,#999);margin:4px 0 8px;word-break:break-word">${esc(bkSum(s[1]))}</div>
-     ${s[1]?`<button class="btn btnG" data-dl="${i}">⬇ Скачать</button> `:''}${s[1]&&i>0?`<button class="btn btnE" data-rs="${i}">♻ Восстановить</button>`:''}</div>`).join('')}
-   <div style="border:1px dashed var(--border2,#444);border-radius:12px;padding:10px"><b>Из файла</b><div style="margin:6px 0"><input type="file" id="bkF" accept=".json,application/json"></div></div></div>`;
-  document.body.appendChild(ov);
-  ov.onclick=e=>{
-    if(e.target===ov||e.target.id==='bkX'){ov.remove();return}
-    const d=e.target.dataset;if(d.dl!=null)bkSave(src[d.dl][1],'planner-'+src[d.dl][2]+'.json');
-    if(d.rs!=null){bkApply(src[d.rs][1]);}
-  };
-  ov.querySelector('#bkF').onchange=ev=>{const f=ev.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{try{bkApply(JSON.parse(r.result))}catch(e){alert('Не удалось прочитать файл')}};r.readAsText(f)};
-}
-window.addEventListener('hashchange',()=>{if(location.hash==='#backup')bkOpen()});
-window.addEventListener('load',()=>{if(location.hash==='#backup')setTimeout(bkOpen,800)});
 </script>
 
 </div><!-- /appWrap -->
