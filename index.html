@@ -6049,7 +6049,8 @@ let G={};
 let _saveTimer=null;
 let _cloudListener=null;   // onSnapshot unsubscribe fn
 let _appReady=false;       // true after first cloud load
-let _myLastWriteAt=0;      // timestamp of OUR last confirmed write
+let _serverSynced=false;   // true только после снимка С СЕРВЕРА (не из кэша) — до этого запись в облако запрещена
+let _baseVer=0;            // версия документа (_ver), на которой основаны наши локальные данные
 let _connectTimeout=null;  // safety timeout for Firestore first-connect
 
 // ── Loader helpers ──
@@ -6251,41 +6252,42 @@ function subscribeCloud(){
     .onSnapshot(snap=>{
     clearTimeout(_connectTimeout);
 
+    // ── Снимок из локального кэша Firestore: НИКОГДА не считаем его истиной ──
+    // Он нужен только чтобы быстро показать UI. Записывать в облако на его основе нельзя.
+    if(snap.metadata.fromCache){
+      if(!_appReady){
+        if(snap.exists)G=snap.data();
+        _appReady=true;hideLoader();initApp();
+      }
+      setSyncDot('syncing');
+      return;
+    }
+
+    // ── Дальше — только данные, подтверждённые сервером ──
     if(!snap.exists){
+      // Новый пользователь: документа на сервере действительно нет
+      _serverSynced=true;_baseVer=0;
       if(!_appReady){_appReady=true;hideLoader();initApp();}
+      setSyncDot('ok');
       return;
     }
 
     const incoming=snap.data();
-    const fromServer=!snap.metadata.hasPendingWrites;
-    console.log('[snapshot] fromServer:',fromServer,'goals with photos:',(incoming.goals||[]).filter(g=>g&&g.photo).map(g=>({title:g.title,photoLen:g.photo?.length||0})));
+    const srvVer=incoming._ver||0;
+    const first=!_serverSynced;
+    const changed=srvVer!==_baseVer;
+    _serverSynced=true;
+    _baseVer=srvVer;
 
-    if(!_appReady){
-      // First boot — always use incoming data regardless of source
+    if(first||changed){
+      // Первый серверный снимок или другое устройство обновило данные
+      if(first) backupServerData(incoming);
       G=incoming;
-      restorePhotosFromLocal();
       try{localStorage.setItem(SKEY+'_cache',JSON.stringify(G));}catch{}
-      _appReady=true;
-      hideLoader();
-      initApp();
-      if(fromServer) setSyncDot('ok');
-      // Photos stored in Firestore — no migration needed
-    } else if(fromServer){
-      // Confirmed server data — could be our own echo or remote change
-      const isOwnEcho=Date.now()-_myLastWriteAt<8000;
-      setSyncDot('ok');
-      if(!isOwnEcho){
-        // Remote change from another device
-        G=incoming;
-        restorePhotosFromLocal();
-        try{localStorage.setItem(SKEY+'_cache',JSON.stringify(G));}catch{}
-        reRenderCurrentTab();
-        showSaveStatus('saved','↓ Синхронизировано');
-      }
-    } else {
-      // hasPendingWrites — our local write buffered, not yet on server
-      setSyncDot('syncing');
+      if(!_appReady){_appReady=true;hideLoader();initApp();}
+      else{reRenderCurrentTab();if(!first)showSaveStatus('saved','↓ Синхронизировано');}
     }
+    setSyncDot('ok');
 
   }, err=>{
     clearTimeout(_connectTimeout);
@@ -6303,6 +6305,26 @@ function subscribeCloud(){
       initApp();
     }
   });
+}
+
+// ── Ежедневная резервная копия СЕРВЕРНЫХ данных (до того как мы что-либо перезапишем) ──
+// 1) localStorage (последние 7 дней, без фото)  2) Firestore users/{uid}/backups/{дата} (если разрешено правилами)
+function backupServerData(data){
+  try{
+    const day=new Date().toISOString().slice(0,10);
+    const key='planner_backup_'+day;
+    if(localStorage.getItem(key))return;
+    const light=JSON.stringify(data,(_k,v)=>(typeof v==='string'&&v.startsWith('data:'))?'':v);
+    try{localStorage.setItem(key,light);}catch{}
+    // удалить копии старше 7 дней
+    const keys=[];
+    for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);if(k&&k.startsWith('planner_backup_'))keys.push(k);}
+    keys.sort().slice(0,-7).forEach(k=>{try{localStorage.removeItem(k);}catch{}});
+    if(light.length<900000&&currentUser){
+      db.collection('users').doc(currentUser.uid).collection('backups').doc(day)
+        .set({day,json:light,at:Date.now()}).catch(()=>{});
+    }
+  }catch(e){console.warn('[backup]',e);}
 }
 
 // Re-subscribe when tab becomes visible again (phone coming back from background)
@@ -6329,11 +6351,6 @@ function saveD(){
       localStorage.setItem(SKEY+'_cache', JSON.stringify(light));
     }catch(e2){}
   }
-  // 3. Mark write time IMMEDIATELY so isOwnEcho works correctly for any
-  //    incoming Firestore snapshot that arrives before the 500ms debounce fires.
-  //    Without this, G=incoming could overwrite local data (e.g. sleep entries)
-  //    before our Firestore write even started.
-  _myLastWriteAt=Date.now();
   // 4. Debounce Firestore write — 500ms
   clearTimeout(_saveTimer);
   // ── BUG FIX: setSyncDot('syncing') moved INSIDE the timeout ──
@@ -6342,10 +6359,12 @@ function saveD(){
   _saveTimer=setTimeout(async()=>{
     setSyncDot('syncing');
     if(!currentUser){setSyncDot('error');return;}
+    // ЗАЩИТА: пока не получены данные с сервера, в облако не пишем (данные из кэша могут быть старыми).
+    // Локальный кэш уже сохранён; после первого серверного снимка данные синхронизируются.
+    if(!_serverSynced){_saveTimer=null;setSyncDot('syncing');return;}
     if(_isSaving){_pendingSave=true;return;}
     _isSaving=true;
     _pendingSave=false;
-    _myLastWriteAt=Date.now(); // refresh timestamp right before actual write
     try{
       let payload;
       try{
@@ -6362,12 +6381,29 @@ function saveD(){
       const payloadSize=JSON.stringify(payload).length;
       console.log('[saveD] payload size:',Math.round(payloadSize/1024),'KB, goals with photos:',
         (payload.goals||[]).filter(g=>g.photo).map(g=>({title:g.title,photoLen:g.photo?.length||0})));
-      await db.collection('users').doc(currentUser.uid).set(payload);
+      // Транзакция с проверкой версии: запись пройдёт только если на сервере всё ещё та версия,
+      // на которой основаны наши данные. Иначе — другое устройство успело обновить, и мы НЕ затираем его.
+      const ref=db.collection('users').doc(currentUser.uid);
+      let newVer=0;
+      await db.runTransaction(async tx=>{
+        const s=await tx.get(ref);
+        const sv=s.exists?(s.data()._ver||0):0;
+        if(sv!==_baseVer) throw {code:'stale-version'};
+        newVer=sv+1;
+        payload._ver=newVer;
+        tx.set(ref,payload);
+      });
+      _baseVer=newVer;G._ver=newVer;
+      try{localStorage.setItem(SKEY+'_cache',JSON.stringify(G));}catch{}
       setSyncDot('ok');
       showSaveStatus('saved','✓ Сохранено');
     }catch(e){
       console.warn('[saveD] Firestore error:',e.code||'',e.message||e);
-      if(e.code==='unavailable'||e.code==='deadline-exceeded'||!navigator.onLine){
+      if(e.code==='stale-version'){
+        showSaveStatus('error','⚠️ Данные обновились на другом устройстве — загружаю свежие');
+        _serverSynced=false;
+        subscribeCloud();
+      } else if(e.code==='unavailable'||e.code==='deadline-exceeded'||!navigator.onLine){
         setSyncDot('syncing');
         showSaveStatus('error','⚡ Нет сети — сохранено локально');
       } else if(e.code==='permission-denied'||e.code==='unauthenticated'){
@@ -6383,7 +6419,9 @@ function saveD(){
             if(typeof v==='string'&&v.startsWith('data:')) return '';
             return v===undefined?null:v;
           }));
+          nuclear._ver=_baseVer+1;
           await db.collection('users').doc(currentUser.uid).set(nuclear);
+          _baseVer=nuclear._ver;G._ver=nuclear._ver;
           setSyncDot('ok');
           showSaveStatus('saved','✓ Сохранено (фото слишком большие — загрузи их заново меньшего размера)');
         }catch(e2){
@@ -6497,7 +6535,7 @@ auth.onAuthStateChanged(async(user)=>{
   } else {
     currentUser=null;
     G={};
-    _appReady=false;
+    _appReady=false;_serverSynced=false;_baseVer=0;
     if(_cloudListener){_cloudListener();_cloudListener=null;}
     document.getElementById('authOverlay').classList.remove('hidden');
     document.getElementById('appWrap').style.display='none';
